@@ -737,10 +737,49 @@ function renderHome(){
       <div class="urg-date">${d<0?`متأخر ${Math.abs(d)} يوم`:d===0?'اليوم!!':(`بعد ${d} أيام`)}</div>
     </div>`;}).join(''):'';
 
-  document.getElementById('home-cards').innerHTML=list.slice(0,3).map(cardHTML).join('');
+  document.getElementById('home-cards').innerHTML='';
   document.getElementById('home-order-btn').innerHTML=`
     <button class="big-btn" style="background:linear-gradient(135deg,#065f46,#0e7490);color:white;margin-bottom:8px" onclick="openMeterOverlay()">⏱️ تحديث العدادات اليومي</button>
     <button class="big-btn" onclick="openOrder(true,null)">📦 طلبية فلاتر — 4 صيانات (جميع المعدات)</button>`;
+
+  // تقرير الساعات المتبقية لكل المعدات
+  const withHours = list.filter(e=>Number(e.nextHours||0)>0);
+  const sorted = [...list].sort((a,b)=>{
+    const ra = hoursRemaining(a)??9999;
+    const rb = hoursRemaining(b)??9999;
+    return ra-rb;
+  });
+
+  document.getElementById('home-cards').innerHTML = `
+    <div class="sec-title" style="margin-top:8px">⏳ تقرير الساعات المتبقية على الصيانة</div>
+    <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:var(--card-shadow);margin-bottom:10px">
+      ${sorted.map((e,i)=>{
+        const rem = hoursRemaining(e);
+        const cur = Number(e.hours||0);
+        const next = Number(e.nextHours||0);
+        const pct = next>0?Math.min(Math.round((cur/next)*100),100):0;
+        const barColor = rem===null?'var(--muted)':rem<=0?'var(--red)':rem<=10?'var(--red)':rem<=50?'var(--amber)':'var(--green)';
+        const remLabel = rem===null?'—':rem<=0?`متأخر ${Math.abs(rem)} ساعة`:rem<=10?`🔴 ${rem} ساعة`:rem<=50?`🟡 ${rem} ساعة`:`✅ ${rem} ساعة`;
+        return `<div style="padding:12px 14px;border-bottom:${i<sorted.length-1?'1px solid var(--bg)':'none'};cursor:pointer" onclick="openDetail('${e.id}')">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:13px">${ICONS[e.type]||'🔧'}</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--navy)">${e.name}</div>
+                <div style="font-size:10px;color:var(--muted)">${e.code} • ${e.type==='مولد كهربائي'&&e.kva?`⚡${e.kva}KVA`:e.type}</div>
+              </div>
+            </div>
+            <div style="text-align:left">
+              <div style="font-size:12px;font-weight:800;color:${barColor}">${remLabel}</div>
+              ${next>0?`<div style="font-size:10px;color:var(--muted)">عند: ${next.toLocaleString('ar')} س</div>`:'<div style="font-size:10px;color:var(--muted)">لم يُحدد</div>'}
+            </div>
+          </div>
+          ${next>0?`<div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.5s"></div>
+          </div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
 // ═══════════════════════════════════════════════
