@@ -642,11 +642,16 @@ function refreshCurrentView(){
 // ═══════════════════════════════════════════════
 // ORDER LOGIC
 // ═══════════════════════════════════════════════
+function filterTotalQty(f){
+  const altQty = (f.alts||[]).reduce((s,a)=>s+Number(a.qty||0),0);
+  return Number(f.qty||0)+altQty;
+}
 function calcOrder(e){
   return Object.values(e.filters||{}).map(f=>{
     const needed=f.usedPerService*4;
-    const shortage=Math.max(0,needed-f.qty);
-    return{...f,needed,shortage,sufficient:shortage===0};
+    const totalQty=filterTotalQty(f);
+    const shortage=Math.max(0,needed-totalQty);
+    return{...f,needed,shortage,totalQty,sufficient:shortage===0};
   });
 }
 function allShortages(){
@@ -909,9 +914,11 @@ function detailFiltersHTML(e){
   let html=`<div class="sec-lbl">الفلاتر المتوفرة (${filters.length})</div>`;
   if(!filters.length) html+=`<div class="empty">لا توجد فلاتر — أضف أول فلتر ⬇️</div>`;
   filters.forEach(([fid,f])=>{
-    const cls=f.qty===0?'critical':f.qty<f.usedPerService*2?'low':'';
-    const sl=f.qty<f.usedPerService?'⚠️ ناقص':f.qty<f.usedPerService*2?'⬇️ منخفض':'✅ كافٍ';
-    const sc=f.qty<f.usedPerService?'var(--red)':f.qty<f.usedPerService*2?'var(--amber)':'var(--green)';
+    const total=filterTotalQty(f);
+    const cls=total===0?'critical':total<f.usedPerService*2?'low':'';
+    const sl=total<f.usedPerService?'⚠️ ناقص':total<f.usedPerService*2?'⬇️ منخفض':'✅ كافٍ';
+    const sc=total<f.usedPerService?'var(--red)':total<f.usedPerService*2?'var(--amber)':'var(--green)';
+    const alts=f.alts||[];
     html+=`<div class="filter-card ${cls}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -921,13 +928,28 @@ function detailFiltersHTML(e){
         </div>
         <button class="del-btn" onclick="deleteFilter('${fid}')">حذف</button>
       </div>
-      <div class="f-row">
-        <div class="qty-row">
-          <button class="qty-btn" style="background:var(--red)" onclick="adjustQty('${fid}',-1)">−</button>
-          <span class="qty-num">${f.qty}</span>
-          <button class="qty-btn" style="background:var(--green)" onclick="adjustQty('${fid}',1)">+</button>
+      <div style="background:var(--bg);border-radius:10px;padding:10px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:11px;color:var(--muted);font-weight:600">الأصلي (${f.partNo})</span>
+          <div class="qty-row">
+            <button class="qty-btn" style="background:var(--red);width:26px;height:26px;font-size:16px" onclick="adjustQty('${fid}',-1)">−</button>
+            <span class="qty-num" style="font-size:16px">${f.qty}</span>
+            <button class="qty-btn" style="background:var(--green);width:26px;height:26px;font-size:16px" onclick="adjustQty('${fid}',1)">+</button>
+          </div>
         </div>
-        <span style="font-size:12px;font-weight:600;color:${sc}">${sl}</span>
+        ${alts.map((a,i)=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:11px;color:var(--teal);font-weight:600">بديل ${i+1} (${a.partNo})</span>
+          <div class="qty-row">
+            <button class="qty-btn" style="background:var(--red);width:26px;height:26px;font-size:16px" onclick="adjustAltQty('${fid}',${i},-1)">−</button>
+            <span class="qty-num" style="font-size:16px">${a.qty||0}</span>
+            <button class="qty-btn" style="background:var(--green);width:26px;height:26px;font-size:16px" onclick="adjustAltQty('${fid}',${i},1)">+</button>
+          </div>
+        </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid rgba(0,0,0,0.06);margin-top:4px">
+          <span style="font-size:12px;font-weight:800;color:var(--navy)">الإجمالي: ${total}</span>
+          <span style="font-size:12px;font-weight:700;color:${sc}">${sl}</span>
+        </div>
       </div>
     </div>`;
   });
@@ -935,10 +957,12 @@ function detailFiltersHTML(e){
     <div class="add-f-title">➕ إضافة فلتر جديد</div>
     <div class="add-f-grid">
       <input class="add-f-input" id="nf-type" placeholder="نوع الفلتر">
-      <input class="add-f-input" id="nf-part" placeholder="رقم القطعة P/N">
-      <input class="add-f-input" type="number" id="nf-qty" placeholder="الكمية المتوفرة">
+      <input class="add-f-input" id="nf-part" placeholder="رقم القطعة الأصلي P/N">
+      <input class="add-f-input" type="number" id="nf-qty" placeholder="كمية الأصلي في المخزن">
       <input class="add-f-input" type="number" id="nf-per" placeholder="يُستخدم/صيانة" value="1">
     </div>
+    <div id="nf-alts-list"></div>
+    <button onclick="nfAddAlt()" style="width:100%;background:#f0fdf4;color:var(--green);border:1px dashed var(--green);border-radius:8px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px">➕ إضافة رقم بديل بكميته</button>
     <button class="add-f-btn" onclick="addFilter()">✅ إضافة الفلتر</button>
   </div>`;
   return html;
@@ -970,6 +994,14 @@ function detailOrderHTML(e){
 // ═══════════════════════════════════════════════
 // FILTER ACTIONS
 // ═══════════════════════════════════════════════
+function adjustAltQty(fid, altIndex, delta){
+  const e=getEq(currentEqId);
+  const f=e.filters[fid]; if(!f) return;
+  const alts = [...(f.alts||[])];
+  if(!alts[altIndex]) return;
+  alts[altIndex] = {...alts[altIndex], qty: Math.max(0,(alts[altIndex].qty||0)+delta)};
+  dbUpdate(`equipment/${currentEqId}/filters/${fid}`,{alts});
+}
 function adjustQty(fid,delta){
   const e=getEq(currentEqId);
   const f=e.filters[fid]; if(!f)return;
@@ -980,13 +1012,40 @@ function deleteFilter(fid){
   dbRemove(`equipment/${currentEqId}/filters/${fid}`);
   toast('تم حذف الفلتر');
 }
+let nfAltCount = 0;
+function nfAddAlt(){
+  nfAltCount++;
+  const n = nfAltCount;
+  const div = document.createElement('div');
+  div.id = `nf-alt-row-${n}`;
+  div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center';
+  div.innerHTML = `
+    <input class="add-f-input" id="nf-alt-pn-${n}" placeholder="رقم بديل ${n}">
+    <input class="add-f-input" type="number" id="nf-alt-qty-${n}" placeholder="كميته" value="0">
+    <button onclick="nfRemoveAlt(${n})" style="background:#fee2e2;border:none;color:var(--red);border-radius:8px;padding:8px;font-size:14px;cursor:pointer;font-family:inherit">×</button>`;
+  document.getElementById('nf-alts-list').appendChild(div);
+}
+function nfRemoveAlt(n){
+  const el = document.getElementById(`nf-alt-row-${n}`);
+  if(el) el.remove();
+}
 function addFilter(){
   const type=document.getElementById('nf-type').value.trim();
   const partNo=document.getElementById('nf-part').value.trim();
   const qty=parseInt(document.getElementById('nf-qty').value)||0;
   const usedPerService=parseInt(document.getElementById('nf-per').value)||1;
   if(!type||!partNo){toast('يرجى إدخال نوع الفلتر ورقم القطعة');return;}
-  dbPush(`equipment/${currentEqId}/filters`,{type,partNo,qty,usedPerService});
+  // جمع البدائل
+  const alts=[];
+  for(let i=1;i<=nfAltCount;i++){
+    const pnEl=document.getElementById(`nf-alt-pn-${i}`);
+    const qEl=document.getElementById(`nf-alt-qty-${i}`);
+    if(pnEl&&pnEl.value.trim()) alts.push({partNo:pnEl.value.trim(),qty:parseInt(qEl?.value)||0});
+  }
+  dbPush(`equipment/${currentEqId}/filters`,{type,partNo,qty,usedPerService,alts});
+  // reset
+  nfAltCount=0;
+  document.getElementById('nf-alts-list').innerHTML='';
   toast('✅ تم إضافة الفلتر');
 }
 
@@ -1689,6 +1748,9 @@ window.openAddModal = openAddModal;
 window.closeAddModal = closeAddModal;
 window.saveEquipment = saveEquipment;
 window.adjustQty = adjustQty;
+window.adjustAltQty = adjustAltQty;
+window.nfAddAlt = nfAddAlt;
+window.nfRemoveAlt = nfRemoveAlt;
 window.deleteFilter = deleteFilter;
 window.addFilter = addFilter;
 window.setFilter = setFilter;
