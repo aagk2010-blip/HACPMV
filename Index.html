@@ -479,7 +479,7 @@ let firebaseConfig = null;
 let db = null; // سنستخدمه كـ flag فقط
 
 function fbUrl(path){
-  return `${firebaseConfig.databaseURL}/${path}.json?auth=${firebaseConfig.apiKey}`;
+  return `${firebaseConfig.databaseURL}/${path}.json`;
 }
 
 function dbSet(path, val){
@@ -539,10 +539,33 @@ function fetchAll(){
 
 function initFirebase(cfg){
   firebaseConfig = cfg;
-  db = true; // flag
-  document.getElementById('setup-screen').style.display='none';
-  setSyncStatus('متصل 🟢', false);
-  startPolling();
+  db = true;
+  // أخفِ شاشة الإعداد فوراً
+  const setup = document.getElementById('setup-screen');
+  if(setup) setup.style.display='none';
+  setSyncStatus('جاري الاتصال...', false);
+  // اختبر الاتصال
+  fetch(fbUrl('equipment'))
+    .then(r=>{
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    })
+    .then(data=>{
+      equipment = data||{};
+      setSyncStatus('متصل 🟢', false);
+      refreshCurrentView();
+      checkMaintenanceAlerts();
+      startPolling();
+    })
+    .catch(err=>{
+      setSyncStatus('خطأ: '+err.message+' 🔴', true);
+      console.error('Firebase error:', err);
+    });
+  // جلب المخزن
+  fetch(fbUrl('inventory'))
+    .then(r=>r.json())
+    .then(data=>{ inventory = data||{}; })
+    .catch(()=>{});
 }
 
 function setNestedPath(obj,path,val){
