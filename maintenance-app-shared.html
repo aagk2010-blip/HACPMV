@@ -643,25 +643,48 @@ function refreshCurrentView(){
 // ORDER LOGIC
 // ═══════════════════════════════════════════════
 function filterTotalQty(f){
+  // إذا مرتبط بالمخزن المشترك — خذ الكمية منه
+  if(f.invId && inventory[f.invId]){
+    const inv = inventory[f.invId];
+    const altQty = (inv.alts||[]).reduce((s,a)=>s+Number(a.qty||0),0);
+    return Number(inv.qty||0)+altQty;
+  }
+  // غير مرتبط — خذ من كمية الفلتر المحلية
   const altQty = (f.alts||[]).reduce((s,a)=>s+Number(a.qty||0),0);
   return Number(f.qty||0)+altQty;
 }
+
+function getFilterName(f){
+  if(f.invId && inventory[f.invId]) return inventory[f.invId].type;
+  return f.type;
+}
+
+function getFilterPartNo(f){
+  if(f.invId && inventory[f.invId]) return inventory[f.invId].partNo;
+  return f.partNo;
+}
+
 function calcOrder(e){
   return Object.values(e.filters||{}).map(f=>{
-    const needed=f.usedPerService*4;
-    const totalQty=filterTotalQty(f);
-    const shortage=Math.max(0,needed-totalQty);
-    return{...f,needed,shortage,totalQty,sufficient:shortage===0};
+    const needed = f.usedPerService*4;
+    const totalQty = filterTotalQty(f);
+    const shortage = Math.max(0, needed-totalQty);
+    const name = getFilterName(f);
+    const partNo = getFilterPartNo(f);
+    const fromInv = !!(f.invId && inventory[f.invId]);
+    return{...f, name, partNo, needed, shortage, totalQty, sufficient:shortage===0, fromInv};
   });
 }
+
 function allShortages(){
   const map={};
   eqList().forEach(eq=>{
     calcOrder(eq).forEach(f=>{
       if(f.shortage>0){
-        if(!map[f.partNo])map[f.partNo]={...f,eqs:[],totalShortage:0};
-        map[f.partNo].eqs.push(eq.code);
-        map[f.partNo].totalShortage+=f.shortage;
+        const key = f.invId||f.partNo;
+        if(!map[key])map[key]={...f,eqs:[],totalShortage:0};
+        map[key].eqs.push(eq.code);
+        map[key].totalShortage = Math.max(map[key].totalShortage, f.shortage);
       }
     });
   });
@@ -975,17 +998,42 @@ function detailOrderHTML(e){
     <div style="font-size:12px;opacity:0.7">لـ 4 صيانات — كل ${e.maintenanceInterval||250} ساعة</div>
     <div style="font-size:11px;margin-top:6px;opacity:0.6">الصيانات عند: ${[1,2,3,4].map(i=>(Number(e.hours||0)+Number(e.maintenanceInterval||250)*i).toLocaleString('ar')).join(' ، ')} ساعة</div>
   </div>`;
+  if(!items.length){
+    html+=`<div class="empty">لا توجد فلاتر مضافة لهذه المعدة</div>`;
+    return html;
+  }
   items.forEach(f=>{
+    const invData = f.invId&&inventory[f.invId] ? inventory[f.invId] : null;
+    const alts = invData ? (invData.alts||[]) : (f.alts||[]);
+    const altQtyTotal = alts.reduce((s,a)=>s+Number(a.qty||0),0);
+    const origQty = invData ? Number(invData.qty||0) : Number(f.qty||0);
     html+=`<div class="order-card" style="border-right-color:${f.sufficient?'var(--green)':'var(--red)'}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-        <div><div class="order-f-type">${f.type}</div><div class="order-f-part">P/N: ${f.partNo}</div></div>
+        <div>
+          <div class="order-f-type">${f.name||f.type}</div>
+          <div class="order-f-part">P/N: ${f.partNo}</div>
+          ${invData?`<div style="font-size:10px;color:var(--teal);margin-top:2px">📦 من المخزن المشترك</div>`:''}
+        </div>
         <span class="${f.sufficient?'ok-badge':'warn-badge'}">${f.sufficient?'✅ كافٍ':'⚠️ ناقص'}</span>
       </div>
       <div class="order-nums-grid">
-        <div class="order-num-cell"><div class="order-num-label">متوفر</div><div class="order-num-val" style="color:${f.sufficient?'var(--green)':'var(--red)'}">${f.qty}</div></div>
-        <div class="order-num-cell"><div class="order-num-label">مطلوب</div><div class="order-num-val" style="color:var(--navy)">${f.needed}</div></div>
-        <div class="order-num-cell"><div class="order-num-label">يحتاج</div><div class="order-num-val" style="color:${f.shortage>0?'var(--red)':'#9ca3af'}">${f.shortage>0?f.shortage:'—'}</div></div>
+        <div class="order-num-cell">
+          <div class="order-num-label">متوفر (إجمالي)</div>
+          <div class="order-num-val" style="color:${f.sufficient?'var(--green)':'var(--red)'}">${f.totalQty}</div>
+          <div style="font-size:9px;color:var(--muted)">أصلي:${origQty} + بدائل:${altQtyTotal}</div>
+        </div>
+        <div class="order-num-cell">
+          <div class="order-num-label">مطلوب ×4</div>
+          <div class="order-num-val" style="color:var(--navy)">${f.needed}</div>
+        </div>
+        <div class="order-num-cell">
+          <div class="order-num-label">يحتاج</div>
+          <div class="order-num-val" style="color:${f.shortage>0?'var(--red)':'#9ca3af'}">${f.shortage>0?f.shortage:'—'}</div>
+        </div>
       </div>
+      ${alts.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bg);font-size:10px;color:var(--muted)">
+        بدائل: ${alts.map(a=>`${typeof a==='object'?a.partNo:a} (${typeof a==='object'?a.qty||0:0})`).join(' | ')}
+      </div>`:''}
     </div>`;
   });
   return html;
