@@ -1360,14 +1360,19 @@ function renderInventory(){
         </div>
       </div>
       ${alts.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bg)">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">البدائل:</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">
-          ${alts.map(a=>{
-            const pn = typeof a==='object'?a.partNo:a;
-            const q  = typeof a==='object'?Number(a.qty||0):0;
-            return `<span style="background:${q>0?'#dbeafe':'var(--bg)'};color:${q>0?'#1e40af':'var(--muted)'};border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600">${pn} (${q})</span>`;
-          }).join('')}
-        </div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700">البدائل:</div>
+        ${alts.map((a,i)=>{
+          const pn = typeof a==='object'?a.partNo:a;
+          const q  = typeof a==='object'?Number(a.qty||0):0;
+          return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;background:${q>0?'#dbeafe':'var(--bg)'};border-radius:8px;padding:6px 10px">
+            <span style="font-size:11px;font-weight:600;color:#1e40af">${pn}</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <button onclick="adjustInvAltQty('${f.id}',${i},-1)" style="width:22px;height:22px;border-radius:50%;background:var(--red);border:none;color:white;font-size:13px;cursor:pointer">−</button>
+              <span style="font-size:14px;font-weight:800;color:var(--navy);min-width:20px;text-align:center">${q}</span>
+              <button onclick="adjustInvAltQty('${f.id}',${i},1)" style="width:22px;height:22px;border-radius:50%;background:var(--green);border:none;color:white;font-size:13px;cursor:pointer">+</button>
+            </div>
+          </div>`;
+        }).join('')}
       </div>`:''}
 
       ${linkedEqs.length?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bg)">
@@ -1384,6 +1389,17 @@ function adjustInvQty(id, delta){
   const f = getInv(id); if(!f) return;
   const newQty = Math.max(0, (f.qty||0)+delta);
   dbUpdate(`inventory/${id}`,{qty:newQty});
+}
+
+function adjustInvAltQty(id, altIndex, delta){
+  const f = getInv(id); if(!f) return;
+  const alts = (f.alts||[]).map((a,i)=>{
+    if(i!==altIndex) return a;
+    const pn = typeof a==='object'?a.partNo:a;
+    const q  = typeof a==='object'?Number(a.qty||0):0;
+    return { partNo:pn, qty:Math.max(0,q+delta) };
+  });
+  dbUpdate(`inventory/${id}`,{alts});
 }
 
 // ── DYNAMIC ALTERNATIVES ──
@@ -1773,6 +1789,7 @@ window.openLinkModal = openLinkModal;
 window.closeLinkModal = closeLinkModal;
 window.saveLinkFilter = saveLinkFilter;
 window.adjustInvQty = adjustInvQty;
+window.adjustInvAltQty = adjustInvAltQty;
 window.toggleCustomInterval = toggleCustomInterval;
 window.addAltField = addAltField;
 window.removeAltField = removeAltField;
