@@ -443,7 +443,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
     <div class="sec-lbl" style="padding:0 14px 6px">أرقام بديلة (اختياري)</div>
     <div style="margin:0 14px 10px;background:white;border-radius:14px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.07)">
       <div id="alts-list"></div>
-      <button onclick="addAltField()" style="width:100%;background:#f0fdf4;color:var(--green);border:1px dashed var(--green);border-radius:10px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px">➕ إضافة رقم بديل</button>
+      <button onclick="addAltField({})" style="width:100%;background:#f0fdf4;color:var(--green);border:1px dashed var(--green);border-radius:10px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px">➕ إضافة رقم بديل + كميته</button>
     </div>
     <div class="sec-lbl" style="padding:0 14px 6px">ربط بالمعدات</div>
     <div style="margin:0 14px 10px;background:white;border-radius:14px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.07)">
@@ -1415,6 +1415,7 @@ function renderAltsList(existingAlts){
 }
 
 function addAltField(data){
+  data = data || {};
   if(altCount >= 10){ toast('الحد الأقصى 10 بدائل'); return; }
   altCount++;
   const n = altCount;
@@ -1429,12 +1430,12 @@ function addAltField(data){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div style="background:white;border-radius:8px;padding:4px 10px">
-        <div style="font-size:10px;color:var(--muted)">رقم القطعة</div>
+        <div style="font-size:10px;color:var(--muted)">رقم القطعة البديلة</div>
         <input type="text" id="if-alt-${n}" value="${data.partNo||''}" placeholder="P/N البديل"
           style="border:none;outline:none;font-size:13px;font-weight:600;color:var(--navy);background:transparent;direction:rtl;width:100%;font-family:inherit;padding:4px 0">
       </div>
       <div style="background:white;border-radius:8px;padding:4px 10px">
-        <div style="font-size:10px;color:var(--muted)">الكمية في المخزن</div>
+        <div style="font-size:10px;color:var(--muted)">كميته في المخزن</div>
         <input type="number" id="if-alt-qty-${n}" value="${data.qty||0}" placeholder="0"
           style="border:none;outline:none;font-size:13px;font-weight:600;color:var(--navy);background:transparent;direction:rtl;width:100%;font-family:inherit;padding:4px 0">
       </div>
