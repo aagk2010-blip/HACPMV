@@ -583,31 +583,24 @@ let demoMode = false;
 let demoData = {};
 
 // ═══════════════════════════════════════════════
-// FIREBASE CONFIG & INIT
+// FIREBASE CONFIG - مباشرة في الكود
 // ═══════════════════════════════════════════════
-function saveFirebaseConfig() {
-  const apiKey  = document.getElementById('cfg-apikey').value.trim();
-  const dbURL   = document.getElementById('cfg-dburl').value.trim();
-  const projId  = document.getElementById('cfg-projid').value.trim();
-  if(!apiKey||!dbURL||!projId){ toast('يرجى إدخال جميع البيانات'); return; }
-  const cfg = { apiKey, databaseURL: dbURL, projectId: projId };
-  localStorage.setItem('fb_config', JSON.stringify(cfg));
-  initFirebase(cfg);
-}
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD3eWEZZDXCfHtJ6xdD9VwW8hT5vZzV0W4",
+  databaseURL: "https://hah-pmv-default-rtdb.firebaseio.com",
+  projectId: "hah-pmv"
+};
 
+function getSavedConfig() { return FIREBASE_CONFIG; }
+function saveFirebaseConfig() { initFirebase(FIREBASE_CONFIG); }
 function useDemoMode() {
   demoMode = true;
   demoData = getDemoData();
   equipment = demoData;
   inventory = {};
   document.getElementById('setup-screen').style.display = 'none';
-  setSyncStatus('وضع تجريبي (محلي فقط)', false);
+  setSyncStatus('وضع تجريبي', false);
   refreshCurrentView();
-}
-
-function getSavedConfig() {
-  const s = localStorage.getItem('fb_config');
-  return s ? JSON.parse(s) : null;
 }
 
 // ═══════════════════════════════════════════════
