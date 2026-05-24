@@ -471,9 +471,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
 </div>
 
 <!-- Firebase SDK -->
-<script src="https://unpkg.com/firebase@9.23.0/compat/app.js"></script>
-<script src="https://unpkg.com/firebase@9.23.0/compat/auth.js"></script>
-<script src="https://unpkg.com/firebase@9.23.0/compat/database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
 <script>
 // ══════════════════════════════════════════════
 // FIREBASE SDK + ANONYMOUS AUTH
@@ -515,21 +515,30 @@ function initFirebase(cfg){
   try {
     firebase.initializeApp(cfg);
     fbDb = firebase.database();
-    firebase.auth().signInAnonymously().then(()=>{
-      db = true;
-      document.getElementById('setup-screen').style.display='none';
-      setSyncStatus('متصل 🟢', false);
-      fbDb.ref('equipment').on('value', snap=>{
-        equipment = snap.val()||{};
-        refreshCurrentView();
-        checkMaintenanceAlerts();
-      }, ()=>setSyncStatus('خطأ 🔴',true));
-      fbDb.ref('inventory').on('value', snap=>{
-        inventory = snap.val()||{};
-        if(currentView==='inventory') renderInventory();
+    setSyncStatus('جاري تسجيل الدخول...', false);
+    firebase.auth().signInAnonymously()
+      .then(()=>{
+        db = true;
+        document.getElementById('setup-screen').style.display='none';
+        setSyncStatus('متصل 🟢', false);
+        fbDb.ref('equipment').on('value', snap=>{
+          equipment = snap.val()||{};
+          refreshCurrentView();
+          checkMaintenanceAlerts();
+        }, err=>setSyncStatus('خطأ قراءة: '+err.code+' 🔴',true));
+        fbDb.ref('inventory').on('value', snap=>{
+          inventory = snap.val()||{};
+          if(currentView==='inventory') renderInventory();
+        });
+      })
+      .catch(e=>{
+        setSyncStatus('خطأ auth: '+e.code+' 🔴', true);
+        toast('خطأ: '+e.message);
       });
-    }).catch(e=>{ setSyncStatus('خطأ: '+e.message+' 🔴',true); });
-  } catch(e){ setSyncStatus('خطأ: '+e.message+' 🔴',true); }
+  } catch(e){
+    setSyncStatus('خطأ init: '+e.message+' 🔴', true);
+    toast('خطأ: '+e.message);
+  }
 }
 function setNestedPath(obj,path,val){
   const parts=path.split('/').filter(Boolean);
