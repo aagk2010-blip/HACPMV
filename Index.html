@@ -471,103 +471,66 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
 </div>
 
 <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 // ══════════════════════════════════════════════
-// FIREBASE REST API - NO EXTERNAL SCRIPTS
+// FIREBASE SDK + ANONYMOUS AUTH
 // ══════════════════════════════════════════════
 let firebaseConfig = null;
-let db = null; // سنستخدمه كـ flag فقط
-
-function fbUrl(path){
-  return `${firebaseConfig.databaseURL}/${path}.json`;
-}
+let fbDb = null;
+let db = null;
 
 function dbSet(path, val){
   if(demoMode){ setNestedPath(demoData,path,val); _syncDemo(); return; }
-  fetch(fbUrl(path),{method:'PUT',body:JSON.stringify(val)});
+  if(!fbDb) return;
+  fbDb.ref(path).set(val);
 }
-
 function dbUpdate(path, val){
   if(demoMode){ Object.keys(val).forEach(k=>setNestedPath(demoData,`${path}/${k}`,val[k])); _syncDemo(); return; }
-  fetch(fbUrl(path),{method:'PATCH',body:JSON.stringify(val)});
+  if(!fbDb) return;
+  fbDb.ref(path).update(val);
 }
-
 function dbRemove(path){
   if(demoMode){ removeNestedPath(demoData,path); _syncDemo(); return; }
-  fetch(fbUrl(path),{method:'DELETE'});
+  if(!fbDb) return;
+  fbDb.ref(path).remove();
 }
-
 function dbPush(path, val){
   if(demoMode){
     const id='d'+Date.now();
     setNestedPath(demoData,`${path}/${id}`,val);
     _syncDemo(); return id;
   }
-  fetch(fbUrl(path),{method:'POST',body:JSON.stringify(val)})
-    .then(r=>r.json()).then(r=>{ if(r && r.name) refreshCurrentView(); });
-  return 'd'+Date.now();
+  if(!fbDb) return 'd'+Date.now();
+  return fbDb.ref(path).push(val).key;
 }
-
 function _syncDemo(){
   if(demoData.inventory) inventory=demoData.inventory;
-  equipment=demoData;
-  refreshCurrentView();
+  equipment=demoData; refreshCurrentView();
 }
-
-// Polling للمزامنة في الوقت الفعلي
-let pollInterval = null;
-
-function startPolling(){
-  fetchAll();
-  pollInterval = setInterval(fetchAll, 5000); // كل 5 ثوانٍ
-}
-
-function fetchAll(){
-  if(!firebaseConfig) return;
-  fetch(fbUrl('equipment'))
-    .then(r=>r.json()).then(data=>{
-      equipment = data||{};
-      refreshCurrentView();
-      checkMaintenanceAlerts();
-    }).catch(()=>setSyncStatus('خطأ في الاتصال 🔴',true));
-  fetch(fbUrl('inventory'))
-    .then(r=>r.json()).then(data=>{
-      inventory = data||{};
-      if(currentView==='inventory') renderInventory();
-    });
-}
-
 function initFirebase(cfg){
   firebaseConfig = cfg;
-  db = true;
-  // أخفِ شاشة الإعداد فوراً
-  const setup = document.getElementById('setup-screen');
-  if(setup) setup.style.display='none';
-  setSyncStatus('جاري الاتصال...', false);
-  // اختبر الاتصال
-  fetch(fbUrl('equipment'))
-    .then(r=>{
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      return r.json();
-    })
-    .then(data=>{
-      equipment = data||{};
+  try {
+    firebase.initializeApp(cfg);
+    fbDb = firebase.database();
+    firebase.auth().signInAnonymously().then(()=>{
+      db = true;
+      document.getElementById('setup-screen').style.display='none';
       setSyncStatus('متصل 🟢', false);
-      refreshCurrentView();
-      checkMaintenanceAlerts();
-      startPolling();
-    })
-    .catch(err=>{
-      setSyncStatus('خطأ: '+err.message+' 🔴', true);
-      console.error('Firebase error:', err);
-    });
-  // جلب المخزن
-  fetch(fbUrl('inventory'))
-    .then(r=>r.json())
-    .then(data=>{ inventory = data||{}; })
-    .catch(()=>{});
+      fbDb.ref('equipment').on('value', snap=>{
+        equipment = snap.val()||{};
+        refreshCurrentView();
+        checkMaintenanceAlerts();
+      }, ()=>setSyncStatus('خطأ 🔴',true));
+      fbDb.ref('inventory').on('value', snap=>{
+        inventory = snap.val()||{};
+        if(currentView==='inventory') renderInventory();
+      });
+    }).catch(e=>{ setSyncStatus('خطأ: '+e.message+' 🔴',true); });
+  } catch(e){ setSyncStatus('خطأ: '+e.message+' 🔴',true); }
 }
-
 function setNestedPath(obj,path,val){
   const parts=path.split('/').filter(Boolean);
   let cur=obj;
@@ -594,7 +557,6 @@ const STATUS_CFG = {
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
-let db = null;
 let equipment = {};
 let currentView = 'home';
 let currentEqId = null;
@@ -606,22 +568,21 @@ let demoMode = false;
 let demoData = {};
 
 // ═══════════════════════════════════════════════
-// FIREBASE CONFIG - مباشرة في الكود
+// FIREBASE CONFIG - مدمج مباشرة
 // ═══════════════════════════════════════════════
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyD3eWEZZDXCfHtJ6xdD9VwW8hT5vZzV0W4",
+  authDomain: "hah-pmv.firebaseapp.com",
   databaseURL: "https://hah-pmv-default-rtdb.firebaseio.com",
   projectId: "hah-pmv"
 };
 
-function getSavedConfig() { return FIREBASE_CONFIG; }
-function saveFirebaseConfig() { initFirebase(FIREBASE_CONFIG); }
-function useDemoMode() {
-  demoMode = true;
-  demoData = getDemoData();
-  equipment = demoData;
-  inventory = {};
-  document.getElementById('setup-screen').style.display = 'none';
+function getSavedConfig(){ return FIREBASE_CONFIG; }
+function saveFirebaseConfig(){ initFirebase(FIREBASE_CONFIG); }
+function useDemoMode(){
+  demoMode=true; demoData=getDemoData();
+  equipment=demoData; inventory={};
+  document.getElementById('setup-screen').style.display='none';
   setSyncStatus('وضع تجريبي', false);
   refreshCurrentView();
 }
