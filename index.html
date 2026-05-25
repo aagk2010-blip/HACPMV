@@ -757,26 +757,75 @@ function renderHome(){
         const rem = hoursRemaining(e);
         const cur = Number(e.hours||0);
         const next = Number(e.nextHours||0);
-        const pct = next>0?Math.min(Math.round((cur/next)*100),100):0;
-        const barColor = rem===null?'var(--muted)':rem<=0?'var(--red)':rem<=10?'var(--red)':rem<=50?'var(--amber)':'var(--green)';
-        const remLabel = rem===null?'—':rem<=0?`متأخر ${Math.abs(rem)} ساعة`:rem<=10?`🔴 ${rem} ساعة`:rem<=50?`🟡 ${rem} ساعة`:`✅ ${rem} ساعة`;
-        return `<div style="padding:12px 14px;border-bottom:${i<sorted.length-1?'1px solid var(--bg)':'none'};cursor:pointer" onclick="openDetail('${e.id}')">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:13px">${ICONS[e.type]||'🔧'}</span>
+        const interval = Number(e.maintenanceInterval||250);
+
+        // حساب نسبة الشريط بناءً على الساعات المتبقية
+        // الشريط يمثل الساعات المتبقية من إجمالي الدورة
+        let barPct = 0;
+        let barColor = 'var(--muted)';
+        let remLabel = '—';
+        let remSub = '';
+
+        if(rem !== null && next > 0){
+          if(rem <= 0){
+            barPct = 0;
+            barColor = 'var(--red)';
+            remLabel = `⚠️ متأخر ${Math.abs(rem)} ساعة`;
+            remSub = 'تجاوز موعد الصيانة';
+          } else if(rem < 50){
+            // أقل من 50 ساعة — ربع الشريط أو أقل — أحمر
+            barPct = Math.round((rem / interval) * 100);
+            barPct = Math.min(barPct, 25); // أقصى ربع
+            barColor = '#ef4444';
+            remLabel = `🔴 باقي ${rem} ساعة`;
+            remSub = 'صيانة عاجلة';
+          } else if(rem < 100){
+            // 50-100 ساعة — قبل النصف — أصفر
+            barPct = Math.round((rem / interval) * 100);
+            barPct = Math.min(Math.max(barPct, 26), 49); // بين ربع والنصف
+            barColor = '#f59e0b';
+            remLabel = `🟡 باقي ${rem} ساعة`;
+            remSub = 'قريب من الصيانة';
+          } else {
+            // أكثر من 100 — فوق النصف — أخضر
+            barPct = Math.round((rem / interval) * 100);
+            barPct = Math.min(Math.max(barPct, 50), 100);
+            barColor = '#10b981';
+            remLabel = `✅ باقي ${rem} ساعة`;
+            remSub = `عداد الصيانة: ${next.toLocaleString('ar')} س`;
+          }
+        } else if(next === 0){
+          remLabel = 'لم يُحدد عداد الصيانة';
+          remSub = 'أضف العداد من التعديل';
+        }
+
+        return `<div style="padding:13px 14px;border-bottom:${i<sorted.length-1?'1px solid var(--bg)':'none'};cursor:pointer" onclick="openDetail('${e.id}')">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:20px">${ICONS[e.type]||'🔧'}</span>
               <div>
                 <div style="font-size:13px;font-weight:700;color:var(--navy)">${e.name}</div>
-                <div style="font-size:10px;color:var(--muted)">${e.code} • ${e.type==='مولد كهربائي'&&e.kva?`⚡${e.kva}KVA`:e.type}</div>
+                <div style="font-size:10px;color:var(--muted)">${e.code} • ⏱️ ${cur.toLocaleString('ar')} ساعة</div>
               </div>
             </div>
             <div style="text-align:left">
               <div style="font-size:12px;font-weight:800;color:${barColor}">${remLabel}</div>
-              ${next>0?`<div style="font-size:10px;color:var(--muted)">عند: ${next.toLocaleString('ar')} س</div>`:'<div style="font-size:10px;color:var(--muted)">لم يُحدد</div>'}
+              <div style="font-size:10px;color:var(--muted)">${remSub}</div>
             </div>
           </div>
-          ${next>0?`<div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.5s"></div>
-          </div>`:''}
+          ${next>0?`
+          <div style="position:relative;height:10px;background:var(--bg);border-radius:5px;overflow:hidden">
+            <div style="position:absolute;top:0;right:0;height:100%;width:${barPct}%;background:${barColor};border-radius:5px;transition:width 0.8s ease"></div>
+            <div style="position:absolute;top:0;right:25%;width:1px;height:100%;background:rgba(0,0,0,0.1)"></div>
+            <div style="position:absolute;top:0;right:50%;width:1px;height:100%;background:rgba(0,0,0,0.1)"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:3px">
+            <div style="font-size:9px;color:var(--muted)">0</div>
+            <div style="font-size:9px;color:var(--red);margin-right:19%">50س</div>
+            <div style="font-size:9px;color:var(--amber);margin-right:3%">100س</div>
+            <div style="font-size:9px;color:var(--muted)">${interval}س</div>
+          </div>`
+          :`<div style="height:10px;background:var(--bg);border-radius:5px;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--muted)">لم يُحدد عداد الصيانة</span></div>`}
         </div>`;
       }).join('')}
     </div>`;
