@@ -2,1925 +2,1500 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="صيانة المعدات">
 <meta name="theme-color" content="#0d1b2a">
-<title>متابعة صيانة المعدات</title>
+<title>حسن علام القابضة - نظام إدارة الأسطول المتكامل</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
 :root {
-  --navy:#0d1b2a; --steel:#2a3f5a; --accent:#e8a020; --accent2:#f5c842;
-  --green:#10b981; --red:#ef4444; --amber:#f59e0b; --teal:#0e7490;
-  --bg:#f0f4f8; --white:#ffffff; --muted:#6b7a8d;
-  --shadow:0 2px 10px rgba(13,27,42,0.08);
+  --primary: #0d1b2a;
+  --secondary: #1b2838;
+  --accent: #e8a020;
+  --accent-dark: #c88a18;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #0e7490;
+  --purple: #8b5cf6;
+  --pink: #ec4899;
+  --light: #f0f4f8;
+  --white: #ffffff;
+  --gray: #6b7a8d;
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:var(--bg);direction:rtl;max-width:430px;margin:0 auto;min-height:100vh;overflow-x:hidden;padding-bottom:80px}
 
-/* HEADER */
-.header{background:linear-gradient(160deg,var(--navy) 0%,var(--steel) 100%);padding:54px 18px 20px;color:white;position:relative;overflow:hidden}
-.header::before{content:'';position:absolute;top:-50px;left:-50px;width:180px;height:180px;border-radius:50%;background:rgba(232,160,32,0.07)}
-.header-title{font-size:24px;font-weight:800;letter-spacing:-0.5px}
-.header-sub{font-size:12px;color:rgba(255,255,255,0.55);margin-top:3px}
-.sync-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;margin-left:6px;vertical-align:middle}
-.sync-dot.offline{background:#ef4444}
-.sync-dot.syncing{background:#f59e0b;animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-/* STATS */
-.stats-row{display:flex;gap:8px;padding:14px 14px 0;overflow-x:auto;scrollbar-width:none}
-.stats-row::-webkit-scrollbar{display:none}
-.stat-card{border-radius:14px;padding:11px 10px;min-width:75px;flex:1;text-align:center}
-.stat-num{font-size:22px;font-weight:800}
-.stat-lbl{font-size:10px;margin-top:1px;opacity:0.85}
+body {
+  font-family: 'Cairo', 'Segoe UI', -apple-system, sans-serif;
+  background: var(--light);
+  direction: rtl;
+  max-width: 500px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
 
-/* SECTIONS */
-.section{padding:0 14px;margin-top:18px}
-.sec-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px}
-.sec-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;padding:14px 14px 6px}
+.header {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  padding: 20px 18px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 150px;
+  height: 150px;
+  background: rgba(232,160,32,0.08);
+  border-radius: 50%;
+}
+.header-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+.header-sub { font-size: 11px; opacity: 0.7; margin-top: 4px; }
 
-/* CARDS */
-.eq-card{background:var(--white);border-radius:16px;padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;border-right:3px solid transparent;transition:transform 0.1s;-webkit-user-select:none}
-.eq-card:active{transform:scale(0.98)}
-.eq-card.urgent{border-right-color:var(--amber)}
-.eq-card.stopped{border-right-color:var(--red)}
-.card-top{display:flex;justify-content:space-between;align-items:flex-start}
-.card-code{font-size:11px;color:var(--muted);font-weight:500}
-.card-name{font-size:15px;font-weight:700;color:var(--navy);margin-top:2px}
-.card-loc{font-size:11px;color:var(--muted);margin-top:3px}
-.card-chassis{font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:0.3px}
-.badge{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;white-space:nowrap}
-.badge .dot{width:6px;height:6px;border-radius:50%}
-.card-bot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--bg)}
-.card-hours{font-size:11px;color:var(--muted)}
-.card-next{font-size:11px;font-weight:700}
+.stats-row {
+  display: flex;
+  gap: 10px;
+  padding: 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.stats-row::-webkit-scrollbar { display: none; }
+.stat-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 12px 16px;
+  min-width: 85px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.stat-number { font-size: 26px; font-weight: 800; }
+.stat-label { font-size: 11px; color: var(--gray); margin-top: 4px; }
 
-/* SEARCH & FILTER */
-.search-box{margin:0 14px;background:white;border-radius:12px;padding:9px 13px;display:flex;align-items:center;gap:7px;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
-.search-box input{border:none;outline:none;font-size:14px;color:var(--navy);width:100%;background:transparent;direction:rtl;font-family:inherit}
-.filter-row{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;scrollbar-width:none}
-.filter-row::-webkit-scrollbar{display:none}
-.f-btn{border:none;border-radius:18px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,0.1);font-family:inherit}
+.section { padding: 0 14px; margin-top: 20px; }
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gray);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+}
 
-/* TAB BAR */
-.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(255,255,255,0.97);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.07);display:flex;justify-content:space-around;padding:8px 0 22px;z-index:100}
-.tab-btn{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:none;background:none;padding:0 14px;font-family:inherit}
-.tab-icon{font-size:21px}
-.tab-lbl{font-size:10px}
-.fab{position:fixed;bottom:100px;right:16px;left:auto;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:var(--navy);font-size:28px;cursor:pointer;font-weight:800;box-shadow:0 4px 16px rgba(232,160,32,0.45);display:flex;align-items:center;justify-content:center;z-index:150;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.equipment-card, .driver-card, .fuel-card, .maintenance-card, .inventory-item-card {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.equipment-card { border-right: 3px solid var(--accent); }
+.driver-card { border-right: 3px solid var(--info); }
+.fuel-card { border-right: 3px solid var(--success); }
+.maintenance-card { border-right: 3px solid var(--warning); }
+.inventory-item-card { border-right: 3px solid var(--purple); }
+.equipment-card:active, .driver-card:active, .inventory-item-card:active { transform: scale(0.98); }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.card-title { font-size: 15px; font-weight: 700; color: var(--primary); }
+.card-code { font-size: 11px; color: var(--gray); }
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-working { background: #d1fae5; color: #065f46; }
+.badge-maintenance { background: #fef3c7; color: #78350f; }
+.badge-stopped { background: #fee2e2; color: #7f1d1d; }
+.badge-active { background: #dbeafe; color: #1e40af; }
+.progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
 
-/* OVERLAYS */
-.overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100%;background:var(--bg);z-index:200;overflow-y:auto;display:none}
-.overlay.active{display:block}
-.detail-header{background:linear-gradient(160deg,var(--navy) 0%,var(--steel) 100%);padding:50px 18px 20px;color:white;position:relative;overflow:hidden}
-.back-btn{background:rgba(255,255,255,0.15);border:none;color:white;font-size:20px;cursor:pointer;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:inherit}
-.detail-icon{font-size:40px;margin-bottom:6px;margin-top:8px}
-.detail-name{font-size:19px;font-weight:800}
-.detail-code{font-size:12px;color:rgba(255,255,255,0.55);margin-top:3px}
-.status-row{display:flex;gap:6px;padding:10px 14px 0;flex-wrap:wrap}
-.status-btn{border:none;border-radius:18px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
-.order-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--navy);border:none;border-radius:18px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-right:auto}
-.d-tabs{display:flex;background:white;margin:12px 14px 0;border-radius:12px;padding:3px;gap:2px;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
-.d-tab{flex:1;padding:7px 0;font-size:12px;font-weight:500;color:var(--muted);background:transparent;border:none;border-radius:9px;cursor:pointer;font-family:inherit;transition:all 0.2s}
-.d-tab.active{font-weight:700;color:white;background:var(--navy)}
+.status-bar {
+  background: var(--primary);
+  color: white;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  margin-top: 24px;
+}
 
-/* INFO */
-.info-card{background:white;border-radius:14px;margin:10px 14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--bg)}
-.info-row:last-child{border-bottom:none}
-.info-lbl{font-size:13px;color:var(--muted)}
-.info-val{font-size:13px;font-weight:600;color:var(--navy);max-width:200px;text-align:left;word-break:break-all}
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 500px;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0 20px;
+  z-index: 100;
+  overflow-x: auto;
+}
+.tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--gray);
+  min-width: 60px;
+}
+.tab-btn.active { color: var(--accent); font-weight: 600; }
+.tab-icon { font-size: 20px; }
 
-/* FILTERS */
-.filter-card{background:white;border-radius:14px;margin:0 14px 8px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.07);border-right:3px solid var(--green)}
-.filter-card.low{border-right-color:var(--amber)}
-.filter-card.critical{border-right-color:var(--red)}
-.f-type{font-size:13px;font-weight:700;color:var(--navy)}
-.f-part{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:0.3px}
-.f-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
-.qty-row{display:flex;align-items:center;gap:10px}
-.qty-btn{width:30px;height:30px;border-radius:50%;border:none;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:inherit}
-.qty-num{font-size:18px;font-weight:800;color:var(--navy);min-width:24px;text-align:center}
-.del-btn{background:#fee2e2;border:none;color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
-.add-f-card{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-radius:14px;margin:0 14px 8px;padding:14px;border:1px dashed var(--green)}
-.add-f-title{font-size:12px;font-weight:700;color:var(--green);margin-bottom:10px}
-.add-f-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.add-f-input{background:white;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:13px;color:var(--navy);outline:none;direction:rtl;width:100%;font-family:inherit}
-.add-f-btn{background:var(--green);color:white;border:none;border-radius:9px;padding:9px 0;width:100%;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.fab {
+  position: fixed;
+  bottom: 85px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border: none;
+  color: var(--primary);
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(232,160,32,0.4);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-/* ORDER */
-.order-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100%;background:var(--bg);z-index:300;overflow-y:auto;display:none}
-.order-overlay.active{display:block}
-.order-header{background:linear-gradient(160deg,var(--navy),var(--teal));padding:50px 18px 22px;color:white}
-.order-title{font-size:22px;font-weight:800}
-.order-sub{font-size:12px;color:rgba(255,255,255,0.6);margin-top:3px}
-.order-card{background:white;border-radius:14px;margin:8px 14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.07);border-right:3px solid var(--red)}
-.order-card.ok{border-right-color:var(--green)}
-.order-eq-name{font-size:13px;font-weight:800;color:var(--navy);margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--bg)}
-.order-f-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--bg)}
-.order-f-row:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.order-f-type{font-size:13px;font-weight:600;color:var(--navy)}
-.order-f-part{font-size:10px;color:var(--muted);margin-top:2px}
-.order-nums-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;background:var(--bg);border-radius:10px;padding:8px}
-.order-num-cell{text-align:center}
-.order-num-label{font-size:10px;color:var(--muted)}
-.order-num-val{font-size:17px;font-weight:800}
-.summary-box{background:linear-gradient(135deg,var(--navy),var(--steel));border-radius:14px;margin:8px 14px;padding:16px;color:white}
-.summary-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:13px}
-.summary-row:last-child{border-bottom:none}
-.ok-badge{background:#d1fae5;color:#065f46;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700}
-.warn-badge{background:#fee2e2;color:#7f1d1d;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700}
-
-/* MODAL */
-.modal{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100%;background:var(--bg);z-index:400;overflow-y:auto;display:none}
-.modal.active{display:block}
-.modal-header{background:linear-gradient(160deg,var(--navy),var(--steel));padding:50px 18px 20px;color:white;display:flex;justify-content:space-between;align-items:flex-end}
-.modal-title{font-size:20px;font-weight:800}
-.modal-close{background:none;border:none;color:white;font-size:28px;cursor:pointer;line-height:1}
-.form-section{background:white;border-radius:14px;margin:10px 14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
-.form-field{display:flex;flex-direction:column;padding:11px 14px;border-bottom:1px solid var(--bg)}
-.form-field:last-child{border-bottom:none}
-.form-label{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px}
-.form-input,.form-select{border:none;outline:none;font-size:14px;color:var(--navy);background:transparent;direction:rtl;width:100%;font-family:inherit;appearance:none;-webkit-appearance:none}
-.save-btn{margin:0 14px 100px;display:block;width:calc(100% - 28px);background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--navy);border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(232,160,32,0.3)}
-.big-btn{display:block;width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--navy);border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(232,160,32,0.3);margin-bottom:10px}
-.progress-wrap{height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
-.progress-fill{height:100%;border-radius:4px}
-.urg-card{background:white;border-radius:12px;padding:11px 13px;margin-bottom:8px;border-right:3px solid var(--amber);box-shadow:0 1px 4px rgba(0,0,0,0.07);cursor:pointer}
-.urg-name{font-size:13px;font-weight:700;color:var(--navy)}
-.urg-date{font-size:11px;color:var(--amber);margin-top:2px}
-.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
-.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--navy);color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
-.toast.show{opacity:1}
-
-/* SETUP SCREEN */
-.setup-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(160deg,var(--navy),var(--steel));display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;padding:30px;color:white;text-align:center}
-.setup-logo{font-size:60px;margin-bottom:16px}
-.setup-title{font-size:24px;font-weight:800;margin-bottom:8px}
-.setup-sub{font-size:14px;opacity:0.6;margin-bottom:32px;line-height:1.6}
-.setup-card{background:rgba(255,255,255,0.08);border-radius:20px;padding:24px;width:100%;max-width:360px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1)}
-.setup-input{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:13px 16px;font-size:15px;color:white;outline:none;direction:rtl;width:100%;font-family:inherit;margin-bottom:10px}
-.setup-input::placeholder{color:rgba(255,255,255,0.4)}
-.setup-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--navy);border:none;border-radius:12px;padding:14px;width:100%;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:6px}
-.setup-note{font-size:11px;opacity:0.5;margin-top:16px;line-height:1.6}
-.setup-divider{display:flex;align-items:center;gap:10px;margin:14px 0;opacity:0.4}
-.setup-divider::before,.setup-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.3)}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+  background: var(--light);
+  z-index: 200;
+  overflow-y: auto;
+  display: none;
+}
+.modal-overlay.active { display: block; }
+.modal-header {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  padding: 50px 20px 24px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+}
+.modal-title { font-size: 20px; font-weight: 800; }
+.modal-close {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 20px;
+  cursor: pointer;
+}
+.form-group {
+  background: var(--white);
+  margin: 12px 14px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.form-field { padding: 12px 16px; border-bottom: 1px solid #eef2f6; }
+.form-field:last-child { border-bottom: none; }
+.form-label { font-size: 11px; color: var(--gray); font-weight: 600; display: block; margin-bottom: 5px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-family: inherit;
+  background: transparent;
+  color: var(--primary);
+}
+.form-textarea { resize: vertical; min-height: 60px; }
+.save-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: var(--primary);
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  width: calc(100% - 28px);
+  margin: 20px 14px;
+}
+.toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--primary);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+.empty-state { text-align: center; padding: 50px 20px; color: var(--gray); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.detail-section {
+  background: var(--white);
+  border-radius: 18px;
+  margin: 12px 14px;
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.detail-label { font-size: 12px; color: var(--gray); margin-bottom: 4px; }
+.detail-value { font-size: 14px; font-weight: 600; color: var(--primary); }
+.big-btn {
+  background: linear-gradient(135deg, var(--info), var(--primary));
+  border: none;
+  color: white;
+  padding: 14px;
+  border-radius: 16px;
+  font-weight: 700;
+  width: calc(100% - 28px);
+  margin: 0 14px 16px;
+  cursor: pointer;
+  text-align: center;
+}
+.qty-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+.search-box {
+  background: white;
+  border-radius: 30px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+}
+.search-box input, .search-box select {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  background: transparent;
+  font-size: 14px;
+}
+.category-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-right: 6px;
+}
 </style>
 </head>
 <body>
 
 <div class="toast" id="toast"></div>
 
-<!-- ══ SETUP SCREEN ══ -->
-<div class="setup-screen" id="setup-screen" style="display:none">
-  <div class="setup-logo">🏗️</div>
-  <div class="setup-title">متابعة الصيانة</div>
-  <div class="setup-sub">أدخل رمز المشروع للاتصال<br>بقاعدة البيانات المشتركة</div>
-  <div class="setup-card">
-    <div style="font-size:13px;font-weight:700;margin-bottom:14px;opacity:0.8">🔧 إعداد Firebase</div>
-
-    <input class="setup-input" id="cfg-apikey" placeholder="API Key">
-    <input class="setup-input" id="cfg-dburl" placeholder="Database URL (https://xxx.firebaseio.com)">
-    <input class="setup-input" id="cfg-projid" placeholder="Project ID">
-
-    <button class="setup-btn" onclick="saveFirebaseConfig()">🚀 اتصال وبدء التطبيق</button>
-
-    <div class="setup-divider">أو</div>
-    <button class="setup-btn" style="background:rgba(255,255,255,0.15);color:white" onclick="useDemoMode()">
-      🎮 تجربة بدون Firebase (محلي فقط)
-    </button>
-    <div class="setup-note">
-      رمز المشروع تحصل عليه من Firebase Console<br>
-      بعد الإعداد مرة واحدة يُحفظ تلقائياً
-    </div>
-  </div>
-</div>
-
-<!-- ══ HOME ══ -->
-<div id="view-home">
-  <div class="header">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div class="header-title">🏗️ متابعة الصيانة</div>
-        <div class="header-sub" id="sync-status">جاري الاتصال...</div>
+<!-- Login Screen -->
+<div id="login-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #0a1622, #1a2a3a); z-index:2000; display:flex; align-items:center; justify-content:center; padding:20px;">
+  <div style="text-align:center; width:100%; max-width:360px">
+    <div style="margin-bottom:25px">
+      <div style="width:110px; height:110px; background:linear-gradient(145deg, #1a3a4a, #0d1b2a); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); box-shadow:0 0 20px rgba(232,160,32,0.3)">
+        <span style="font-size:52px">🏗️</span>
       </div>
-      <div id="sync-indicator"></div>
-    </div>
-  </div>
-  <div class="stats-row" id="home-stats"></div>
-  <div class="section" id="urgent-section"></div>
-  <div class="section" id="home-list">
-    <div class="sec-title">آخر المعدات</div>
-    <div id="home-cards"></div>
-    <div style="margin-top:8px" id="home-order-btn"></div>
-  </div>
-</div>
-
-<!-- ══ EQUIPMENT ══ -->
-<div id="view-equipment" style="display:none">
-  <div class="header">
-    <div class="header-title">قائمة المعدات</div>
-    <div class="header-sub" id="eq-count"></div>
-  </div>
-  <div style="padding-top:10px">
-    <div class="search-box">
-      <span style="color:var(--muted)">🔍</span>
-      <input id="search-input" placeholder="بحث باسم / كود / شاسيه..." oninput="renderEquipmentList()">
-    </div>
-    <div class="filter-row" id="filter-row"></div>
-    <div style="padding:0 14px 10px" id="eq-list"></div>
-  </div>
-</div>
-
-<!-- ══ REPORTS ══ -->
-<div id="view-reports" style="display:none">
-  <div class="header">
-    <div class="header-title">التقارير</div>
-    <div class="header-sub">إحصاءات شاملة</div>
-  </div>
-  <div style="padding:14px 14px 0" id="reports-content"></div>
-</div>
-
-<!-- ══ INVENTORY VIEW ══ -->
-<div id="view-inventory" style="display:none">
-  <div class="header">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div class="header-title">📦 مخزن الفلاتر</div>
-        <div class="header-sub" id="inv-count"></div>
+      <div style="font-size:22px; font-weight:800; letter-spacing:1.5px; color:white; font-family:'Arial',sans-serif">HASSAN ALLAM</div>
+      <div style="font-size:13px; color:var(--accent); letter-spacing:3px; margin-top:3px; font-weight:600">HOLDING</div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px">
+        <div style="width:30px; height:1px; background:rgba(232,160,32,0.5)"></div>
+        <div style="width:6px; height:6px; background:var(--accent); border-radius:50%"></div>
+        <div style="width:30px; height:1px; background:rgba(232,160,32,0.5)"></div>
       </div>
-      <button onclick="openInvModal(null)"
-        style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--navy);border:none;border-radius:14px;padding:10px 16px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;z-index:10;position:relative">
-        ➕ إضافة فلتر
+    </div>
+    <div style="font-size:24px; font-weight:800; margin-bottom:6px; color:white">نظام الأسطول المتكامل</div>
+    <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:30px">Integrated Fleet Management System</div>
+    
+    <!-- تبويب اختيار طريقة الدخول -->
+    <div style="display:flex; gap:10px; margin-bottom:20px; background:rgba(255,255,255,0.05); border-radius:40px; padding:4px">
+      <button id="direct-login-btn" onclick="setLoginMode('direct')" style="flex:1; padding:10px; border-radius:30px; border:none; background:var(--accent); color:var(--primary); font-weight:700; cursor:pointer; font-family:inherit">🚪 دخول مباشر</button>
+      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1; padding:10px; border-radius:30px; border:none; background:rgba(255,255,255,0.1); color:white; font-weight:700; cursor:pointer; font-family:inherit">🔐 دخول آمن</button>
+    </div>
+    
+    <!-- قسم الدخول المباشر -->
+    <div id="direct-login-panel">
+      <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:20px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1)">
+        <div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border-radius:15px; padding:4px 18px">
+          <span style="color:var(--accent); font-size:18px">👤</span>
+          <select id="direct-username" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px; font-family:inherit">
+            <option value="admin" style="background:#1a2a3a">👨‍💼 مدير النظام (كامل الصلاحيات)</option>
+            <option value="viewer" style="background:#1a2a3a">👁️ مشاهد (صلاحيات محدودة)</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="directLogin()" style="width:100%; background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:var(--primary); border:none; padding:15px; border-radius:30px; font-weight:800; font-size:16px; cursor:pointer; transition:all 0.3s; box-shadow:0 5px 20px rgba(232,160,32,0.4); display:flex; align-items:center; justify-content:center; gap:10px; font-family:inherit">
+        <span>🚀</span> دخول مباشر
       </button>
     </div>
+    
+    <!-- قسم الدخول الآمن -->
+    <div id="secure-login-panel" style="display:none">
+      <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:12px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1)">
+        <div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border-radius:15px; padding:4px 18px">
+          <span style="color:var(--accent); font-size:18px">👤</span>
+          <input type="text" id="secure-username" placeholder="اسم المستخدم" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px; font-family:inherit">
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:20px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1)">
+        <div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border-radius:15px; padding:4px 18px">
+          <span style="color:var(--accent); font-size:18px">🔒</span>
+          <input type="password" id="secure-password" placeholder="كلمة المرور" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px; font-family:inherit">
+        </div>
+      </div>
+      <button onclick="secureLogin()" style="width:100%; background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:var(--primary); border:none; padding:15px; border-radius:30px; font-weight:800; font-size:16px; cursor:pointer; transition:all 0.3s; box-shadow:0 5px 20px rgba(232,160,32,0.4); display:flex; align-items:center; justify-content:center; gap:10px; font-family:inherit">
+        <span>🔐</span> دخول آمن
+      </button>
+    </div>
+    
+    <!-- إعدادات النظام -->
+    <div style="margin-top:20px; padding:10px; background:rgba(255,255,255,0.03); border-radius:16px">
+      <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:5px">⚙️ إعدادات النظام</div>
+      <div style="display:flex; justify-content:center; gap:15px">
+        <label style="display:flex; align-items:center; gap:5px; font-size:11px; color:rgba(255,255,255,0.5); cursor:pointer">
+          <input type="checkbox" id="remember-mode" onchange="saveLoginMode()"> تذكر اختياري
+        </label>
+      </div>
+    </div>
+    
+    <div style="margin-top:20px">
+      <div style="font-size:9px; color:rgba(255,255,255,0.25)">© 2024 حسن علام القابضة - جميع الحقوق محفوظة</div>
+    </div>
   </div>
-  <div style="padding-top:10px;padding-bottom:100px" id="inv-list"></div>
 </div>
 
-<!-- TAB BAR -->
-<div class="tab-bar">
-  <button class="tab-btn" onclick="switchView('home')">
-    <span class="tab-icon">🏠</span>
-    <span class="tab-lbl" id="tab-lbl-home" style="font-weight:700;color:var(--navy)">الرئيسية</span>
-  </button>
-  <button class="tab-btn" onclick="switchView('equipment')">
-    <span class="tab-icon">🏗️</span>
-    <span class="tab-lbl" id="tab-lbl-equipment" style="color:var(--muted)">المعدات</span>
-  </button>
-  <button class="tab-btn" onclick="switchView('inventory')">
-    <span class="tab-icon">📦</span>
-    <span class="tab-lbl" id="tab-lbl-inventory" style="color:var(--muted)">المخزن</span>
-  </button>
-  <button class="tab-btn" onclick="switchView('reports')">
-    <span class="tab-icon">📊</span>
-    <span class="tab-lbl" id="tab-lbl-reports" style="color:var(--muted)">التقارير</span>
-  </button>
-</div>
-<button class="fab" id="fab-btn">+</button>
+<!-- Main App -->
+<div id="app-container" style="display:none">
+  <div class="status-bar">
+    <span>🏗️ نظام صيانة الأسطول</span>
+    <div>
+      <span id="user-name-display"></span>
+      <button onclick="logout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button>
+    </div>
+  </div>
 
-<!-- ══ DETAIL OVERLAY ══ -->
-<div class="overlay" id="detail-overlay">
-  <div class="detail-header">
-    <button class="back-btn" onclick="closeDetail()">✕</button>
-    <div class="detail-icon" id="d-icon"></div>
-    <div class="detail-name" id="d-name"></div>
-    <div class="detail-code" id="d-code"></div>
+  <div class="header" id="main-header">
+    <div class="header-title" id="header-title">📊 لوحة القيادة</div>
+    <div class="header-sub" id="header-sub">نظام متابعة الأسطول - حسن علام القابضة</div>
   </div>
-  <div class="status-row" id="d-status-row"></div>
-  <div class="d-tabs">
-    <button class="d-tab active" id="dtab-info" onclick="switchDetailTab('info')">معلومات</button>
-    <button class="d-tab" id="dtab-filters" onclick="switchDetailTab('filters')">الفلاتر</button>
-    <button class="d-tab" id="dtab-order" onclick="switchDetailTab('order')">الطلبية</button>
-  </div>
-  <div id="detail-content" style="padding-bottom:100px"></div>
-</div>
 
-<!-- ══ ORDER OVERLAY ══ -->
-<div class="order-overlay" id="order-overlay">
-  <div class="order-header">
-    <button class="back-btn" onclick="closeOrder()">✕</button>
-    <div class="order-title">📦 طلبية الفلاتر</div>
-    <div class="order-sub" id="order-sub"></div>
+  <div id="view-home">
+    <div class="stats-row" id="stats-summary"></div>
+    <button class="big-btn" onclick="openMeterUpdate()">⏱️ تحديث العدادات اليومي</button>
+    <div class="section">
+      <div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div>
+      <div id="equipment-list-home"></div>
+    </div>
   </div>
-  <div id="order-content" style="padding-bottom:80px"></div>
-</div>
 
-<!-- ══ ADD MODAL ══ -->
-<div class="modal" id="add-modal">
-  <div class="modal-header">
-    <div class="modal-title">إضافة معدة جديدة</div>
-    <button class="modal-close" onclick="closeAddModal()">×</button>
+  <div id="view-equipment" style="display:none">
+    <div style="padding:14px">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="search-equipment" placeholder="بحث باسم أو كود..." oninput="refreshUI()">
+      </div>
+      <div id="equipment-list"></div>
+    </div>
   </div>
-  <div>
-    <div class="sec-lbl" style="padding:14px 14px 6px">معلومات المعدة</div>
-    <div class="form-section">
-      <div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="f-code" placeholder="EX-007"></div>
-      <div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="f-name" placeholder="حفارة كاتربيلار 320D"></div>
-      <div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="f-chassis" placeholder="CAT0320..."></div>
-      <div class="form-field"><label class="form-label">تاريخ الوصول للموقع</label><input class="form-input" type="date" id="f-arrival"></div>
-      <div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="f-loc" placeholder="موقع A - القطاع 1"></div>
-      <div class="form-field"><label class="form-label">⏱️ عداد الوصول للموقع (ساعة)</label><input class="form-input" type="number" id="f-hoursArrival" placeholder="0"></div>
-      <div class="form-field"><label class="form-label">⏱️ العداد الحالي (ساعة)</label><input class="form-input" type="number" id="f-hours" placeholder="0" oninput="calcNextMaintHours('f')"></div>
-      <div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة (ساعة)</label><input class="form-input" type="number" id="f-nextHours" placeholder="يُحسب تلقائياً"></div>
-      <div class="form-field"><label class="form-label">النوع</label>
-        <select class="form-select" id="f-type" onchange="toggleKvaField('f')">
-          <option>حفارة</option><option>لودر</option><option>رافعة</option>
-          <option>بلدوزر</option><option>شاحنة</option><option>مسوية</option><option>خلاطة</option>
-          <option>مولد كهربائي</option>
+
+  <div id="view-drivers" style="display:none">
+    <div style="padding:14px">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="search-driver" placeholder="بحث باسم السائق..." oninput="refreshUI()">
+      </div>
+      <div id="drivers-list"></div>
+    </div>
+  </div>
+
+  <div id="view-fuel" style="display:none">
+    <div style="padding:14px">
+      <div id="fuel-stats" class="grid-3" style="margin-bottom:16px"></div>
+      <button class="big-btn" style="margin-bottom:16px" onclick="openAddFuelModal()">⛽ تسجيل تزود جديد</button>
+      <div id="fuel-list"></div>
+    </div>
+  </div>
+
+  <div id="view-maintenance" style="display:none">
+    <div style="padding:14px">
+      <button class="big-btn" style="margin-bottom:16px" onclick="openAddMaintenanceModal()">🔧 جدولة صيانة جديدة</button>
+      <div id="maintenance-list"></div>
+    </div>
+  </div>
+
+  <div id="view-inventory" style="display:none">
+    <div style="padding:14px">
+      <div class="search-box">
+        <span>🏷️</span>
+        <select id="category-filter" onchange="filterInventory()" style="flex:1">
+          <option value="all">جميع الأصناف</option>
+          <option value="filter">فلاتر</option>
+          <option value="oil">زيوت</option>
+          <option value="tire">إطارات</option>
+          <option value="spare">قطع غيار</option>
+          <option value="other">أخرى</option>
         </select>
       </div>
-      <div class="form-field"><label class="form-label">الحالة</label>
-        <select class="form-select" id="f-status">
-          <option>يعمل</option><option>صيانة</option><option>متوقف</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-label">دورة الصيانة (ساعات)</label><input class="form-input" type="number" id="f-interval" placeholder="250" value="250"></div>
-      <div class="form-field" id="f-kva-field" style="display:none"><label class="form-label">⚡ قدرة المولد (KVA)</label><input class="form-input" type="number" id="f-kva" placeholder="مثال: 500"></div>
+      <button class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg, var(--purple), var(--pink))" onclick="openAddInventoryItemModal()">📦 إضافة صنف جديد</button>
+      <button class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg, var(--danger), var(--warning))" onclick="generateOrderReport()">📋 إنشاء طلبية للنواقص (1000 ساعة)</button>
+      <div id="inv-list"></div>
     </div>
-    <div class="sec-lbl" style="padding:0 14px 6px">مواعيد الصيانة</div>
-    <div class="form-section">
-      <div class="form-field"><label class="form-label">آخر صيانة</label><input class="form-input" type="date" id="f-last"></div>
-      <div class="form-field"><label class="form-label">الصيانة القادمة</label><input class="form-input" type="date" id="f-next"></div>
-    </div>
-    <div class="sec-lbl" style="padding:0 14px 6px">ملاحظات</div>
-    <div class="form-section">
-      <div class="form-field"><label class="form-label">ملاحظات</label><input class="form-input" id="f-notes" placeholder="أي ملاحظات..."></div>
-    </div>
-    <button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button>
   </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn" data-view="home" onclick="switchView('home')"><span class="tab-icon">📊</span><span>الرئيسية</span></button>
+    <button class="tab-btn" data-view="equipment" onclick="switchView('equipment')"><span class="tab-icon">🏗️</span><span>المعدات</span></button>
+    <button class="tab-btn" data-view="drivers" onclick="switchView('drivers')"><span class="tab-icon">👨‍✈️</span><span>السائقين</span></button>
+    <button class="tab-btn" data-view="fuel" onclick="switchView('fuel')"><span class="tab-icon">⛽</span><span>الوقود</span></button>
+    <button class="tab-btn" data-view="maintenance" onclick="switchView('maintenance')"><span class="tab-icon">🔧</span><span>الصيانة</span></button>
+    <button class="tab-btn" data-view="inventory" onclick="switchView('inventory')"><span class="tab-icon">📦</span><span>المخزن</span></button>
+  </div>
+  <button class="fab" id="fab-btn" onclick="openAddEquipmentModal()">+</button>
 </div>
 
-<!-- ══ EDIT MODAL ══ -->
-<div class="modal" id="edit-modal">
-  <div class="modal-header" style="background:linear-gradient(160deg,#0e7490,#0d1b2a)">
-    <div class="modal-title">✏️ تعديل المعدة</div>
-    <button class="modal-close" onclick="closeEditModal()">×</button>
-  </div>
-  <div>
-    <div class="sec-lbl" style="padding:14px 14px 6px">معلومات المعدة</div>
-    <div class="form-section">
-      <div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="e-code"></div>
-      <div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="e-name"></div>
-      <div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="e-chassis"></div>
-      <div class="form-field"><label class="form-label">تاريخ الوصول للموقع</label><input class="form-input" type="date" id="e-arrival"></div>
-      <div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="e-loc"></div>
-      <div class="form-field"><label class="form-label">⏱️ عداد الوصول للموقع (ساعة)</label><input class="form-input" type="number" id="e-hoursArrival"></div>
-      <div class="form-field"><label class="form-label">⏱️ العداد الحالي (ساعة)</label><input class="form-input" type="number" id="e-hours" oninput="calcNextMaintHours('e')"></div>
-      <div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة (ساعة)</label><input class="form-input" type="number" id="e-nextHours"></div>
-      <div class="form-field"><label class="form-label">النوع</label>
-        <select class="form-select" id="e-type" onchange="toggleKvaField('e')">
-          <option>حفارة</option><option>لودر</option><option>رافعة</option>
-          <option>بلدوزر</option><option>شاحنة</option><option>مسوية</option><option>خلاطة</option>
-          <option>مولد كهربائي</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-label">الحالة</label>
-        <select class="form-select" id="e-status">
-          <option>يعمل</option><option>صيانة</option><option>متوقف</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-label">دورة الصيانة (ساعات)</label><input class="form-input" type="number" id="e-interval"></div>
-      <div class="form-field" id="e-kva-field" style="display:none"><label class="form-label">⚡ قدرة المولد (KVA)</label><input class="form-input" type="number" id="e-kva" placeholder="مثال: 500"></div>
-    </div>
-    <div class="sec-lbl" style="padding:0 14px 6px">مواعيد الصيانة</div>
-    <div class="form-section">
-      <div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="e-last"></div>
-      <div class="form-field"><label class="form-label">تاريخ الصيانة القادمة</label><input class="form-input" type="date" id="e-next"></div>
-    </div>
-    <div class="sec-lbl" style="padding:0 14px 6px">ملاحظات</div>
-    <div class="form-section">
-      <div class="form-field"><label class="form-label">ملاحظات</label><input class="form-input" id="e-notes"></div>
-    </div>
-    <div style="padding:0 14px;margin-bottom:10px">
-      <button style="width:100%;background:#fee2e2;color:var(--red);border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit" onclick="deleteEquipment()">🗑️ حذف هذه المعدة</button>
-    </div>
-    <button class="save-btn" onclick="updateEquipment()">✅ حفظ التعديلات</button>
-  </div>
+<!-- باقي المودالات (بنفس النسخة السابقة التي كانت تعمل) -->
+<div class="modal-overlay" id="equipment-modal">
+  <div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div>
+  <div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="مثال: EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="مثال: حفارة كاتربيلار 320D"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>مولد كهربائي</option></select></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis" placeholder="رقم الهيكل"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location" placeholder="موقع المشروع"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي (ساعة)</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة (ساعة)</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">دورة الصيانة (ساعة)</label><input class="form-input" type="number" id="eq-interval" value="250"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes" placeholder="أي ملاحظات"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div>
 </div>
 
-<!-- ══ METER UPDATE OVERLAY ══ -->
-<div class="overlay" id="meter-overlay" style="z-index:250">
-  <div class="detail-header" style="background:linear-gradient(160deg,#065f46,#0e7490)">
-    <button class="back-btn" onclick="closeMeterOverlay()">✕</button>
-    <div style="margin-top:8px;font-size:36px">⏱️</div>
-    <div class="detail-name">تحديث العدادات اليومي</div>
-    <div class="detail-code" id="meter-date-lbl"></div>
-  </div>
-  <div id="meter-list" style="padding-bottom:120px"></div>
-  <div style="position:fixed;bottom:88px;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:402px;z-index:251">
-    <button class="save-btn" style="margin:0;width:100%" onclick="saveDailyMeters()">✅ حفظ جميع العدادات</button>
-  </div>
+<div class="modal-overlay" id="driver-modal">
+  <div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div>
+  <div><div class="form-group"><div class="form-field"><label class="form-label">الاسم الكامل *</label><input class="form-input" id="driver-name" placeholder="مثال: أحمد محمد"></div><div class="form-field"><label class="form-label">رقم الهاتف</label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label">رقم رخصة القيادة</label><input class="form-input" id="driver-license" placeholder="رقم الرخصة"></div><div class="form-field"><label class="form-label">تاريخ انتهاء الرخصة</label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="driver-notes" placeholder="أي ملاحظات"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div>
 </div>
 
-<!-- ══ ADD INVENTORY FILTER MODAL ══ -->
-<div class="modal" id="inv-modal">
-  <div class="modal-header" style="background:linear-gradient(160deg,#065f46,#0e7490)">
-    <div class="modal-title" id="inv-modal-title">➕ إضافة فلتر للمخزن</div>
-    <button class="modal-close" onclick="closeInvModal()">×</button>
-  </div>
-  <div>
-    <div class="sec-lbl" style="padding:14px 14px 6px">معلومات الفلتر</div>
-    <div class="form-section">
-      <div class="form-field"><label class="form-label">نوع الفلتر *</label><input class="form-input" id="if-type" placeholder="مثال: فلتر زيت المحرك"></div>
-      <div class="form-field"><label class="form-label">رقم القطعة الأصلي *</label><input class="form-input" id="if-part" placeholder="مثال: 1R-0739"></div>
-      <div class="form-field"><label class="form-label">الكمية في المخزن</label><input class="form-input" type="number" id="if-qty" placeholder="0"></div>
-      <div class="form-field">
-        <label class="form-label">دورة التغيير (ساعة)</label>
-        <select class="form-select" id="if-interval" onchange="toggleCustomInterval()">
-          <option value="250">كل 250 ساعة (الدورة العادية)</option>
-          <option value="500">كل 500 ساعة</option>
-          <option value="1000">كل 1000 ساعة</option>
-          <option value="custom">مخصص</option>
-        </select>
-      </div>
-      <div class="form-field" id="if-custom-field" style="display:none">
-        <label class="form-label">دورة مخصصة (ساعة)</label>
-        <input class="form-input" type="number" id="if-custom" placeholder="أدخل عدد الساعات">
-      </div>
-    </div>
-    <div class="sec-lbl" style="padding:0 14px 6px">أرقام بديلة (اختياري)</div>
-    <div style="margin:0 14px 10px;background:white;border-radius:14px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.07)">
-      <div id="alts-list"></div>
-      <button onclick="addAltField({})" style="width:100%;background:#f0fdf4;color:var(--green);border:1px dashed var(--green);border-radius:10px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px">➕ إضافة رقم بديل + كميته</button>
-    </div>
-    <div class="sec-lbl" style="padding:0 14px 6px">ربط بالمعدات</div>
-    <div style="margin:0 14px 10px;background:white;border-radius:14px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.07)">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">اختر المعدات التي تستخدم هذا الفلتر:</div>
-      <div id="if-eq-list"></div>
-    </div>
-    <button class="save-btn" id="inv-save-btn" onclick="saveInvFilter()">✅ حفظ الفلتر</button>
-  </div>
+<div class="modal-overlay" id="fuel-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg, #065f46, #0e7490)"><div class="modal-title">⛽ تسجيل تزود بالوقود</div><button class="modal-close" onclick="closeModal('fuel-modal')">✕</button></div>
+  <div><div class="form-group"><div class="form-field"><label class="form-label">المعدة</label><select class="form-select" id="fuel-equipment"></select></div><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="fuel-amount" placeholder="الكمية باللتر"></div><div class="form-field"><label class="form-label">التكلفة (ر.س)</label><input class="form-input" type="number" id="fuel-cost" placeholder="التكلفة"></div><div class="form-field"><label class="form-label">العداد الحالي (ساعة)</label><input class="form-input" type="number" id="fuel-hours" placeholder="قراءة العداد"></div><div class="form-field"><label class="form-label">التاريخ</label><input class="form-input" type="date" id="fuel-date"></div><div class="form-field"><label class="form-label">السائق</label><select class="form-select" id="fuel-driver"></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="fuel-notes" placeholder="أي ملاحظات"></textarea></div></div><button class="save-btn" onclick="saveFuelRecord()">✅ حفظ التزود</button></div>
 </div>
 
-<!-- ══ LINK FILTER MODAL (ربط فلتر موجود بمعدة) ══ -->
-<div class="modal" id="link-modal">
-  <div class="modal-header" style="background:linear-gradient(160deg,#1e40af,#0e7490)">
-    <div class="modal-title">🔗 ربط فلتر بمعدات</div>
-    <button class="modal-close" onclick="closeLinkModal()">×</button>
-  </div>
-  <div>
-    <div id="link-filter-info" style="margin:14px 14px 0;background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.07)"></div>
-    <div class="sec-lbl" style="padding:14px 14px 6px">اختر المعدات</div>
-    <div style="margin:0 14px 10px;background:white;border-radius:14px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.07)">
-      <div id="link-eq-list"></div>
-    </div>
-    <button class="save-btn" onclick="saveLinkFilter()">✅ ربط بالمعدات المختارة</button>
-  </div>
+<div class="modal-overlay" id="maintenance-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg, var(--warning), var(--accent-dark))"><div class="modal-title">🔧 جدولة صيانة دورية</div><button class="modal-close" onclick="closeModal('maintenance-modal')">✕</button></div>
+  <div><div class="form-group"><div class="form-field"><label class="form-label">المعدة</label><select class="form-select" id="maint-equipment"></select></div><div class="form-field"><label class="form-label">نوع الصيانة</label><select class="form-select" id="maint-type"><option>صيانة دورية</option><option>صيانة طارئة</option><option>فحص دوري</option><option>تغيير زيت</option><option>تغيير فلاتر</option></select></div><div class="form-field"><label class="form-label">التاريخ المحدد</label><input class="form-input" type="date" id="maint-date"></div><div class="form-field"><label class="form-label">العداد المستهدف (ساعة)</label><input class="form-input" type="number" id="maint-hours" placeholder="العداد المستهدف"></div><div class="form-field"><label class="form-label">التكلفة المتوقعة</label><input class="form-input" type="number" id="maint-cost" placeholder="التكلفة"></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="maint-notes" placeholder="أي ملاحظات"></textarea></div></div><button class="save-btn" onclick="saveMaintenanceSchedule()">✅ جدولة الصيانة</button></div>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal-header"><div class="modal-title" id="detail-title">تفاصيل</div><button class="modal-close" onclick="closeModal('detail-modal')">✕</button></div>
+  <div id="detail-content"></div>
+</div>
+
+<div class="modal-overlay" id="meter-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg, #065f46, #0e7490)"><div class="modal-title">⏱️ تحديث العدادات اليومي</div><button class="modal-close" onclick="closeModal('meter-modal')">✕</button></div>
+  <div id="meter-list" style="padding:14px"></div>
+  <div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveAllMeters()">✅ حفظ جميع العدادات</button></div>
+</div>
+
+<div class="modal-overlay" id="inventory-item-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg, var(--purple), var(--pink))"><div class="modal-title" id="inv-item-title">إضافة صنف جديد</div><button class="modal-close" onclick="closeModal('inventory-item-modal')">✕</button></div>
+  <div><div class="form-group"><div class="form-field"><label class="form-label">التصنيف *</label><select class="form-select" id="inv-category"><option value="filter">فلتر</option><option value="oil">زيت</option><option value="tire">إطار</option><option value="spare">قطعة غيار</option><option value="other">أخرى</option></select></div><div class="form-field"><label class="form-label">اسم الصنف *</label><input class="form-input" id="inv-name" placeholder="مثال: فلتر زيت المحرك"></div><div class="form-field"><label class="form-label">رقم القطعة الأصلي *</label><input class="form-input" id="inv-partno" placeholder="رقم القطعة"></div><div class="form-field"><label class="form-label">دورة التغيير (ساعة)</label><select class="form-select" id="inv-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="1000">كل 1000 ساعة</option></select></div><div class="form-field"><label class="form-label">الكمية في المخزن</label><input class="form-input" type="number" id="inv-qty" value="0"></div><div class="form-field"><label class="form-label">الحد الأدنى للتنبيه</label><input class="form-input" type="number" id="inv-min-qty" value="5"></div><div class="form-field"><label class="form-label">سعر الوحدة (ر.س)</label><input class="form-input" type="number" id="inv-price" value="0"></div><div class="form-field"><label class="form-label">الوحدة</label><select class="form-select" id="inv-unit"><option>قطعة</option><option>لتر</option><option>جالون</option><option>كجم</option></select></div></div><div id="inv-alt-list" style="margin:0 14px"></div><button onclick="addInvAltField()" class="save-btn" style="margin:10px 14px; background:var(--info)">➕ إضافة رقم بديل + كميته</button><div class="form-group"><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="inv-notes" placeholder="أي ملاحظات"></textarea></div></div><button class="save-btn" onclick="saveInventoryItem()">✅ حفظ الصنف</button></div>
+</div>
+
+<div class="modal-overlay" id="link-filter-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg, var(--info), var(--primary))"><div class="modal-title">🔗 ربط فلتر بمعدة</div><button class="modal-close" onclick="closeModal('link-filter-modal')">✕</button></div>
+  <div id="link-filter-content" style="padding:14px"></div>
+  <div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveFilterLink()">✅ حفظ الربط</button></div>
+</div>
+
+<div class="modal-overlay" id="order-report-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg, var(--danger), var(--warning))"><div class="modal-title">📋 تقرير الطلبية - النواقص (لـ 1000 ساعة تشغيل)</div><button class="modal-close" onclick="closeModal('order-report-modal')">✕</button></div>
+  <div id="order-report-content" style="padding:14px; padding-bottom:100px"></div>
+  <div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="exportOrderToExcel()">📊 تصدير الطلبية إلى Excel</button><button class="save-btn" style="background:var(--success); margin-top:10px" onclick="sendOrderViaWhatsApp()">📱 إرسال الطلبية عبر واتساب</button></div>
+</div>
+
 <script>
-// ══════════════════════════════════════════════
-// FIREBASE SDK + ANONYMOUS AUTH
-// ══════════════════════════════════════════════
-let firebaseConfig = null;
-let fbDb = null;
-let db = null;
-
-function dbSet(path, val){
-  if(demoMode){ setNestedPath(demoData,path,val); _syncDemo(); return; }
-  if(!fbDb) return;
-  fbDb.ref(path).set(val);
-}
-function dbUpdate(path, val){
-  if(demoMode){ Object.keys(val).forEach(k=>setNestedPath(demoData,`${path}/${k}`,val[k])); _syncDemo(); return; }
-  if(!fbDb) return;
-  fbDb.ref(path).update(val);
-}
-function dbRemove(path){
-  if(demoMode){ removeNestedPath(demoData,path); _syncDemo(); return; }
-  if(!fbDb) return;
-  fbDb.ref(path).remove();
-}
-function dbPush(path, val){
-  if(demoMode){
-    const id='d'+Date.now();
-    setNestedPath(demoData,`${path}/${id}`,val);
-    _syncDemo(); return id;
-  }
-  if(!fbDb) return 'd'+Date.now();
-  return fbDb.ref(path).push(val).key;
-}
-function _syncDemo(){
-  if(demoData.inventory) inventory=demoData.inventory;
-  equipment=demoData; refreshCurrentView();
-}
-function initFirebase(cfg){
-  firebaseConfig = cfg;
-  try {
-    firebase.initializeApp(cfg);
-    fbDb = firebase.database();
-    setSyncStatus('جاري تسجيل الدخول...', false);
-    firebase.auth().signInAnonymously()
-      .then(()=>{
-        db = true;
-        document.getElementById('setup-screen').style.display='none';
-        setSyncStatus('متصل 🟢', false);
-        fbDb.ref('equipment').on('value', snap=>{
-          equipment = snap.val()||{};
-          refreshCurrentView();
-          checkMaintenanceAlerts();
-        }, err=>setSyncStatus('خطأ قراءة: '+err.code+' 🔴',true));
-        fbDb.ref('inventory').on('value', snap=>{
-          inventory = snap.val()||{};
-          if(currentView==='inventory') renderInventory();
-        });
-      })
-      .catch(e=>{
-        setSyncStatus('خطأ auth: '+e.code+' 🔴', true);
-        toast('خطأ: '+e.message);
-      });
-  } catch(e){
-    setSyncStatus('خطأ init: '+e.message+' 🔴', true);
-    toast('خطأ: '+e.message);
-  }
-}
-function setNestedPath(obj,path,val){
-  const parts=path.split('/').filter(Boolean);
-  let cur=obj;
-  for(let i=0;i<parts.length-1;i++){if(!cur[parts[i]])cur[parts[i]]={};cur=cur[parts[i]];}
-  cur[parts[parts.length-1]]=val;
-}
-function removeNestedPath(obj,path){
-  const parts=path.split('/').filter(Boolean);
-  let cur=obj;
-  for(let i=0;i<parts.length-1;i++){if(!cur[parts[i]])return;cur=cur[parts[i]];}
-  delete cur[parts[parts.length-1]];
-}
-
-// ═══════════════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════════════
-const ICONS = {حفارة:"⛏️",لودر:"🏗️",رافعة:"🏗️",بلدوزر:"🚜",شاحنة:"🚛",مسوية:"🛣️",خلاطة:"🔄","مولد كهربائي":"⚡"};
-const STATUS_CFG = {
-  "يعمل":{bg:"#d1fae5",text:"#065f46",dot:"#10b981"},
-  "صيانة":{bg:"#fef3c7",text:"#78350f",dot:"#f59e0b"},
-  "متوقف":{bg:"#fee2e2",text:"#7f1d1d",dot:"#ef4444"},
-};
-
-// ═══════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════
-let equipment = {};
-let currentView = 'home';
-let currentEqId = null;
-let currentDetailTab = 'info';
-let filterStatus = 'الكل';
-let orderForAll = true;
-let orderEqId = null;
-let demoMode = false;
-let demoData = {};
-
-// ═══════════════════════════════════════════════
-// FIREBASE CONFIG - مدمج مباشرة
-// ═══════════════════════════════════════════════
+// ============================================
+// FIREBASE CONFIGURATION
+// ============================================
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyD3eWEZZDXCfHtJ6xdD9VwW8hT5vZzV0W4",
   authDomain: "hah-pmv.firebaseapp.com",
   databaseURL: "https://hah-pmv-default-rtdb.firebaseio.com",
-  projectId: "hah-pmv"
+  projectId: "hah-pmv",
+  storageBucket: "hah-pmv.appspot.com"
 };
 
-function getSavedConfig(){ return FIREBASE_CONFIG; }
-function saveFirebaseConfig(){ initFirebase(FIREBASE_CONFIG); }
-function useDemoMode(){
-  demoMode=true; demoData=getDemoData();
-  equipment=demoData; inventory={};
-  document.getElementById('setup-screen').style.display='none';
-  setSyncStatus('وضع تجريبي', false);
-  refreshCurrentView();
+let fbDb = null;
+let equipmentData = [];
+let driversData = [];
+let fuelData = [];
+let maintenanceSchedules = [];
+let inventoryItems = [];
+let equipmentFilterLinks = [];
+let currentUser = null;
+let editingEquipmentId = null;
+let editingDriverId = null;
+let editingInventoryId = null;
+let currentDetailId = null;
+let currentCategoryFilter = 'all';
+let invAltCount = 0;
+let currentLinkingItem = null;
+
+// ============================================
+// بيانات أولية
+// ============================================
+const initialInventoryData = [
+  { category: "filter", name: "فلتر زيت المحرك", partNo: "1R-0739", qty: 6, minQty: 10, price: 85, unit: "قطعة", interval: 250, alts: [{partNo: "LF16015", qty: 2}, {partNo: "P550008", qty: 1}] },
+  { category: "filter", name: "فلتر الهواء", partNo: "6I-2501", qty: 2, minQty: 8, price: 120, unit: "قطعة", interval: 250, alts: [{partNo: "AF26510", qty: 1}] },
+  { category: "filter", name: "فلتر الديزل", partNo: "326-1641", qty: 2, minQty: 8, price: 95, unit: "قطعة", interval: 250, alts: [{partNo: "FF5327", qty: 1}] },
+  { category: "filter", name: "فلتر الهيدروليك", partNo: "093-7521", qty: 1, minQty: 5, price: 150, unit: "قطعة", interval: 500, alts: [] }
+];
+
+const initialEquipmentData = [
+  { code: "EX-001", name: "حفارة كاتربيلار 320D", type: "حفارة", chassis: "CAT0320DKDP02541", location: "موقع A", hours: 4520, nextHours: 4770, interval: 250, status: "يعمل", notes: "" },
+  { code: "LD-002", name: "لودر كوماتسو WA380", type: "لودر", chassis: "WA380-6H52167", location: "موقع B", hours: 3210, nextHours: 3460, interval: 250, status: "يعمل", notes: "" },
+  { code: "BL-003", name: "بلدوزر كاتربيلار D6", type: "بلدوزر", chassis: "CAT00D6RLAR04892", location: "موقع C", hours: 6740, nextHours: 7240, interval: 500, status: "يعمل", notes: "" },
+  { code: "GN-R0334", name: "مولد كهربائي كاتربيلار", type: "مولد كهربائي", chassis: "GEN-CAT-334", location: "موقع B", hours: 1250, nextHours: 1500, interval: 250, status: "يعمل", notes: "" }
+];
+
+const initialFilterLinks = [
+  { equipmentId: "EX-001", filterPartNo: "1R-0739", quantityPerService: 1 },
+  { equipmentId: "EX-001", filterPartNo: "6I-2501", quantityPerService: 1 },
+  { equipmentId: "EX-001", filterPartNo: "326-1641", quantityPerService: 1 },
+  { equipmentId: "LD-002", filterPartNo: "1R-0739", quantityPerService: 1 },
+  { equipmentId: "LD-002", filterPartNo: "6I-2501", quantityPerService: 1 },
+  { equipmentId: "BL-003", filterPartNo: "1R-0739", quantityPerService: 2 },
+  { equipmentId: "BL-003", filterPartNo: "6I-2501", quantityPerService: 1 },
+  { equipmentId: "GN-R0334", filterPartNo: "1R-0739", quantityPerService: 1 }
+];
+
+// ============================================
+// دوال عامة
+// ============================================
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
-// ═══════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════
-function uid(){ return 'f'+Date.now()+Math.random().toString(36).slice(2,6); }
-function daysUntil(d){ if(!d)return 999; return Math.ceil((new Date(d)-new Date())/86400000); }
-function eqList(){ return Object.entries(equipment).map(([id,e])=>({...e,id})); }
-function getEq(id){ return equipment[id]?{...equipment[id],id}:null; }
-
-function setSyncStatus(msg, isOffline) {
-  const el = document.getElementById('sync-status');
-  if(el) el.textContent = msg;
-  const dot = document.getElementById('sync-indicator');
-  if(dot) dot.innerHTML = `<span class="sync-dot${isOffline?' offline':''}"></span>`;
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
 }
 
-function toast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
+function formatNumber(n) {
+  return (n || 0).toLocaleString('ar');
 }
 
-function refreshCurrentView(){
-  if(currentView==='home') renderHome();
-  else if(currentView==='equipment') renderEquipmentList();
-  else if(currentView==='inventory') renderInventory();
-  else renderReports();
-  if(currentEqId) renderDetailContent();
+function hoursRemaining(eq) {
+  return (eq.nextHours || 0) - (eq.hours || 0);
 }
 
-// ═══════════════════════════════════════════════
-// ORDER LOGIC
-// ═══════════════════════════════════════════════
-function filterTotalQty(f){
-  // إذا مرتبط بالمخزن المشترك — خذ الكمية منه
-  if(f.invId && inventory[f.invId]){
-    const inv = inventory[f.invId];
-    const altQty = (inv.alts||[]).reduce((s,a)=>s+Number(a.qty||0),0);
-    return Number(inv.qty||0)+altQty;
+function getRemainingPercent(eq) {
+  if (!eq.nextHours || eq.nextHours <= 0) return 0;
+  const rem = hoursRemaining(eq);
+  const totalCycle = eq.interval || 250;
+  return Math.min(100, Math.max(0, (rem / totalCycle) * 100));
+}
+
+function getRemainingStatus(eq) {
+  const rem = hoursRemaining(eq);
+  if (rem <= 0) return { text: `⚠️ تجاوز ${Math.abs(rem)} ساعة`, color: 'var(--danger)' };
+  if (rem <= 10) return { text: `🔴 باقي ${rem} ساعة فقط!`, color: 'var(--danger)' };
+  if (rem <= 50) return { text: `🟡 باقي ${rem} ساعة`, color: 'var(--warning)' };
+  return { text: `✅ باقي ${rem} ساعة`, color: 'var(--success)' };
+}
+
+function getBarColor(rem) {
+  if (rem <= 0) return 'var(--danger)';
+  if (rem <= 50) return 'var(--danger)';
+  if (rem <= 100) return 'var(--warning)';
+  return 'var(--success)';
+}
+
+function getCategoryBadge(category) {
+  const badges = {
+    filter: '<span class="category-badge" style="background:#e0e7ff; color:#4338ca">🔧 فلتر</span>',
+    oil: '<span class="category-badge" style="background:#fed7aa; color:#9a3412">🛢️ زيت</span>',
+    tire: '<span class="category-badge" style="background:#d1fae5; color:#065f46">🚗 إطار</span>',
+    spare: '<span class="category-badge" style="background:#fce7f3; color:#be185d">⚙️ قطعة غيار</span>',
+    other: '<span class="category-badge" style="background:#e2e8f0; color:#475569">📦 أخرى</span>'
+  };
+  return badges[category] || badges.other;
+}
+
+function totalQty(item) {
+  const altQty = (item.alts || []).reduce((sum, a) => sum + (a.qty || 0), 0);
+  return (item.qty || 0) + altQty;
+}
+
+// حساب الاحتياجات لـ 1000 ساعة
+function calculateNeededFor1000Hours(filterItem, equipmentItem, quantityPerService) {
+  const eqInterval = equipmentItem.interval || 250;
+  const filterInterval = filterItem.interval || 250;
+  const numberOfServices = Math.ceil(1000 / eqInterval);
+  let timesChanged = 0;
+  if (filterInterval <= eqInterval) {
+    timesChanged = numberOfServices * Math.ceil(eqInterval / filterInterval);
+  } else {
+    const servicesPerChange = Math.ceil(filterInterval / eqInterval);
+    timesChanged = Math.ceil(numberOfServices / servicesPerChange);
   }
-  // غير مرتبط — خذ من كمية الفلتر المحلية
-  const altQty = (f.alts||[]).reduce((s,a)=>s+Number(a.qty||0),0);
-  return Number(f.qty||0)+altQty;
+  return timesChanged * quantityPerService;
 }
 
-function getFilterName(f){
-  if(f.invId && inventory[f.invId]) return inventory[f.invId].type;
-  return f.type;
-}
-
-function getFilterPartNo(f){
-  if(f.invId && inventory[f.invId]) return inventory[f.invId].partNo;
-  return f.partNo;
-}
-
-function calcOrder(e){
-  return Object.values(e.filters||{}).map(f=>{
-    const needed = f.usedPerService*4;
-    const totalQty = filterTotalQty(f);
-    const shortage = Math.max(0, needed-totalQty);
-    const name = getFilterName(f);
-    const partNo = getFilterPartNo(f);
-    const fromInv = !!(f.invId && inventory[f.invId]);
-    return{...f, name, partNo, needed, shortage, totalQty, sufficient:shortage===0, fromInv};
-  });
-}
-
-function allShortages(){
-  const map={};
-  eqList().forEach(eq=>{
-    calcOrder(eq).forEach(f=>{
-      if(f.shortage>0){
-        const key = f.invId||f.partNo;
-        if(!map[key])map[key]={...f,eqs:[],totalShortage:0};
-        map[key].eqs.push(eq.code);
-        map[key].totalShortage = Math.max(map[key].totalShortage, f.shortage);
+function calculateAllFiltersNeeded() {
+  const needs = {};
+  inventoryItems.forEach(filter => {
+    if (filter.category !== 'filter') return;
+    let totalNeeded = 0;
+    const filterLinks = equipmentFilterLinks.filter(link => link.filterPartNo === filter.partNo);
+    filterLinks.forEach(link => {
+      const equipment = equipmentData.find(eq => eq.code === link.equipmentId);
+      if (equipment && equipment.status !== 'متوقف') {
+        totalNeeded += calculateNeededFor1000Hours(filter, equipment, link.quantityPerService);
       }
     });
+    needs[filter.id] = totalNeeded;
   });
-  return Object.values(map);
+  return needs;
 }
 
-// ═══════════════════════════════════════════════
-// BADGE
-// ═══════════════════════════════════════════════
-function badgeHTML(s){
-  const c=STATUS_CFG[s]||{};
-  return `<span class="badge" style="background:${c.bg};color:${c.text}"><span class="dot" style="background:${c.dot}"></span>${s}</span>`;
-}
-
-// ═══════════════════════════════════════════════
-// CARD
-// ═══════════════════════════════════════════════
-function cardHTML(e){
-  const d=daysUntil(e.nextMaintenance);
-  const cls=d<=7?'urgent':e.status==='متوقف'?'stopped':'';
-  const dc=d<0?'var(--red)':d<=7?'var(--amber)':'var(--green)';
-  const dl=d<0?`⚠️ متأخر ${Math.abs(d)} يوم`:d===0?'اليوم!!':(`🔧 بعد ${d} يوم`);
-  const lf=Object.values(e.filters||{}).some(f=>f.qty<f.usedPerService);
-  return `<div class="eq-card ${cls}" onclick="openDetail('${e.id}')">
-    <div class="card-top">
-      <div style="flex:1">
-        <div class="card-code">${e.code}•${e.type} ${lf?'<span style="color:var(--red)">⚠️فلاتر</span>':''}</div>
-        <div class="card-name">${ICONS[e.type]||'🔧'} ${e.name}</div>
-        <div class="card-loc">📍 ${e.location||'—'}</div>
-        ${e.chassis?`<div class="card-chassis">🔑 ${e.chassis}</div>`:''}
-        ${e.type==='مولد كهربائي'&&e.kva?`<div class="card-chassis">⚡ ${e.kva} KVA</div>`:''}
-      </div>
-      ${badgeHTML(e.status)}
-    </div>
-    <div class="card-bot">
-      <div class="card-hours">⏱️ ${Number(e.hours||0).toLocaleString('ar')} ساعة</div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
-        <div class="card-next" style="color:${dc}">${dl}</div>
-        ${hoursRemaining(e)!==null?`<div style="font-size:10px;font-weight:700;color:${hoursRemainingColor(hoursRemaining(e))}">${hoursRemainingLabel(hoursRemaining(e))}</div>`:''}
-      </div>
-    </div>
-  </div>`;
-}
-
-// ═══════════════════════════════════════════════
-// HOME
-// ═══════════════════════════════════════════════
-function renderHome(){
-  const list=eqList();
-  const total=list.length,working=list.filter(e=>e.status==='يعمل').length;
-  const maint=list.filter(e=>e.status==='صيانة').length,stopped=list.filter(e=>e.status==='متوقف').length;
-  const urgList=list.filter(e=>daysUntil(e.nextMaintenance)<=7);
-
-  document.getElementById('home-stats').innerHTML=`
-    <div class="stat-card" style="background:#dbeafe"><div class="stat-num" style="color:#1e40af">${total}</div><div class="stat-lbl" style="color:#1e40af">الإجمالي</div></div>
-    <div class="stat-card" style="background:#d1fae5"><div class="stat-num" style="color:#065f46">${working}</div><div class="stat-lbl" style="color:#065f46">تعمل</div></div>
-    <div class="stat-card" style="background:#fef3c7"><div class="stat-num" style="color:#78350f">${maint}</div><div class="stat-lbl" style="color:#78350f">صيانة</div></div>
-    <div class="stat-card" style="background:#fee2e2"><div class="stat-num" style="color:#7f1d1d">${stopped}</div><div class="stat-lbl" style="color:#7f1d1d">متوقفة</div></div>`;
-
-  const urgSec=document.getElementById('urgent-section');
-  urgSec.innerHTML=urgList.length?`<div class="sec-title">⚠️ صيانة عاجلة (${urgList.length})</div>`+
-    urgList.map(e=>{const d=daysUntil(e.nextMaintenance);return`<div class="urg-card" onclick="openDetail('${e.id}')">
-      <div class="urg-name">${ICONS[e.type]||'🔧'} ${e.name}</div>
-      <div class="urg-date">${d<0?`متأخر ${Math.abs(d)} يوم`:d===0?'اليوم!!':(`بعد ${d} أيام`)}</div>
-    </div>`;}).join(''):'';
-
-  document.getElementById('home-cards').innerHTML='';
-  document.getElementById('home-order-btn').innerHTML=`
-    <button class="big-btn" style="background:linear-gradient(135deg,#065f46,#0e7490);color:white;margin-bottom:8px" onclick="openMeterOverlay()">⏱️ تحديث العدادات اليومي</button>
-    <button class="big-btn" onclick="openOrder(true,null)">📦 طلبية فلاتر — 4 صيانات (جميع المعدات)</button>`;
-
-  // تقرير الساعات المتبقية لكل المعدات
-  const withHours = list.filter(e=>Number(e.nextHours||0)>0);
-  const sorted = [...list].sort((a,b)=>{
-    const ra = hoursRemaining(a)??9999;
-    const rb = hoursRemaining(b)??9999;
-    return ra-rb;
-  });
-
-  document.getElementById('home-cards').innerHTML = `
-    <div class="sec-title" style="margin-top:8px">⏳ تقرير الساعات المتبقية على الصيانة</div>
-    <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:var(--card-shadow);margin-bottom:10px">
-      ${sorted.map((e,i)=>{
-        const rem = hoursRemaining(e);
-        const cur = Number(e.hours||0);
-        const next = Number(e.nextHours||0);
-        const interval = Number(e.maintenanceInterval||250);
-
-        // حساب نسبة الشريط بناءً على الساعات المتبقية
-        // الشريط يمثل الساعات المتبقية من إجمالي الدورة
-        let barPct = 0;
-        let barColor = 'var(--muted)';
-        let remLabel = '—';
-        let remSub = '';
-
-        if(rem !== null && next > 0){
-          if(rem <= 0){
-            barPct = 0;
-            barColor = 'var(--red)';
-            remLabel = `⚠️ متأخر ${Math.abs(rem)} ساعة`;
-            remSub = 'تجاوز موعد الصيانة';
-          } else if(rem < 50){
-            // أقل من 50 ساعة — ربع الشريط أو أقل — أحمر
-            barPct = Math.round((rem / interval) * 100);
-            barPct = Math.min(barPct, 25); // أقصى ربع
-            barColor = '#ef4444';
-            remLabel = `🔴 باقي ${rem} ساعة`;
-            remSub = 'صيانة عاجلة';
-          } else if(rem < 100){
-            // 50-100 ساعة — قبل النصف — أصفر
-            barPct = Math.round((rem / interval) * 100);
-            barPct = Math.min(Math.max(barPct, 26), 49); // بين ربع والنصف
-            barColor = '#f59e0b';
-            remLabel = `🟡 باقي ${rem} ساعة`;
-            remSub = 'قريب من الصيانة';
-          } else {
-            // أكثر من 100 — فوق النصف — أخضر
-            barPct = Math.round((rem / interval) * 100);
-            barPct = Math.min(Math.max(barPct, 50), 100);
-            barColor = '#10b981';
-            remLabel = `✅ باقي ${rem} ساعة`;
-            remSub = `عداد الصيانة: ${next.toLocaleString('ar')} س`;
-          }
-        } else if(next === 0){
-          remLabel = 'لم يُحدد عداد الصيانة';
-          remSub = 'أضف العداد من التعديل';
-        }
-
-        return `<div style="padding:13px 14px;border-bottom:${i<sorted.length-1?'1px solid var(--bg)':'none'};cursor:pointer" onclick="openDetail('${e.id}')">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div style="display:flex;align-items:center;gap:8px">
-              <span style="font-size:20px">${ICONS[e.type]||'🔧'}</span>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:var(--navy)">${e.name}</div>
-                <div style="font-size:10px;color:var(--muted)">${e.code} • ⏱️ ${cur.toLocaleString('ar')} ساعة</div>
-              </div>
-            </div>
-            <div style="text-align:left">
-              <div style="font-size:12px;font-weight:800;color:${barColor}">${remLabel}</div>
-              <div style="font-size:10px;color:var(--muted)">${remSub}</div>
-            </div>
-          </div>
-          ${next>0?`
-          <div style="position:relative;height:10px;background:var(--bg);border-radius:5px;overflow:hidden">
-            <div style="position:absolute;top:0;right:0;height:100%;width:${barPct}%;background:${barColor};border-radius:5px;transition:width 0.8s ease"></div>
-            <div style="position:absolute;top:0;right:25%;width:1px;height:100%;background:rgba(0,0,0,0.1)"></div>
-            <div style="position:absolute;top:0;right:50%;width:1px;height:100%;background:rgba(0,0,0,0.1)"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:3px">
-            <div style="font-size:9px;color:var(--muted)">0</div>
-            <div style="font-size:9px;color:var(--red);margin-right:19%">50س</div>
-            <div style="font-size:9px;color:var(--amber);margin-right:3%">100س</div>
-            <div style="font-size:9px;color:var(--muted)">${interval}س</div>
-          </div>`
-          :`<div style="height:10px;background:var(--bg);border-radius:5px;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--muted)">لم يُحدد عداد الصيانة</span></div>`}
-        </div>`;
-      }).join('')}
-    </div>`;
-}
-
-// ═══════════════════════════════════════════════
-// EQUIPMENT LIST
-// ═══════════════════════════════════════════════
-function renderEquipmentList(){
-  const search=document.getElementById('search-input').value;
-  const list=eqList().filter(e=>
-    (filterStatus==='الكل'||e.status===filterStatus)&&
-    (e.name.includes(search)||e.code.includes(search)||(e.chassis||'').includes(search)));
-  document.getElementById('eq-count').textContent=`${eqList().length} معدة مسجلة`;
-  document.getElementById('eq-list').innerHTML=list.length?list.map(cardHTML).join(''):'<div class="empty">لا توجد نتائج</div>';
-  document.getElementById('filter-row').innerHTML=['الكل','يعمل','صيانة','متوقف'].map(f=>
-    `<button class="f-btn" style="background:${filterStatus===f?'var(--navy)':'white'};color:${filterStatus===f?'white':'var(--muted)'}" onclick="setFilter('${f}')">${f}</button>`
-  ).join('');
-}
-function setFilter(f){filterStatus=f;renderEquipmentList();}
-
-// ═══════════════════════════════════════════════
-// REPORTS
-// ═══════════════════════════════════════════════
-function renderReports(){
-  const list=eqList(),total=list.length||1;
-  const working=list.filter(e=>e.status==='يعمل').length;
-  const maint=list.filter(e=>e.status==='صيانة').length;
-  const stopped=list.filter(e=>e.status==='متوقف').length;
-  const overdue=list.filter(e=>daysUntil(e.nextMaintenance)<0).length;
-  const urgent=list.filter(e=>daysUntil(e.nextMaintenance)<=7).length;
-  const shortages=allShortages();
-  const pb=(p,c)=>`<div class="progress-wrap"><div class="progress-fill" style="width:${p}%;background:${c}"></div></div>`;
-  const tc={};list.forEach(e=>{tc[e.type]=(tc[e.type]||0)+1;});
-
-  document.getElementById('reports-content').innerHTML=`
-    <div style="background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow)">
-      <div style="font-weight:800;font-size:15px;margin-bottom:12px;color:var(--navy)">📊 حالة الأسطول</div>
-      ${[['✅ تعمل',Math.round(working/total*100),'var(--green)'],['🔧 صيانة',Math.round(maint/total*100),'var(--amber)'],['⛔ متوقفة',Math.round(stopped/total*100),'var(--red)']].map(([l,p,c])=>`
-        <div style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:12px;color:var(--muted)">${l}</span><span style="font-size:12px;font-weight:700;color:${c}">${p}%</span></div>
-          ${pb(p,c)}
-        </div>`).join('')}
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      ${[['⚠️',overdue,'var(--amber)','متأخرة'],['📅',urgent,'var(--navy)','خلال 7 أيام'],['⚙️',shortages.length,'var(--red)','فلاتر ناقصة']].map(([ic,v,c,l])=>`
-        <div style="background:white;border-radius:14px;padding:12px;flex:1;box-shadow:var(--shadow);text-align:center">
-          <div style="font-size:22px">${ic}</div><div style="font-size:22px;font-weight:800;color:${c}">${v}</div>
-          <div style="font-size:10px;color:var(--muted)">${l}</div>
-        </div>`).join('')}
-    </div>
-    <div style="background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow)">
-      <div style="font-weight:800;font-size:15px;margin-bottom:10px;color:var(--navy)">⏱️ ساعات التشغيل</div>
-      ${list.map(e=>`<div style="margin-bottom:8px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:2px">
-          <span style="font-size:12px;color:var(--muted)">${ICONS[e.type]||'🔧'} ${e.code}</span>
-          <span style="font-size:12px;font-weight:700;color:var(--navy)">${Number(e.hours||0).toLocaleString('ar')} س</span>
-        </div>${pb(Math.min((e.hours/8000)*100,100),e.hours>6000?'var(--red)':e.hours>4000?'var(--amber)':'var(--green)')}
-      </div>`).join('')}
-    </div>
-    <button class="big-btn" onclick="openOrder(true,null)">📦 طلبية فلاتر — 4 صيانات (جميع المعدات)</button>
-    ${invList().length?`<div style="background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow)">
-      <div style="font-weight:800;font-size:15px;margin-bottom:12px;color:var(--navy)">📦 ملخص المخزن المركزي</div>
-      ${invList().map(f=>{
-        const needed=calcInvNeeded(f);
-        const shortage=Math.max(0,needed-f.qty);
-        const c=shortage>0?'var(--red)':f.qty<needed*1.5?'var(--amber)':'var(--green)';
-        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bg)">
-          <div><div style="font-size:13px;font-weight:600;color:var(--navy)">${f.type}</div>
-          <div style="font-size:10px;color:var(--muted)">${f.partNo}</div></div>
-          <div style="text-align:left">
-            <div style="font-size:12px;color:var(--muted)">متوفر: <b style="color:var(--navy)">${f.qty}</b> / مطلوب: <b>${needed}</b></div>
-            <div style="font-size:11px;font-weight:700;color:${c}">${shortage>0?`⚠️ ناقص ${shortage}`:'✅ كافٍ'}</div>
-          </div>
-        </div>`;}).join('')}
-    </div>`:''}
-    <div style="height:40px"></div>`;
-}
-
-// ═══════════════════════════════════════════════
-// DETAIL
-// ═══════════════════════════════════════════════
-function openDetail(id){
-  currentEqId=id; currentDetailTab='info';
-  renderDetail();
-  document.getElementById('detail-overlay').classList.add('active');
-}
-function closeDetail(){
-  document.getElementById('detail-overlay').classList.remove('active');
-}
-function renderDetail(){
-  const e=getEq(currentEqId); if(!e)return;
-  document.getElementById('d-icon').textContent=ICONS[e.type]||'🔧';
-  document.getElementById('d-name').textContent=e.name;
-  document.getElementById('d-code').textContent=`${e.code} • ${e.type}`;
-  document.getElementById('d-status-row').innerHTML=
-    ['يعمل','صيانة','متوقف'].map(st=>`
-      <button class="status-btn"
-        style="background:${e.status===st?STATUS_CFG[st].dot:'#e2e8f0'};color:${e.status===st?'white':'var(--muted)'}"
-        onclick="setStatus('${e.id}','${st}')">${st}</button>`).join('')+
-    `<button class="order-btn" onclick="openOrder(false,'${e.id}')">📦 طلبية</button>
-     <button style="background:rgba(232,160,32,0.15);color:var(--accent);border:none;border-radius:18px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit" onclick="openEditModal('${e.id}')">✏️ تعديل</button>`;
-  ['info','filters','order'].forEach(t=>document.getElementById(`dtab-${t}`).classList.toggle('active',t===currentDetailTab));
-  renderDetailContent();
-}
-function switchDetailTab(tab){
-  currentDetailTab=tab;
-  ['info','filters','order'].forEach(t=>document.getElementById(`dtab-${t}`).classList.toggle('active',t===tab));
-  renderDetailContent();
-}
-function setStatus(id,status){
-  dbUpdate(`equipment/${id}`,{status});
-  toast(`تم تغيير الحالة: ${status}`);
-}
-function renderDetailContent(){
-  const e=getEq(currentEqId); if(!e)return;
-  const c=document.getElementById('detail-content');
-  if(currentDetailTab==='info') c.innerHTML=detailInfoHTML(e);
-  else if(currentDetailTab==='filters') c.innerHTML=detailFiltersHTML(e);
-  else c.innerHTML=detailOrderHTML(e);
-}
-
-function detailInfoHTML(e){
-  const d=daysUntil(e.nextMaintenance);
-  const dc=d<0?'var(--red)':d<=7?'var(--amber)':'var(--green)';
-  const dl=e.nextMaintenance?(e.nextMaintenance+(d<0?` (متأخر ${Math.abs(d)} يوم)`:d===0?' (اليوم!!)':(d<=7?` (بعد ${d} أيام)`:` (بعد ${d} يوم)`))):' — ';
-  const ir=(l,v,vc)=>`<div class="info-row"><span class="info-lbl">${l}</span><span class="info-val" ${vc?`style="color:${vc}"`:''}>${v}</span></div>`;
-  const rem = hoursRemaining(e);
-  const remColor = hoursRemainingColor(rem);
-  const remLabel = hoursRemainingLabel(rem);
-  const cur = Number(e.hours||0);
-  const next = Number(e.nextHours||0);
-  const pct = next>0 ? Math.min(Math.round((cur/next)*100),100) : 0;
-  const barColor = rem!==null&&rem<=10?'var(--red)':rem!==null&&rem<=50?'var(--amber)':'var(--green)';
-  return`
-    <div class="sec-lbl">معلومات أساسية</div>
-    <div class="info-card">
-      ${ir('🔑 رقم الشاسيه',e.chassis||'—')}
-      ${ir('📅 تاريخ الوصول',e.arrivalDate||'—')}
-      ${ir('📍 الموقع',e.location||'—')}
-      ${ir('🏷️ النوع',e.type)}
-      ${e.type==='مولد كهربائي'?ir('⚡ قدرة المولد',e.kva?`${e.kva} KVA`:'—'):''}
-      ${ir('🔄 دورة الصيانة',`كل ${e.maintenanceInterval||250} ساعة`)}
-    </div>
-    <div class="sec-lbl">عداد ساعات التشغيل</div>
-    <div class="info-card">
-      ${ir('🏁 عداد الوصول للموقع', `${Number(e.hoursArrival||0).toLocaleString('ar')} ساعة`)}
-      ${ir('⏱️ العداد الحالي', `${cur.toLocaleString('ar')} ساعة`)}
-      ${ir('🔧 عداد الصيانة القادمة', next>0?`${next.toLocaleString('ar')} ساعة`:'—')}
-      <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:8px">
-        <div style="display:flex;justify-content:space-between;width:100%">
-          <span class="info-lbl">⏳ الباقي على الصيانة</span>
-          <span style="font-size:13px;font-weight:800;color:${remColor}">${remLabel}</span>
-        </div>
-        ${next>0?`<div style="width:100%;height:8px;background:var(--bg);border-radius:4px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width 0.5s"></div>
-        </div>
-        <div style="font-size:10px;color:var(--muted);width:100%;text-align:left">${pct}% من دورة الصيانة</div>`:''}
-      </div>
-    </div>
-    <div class="sec-lbl">مواعيد الصيانة</div>
-    <div class="info-card">
-      ${ir('آخر صيانة',e.lastMaintenance||'—')}
-      <div class="info-row"><span class="info-lbl">الصيانة القادمة</span><span class="info-val" style="color:${dc}">${dl}</span></div>
-    </div>
-    ${e.notes?`<div class="sec-lbl">ملاحظات</div>
-    <div style="background:white;border-radius:14px;margin:0 14px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.07);font-size:13px;color:#374151;line-height:1.7">${e.notes}</div>`:''}
-    ${e.hoursLog?`<div class="sec-lbl">سجل العدادات اليومي</div>
-    <div class="info-card">
-      ${Object.values(e.hoursLog).slice(-7).reverse().map(l=>`
-        <div class="info-row">
-          <span class="info-lbl">📅 ${l.date}</span>
-          <span class="info-val">
-            ${Number(l.prev||0).toLocaleString('ar')} ← <b style="color:var(--navy)">${Number(l.hours||0).toLocaleString('ar')}</b> ساعة
-            <span style="font-size:10px;color:var(--green);margin-right:4px">(+${Number(l.hours||0)-Number(l.prev||0)})</span>
-          </span>
-        </div>`).join('')}
-    </div>`:''}`;
-}
-
-function detailFiltersHTML(e){
-  const filters=Object.entries(e.filters||{});
-  let html=`<div class="sec-lbl">الفلاتر المتوفرة (${filters.length})</div>`;
-  if(!filters.length) html+=`<div class="empty">لا توجد فلاتر — أضف أول فلتر ⬇️</div>`;
-  filters.forEach(([fid,f])=>{
-    const total=filterTotalQty(f);
-    const cls=total===0?'critical':total<f.usedPerService*2?'low':'';
-    const sl=total<f.usedPerService?'⚠️ ناقص':total<f.usedPerService*2?'⬇️ منخفض':'✅ كافٍ';
-    const sc=total<f.usedPerService?'var(--red)':total<f.usedPerService*2?'var(--amber)':'var(--green)';
-    const alts=f.alts||[];
-    html+=`<div class="filter-card ${cls}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div>
-          <div class="f-type">${f.type}</div>
-          <div class="f-part">P/N: ${f.partNo}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">يُستخدم ${f.usedPerService} / صيانة</div>
-        </div>
-        <button class="del-btn" onclick="deleteFilter('${fid}')">حذف</button>
-      </div>
-      <div style="background:var(--bg);border-radius:10px;padding:10px;margin-top:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <span style="font-size:11px;color:var(--muted);font-weight:600">الأصلي (${f.partNo})</span>
-          <div class="qty-row">
-            <button class="qty-btn" style="background:var(--red);width:26px;height:26px;font-size:16px" onclick="adjustQty('${fid}',-1)">−</button>
-            <span class="qty-num" style="font-size:16px">${f.qty}</span>
-            <button class="qty-btn" style="background:var(--green);width:26px;height:26px;font-size:16px" onclick="adjustQty('${fid}',1)">+</button>
-          </div>
-        </div>
-        ${alts.map((a,i)=>`
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <span style="font-size:11px;color:var(--teal);font-weight:600">بديل ${i+1} (${a.partNo})</span>
-          <div class="qty-row">
-            <button class="qty-btn" style="background:var(--red);width:26px;height:26px;font-size:16px" onclick="adjustAltQty('${fid}',${i},-1)">−</button>
-            <span class="qty-num" style="font-size:16px">${a.qty||0}</span>
-            <button class="qty-btn" style="background:var(--green);width:26px;height:26px;font-size:16px" onclick="adjustAltQty('${fid}',${i},1)">+</button>
-          </div>
-        </div>`).join('')}
-        <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid rgba(0,0,0,0.06);margin-top:4px">
-          <span style="font-size:12px;font-weight:800;color:var(--navy)">الإجمالي: ${total}</span>
-          <span style="font-size:12px;font-weight:700;color:${sc}">${sl}</span>
-        </div>
-      </div>
-    </div>`;
-  });
-  html+=`<div class="add-f-card">
-    <div class="add-f-title">➕ إضافة فلتر جديد</div>
-    <div class="add-f-grid">
-      <input class="add-f-input" id="nf-type" placeholder="نوع الفلتر">
-      <input class="add-f-input" id="nf-part" placeholder="رقم القطعة الأصلي P/N">
-      <input class="add-f-input" type="number" id="nf-qty" placeholder="كمية الأصلي في المخزن">
-      <input class="add-f-input" type="number" id="nf-per" placeholder="يُستخدم/صيانة" value="1">
-    </div>
-    <div id="nf-alts-list"></div>
-    <button onclick="nfAddAlt()" style="width:100%;background:#f0fdf4;color:var(--green);border:1px dashed var(--green);border-radius:8px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px">➕ إضافة رقم بديل بكميته</button>
-    <button class="add-f-btn" onclick="addFilter()">✅ إضافة الفلتر</button>
-  </div>`;
-  return html;
-}
-
-function detailOrderHTML(e){
-  const items=calcOrder(e);
-  let html=`<div style="background:linear-gradient(135deg,var(--navy),var(--teal));margin:10px 14px;border-radius:14px;padding:14px;color:white">
-    <div style="font-size:14px;font-weight:800;margin-bottom:4px">📦 الطلبية المقترحة</div>
-    <div style="font-size:12px;opacity:0.7">لـ 4 صيانات — كل ${e.maintenanceInterval||250} ساعة</div>
-    <div style="font-size:11px;margin-top:6px;opacity:0.6">الصيانات عند: ${[1,2,3,4].map(i=>(Number(e.hours||0)+Number(e.maintenanceInterval||250)*i).toLocaleString('ar')).join(' ، ')} ساعة</div>
-  </div>`;
-  if(!items.length){
-    html+=`<div class="empty">لا توجد فلاتر مضافة لهذه المعدة</div>`;
-    return html;
+// ============================================
+// نظام تسجيل الدخول
+// ============================================
+function loadSavedSettings() {
+  const savedMode = localStorage.getItem('loginMode');
+  if (savedMode) {
+    setLoginMode(savedMode);
   }
-  items.forEach(f=>{
-    const invData = f.invId&&inventory[f.invId] ? inventory[f.invId] : null;
-    const alts = invData ? (invData.alts||[]) : (f.alts||[]);
-    const altQtyTotal = alts.reduce((s,a)=>s+Number(a.qty||0),0);
-    const origQty = invData ? Number(invData.qty||0) : Number(f.qty||0);
-    html+=`<div class="order-card" style="border-right-color:${f.sufficient?'var(--green)':'var(--red)'}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-        <div>
-          <div class="order-f-type">${f.name||f.type}</div>
-          <div class="order-f-part">P/N: ${f.partNo}</div>
-          ${invData?`<div style="font-size:10px;color:var(--teal);margin-top:2px">📦 من المخزن المشترك</div>`:''}
-        </div>
-        <span class="${f.sufficient?'ok-badge':'warn-badge'}">${f.sufficient?'✅ كافٍ':'⚠️ ناقص'}</span>
-      </div>
-      <div class="order-nums-grid">
-        <div class="order-num-cell">
-          <div class="order-num-label">متوفر (إجمالي)</div>
-          <div class="order-num-val" style="color:${f.sufficient?'var(--green)':'var(--red)'}">${f.totalQty}</div>
-          <div style="font-size:9px;color:var(--muted)">أصلي:${origQty} + بدائل:${altQtyTotal}</div>
-        </div>
-        <div class="order-num-cell">
-          <div class="order-num-label">مطلوب ×4</div>
-          <div class="order-num-val" style="color:var(--navy)">${f.needed}</div>
-        </div>
-        <div class="order-num-cell">
-          <div class="order-num-label">يحتاج</div>
-          <div class="order-num-val" style="color:${f.shortage>0?'var(--red)':'#9ca3af'}">${f.shortage>0?f.shortage:'—'}</div>
-        </div>
-      </div>
-      ${alts.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bg);font-size:10px;color:var(--muted)">
-        بدائل: ${alts.map(a=>`${typeof a==='object'?a.partNo:a} (${typeof a==='object'?a.qty||0:0})`).join(' | ')}
-      </div>`:''}
-    </div>`;
-  });
-  return html;
 }
 
-// ═══════════════════════════════════════════════
-// FILTER ACTIONS
-// ═══════════════════════════════════════════════
-function adjustAltQty(fid, altIndex, delta){
-  const e=getEq(currentEqId);
-  const f=e.filters[fid]; if(!f) return;
-  const alts = [...(f.alts||[])];
-  if(!alts[altIndex]) return;
-  alts[altIndex] = {...alts[altIndex], qty: Math.max(0,(alts[altIndex].qty||0)+delta)};
-  dbUpdate(`equipment/${currentEqId}/filters/${fid}`,{alts});
-}
-function adjustQty(fid,delta){
-  const e=getEq(currentEqId);
-  const f=e.filters[fid]; if(!f)return;
-  const newQty=Math.max(0,f.qty+delta);
-  dbUpdate(`equipment/${currentEqId}/filters/${fid}`,{qty:newQty});
-}
-function deleteFilter(fid){
-  dbRemove(`equipment/${currentEqId}/filters/${fid}`);
-  toast('تم حذف الفلتر');
-}
-let nfAltCount = 0;
-function nfAddAlt(){
-  nfAltCount++;
-  const n = nfAltCount;
-  const div = document.createElement('div');
-  div.id = `nf-alt-row-${n}`;
-  div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center';
-  div.innerHTML = `
-    <input class="add-f-input" id="nf-alt-pn-${n}" placeholder="رقم بديل ${n}">
-    <input class="add-f-input" type="number" id="nf-alt-qty-${n}" placeholder="كميته" value="0">
-    <button onclick="nfRemoveAlt(${n})" style="background:#fee2e2;border:none;color:var(--red);border-radius:8px;padding:8px;font-size:14px;cursor:pointer;font-family:inherit">×</button>`;
-  document.getElementById('nf-alts-list').appendChild(div);
-}
-function nfRemoveAlt(n){
-  const el = document.getElementById(`nf-alt-row-${n}`);
-  if(el) el.remove();
-}
-function addFilter(){
-  const type=document.getElementById('nf-type').value.trim();
-  const partNo=document.getElementById('nf-part').value.trim();
-  const qty=parseInt(document.getElementById('nf-qty').value)||0;
-  const usedPerService=parseInt(document.getElementById('nf-per').value)||1;
-  if(!type||!partNo){toast('يرجى إدخال نوع الفلتر ورقم القطعة');return;}
-  // جمع البدائل
-  const alts=[];
-  for(let i=1;i<=nfAltCount;i++){
-    const pnEl=document.getElementById(`nf-alt-pn-${i}`);
-    const qEl=document.getElementById(`nf-alt-qty-${i}`);
-    if(pnEl&&pnEl.value.trim()) alts.push({partNo:pnEl.value.trim(),qty:parseInt(qEl?.value)||0});
+function saveLoginMode() {
+  if (document.getElementById('remember-mode').checked) {
+    localStorage.setItem('loginMode', SYSTEM_CONFIG.loginMode);
+  } else {
+    localStorage.removeItem('loginMode');
   }
-  dbPush(`equipment/${currentEqId}/filters`,{type,partNo,qty,usedPerService,alts});
-  // reset
-  nfAltCount=0;
-  document.getElementById('nf-alts-list').innerHTML='';
-  toast('✅ تم إضافة الفلتر');
 }
 
-// ═══════════════════════════════════════════════
-// ORDER VIEW
-// ═══════════════════════════════════════════════
-function openOrder(forAll,eqId){
-  orderForAll=forAll; orderEqId=eqId;
-  renderOrderView();
-  document.getElementById('order-overlay').classList.add('active');
+let SYSTEM_CONFIG = { loginMode: 'direct' };
+
+function setLoginMode(mode) {
+  SYSTEM_CONFIG.loginMode = mode;
+  const directBtn = document.getElementById('direct-login-btn');
+  const secureBtn = document.getElementById('secure-login-btn');
+  const directPanel = document.getElementById('direct-login-panel');
+  const securePanel = document.getElementById('secure-login-panel');
+  if (mode === 'direct') {
+    directBtn.style.background = 'var(--accent)'; directBtn.style.color = 'var(--primary)';
+    secureBtn.style.background = 'rgba(255,255,255,0.1)'; secureBtn.style.color = 'white';
+    directPanel.style.display = 'block'; securePanel.style.display = 'none';
+  } else {
+    secureBtn.style.background = 'var(--accent)'; secureBtn.style.color = 'var(--primary)';
+    directBtn.style.background = 'rgba(255,255,255,0.1)'; directBtn.style.color = 'white';
+    directPanel.style.display = 'none'; securePanel.style.display = 'block';
+  }
 }
-function closeOrder(){ document.getElementById('order-overlay').classList.remove('active'); }
-function renderOrderView(){
-  const list=orderForAll?eqList():[getEq(orderEqId)].filter(Boolean);
-  document.getElementById('order-sub').textContent=orderForAll?'جميع المعدات — 4 صيانات قادمة':`${list[0]?.name||''} — 4 صيانات`;
-  let html='';
-  list.forEach(eq=>{
-    const items=calcOrder(eq);
-    const hasShortage=items.some(f=>f.shortage>0);
-    if(!hasShortage){
-      html+=`<div class="order-card ok"><div class="order-eq-name">${ICONS[eq.type]||'🔧'} ${eq.name} (${eq.code})</div>
-        <div style="font-size:12px;color:var(--muted)">✅ جميع الفلاتر كافية لـ 4 صيانات</div></div>`;
-    } else {
-      html+=`<div class="order-card"><div class="order-eq-name">${ICONS[eq.type]||'🔧'} ${eq.name} (${eq.code}) — ${eq.maintenanceInterval||250} ساعة/دورة</div>`;
-      items.filter(f=>f.shortage>0).forEach(f=>{
-        html+=`<div class="order-f-row">
-          <div style="flex:1">
-            <div class="order-f-type">${f.type}</div>
-            <div class="order-f-part">P/N: ${f.partNo}</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px">${f.usedPerService}×4=${f.needed} مطلوب</div>
-          </div>
-          <div><div style="font-size:11px;color:var(--red)">متوفر: ${f.qty}</div>
-            <div style="font-size:14px;font-weight:800;color:var(--accent)">يُطلب: ${f.shortage}</div></div>
-        </div>`;
-      });
-      html+='</div>';
+
+function directLogin() {
+  const username = document.getElementById('direct-username').value;
+  if (username === 'admin') {
+    currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
+    showToast('مرحباً مدير النظام');
+  } else {
+    currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
+    showToast('مرحباً مشاهد');
+  }
+  proceedToApp();
+}
+
+function secureLogin() {
+  const username = document.getElementById('secure-username').value.trim();
+  const password = document.getElementById('secure-password').value;
+  if (username === 'admin' && password === 'admin123') {
+    currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
+    showToast('مرحباً مدير النظام');
+    proceedToApp();
+  } else if (username === 'viewer' && password === 'viewer123') {
+    currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
+    showToast('مرحباً مشاهد');
+    proceedToApp();
+  } else {
+    showToast('بيانات الدخول غير صحيحة');
+  }
+}
+
+function proceedToApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-container').style.display = 'block';
+  document.getElementById('user-name-display').innerHTML = `${currentUser.name} (${currentUser.role === 'admin' ? 'مدير' : 'مشاهد'})`;
+  initFirebase();
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('app-container').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function hasPermission(permission) {
+  if (!currentUser) return false;
+  if (currentUser.permissions.includes('all')) return true;
+  return currentUser.permissions.includes(permission);
+}
+
+// ============================================
+// FIREBASE INIT
+// ============================================
+function initFirebase() {
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+    fbDb = firebase.database();
+    firebase.auth().signInAnonymously().catch(console.error);
+    
+    fbDb.ref('equipment').on('value', (snap) => {
+      const data = snap.val();
+      if (data && Object.keys(data).length > 0) {
+        equipmentData = Object.entries(data).map(([id, eq]) => ({ ...eq, id }));
+      } else {
+        equipmentData = [];
+        initialEquipmentData.forEach(eq => {
+          const newId = fbDb.ref('equipment').push().key;
+          fbDb.ref(`equipment/${newId}`).set({ ...eq, id: newId, createdAt: new Date().toISOString() });
+          equipmentData.push({ ...eq, id: newId });
+        });
+      }
+      refreshUI();
+    });
+    
+    fbDb.ref('drivers').on('value', (snap) => {
+      const data = snap.val();
+      driversData = data ? Object.entries(data).map(([id, d]) => ({ ...d, id })) : [];
+      refreshUI();
+      updateDriverSelects();
+    });
+    
+    fbDb.ref('fuelRecords').on('value', (snap) => {
+      const data = snap.val();
+      fuelData = data ? Object.entries(data).map(([id, f]) => ({ ...f, id })) : [];
+      refreshUI();
+    });
+    
+    fbDb.ref('maintenanceSchedules').on('value', (snap) => {
+      const data = snap.val();
+      maintenanceSchedules = data ? Object.entries(data).map(([id, m]) => ({ ...m, id })) : [];
+      refreshUI();
+    });
+    
+    fbDb.ref('inventoryItems').on('value', (snap) => {
+      const data = snap.val();
+      if (data && Object.keys(data).length > 0) {
+        inventoryItems = Object.entries(data).map(([id, item]) => ({ ...item, id }));
+      } else {
+        inventoryItems = [];
+        initialInventoryData.forEach(item => {
+          const newId = fbDb.ref('inventoryItems').push().key;
+          fbDb.ref(`inventoryItems/${newId}`).set({ ...item, id: newId, createdAt: new Date().toISOString() });
+          inventoryItems.push({ ...item, id: newId });
+        });
+      }
+      refreshUI();
+    });
+    
+    fbDb.ref('equipmentFilterLinks').on('value', (snap) => {
+      const data = snap.val();
+      if (data && Object.keys(data).length > 0) {
+        equipmentFilterLinks = Object.entries(data).map(([id, link]) => ({ ...link, id }));
+      } else {
+        equipmentFilterLinks = [];
+        initialFilterLinks.forEach(link => {
+          const newId = fbDb.ref('equipmentFilterLinks').push().key;
+          fbDb.ref(`equipmentFilterLinks/${newId}`).set({ ...link, id: newId, createdAt: new Date().toISOString() });
+          equipmentFilterLinks.push({ ...link, id: newId });
+        });
+      }
+      refreshUI();
+    });
+    
+  } catch(e) { console.error('Firebase error:', e); }
+}
+
+function saveToFirebase(path, data) {
+  if (!fbDb) return;
+  if (data.id) {
+    const { id, ...rest } = data;
+    fbDb.ref(`${path}/${id}`).update(rest);
+  } else {
+    const newId = fbDb.ref(path).push().key;
+    fbDb.ref(`${path}/${newId}`).set({ ...data, id: newId });
+  }
+}
+
+function deleteFromFirebase(path, id) {
+  if (!fbDb || !confirm('هل أنت متأكد من الحذف؟')) return;
+  fbDb.ref(`${path}/${id}`).remove();
+  showToast('تم الحذف بنجاح');
+}
+
+// ============================================
+// دوال السائقين والوقود والصيانة والمعدات
+// ============================================
+function updateDriverSelects() {
+  const driverSelects = ['eq-driver', 'fuel-driver'];
+  driverSelects.forEach(selId => {
+    const select = document.getElementById(selId);
+    if (select) {
+      select.innerHTML = '<option value="">اختر سائق</option>' + 
+        driversData.filter(d => d.status === 'نشط').map(d => `<option value="${d.id}">${d.name} (${d.phone || ''})</option>`).join('');
     }
   });
-  if(orderForAll){
-    const all=allShortages();
-    html+=all.length===0?
-      `<div class="summary-box" style="background:linear-gradient(135deg,var(--green),#059669)">
-        <div style="font-size:14px;font-weight:800;margin-bottom:4px">✅ لا توجد نواقص</div>
-        <div style="font-size:13px;opacity:0.8">جميع الفلاتر كافية لـ 4 صيانات</div></div>`:
-      `<div class="summary-box"><div style="font-size:14px;font-weight:800;margin-bottom:10px">📋 ملخص الطلبية</div>
-        ${all.map(i=>`<div class="summary-row"><span style="opacity:0.8">${i.type} (${i.partNo})</span><span style="font-weight:800;color:var(--accent2)">${i.totalShortage} قطعة</span></div>`).join('')}
-        <div style="font-size:11px;opacity:0.5;margin-top:6px">للمعدات: ${[...new Set(all.flatMap(i=>i.eqs))].join(', ')}</div>
-      </div>`;
+}
+
+function openAddEquipmentModal() {
+  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
+  editingEquipmentId = null;
+  document.getElementById('modal-title-equipment').innerHTML = 'إضافة معدة جديدة';
+  ['eq-code', 'eq-name', 'eq-chassis', 'eq-location', 'eq-hours', 'eq-next-hours', 'eq-interval', 'eq-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('eq-type').value = 'حفارة';
+  document.getElementById('eq-status').value = 'يعمل';
+  updateDriverSelects();
+  document.getElementById('equipment-modal').classList.add('active');
+}
+
+function saveEquipment() {
+  const equipment = {
+    code: document.getElementById('eq-code').value.trim(),
+    name: document.getElementById('eq-name').value.trim(),
+    type: document.getElementById('eq-type').value,
+    chassis: document.getElementById('eq-chassis').value,
+    location: document.getElementById('eq-location').value,
+    assignedDriver: document.getElementById('eq-driver').value || null,
+    hours: parseInt(document.getElementById('eq-hours').value) || 0,
+    nextHours: parseInt(document.getElementById('eq-next-hours').value) || 250,
+    interval: parseInt(document.getElementById('eq-interval').value) || 250,
+    status: document.getElementById('eq-status').value,
+    notes: document.getElementById('eq-notes').value,
+    updatedAt: new Date().toISOString()
+  };
+  if (!equipment.code || !equipment.name) { showToast('يرجى إدخال الكود والاسم'); return; }
+  if (editingEquipmentId) {
+    const existing = equipmentData.find(e => e.id === editingEquipmentId);
+    equipment.filters = existing?.filters || {};
+    equipment.maintenanceLogs = existing?.maintenanceLogs || [];
+    equipment.hoursLog = existing?.hoursLog || [];
+    equipment.fuelRecords = existing?.fuelRecords || [];
+    saveToFirebase('equipment', { ...equipment, id: editingEquipmentId });
+    showToast('تم تحديث المعدة');
+  } else {
+    equipment.createdAt = new Date().toISOString();
+    equipment.filters = {};
+    equipment.maintenanceLogs = [];
+    equipment.hoursLog = [];
+    equipment.fuelRecords = [];
+    saveToFirebase('equipment', equipment);
+    showToast('تم إضافة المعدة');
   }
-  document.getElementById('order-content').innerHTML=html+'<div style="height:20px"></div>';
+  closeModal('equipment-modal');
 }
 
-// ═══════════════════════════════════════════════
-// HOURS CALCULATIONS & NOTIFICATIONS
-// ═══════════════════════════════════════════════
-function hoursRemaining(e){
-  const cur = Number(e.hours||0);
-  const next = Number(e.nextHours||0);
-  if(!next) return null;
-  return next - cur;
+function openEquipmentDetail(id) {
+  const eq = equipmentData.find(e => e.id === id);
+  if (!eq) return;
+  const driver = driversData.find(d => d.id === eq.assignedDriver);
+  const rem = hoursRemaining(eq);
+  const percent = getRemainingPercent(eq);
+  const remStatus = getRemainingStatus(eq);
+  const fuelRecords = fuelData.filter(f => f.equipmentId === id).slice(-5).reverse();
+  const schedules = maintenanceSchedules.filter(m => m.equipmentId === id && m.status === 'مجدول');
+  const eqFilters = equipmentFilterLinks.filter(link => link.equipmentId === eq.code);
+  const filtersHtml = eqFilters.map(link => {
+    const filterItem = inventoryItems.find(i => i.partNo === link.filterPartNo);
+    if (!filterItem) return '';
+    const needed = calculateNeededFor1000Hours(filterItem, eq, link.quantityPerService);
+    return `<div style="padding:6px 0; border-bottom:1px solid #eef2f6"><div style="font-weight:600">🔧 ${filterItem.name}</div><div>${link.quantityPerService}/صيانة | المطلوب لـ1000س: ${needed}</div></div>`;
+  }).join('');
+  
+  document.getElementById('detail-title').innerHTML = `🏗️ ${eq.name}`;
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-section"><div class="grid-2"><div><div class="detail-label">كود المعدة</div><div class="detail-value">${eq.code}</div></div><div><div class="detail-label">النوع</div><div class="detail-value">${eq.type}</div></div><div><div class="detail-label">رقم الشاسيه</div><div class="detail-value">${eq.chassis || '—'}</div></div><div><div class="detail-label">الموقع</div><div class="detail-value">${eq.location || '—'}</div></div><div><div class="detail-label">السائق</div><div class="detail-value">${driver ? driver.name : '—'}</div></div><div><div class="detail-label">الحالة</div><div class="detail-value">${eq.status}</div></div><div><div class="detail-label">دورة الصيانة</div><div class="detail-value">كل ${eq.interval || 250} ساعة</div></div></div></div>
+    <div class="detail-section"><div><div class="detail-label">⏱️ العداد الحالي</div><div class="detail-value">${formatNumber(eq.hours)} ساعة</div></div><div><div class="detail-label">🔧 الصيانة القادمة عند</div><div class="detail-value">${formatNumber(eq.nextHours)} ساعة</div></div><div class="progress-bar" style="margin: 8px 0"><div class="progress-fill" style="width: ${percent}%; background: ${getBarColor(rem)}"></div></div><div style="margin-top:8px"><div class="detail-label">⏳ المتبقي</div><div class="detail-value" style="color: ${remStatus.color}">${remStatus.text}</div></div></div>
+    ${filtersHtml ? `<div class="detail-section"><div class="detail-label">🔧 الفلاتر المستخدمة (لـ 1000 ساعة)</div>${filtersHtml}</div>` : ''}
+    ${schedules.length ? `<div class="detail-section"><div class="detail-label">🔧 الصيانات المجدولة</div>${schedules.map(s => `<div style="padding:6px 0; border-bottom:1px solid #eef2f6"><div><strong>${s.type}</strong> - ${s.date}</div><div style="font-size:12px; color:var(--gray)">العداد: ${s.targetHours || '—'} ساعة | التكلفة: ${s.estimatedCost || 0} ر.س</div></div>`).join('')}</div>` : ''}
+    ${fuelRecords.length ? `<div class="detail-section"><div class="detail-label">⛽ آخر تزودات الوقود</div>${fuelRecords.map(f => `<div style="padding:6px 0; border-bottom:1px solid #eef2f6"><div>📅 ${f.date} | ${f.amount} لتر | ${f.cost} ر.س</div><div style="font-size:12px; color:var(--gray)">العداد: ${f.hours} ساعة</div></div>`).join('')}</div>` : ''}
+    ${eq.notes ? `<div class="detail-section"><div class="detail-label">ملاحظات</div><div class="detail-value">${eq.notes}</div></div>` : ''}
+    <div class="grid-2" style="margin:12px 14px"><button class="save-btn" style="margin:0; background:var(--accent)" onclick="editEquipment('${eq.id}')">✏️ تعديل</button><button class="save-btn" style="margin:0; background:var(--danger)" onclick="deleteFromFirebase('equipment','${eq.id}')">🗑️ حذف</button></div>
+  `;
+  document.getElementById('detail-modal').classList.add('active');
 }
 
-function calcNextMaintHours(prefix){
-  const hours = parseInt(document.getElementById(`${prefix}-hours`).value)||0;
-  const interval = parseInt(document.getElementById(`${prefix}-interval`).value)||250;
-  const nextH = hours + interval;
-  document.getElementById(`${prefix}-nextHours`).value = nextH;
+function editEquipment(id) {
+  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
+  const eq = equipmentData.find(e => e.id === id);
+  if (!eq) return;
+  editingEquipmentId = id;
+  document.getElementById('modal-title-equipment').innerHTML = 'تعديل معدة';
+  document.getElementById('eq-code').value = eq.code || '';
+  document.getElementById('eq-name').value = eq.name || '';
+  document.getElementById('eq-type').value = eq.type || 'حفارة';
+  document.getElementById('eq-chassis').value = eq.chassis || '';
+  document.getElementById('eq-location').value = eq.location || '';
+  document.getElementById('eq-hours').value = eq.hours || 0;
+  document.getElementById('eq-next-hours').value = eq.nextHours || 250;
+  document.getElementById('eq-interval').value = eq.interval || 250;
+  document.getElementById('eq-status').value = eq.status || 'يعمل';
+  document.getElementById('eq-notes').value = eq.notes || '';
+  updateDriverSelects();
+  if (eq.assignedDriver) document.getElementById('eq-driver').value = eq.assignedDriver;
+  closeModal('detail-modal');
+  document.getElementById('equipment-modal').classList.add('active');
 }
 
-function hoursRemainingColor(rem){
-  if(rem===null) return 'var(--muted)';
-  if(rem<=0) return 'var(--red)';
-  if(rem<=10) return 'var(--red)';
-  if(rem<=50) return 'var(--amber)';
-  return 'var(--green)';
+function openAddDriverModal() {
+  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
+  editingDriverId = null;
+  document.getElementById('modal-title-driver').innerHTML = 'إضافة سائق جديد';
+  ['driver-name', 'driver-phone', 'driver-license', 'driver-license-expiry', 'driver-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('driver-status').value = 'نشط';
+  document.getElementById('driver-modal').classList.add('active');
 }
 
-function hoursRemainingLabel(rem){
-  if(rem===null) return '—';
-  if(rem<=0) return `⚠️ تجاوز ${Math.abs(rem)} ساعة`;
-  if(rem<=10) return `🔴 باقي ${rem} ساعة فقط!`;
-  if(rem<=50) return `🟡 باقي ${rem} ساعة`;
-  return `✅ باقي ${rem} ساعة`;
-}
-
-function requestNotifPermission(){
-  if('Notification' in window && Notification.permission==='default'){
-    Notification.requestPermission();
+function saveDriver() {
+  const driver = {
+    name: document.getElementById('driver-name').value.trim(),
+    phone: document.getElementById('driver-phone').value,
+    licenseNumber: document.getElementById('driver-license').value,
+    licenseExpiry: document.getElementById('driver-license-expiry').value,
+    status: document.getElementById('driver-status').value,
+    notes: document.getElementById('driver-notes').value,
+    updatedAt: new Date().toISOString()
+  };
+  if (!driver.name) { showToast('يرجى إدخال اسم السائق'); return; }
+  if (editingDriverId) {
+    saveToFirebase('drivers', { ...driver, id: editingDriverId });
+    showToast('تم تحديث السائق');
+  } else {
+    driver.createdAt = new Date().toISOString();
+    saveToFirebase('drivers', driver);
+    showToast('تم إضافة السائق');
   }
+  closeModal('driver-modal');
 }
 
-function sendNotif(title, body){
-  if('Notification' in window && Notification.permission==='granted'){
-    new Notification(title,{body, icon:'🏗️'});
-  }
+function openDriverDetail(id) {
+  const driver = driversData.find(d => d.id === id);
+  if (!driver) return;
+  const assignedEqs = equipmentData.filter(eq => eq.assignedDriver === driver.id);
+  document.getElementById('detail-title').innerHTML = `👨‍✈️ ${driver.name}`;
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-section"><div class="grid-2"><div><div class="detail-label">رقم الهاتف</div><div class="detail-value">${driver.phone || '—'}</div></div><div><div class="detail-label">رقم الرخصة</div><div class="detail-value">${driver.licenseNumber || '—'}</div></div><div><div class="detail-label">انتهاء الرخصة</div><div class="detail-value" style="color:${driver.licenseExpiry && new Date(driver.licenseExpiry) < new Date() ? 'var(--danger)' : 'var(--success)'}">${driver.licenseExpiry || '—'}</div></div><div><div class="detail-label">الحالة</div><div class="detail-value">${driver.status}</div></div></div></div>
+    ${assignedEqs.length ? `<div class="detail-section"><div class="detail-label">🚜 المعدات المسندة</div>${assignedEqs.map(eq => `<div style="padding:6px 0">• ${eq.name} (${eq.code})</div>`).join('')}</div>` : ''}
+    ${driver.notes ? `<div class="detail-section"><div class="detail-label">ملاحظات</div><div class="detail-value">${driver.notes}</div></div>` : ''}
+    <div class="grid-2" style="margin:12px 14px"><button class="save-btn" style="margin:0; background:var(--accent)" onclick="editDriver('${driver.id}')">✏️ تعديل</button><button class="save-btn" style="margin:0; background:var(--danger)" onclick="deleteFromFirebase('drivers','${driver.id}')">🗑️ حذف</button></div>
+  `;
+  document.getElementById('detail-modal').classList.add('active');
 }
 
-function checkMaintenanceAlerts(){
-  eqList().forEach(e=>{
-    const rem = hoursRemaining(e);
-    if(rem!==null && rem>=0 && rem<=10){
-      const key = `notif_${e.id}_${e.nextHours}`;
-      if(!localStorage.getItem(key)){
-        sendNotif(`⚠️ صيانة قريبة — ${e.name}`, `باقي ${rem} ساعة على الصيانة القادمة (عداد: ${e.nextHours} ساعة)`);
-        localStorage.setItem(key,'1');
+function editDriver(id) {
+  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
+  const driver = driversData.find(d => d.id === id);
+  if (!driver) return;
+  editingDriverId = id;
+  document.getElementById('modal-title-driver').innerHTML = 'تعديل بيانات السائق';
+  document.getElementById('driver-name').value = driver.name || '';
+  document.getElementById('driver-phone').value = driver.phone || '';
+  document.getElementById('driver-license').value = driver.licenseNumber || '';
+  document.getElementById('driver-license-expiry').value = driver.licenseExpiry || '';
+  document.getElementById('driver-status').value = driver.status || 'نشط';
+  document.getElementById('driver-notes').value = driver.notes || '';
+  closeModal('detail-modal');
+  document.getElementById('driver-modal').classList.add('active');
+}
+
+function openAddFuelModal() {
+  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
+  const equipSelect = document.getElementById('fuel-equipment');
+  equipSelect.innerHTML = '<option value="">اختر المعدة</option>' + equipmentData.map(eq => `<option value="${eq.id}">${eq.name} (${eq.code})</option>`).join('');
+  updateDriverSelects();
+  document.getElementById('fuel-amount').value = '';
+  document.getElementById('fuel-cost').value = '';
+  document.getElementById('fuel-hours').value = '';
+  document.getElementById('fuel-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('fuel-notes').value = '';
+  document.getElementById('fuel-modal').classList.add('active');
+}
+
+function saveFuelRecord() {
+  const equipmentId = document.getElementById('fuel-equipment').value;
+  if (!equipmentId) { showToast('يرجى اختيار المعدة'); return; }
+  const record = {
+    equipmentId: equipmentId,
+    amount: parseFloat(document.getElementById('fuel-amount').value) || 0,
+    cost: parseFloat(document.getElementById('fuel-cost').value) || 0,
+    hours: parseInt(document.getElementById('fuel-hours').value) || 0,
+    date: document.getElementById('fuel-date').value,
+    driverId: document.getElementById('fuel-driver').value || null,
+    notes: document.getElementById('fuel-notes').value,
+    createdAt: new Date().toISOString()
+  };
+  if (record.amount <= 0) { showToast('يرجى إدخال الكمية'); return; }
+  saveToFirebase('fuelRecords', record);
+  closeModal('fuel-modal');
+  showToast('تم تسجيل التزود');
+}
+
+function openAddMaintenanceModal() {
+  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
+  const equipSelect = document.getElementById('maint-equipment');
+  equipSelect.innerHTML = '<option value="">اختر المعدة</option>' + equipmentData.map(eq => `<option value="${eq.id}">${eq.name} (${eq.code})</option>`).join('');
+  document.getElementById('maint-type').value = 'صيانة دورية';
+  document.getElementById('maint-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('maint-hours').value = '';
+  document.getElementById('maint-cost').value = '';
+  document.getElementById('maint-notes').value = '';
+  document.getElementById('maintenance-modal').classList.add('active');
+}
+
+function saveMaintenanceSchedule() {
+  const equipmentId = document.getElementById('maint-equipment').value;
+  if (!equipmentId) { showToast('يرجى اختيار المعدة'); return; }
+  const schedule = {
+    equipmentId: equipmentId,
+    type: document.getElementById('maint-type').value,
+    date: document.getElementById('maint-date').value,
+    targetHours: parseInt(document.getElementById('maint-hours').value) || 0,
+    estimatedCost: parseFloat(document.getElementById('maint-cost').value) || 0,
+    notes: document.getElementById('maint-notes').value,
+    status: 'مجدول',
+    createdAt: new Date().toISOString(),
+    notified: false
+  };
+  saveToFirebase('maintenanceSchedules', schedule);
+  closeModal('maintenance-modal');
+  showToast('تم جدولة الصيانة');
+}
+
+function completeMaintenance(id) {
+  const m = maintenanceSchedules.find(m => m.id === id);
+  if (!m) return;
+  m.status = 'مكتمل';
+  m.completedAt = new Date().toISOString();
+  saveToFirebase('maintenanceSchedules', m);
+  closeModal('detail-modal');
+  showToast('تم إكمال الصيانة');
+}
+
+function showMaintenanceDetail(id) {
+  const m = maintenanceSchedules.find(m => m.id === id);
+  if (!m) return;
+  const eq = equipmentData.find(e => e.id === m.equipmentId);
+  document.getElementById('detail-title').innerHTML = `🔧 تفاصيل الصيانة`;
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-section"><div class="grid-2"><div><div class="detail-label">المعدة</div><div class="detail-value">${eq?.name || '—'}</div></div><div><div class="detail-label">نوع الصيانة</div><div class="detail-value">${m.type}</div></div><div><div class="detail-label">التاريخ</div><div class="detail-value">${m.date}</div></div><div><div class="detail-label">العداد المستهدف</div><div class="detail-value">${m.targetHours || '—'} ساعة</div></div><div><div class="detail-label">التكلفة المتوقعة</div><div class="detail-value">${m.estimatedCost || 0} ر.س</div></div><div><div class="detail-label">الحالة</div><div class="detail-value">${m.status}</div></div></div></div>
+    ${m.notes ? `<div class="detail-section"><div class="detail-label">ملاحظات</div><div class="detail-value">${m.notes}</div></div>` : ''}
+    <div class="grid-2" style="margin:12px 14px"><button class="save-btn" style="margin:0; background:var(--success)" onclick="completeMaintenance('${m.id}')">✅ إكمال الصيانة</button><button class="save-btn" style="margin:0; background:var(--danger)" onclick="deleteFromFirebase('maintenanceSchedules','${m.id}')">🗑️ حذف</button></div>
+  `;
+  document.getElementById('detail-modal').classList.add('active');
+}
+
+// ============================================
+// دوال تحديث العدادات
+// ============================================
+function openMeterUpdate() {
+  const container = document.getElementById('meter-list');
+  container.innerHTML = equipmentData.map(eq => {
+    const rem = hoursRemaining(eq);
+    const percent = getRemainingPercent(eq);
+    return `<div style="background:white; border-radius:16px; padding:14px; margin-bottom:10px"><div style="font-weight:700">${eq.name}</div><div style="font-size:12px; color:var(--gray)">العداد الحالي: ${formatNumber(eq.hours)} ساعة</div><div class="progress-bar" style="margin: 8px 0"><div class="progress-fill" style="width: ${percent}%; background: ${getBarColor(rem)}"></div></div><div class="grid-2" style="margin-top:10px; gap:8px"><input type="number" id="meter-${eq.id}" class="form-input" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px" value="${eq.hours}" placeholder="القراءة الجديدة"><button class="save-btn" style="margin:0; padding:10px" onclick="updateSingleMeter('${eq.id}')">تحديث</button></div></div>`;
+  }).join('');
+  document.getElementById('meter-modal').classList.add('active');
+}
+
+function updateSingleMeter(eqId) {
+  const input = document.getElementById(`meter-${eqId}`);
+  if (!input || !input.value) return;
+  const eq = equipmentData.find(e => e.id === eqId);
+  if (!eq) return;
+  const newHours = parseInt(input.value);
+  if (isNaN(newHours) || newHours === eq.hours) return;
+  const log = { date: new Date().toISOString().split('T')[0], prev: eq.hours, hours: newHours };
+  eq.hours = newHours;
+  eq.hoursLog = [...(eq.hoursLog || []), log];
+  saveToFirebase('equipment', eq);
+  showToast(`تم تحديث عداد ${eq.name} إلى ${newHours} ساعة`);
+  openMeterUpdate();
+}
+
+function saveAllMeters() {
+  equipmentData.forEach(eq => {
+    const input = document.getElementById(`meter-${eq.id}`);
+    if (input && input.value) {
+      const newHours = parseInt(input.value);
+      if (!isNaN(newHours) && newHours !== eq.hours) {
+        const log = { date: new Date().toISOString().split('T')[0], prev: eq.hours, hours: newHours };
+        eq.hours = newHours;
+        eq.hoursLog = [...(eq.hoursLog || []), log];
+        saveToFirebase('equipment', eq);
       }
     }
   });
+  closeModal('meter-modal');
+  showToast('تم تحديث جميع العدادات');
 }
 
-// ═══════════════════════════════════════════════
-// DAILY METER UPDATE
-// ═══════════════════════════════════════════════
-function openMeterOverlay(){
-  const today = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  document.getElementById('meter-date-lbl').textContent = today;
-  renderMeterList();
-  document.getElementById('meter-overlay').classList.add('active');
-}
-function closeMeterOverlay(){
-  document.getElementById('meter-overlay').classList.remove('active');
-}
-
-function renderMeterList(){
-  const list = eqList().filter(e=>e.status!=='متوقف');
-  if(!list.length){ document.getElementById('meter-list').innerHTML='<div class="empty">لا توجد معدات نشطة</div>'; return; }
-
-  document.getElementById('meter-list').innerHTML = `
-    <div style="padding:12px 14px 4px;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.8px">
-      أدخل قراءة العداد الحالية لكل معدة
-    </div>` +
-    list.map(e=>{
-      const rem = hoursRemaining(e);
-      const remColor = hoursRemainingColor(rem);
-      const nextH = Number(e.nextHours||0);
-      const pct = nextH>0?Math.min(Math.round((Number(e.hours||0)/nextH)*100),100):0;
-      const barColor = rem!==null&&rem<=10?'var(--red)':rem!==null&&rem<=50?'var(--amber)':'var(--green)';
-      return `
-      <div style="background:white;border-radius:16px;margin:0 14px 10px;padding:14px;box-shadow:var(--shadow);border-right:3px solid ${barColor}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-          <div>
-            <div style="font-size:11px;color:var(--muted)">${e.code} • ${e.type}</div>
-            <div style="font-size:14px;font-weight:700;color:var(--navy);margin-top:1px">${ICONS[e.type]||'🔧'} ${e.name}</div>
-          </div>
-          ${badgeHTML(e.status)}
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px">
-          <span style="color:var(--muted)">العداد الحالي: <b style="color:var(--navy)">${Number(e.hours||0).toLocaleString('ar')} س</b></span>
-          <span style="color:var(--muted)">الصيانة عند: <b style="color:var(--navy)">${nextH>0?nextH.toLocaleString('ar')+'س':'—'}</b></span>
-        </div>
-        ${nextH>0?`<div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-bottom:8px">
-          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px"></div>
-        </div>`:''}
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-          <div style="flex:1;background:var(--bg);border-radius:10px;padding:2px 4px;display:flex;align-items:center;gap:6px">
-            <span style="font-size:13px;color:var(--muted);padding-right:4px">⏱️</span>
-            <input type="number" id="meter-${e.id}"
-              placeholder="أدخل القراءة الجديدة"
-              value="${e.hours||0}"
-              style="border:none;outline:none;font-size:15px;font-weight:700;color:var(--navy);background:transparent;width:100%;direction:rtl;font-family:inherit;padding:8px 0"
-              oninput="updateMeterPreview('${e.id}',${nextH})">
-          </div>
-          <span style="font-size:13px;color:var(--muted);white-space:nowrap">ساعة</span>
-        </div>
-        <div id="meter-preview-${e.id}" style="font-size:12px;font-weight:700;color:${remColor};text-align:center;min-height:18px">
-          ${rem!==null?hoursRemainingLabel(rem):''}
-        </div>
-      </div>`;
-    }).join('');
-}
-
-function updateMeterPreview(id, nextH){
-  const val = parseInt(document.getElementById(`meter-${id}`).value)||0;
-  const rem = nextH>0 ? nextH-val : null;
-  const color = hoursRemainingColor(rem);
-  const label = hoursRemainingLabel(rem);
-  const el = document.getElementById(`meter-preview-${id}`);
-  if(el){ el.textContent=rem!==null?label:''; el.style.color=color; }
-}
-
-function saveDailyMeters(){
-  const list = eqList().filter(e=>e.status!=='متوقف');
-  const today = new Date().toISOString().split('T')[0];
-  let saved=0;
-  list.forEach(e=>{
-    const input = document.getElementById(`meter-${e.id}`);
-    if(!input) return;
-    const newHours = parseInt(input.value)||0;
-    if(newHours === Number(e.hours||0)) return; // لم يتغير
-    // حفظ العداد الجديد فقط — nextHours لا يتغير
-    const logEntry = { hours: newHours, date: today, prev: e.hours||0 };
-    dbUpdate(`equipment/${e.id}`, { hours: newHours });
-    dbPush(`equipment/${e.id}/hoursLog`, logEntry);
-    saved++;
-    // تحقق من الإشعار
-    const rem = e.nextHours>0 ? e.nextHours - newHours : null;
-    if(rem!==null && rem>=0 && rem<=10){
-      sendNotif(`⚠️ صيانة قريبة جداً — ${e.name}`,`باقي ${rem} ساعة فقط على الصيانة!`);
-    }
-  });
-  closeMeterOverlay();
-  toast(saved>0?`✅ تم حفظ ${saved} عداد`:'لا يوجد تغيير في العدادات');
-}
-
-// ═══════════════════════════════════════════════
-// INVENTORY SYSTEM
-// ═══════════════════════════════════════════════
-let inventory = {}; // مخزن الفلاتر المركزي
-let editingInvId = null;
-let linkingInvId = null;
-
-function invList(){ return Object.entries(inventory).map(([id,f])=>({...f,id})); }
-function getInv(id){ return inventory[id]?{...inventory[id],id}:null; }
-
-// دورة التغيير بالساعات
-function getFilterInterval(f){
-  if(f.intervalCustom) return Number(f.intervalCustom);
-  return Number(f.interval||250);
-}
-
-// حساب كم مرة يتغير الفلتر في 4 صيانات حسب دورة المعدة
-function timesInFourServices(filter, eqInterval){
-  const fi = getFilterInterval(filter);
-  const ei = Number(eqInterval||250);
-  // كل كم صيانة يتغير مرة
-  const ratio = fi / ei;
-  return Math.ceil(4 / ratio); // عدد مرات التغيير في 4 صيانات
-}
-
-// حساب إجمالي احتياج المخزن لفلتر معين لجميع المعدات المرتبطة به
-function calcInvNeeded(inv){
-  const eqs = eqList();
-  let total = 0;
-  eqs.forEach(eq=>{
-    const linked = Object.values(eq.filters||{}).find(f=>f.invId===inv.id);
-    if(linked){
-      const times = timesInFourServices(inv, eq.maintenanceInterval);
-      total += times;
-    }
-  });
-  return total;
-}
-
-// ── RENDER INVENTORY VIEW ──
-function renderInventory(){
-  const list = invList();
-  document.getElementById('inv-count').textContent = `${list.length} نوع فلتر في المخزن`;
-
-  // FAB button
-  document.getElementById('fab-btn').onclick = openInvModal;
-
-  if(!list.length){
-    document.getElementById('inv-list').innerHTML = `
-      <div class="empty" style="margin-top:40px">
-        <div style="font-size:48px;margin-bottom:12px">📦</div>
-        <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px">المخزن فارغ</div>
-        <div style="font-size:13px;margin-bottom:20px">اضغط الزر أعلاه لإضافة أول فلتر</div>
-        <button onclick="openInvModal(null)" style="background:linear-gradient(135deg,#065f46,#0e7490);color:white;border:none;border-radius:14px;padding:14px 24px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">
-          ➕ إضافة أول فلتر
-        </button>
-      </div>`;
-    return;
-  }
-
-  document.getElementById('inv-list').innerHTML = list.map(f=>{
-    const needed = calcInvNeeded(f);
-    const total = totalQty(f);
-    const shortage = Math.max(0, needed - total);
-    const linkedEqs = eqList().filter(eq=>Object.values(eq.filters||{}).some(lf=>lf.invId===f.id));
-    const statusColor = shortage>0?'var(--red)':total<needed*1.5?'var(--amber)':'var(--green)';
-    const alts = (f.alts && f.alts.length) ? f.alts : [f.alt1,f.alt2,f.alt3].filter(Boolean);
-    const interval = getFilterInterval(f);
-    return `
-    <div style="background:white;border-radius:16px;margin:0 14px 10px;padding:14px;box-shadow:var(--shadow);border-right:3px solid ${statusColor}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div style="flex:1">
-          <div style="font-size:12px;color:var(--muted)">كل ${interval} ساعة</div>
-          <div style="font-size:15px;font-weight:800;color:var(--navy);margin-top:2px">${f.type}</div>
-          <div style="font-size:11px;color:var(--teal);margin-top:3px;font-weight:600">P/N: ${f.partNo}</div>
-          ${alts.length?`<div style="font-size:10px;color:var(--muted);margin-top:2px">بدائل: ${alts.join(' | ')}</div>`:''}
-        </div>
-        <div style="display:flex;gap:6px">
-          <button onclick="openLinkModal('${f.id}')" style="background:#dbeafe;color:#1e40af;border:none;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🔗 ربط</button>
-          <button onclick="openInvModal('${f.id}')" style="background:#f0fdf4;color:var(--green);border:none;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">✏️</button>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;background:var(--bg);border-radius:10px;padding:10px">
-        <div style="text-align:center">
-          <div style="font-size:10px;color:var(--muted)">الإجمالي</div>
-          <div style="font-size:20px;font-weight:800;color:${total>0?'var(--navy)':'var(--red)'}">
-            ${total}
-            <div style="display:flex;justify-content:center;gap:4px;margin-top:2px">
-              <button onclick="adjustInvQty('${f.id}',-1)" style="width:22px;height:22px;border-radius:50%;background:var(--red);border:none;color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
-              <button onclick="adjustInvQty('${f.id}',1)" style="width:22px;height:22px;border-radius:50%;background:var(--green);border:none;color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
-            </div>
-            <div style="font-size:9px;color:var(--muted);margin-top:2px">أصلي: ${f.qty} + بدائل: ${total-Number(f.qty||0)}</div>
-          </div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-size:10px;color:var(--muted)">مطلوب (4 صيانات)</div>
-          <div style="font-size:20px;font-weight:800;color:var(--navy)">${needed}</div>
-          <div style="font-size:9px;color:var(--muted);margin-top:2px">${linkedEqs.length} معدة</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-size:10px;color:var(--muted)">نقص</div>
-          <div style="font-size:20px;font-weight:800;color:${shortage>0?'var(--red)':'var(--green)'}">
-            ${shortage>0?shortage:'✓'}
-          </div>
-          <div style="font-size:9px;font-weight:700;color:${statusColor};margin-top:2px">
-            ${shortage>0?'⚠️ ناقص':total<needed*1.5?'⬇️ منخفض':'✅ كافٍ'}
-          </div>
-        </div>
-      </div>
-      ${alts.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bg)">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700">البدائل:</div>
-        ${alts.map((a,i)=>{
-          const pn = typeof a==='object'?a.partNo:a;
-          const q  = typeof a==='object'?Number(a.qty||0):0;
-          return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;background:${q>0?'#dbeafe':'var(--bg)'};border-radius:8px;padding:6px 10px">
-            <span style="font-size:11px;font-weight:600;color:#1e40af">${pn}</span>
-            <div style="display:flex;align-items:center;gap:6px">
-              <button onclick="adjustInvAltQty('${f.id}',${i},-1)" style="width:22px;height:22px;border-radius:50%;background:var(--red);border:none;color:white;font-size:13px;cursor:pointer">−</button>
-              <span style="font-size:14px;font-weight:800;color:var(--navy);min-width:20px;text-align:center">${q}</span>
-              <button onclick="adjustInvAltQty('${f.id}',${i},1)" style="width:22px;height:22px;border-radius:50%;background:var(--green);border:none;color:white;font-size:13px;cursor:pointer">+</button>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>`:''}
-
-      ${linkedEqs.length?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bg)">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">مرتبط بـ:</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">
-          ${linkedEqs.map(eq=>`<span style="background:var(--bg);color:var(--navy);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600">${ICONS[eq.type]||'🔧'} ${eq.code}</span>`).join('')}
-        </div>
-      </div>`:'<div style="margin-top:8px;font-size:11px;color:var(--muted);text-align:center">غير مرتبط بأي معدة — اضغط 🔗 ربط</div>'}
-    </div>`;
-  }).join('');
-}
-
-function adjustInvQty(id, delta){
-  const f = getInv(id); if(!f) return;
-  const newQty = Math.max(0, (f.qty||0)+delta);
-  dbUpdate(`inventory/${id}`,{qty:newQty});
-}
-
-function adjustInvAltQty(id, altIndex, delta){
-  const f = getInv(id); if(!f) return;
-  const alts = (f.alts||[]).map((a,i)=>{
-    if(i!==altIndex) return a;
-    const pn = typeof a==='object'?a.partNo:a;
-    const q  = typeof a==='object'?Number(a.qty||0):0;
-    return { partNo:pn, qty:Math.max(0,q+delta) };
-  });
-  dbUpdate(`inventory/${id}`,{alts});
-}
-
-// ── DYNAMIC ALTERNATIVES ──
-let altCount = 0;
-
-function renderAltsList(existingAlts){
-  altCount = 0;
-  const container = document.getElementById('alts-list');
-  container.innerHTML = '';
-  (existingAlts||[]).forEach(alt => {
-    if(alt) addAltField(typeof alt==='object'?alt:{partNo:alt,qty:0});
-  });
-}
-
-function addAltField(data){
-  data = data || {};
-  if(altCount >= 10){ toast('الحد الأقصى 10 بدائل'); return; }
-  altCount++;
-  const n = altCount;
+// ============================================
+// دوال المخزن والفلاتر
+// ============================================
+function addInvAltField() {
+  invAltCount++;
+  const container = document.getElementById('inv-alt-list');
   const div = document.createElement('div');
-  div.id = `alt-row-${n}`;
-  div.style.cssText = 'margin-bottom:10px;background:var(--bg);border-radius:12px;padding:10px;';
-  div.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <span style="font-size:11px;font-weight:700;color:var(--muted)">بديل ${n}</span>
-      <button onclick="removeAltField(${n})"
-        style="width:24px;height:24px;border-radius:50%;background:#fee2e2;border:none;color:var(--red);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div style="background:white;border-radius:8px;padding:4px 10px">
-        <div style="font-size:10px;color:var(--muted)">رقم القطعة البديلة</div>
-        <input type="text" id="if-alt-${n}" value="${data.partNo||''}" placeholder="P/N البديل"
-          style="border:none;outline:none;font-size:13px;font-weight:600;color:var(--navy);background:transparent;direction:rtl;width:100%;font-family:inherit;padding:4px 0">
-      </div>
-      <div style="background:white;border-radius:8px;padding:4px 10px">
-        <div style="font-size:10px;color:var(--muted)">كميته في المخزن</div>
-        <input type="number" id="if-alt-qty-${n}" value="${data.qty||0}" placeholder="0"
-          style="border:none;outline:none;font-size:13px;font-weight:600;color:var(--navy);background:transparent;direction:rtl;width:100%;font-family:inherit;padding:4px 0">
-      </div>
-    </div>`;
-  document.getElementById('alts-list').appendChild(div);
+  div.id = `inv-alt-${invAltCount}`;
+  div.style.cssText = 'display:grid; grid-template-columns:1fr 1fr auto; gap:6px; margin-bottom:8px; background:#f8fafc; padding:8px; border-radius:12px';
+  div.innerHTML = `<input class="form-input" id="inv-alt-pn-${invAltCount}" placeholder="رقم بديل" style="background:white; border-radius:8px; padding:8px; border:1px solid #e2e8f0"><input class="form-input" type="number" id="inv-alt-qty-${invAltCount}" placeholder="كميته" style="background:white; border-radius:8px; padding:8px; border:1px solid #e2e8f0"><button onclick="document.getElementById('inv-alt-${invAltCount}').remove()" style="background:#fee2e2; border:none; border-radius:8px; padding:8px 12px">×</button>`;
+  container.appendChild(div);
 }
 
-function removeAltField(num){
-  const el = document.getElementById(`alt-row-${num}`);
-  if(el) el.remove();
-}
-
-function getAltsValues(){
+function getInvAltsValues() {
   const alts = [];
-  for(let i=1; i<=10; i++){
-    const partEl = document.getElementById(`if-alt-${i}`);
-    const qtyEl  = document.getElementById(`if-alt-qty-${i}`);
-    if(partEl && partEl.value.trim()){
-      alts.push({ partNo: partEl.value.trim(), qty: parseInt(qtyEl?.value)||0 });
-    }
+  for (let i = 1; i <= invAltCount; i++) {
+    const pn = document.getElementById(`inv-alt-pn-${i}`);
+    const qty = document.getElementById(`inv-alt-qty-${i}`);
+    if (pn && pn.value.trim()) alts.push({ partNo: pn.value.trim(), qty: parseInt(qty?.value) || 0 });
   }
   return alts;
 }
 
-// إجمالي المخزون = الأصلي + جميع البدائل
-function totalQty(f){
-  const altQty = (f.alts||[]).reduce((sum,a)=> sum + (typeof a==='object'?Number(a.qty||0):0), 0);
-  return Number(f.qty||0) + altQty;
+function openAddInventoryItemModal() {
+  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
+  editingInventoryId = null;
+  invAltCount = 0;
+  document.getElementById('inv-item-title').innerHTML = '📦 إضافة صنف جديد';
+  ['inv-name', 'inv-partno', 'inv-qty', 'inv-min-qty', 'inv-price', 'inv-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('inv-category').value = 'filter';
+  document.getElementById('inv-unit').value = 'قطعة';
+  document.getElementById('inv-interval').value = '250';
+  document.getElementById('inv-alt-list').innerHTML = '';
+  document.getElementById('inventory-item-modal').classList.add('active');
 }
 
-// ── ADD/EDIT INVENTORY FILTER ──
-function openInvModal(editId){
-  editingInvId = editId||null;
-  document.getElementById('inv-modal-title').textContent = editId?'✏️ تعديل الفلتر':'➕ إضافة فلتر للمخزن';
-  document.getElementById('inv-save-btn').textContent = editId?'✅ حفظ التعديلات':'✅ حفظ الفلتر';
-
-  renderInvEqList('if-eq-list', editId);
-
-  if(editId){
-    const f = getInv(editId); if(!f) return;
-    document.getElementById('if-type').value = f.type||'';
-    document.getElementById('if-part').value = f.partNo||'';
-    document.getElementById('if-qty').value = f.qty||0;
-    // load existing alts (support both old alt1/alt2/alt3 and new alts array)
-    const existingAlts = f.alts || [f.alt1,f.alt2,f.alt3].filter(Boolean);
-    renderAltsList(existingAlts);
-    const intervalEl = document.getElementById('if-interval');
-    if(['250','500','1000'].includes(String(f.interval))){
-      intervalEl.value = String(f.interval);
-      document.getElementById('if-custom-field').style.display='none';
-    } else {
-      intervalEl.value='custom';
-      document.getElementById('if-custom').value=f.intervalCustom||f.interval||250;
-      document.getElementById('if-custom-field').style.display='flex';
-    }
+function saveInventoryItem() {
+  const alts = getInvAltsValues();
+  const item = {
+    category: document.getElementById('inv-category').value,
+    name: document.getElementById('inv-name').value.trim(),
+    partNo: document.getElementById('inv-partno').value.trim(),
+    qty: parseInt(document.getElementById('inv-qty').value) || 0,
+    minQty: parseInt(document.getElementById('inv-min-qty').value) || 5,
+    price: parseFloat(document.getElementById('inv-price').value) || 0,
+    unit: document.getElementById('inv-unit').value,
+    interval: parseInt(document.getElementById('inv-interval').value) || 250,
+    notes: document.getElementById('inv-notes').value,
+    alts: alts,
+    updatedAt: new Date().toISOString()
+  };
+  if (!item.name || !item.partNo) { showToast('يرجى إدخال اسم الصنف ورقم القطعة'); return; }
+  if (editingInventoryId) {
+    saveToFirebase('inventoryItems', { ...item, id: editingInventoryId });
+    showToast('تم تحديث الصنف');
   } else {
-    ['if-type','if-part'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('if-qty').value='0';
-    document.getElementById('if-interval').value='250';
-    document.getElementById('if-custom-field').style.display='none';
-    renderAltsList([]);
+    item.createdAt = new Date().toISOString();
+    saveToFirebase('inventoryItems', item);
+    showToast('تم إضافة الصنف');
   }
-  document.getElementById('inv-modal').classList.add('active');
+  closeModal('inventory-item-modal');
 }
 
-function closeInvModal(){ document.getElementById('inv-modal').classList.remove('active'); editingInvId=null; altCount=0; }
+function editInventoryItem(id) {
+  const item = inventoryItems.find(i => i.id === id);
+  if (!item) return;
+  editingInventoryId = id;
+  invAltCount = 0;
+  document.getElementById('inv-item-title').innerHTML = '✏️ تعديل صنف';
+  document.getElementById('inv-category').value = item.category || 'filter';
+  document.getElementById('inv-name').value = item.name || '';
+  document.getElementById('inv-partno').value = item.partNo || '';
+  document.getElementById('inv-qty').value = item.qty || 0;
+  document.getElementById('inv-min-qty').value = item.minQty || 5;
+  document.getElementById('inv-price').value = item.price || 0;
+  document.getElementById('inv-unit').value = item.unit || 'قطعة';
+  document.getElementById('inv-interval').value = item.interval || 250;
+  document.getElementById('inv-notes').value = item.notes || '';
+  document.getElementById('inv-alt-list').innerHTML = '';
+  (item.alts || []).forEach(alt => {
+    invAltCount++;
+    const div = document.createElement('div');
+    div.id = `inv-alt-${invAltCount}`;
+    div.style.cssText = 'display:grid; grid-template-columns:1fr 1fr auto; gap:6px; margin-bottom:8px; background:#f8fafc; padding:8px; border-radius:12px';
+    div.innerHTML = `<input class="form-input" id="inv-alt-pn-${invAltCount}" value="${alt.partNo}" style="background:white; border-radius:8px; padding:8px; border:1px solid #e2e8f0"><input class="form-input" type="number" id="inv-alt-qty-${invAltCount}" value="${alt.qty}" style="background:white; border-radius:8px; padding:8px; border:1px solid #e2e8f0"><button onclick="document.getElementById('inv-alt-${invAltCount}').remove()" style="background:#fee2e2; border:none; border-radius:8px; padding:8px 12px">×</button>`;
+    document.getElementById('inv-alt-list').appendChild(div);
+  });
+  closeModal('detail-modal');
+  document.getElementById('inventory-item-modal').classList.add('active');
+}
 
-function renderInvEqList(containerId, invFilterId){
-  const list = eqList();
-  const container = document.getElementById(containerId);
-  if(!list.length){ container.innerHTML='<div style="font-size:12px;color:var(--muted)">لا توجد معدات — أضف معدات أولاً</div>'; return; }
-  container.innerHTML = list.map(eq=>{
-    const isLinked = invFilterId && Object.values(eq.filters||{}).some(f=>f.invId===invFilterId);
-    return `<label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg);cursor:pointer">
-      <input type="checkbox" id="eq-check-${eq.id}" ${isLinked?'checked':''} style="width:18px;height:18px;cursor:pointer">
-      <span style="font-size:13px;color:var(--navy);font-weight:600">${ICONS[eq.type]||'🔧'} ${eq.name}</span>
-      <span style="font-size:11px;color:var(--muted);margin-right:auto">${eq.code}</span>
-    </label>`;
+function adjustInventoryQty(id, delta) {
+  const item = inventoryItems.find(i => i.id === id);
+  if (item) {
+    item.qty = Math.max(0, (item.qty || 0) + delta);
+    saveToFirebase('inventoryItems', item);
+  }
+}
+
+function filterInventory() {
+  currentCategoryFilter = document.getElementById('category-filter').value;
+  renderInventory();
+}
+
+function openLinkFilterModal(itemId) {
+  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
+  currentLinkingItem = inventoryItems.find(i => i.id === itemId);
+  if (!currentLinkingItem) return;
+  const content = document.getElementById('link-filter-content');
+  content.innerHTML = `<div style="background:white; border-radius:16px; padding:14px; margin-bottom:16px"><div style="font-weight:700">🔧 ${currentLinkingItem.name}</div><div style="font-size:12px; color:var(--gray)">رقم القطعة: ${currentLinkingItem.partNo}</div><div style="font-size:12px; color:var(--info)">دورة التغيير: كل ${currentLinkingItem.interval || 250} ساعة</div></div><div id="link-eq-checkboxes"></div>`;
+  const checkboxesDiv = document.getElementById('link-eq-checkboxes');
+  checkboxesDiv.innerHTML = equipmentData.map(eq => {
+    const existingLink = equipmentFilterLinks.find(link => link.equipmentId === eq.code && link.filterPartNo === currentLinkingItem.partNo);
+    return `<label style="display:flex; align-items:center; gap:12px; padding:12px; background:white; border-radius:14px; margin-bottom:8px; cursor:pointer; border:1px solid #eef2f6"><input type="checkbox" id="link-eq-${eq.id}" value="${eq.code}" ${existingLink ? 'checked' : ''} style="width:20px; height:20px; cursor:pointer"><div style="flex:1"><div style="font-weight:700">${eq.name}</div><div style="font-size:11px; color:var(--gray)">${eq.code} | دورة الصيانة: كل ${eq.interval || 250} ساعة</div></div><div style="display:flex; align-items:center; gap:8px"><span style="font-size:11px; color:var(--gray)">الكمية/صيانة:</span><input type="number" id="qty-${eq.id}" class="form-input" style="width:60px; border:1px solid #e2e8f0; border-radius:8px; padding:6px; text-align:center" value="${existingLink?.quantityPerService || 1}" min="1" step="1"></div></label>`;
   }).join('');
+  if (equipmentData.length === 0) checkboxesDiv.innerHTML = '<div class="empty-state">لا توجد معدات مسجلة</div>';
+  document.getElementById('link-filter-modal').classList.add('active');
 }
 
-function saveInvFilter(){
-  const type = document.getElementById('if-type').value.trim();
-  const partNo = document.getElementById('if-part').value.trim();
-  if(!type||!partNo){toast('يرجى إدخال نوع الفلتر ورقم القطعة');return;}
-  const intervalSel = document.getElementById('if-interval').value;
-  const interval = intervalSel==='custom' ? null : Number(intervalSel);
-  const intervalCustom = intervalSel==='custom' ? Number(document.getElementById('if-custom').value)||250 : null;
-  const alts = getAltsValues();
-
-  const filterData = {
-    type, partNo,
-    qty: parseInt(document.getElementById('if-qty').value)||0,
-    interval: interval||intervalCustom||250,
-    intervalCustom: intervalCustom||null,
-    alts: alts, // مصفوفة البدائل الديناميكية
-  };
-
-  let invId = editingInvId;
-  if(invId){ dbUpdate(`inventory/${invId}`, filterData); }
-  else { invId = dbPush('inventory', filterData); }
-
-  eqList().forEach(eq=>{
-    const checked = document.getElementById(`eq-check-${eq.id}`)?.checked;
-    const existingLink = Object.entries(eq.filters||{}).find(([,f])=>f.invId===invId);
-    if(checked && !existingLink){
-      dbPush(`equipment/${eq.id}/filters`,{ invId, type, partNo, qty:0, usedPerService:1, fromInventory:true });
-    } else if(!checked && existingLink){
-      dbRemove(`equipment/${eq.id}/filters/${existingLink[0]}`);
+function saveFilterLink() {
+  if (!currentLinkingItem) return;
+  equipmentData.forEach(eq => {
+    const checkbox = document.getElementById(`link-eq-${eq.id}`);
+    const qtyInput = document.getElementById(`qty-${eq.id}`);
+    const quantityPerService = parseInt(qtyInput?.value) || 1;
+    const isChecked = checkbox?.checked || false;
+    const existingLink = equipmentFilterLinks.find(link => link.equipmentId === eq.code && link.filterPartNo === currentLinkingItem.partNo);
+    if (isChecked && !existingLink) {
+      const newLink = { equipmentId: eq.code, filterPartNo: currentLinkingItem.partNo, filterName: currentLinkingItem.name, filterInterval: currentLinkingItem.interval || 250, quantityPerService: quantityPerService, createdAt: new Date().toISOString() };
+      saveToFirebase('equipmentFilterLinks', newLink);
+    } else if (!isChecked && existingLink) {
+      deleteFromFirebase('equipmentFilterLinks', existingLink.id);
+    } else if (isChecked && existingLink && existingLink.quantityPerService !== quantityPerService) {
+      saveToFirebase('equipmentFilterLinks', { ...existingLink, quantityPerService: quantityPerService });
     }
   });
-
-  closeInvModal();
-  toast(editingInvId?'✅ تم تحديث الفلتر':'✅ تم إضافة الفلتر للمخزن');
+  closeModal('link-filter-modal');
+  showToast('تم تحديث ربط الفلاتر بالمعدات');
 }
 
-// ── LINK FILTER MODAL ──
-function openLinkModal(invId){
-  linkingInvId = invId;
-  const f = getInv(invId); if(!f) return;
-  document.getElementById('link-filter-info').innerHTML = `
-    <div style="font-size:14px;font-weight:800;color:var(--navy)">${f.type}</div>
-    <div style="font-size:12px;color:var(--teal);margin-top:3px">P/N: ${f.partNo} — كل ${getFilterInterval(f)} ساعة</div>`;
-  renderInvEqList('link-eq-list', invId);
-  document.getElementById('link-modal').classList.add('active');
-}
-function closeLinkModal(){ document.getElementById('link-modal').classList.remove('active'); linkingInvId=null; }
-
-function saveLinkFilter(){
-  const f = getInv(linkingInvId); if(!f) return;
-  eqList().forEach(eq=>{
-    const checked = document.getElementById(`eq-check-${eq.id}`)?.checked;
-    const existingLink = Object.entries(eq.filters||{}).find(([,lf])=>lf.invId===linkingInvId);
-    if(checked && !existingLink){
-      dbPush(`equipment/${eq.id}/filters`,{ invId:linkingInvId, type:f.type, partNo:f.partNo, qty:0, usedPerService:1, fromInventory:true });
-    } else if(!checked && existingLink){
-      dbRemove(`equipment/${eq.id}/filters/${existingLink[0]}`);
-    }
-  });
-  closeLinkModal();
-  toast('✅ تم ربط الفلتر بالمعدات');
+function renderInventory() {
+  const container = document.getElementById('inv-list');
+  let filtered = inventoryItems;
+  const cat = document.getElementById('category-filter')?.value;
+  if (cat && cat !== 'all') filtered = inventoryItems.filter(i => i.category === cat);
+  const needs = calculateAllFiltersNeeded();
+  container.innerHTML = filtered.map(item => {
+    const total = totalQty(item);
+    const needed = needs[item.id] || 0;
+    const shortage = Math.max(0, needed - total);
+    const linkedEqs = equipmentFilterLinks.filter(link => link.filterPartNo === item.partNo).map(link => {
+      const eq = equipmentData.find(e => e.code === link.equipmentId);
+      return eq ? { name: eq.name, code: eq.code, quantityPerService: link.quantityPerService } : null;
+    }).filter(Boolean);
+    return `<div class="inventory-item-card" onclick="showInventoryItemDetail('${item.id}')"><div class="card-header"><div><div class="card-title">${item.name}</div><div class="card-code">${item.partNo} ${getCategoryBadge(item.category)}</div>${item.category === 'filter' ? `<div style="font-size:10px; color:var(--info); margin-top:3px">🔄 دورة التغيير: كل ${item.interval || 250} ساعة</div>` : ''}</div><span class="badge ${shortage > 0 ? 'badge-maintenance' : 'badge-working'}">${total} ${item.unit}</span></div><div class="grid-3" style="margin-top:10px"><div><div class="detail-label">الأصلي</div><div class="detail-value">${item.qty}</div></div><div><div class="detail-label">البدائل</div><div class="detail-value">${(item.alts || []).reduce((s,a)=>s+a.qty,0)}</div></div><div><div class="detail-label">الإجمالي</div><div class="detail-value">${total}</div></div></div>${item.category === 'filter' ? `<div class="grid-3" style="margin-top:6px; background:${shortage>0 ? '#fee2e2' : '#d1fae5'}; padding:6px; border-radius:8px"><div><div class="detail-label">المطلوب (1000 س)</div><div class="detail-value" style="color:${shortage>0?'var(--danger)':'var(--success)'}">${needed}</div></div><div><div class="detail-label">النقص</div><div class="detail-value" style="color:${shortage>0?'var(--danger)':'var(--success)'}">${shortage>0?shortage:'✓'}</div></div></div>` : ''}${linkedEqs.length ? `<div style="margin-top:6px; font-size:10px; color:var(--info)">🔗 يستخدم في: ${linkedEqs.map(l => `${l.name} (${l.quantityPerService}/صيانة)`).join(', ')}</div>` : ''}<div style="margin-top:8px; display:flex; gap:10px; align-items:center; flex-wrap:wrap"><button onclick="event.stopPropagation(); adjustInventoryQty('${item.id}', -1)" class="qty-btn" style="background:var(--danger); color:white">-</button><span style="font-weight:700">${total} ${item.unit}</span><button onclick="event.stopPropagation(); adjustInventoryQty('${item.id}', 1)" class="qty-btn" style="background:var(--success); color:white">+</button>${item.category === 'filter' ? `<button onclick="event.stopPropagation(); openLinkFilterModal('${item.id}')" class="qty-btn" style="background:var(--info); color:white; width:auto; padding:0 12px">🔗 ربط</button>` : ''}</div><button onclick="event.stopPropagation(); deleteFromFirebase('inventoryItems','${item.id}')" class="save-btn" style="margin:10px 0 0 0; background:#fee2e2; color:var(--danger)">🗑️ حذف</button></div>`;
+  }).join('');
+  if (!filtered.length) container.innerHTML = '<div class="empty-state">لا توجد أصناف في هذا التصنيف</div>';
 }
 
-// toggle custom interval field
-function toggleCustomInterval(){
-  const v = document.getElementById('if-interval').value;
-  document.getElementById('if-custom-field').style.display = v==='custom'?'flex':'none';
+function showInventoryItemDetail(id) {
+  const item = inventoryItems.find(i => i.id === id);
+  if (!item) return;
+  const total = totalQty(item);
+  const needs = calculateAllFiltersNeeded();
+  const needed = needs[item.id] || 0;
+  const shortage = Math.max(0, needed - total);
+  const linkedEqs = equipmentFilterLinks.filter(link => link.filterPartNo === item.partNo).map(link => {
+    const eq = equipmentData.find(e => e.code === link.equipmentId);
+    return eq ? { name: eq.name, code: eq.code, interval: eq.interval, quantityPerService: link.quantityPerService } : null;
+  }).filter(Boolean);
+  document.getElementById('detail-title').innerHTML = `📦 ${item.name}`;
+  document.getElementById('detail-content').innerHTML = `<div class="detail-section"><div class="grid-2"><div><div class="detail-label">التصنيف</div><div class="detail-value">${getCategoryBadge(item.category)}</div></div><div><div class="detail-label">رقم القطعة الأصلي</div><div class="detail-value">${item.partNo}</div></div><div><div class="detail-label">الكمية الأصلية</div><div class="detail-value">${item.qty} ${item.unit}</div></div><div><div class="detail-label">البدائل</div><div class="detail-value">${(item.alts || []).reduce((s,a)=>s+a.qty,0)} ${item.unit}</div></div><div><div class="detail-label">الإجمالي الكلي</div><div class="detail-value" style="color:${shortage>0 ? 'var(--danger)' : 'var(--success)'}">${total} ${item.unit}</div></div><div><div class="detail-label">الحد الأدنى</div><div class="detail-value">${item.minQty} ${item.unit}</div></div>${item.category === 'filter' ? `<div><div class="detail-label">دورة التغيير</div><div class="detail-value">كل ${item.interval || 250} ساعة</div></div><div><div class="detail-label">المطلوب (لـ 1000 س)</div><div class="detail-value" style="color:${shortage>0?'var(--danger)':'var(--success)'}">${needed} ${item.unit}</div></div><div><div class="detail-label">الحالة</div><div class="detail-value">${shortage>0 ? `⚠️ ناقص ${shortage} ${item.unit}` : '✅ كافٍ'}</div></div>` : ''}<div><div class="detail-label">سعر الوحدة</div><div class="detail-value">${formatNumber(item.price)} ر.س</div></div><div><div class="detail-label">القيمة الإجمالية</div><div class="detail-value">${formatNumber(total * (item.price || 0))} ر.س</div></div></div></div>${linkedEqs.length ? `<div class="detail-section"><div class="detail-label">🔗 المعدات المستخدمة فيها</div>${linkedEqs.map(l => `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eef2f6"><div><span style="font-weight:600">🏗️ ${l.name}</span><br><span style="font-size:11px; color:var(--gray)">${l.code}</span></div><div style="text-align:left"><div class="detail-label">الكمية/صيانة</div><div class="detail-value">${l.quantityPerService}</div><div class="detail-label">دورة المعدة</div><div class="detail-value">كل ${l.interval} ساعة</div></div></div>`).join('')}</div>` : ''}${item.notes ? `<div class="detail-section"><div class="detail-label">ملاحظات</div><div class="detail-value">${item.notes}</div></div>` : ''}<div class="grid-2" style="margin:12px 14px"><button class="save-btn" style="margin:0; background:var(--accent)" onclick="editInventoryItem('${item.id}')">✏️ تعديل</button><button class="save-btn" style="margin:0; background:var(--danger)" onclick="deleteFromFirebase('inventoryItems','${item.id}')">🗑️ حذف</button></div>`;
+  document.getElementById('detail-modal').classList.add('active');
 }
 
-// ═══════════════════════════════════════════════
-// GENERATOR KVA TOGGLE
-// ═══════════════════════════════════════════════
-function toggleKvaField(prefix){
-  const typeEl = document.getElementById(`${prefix}-type`);
-  const kvaField = document.getElementById(`${prefix}-kva-field`);
-  if(kvaField) kvaField.style.display = typeEl.value==='مولد كهربائي' ? 'flex' : 'none';
+function generateOrderReport() {
+  const needs = calculateAllFiltersNeeded();
+  const shortages = inventoryItems.filter(item => item.category === 'filter' && (needs[item.id] || 0) > totalQty(item)).map(item => ({ ...item, totalQty: totalQty(item), neededQty: needs[item.id] || 0, shortage: (needs[item.id] || 0) - totalQty(item), totalCost: ((needs[item.id] || 0) - totalQty(item)) * (item.price || 0) }));
+  const totalOrderCost = shortages.reduce((sum, i) => sum + i.totalCost, 0);
+  const content = document.getElementById('order-report-content');
+  content.innerHTML = `<div style="background:white; border-radius:16px; padding:16px; margin-bottom:16px"><div style="font-weight:800; font-size:16px; margin-bottom:10px">📋 تقرير الطلبية - الفلاتر الناقصة</div><div style="font-size:12px; color:var(--gray); margin-bottom:8px">📅 التاريخ: ${new Date().toLocaleDateString('ar-SA')}</div><div style="font-size:12px; color:var(--info); margin-bottom:15px">⏱️ تم حساب الاحتياجات لـ 1000 ساعة تشغيل قادمة</div>${shortages.length === 0 ? '<div class="empty-state">🎉 لا توجد فلاتر ناقصة - جميع الفلاتر كافية للصيانات القادمة</div>' : `<div style="margin-bottom:15px"><div class="grid-2" style="background:var(--bg); padding:10px; border-radius:12px"><div><div class="detail-label">عدد الفلاتر الناقصة</div><div class="detail-value" style="color:var(--danger)">${shortages.length}</div></div><div><div class="detail-label">إجمالي تكلفة الطلبية</div><div class="detail-value" style="color:var(--accent)">${formatNumber(totalOrderCost)} ر.س</div></div></div></div>${shortages.map(item => `<div style="border-bottom:1px solid #eef2f6; padding:12px 0"><div style="display:flex; justify-content:space-between; align-items:flex-start"><div><div style="font-weight:700">${item.name}</div><div style="font-size:11px; color:var(--gray)">${item.partNo} ${getCategoryBadge(item.category)}</div><div style="font-size:10px; color:var(--info)">دورة التغيير: كل ${item.interval || 250} ساعة</div></div><div style="text-align:left"><div style="font-size:11px; color:var(--danger)">المتوفر: ${item.totalQty} ${item.unit}</div><div style="font-size:11px; color:var(--warning)">المطلوب: ${item.neededQty} ${item.unit}</div><div style="font-size:14px; font-weight:800; color:var(--accent)">النقص: ${item.shortage} ${item.unit}</div></div></div><div style="margin-top:6px; font-size:12px">💰 التكلفة: ${formatNumber(item.totalCost)} ر.س</div></div>`).join('')}<div style="margin-top:16px; padding:12px; background:#fef3c7; border-radius:12px"><div style="font-weight:700">📝 ملخص الطلبية (لـ 1000 ساعة تشغيل)</div><div>📦 إجمالي القطع المطلوبة: ${shortages.reduce((s,i)=>s+i.shortage,0)} قطعة</div><div>💰 إجمالي التكلفة المتوقعة: ${formatNumber(totalOrderCost)} ر.س</div></div>`}</div>`;
+  document.getElementById('order-report-modal').classList.add('active');
 }
 
-// ═══════════════════════════════════════════════
-// ADD EQUIPMENT
-// ═══════════════════════════════════════════════
-function openAddModal(){ document.getElementById('add-modal').classList.add('active'); }
-function closeAddModal(){ document.getElementById('add-modal').classList.remove('active'); }
-function saveEquipment(){
-  const code=document.getElementById('f-code').value.trim();
-  const name=document.getElementById('f-name').value.trim();
-  if(!code||!name){toast('يرجى إدخال الكود والاسم');return;}
-  const eq={
-    code,name,
-    chassis:document.getElementById('f-chassis').value.trim(),
-    arrivalDate:document.getElementById('f-arrival').value,
-    location:document.getElementById('f-loc').value.trim(),
-    hours:parseInt(document.getElementById('f-hours').value)||0,
-    hoursArrival:parseInt(document.getElementById('f-hoursArrival').value)||0,
-    nextHours:parseInt(document.getElementById('f-nextHours').value)||0,
-    type:document.getElementById('f-type').value,
-    status:document.getElementById('f-status').value,
-    maintenanceInterval:parseInt(document.getElementById('f-interval').value)||250,
-    lastMaintenance:document.getElementById('f-last').value,
-    nextMaintenance:document.getElementById('f-next').value,
-    notes:document.getElementById('f-notes').value.trim(),
-    filters:{},
-    kva: document.getElementById('f-type').value==='مولد كهربائي' ? (parseInt(document.getElementById('f-kva').value)||0) : null,
-    createdBy: localStorage.getItem('user_name')||'مجهول',
-    createdAt: new Date().toISOString(),
-  };
-  dbPush('equipment',eq);
-  closeAddModal();
-  ['f-code','f-name','f-chassis','f-arrival','f-loc','f-hours','f-hoursArrival','f-nextHours','f-notes'].forEach(id=>document.getElementById(id).value='');
-  toast('✅ تم إضافة المعدة للجميع');
+function exportOrderToExcel() {
+  const needs = calculateAllFiltersNeeded();
+  const shortages = inventoryItems.filter(item => item.category === 'filter' && (needs[item.id] || 0) > totalQty(item)).map(item => ({ 'التصنيف': getCategoryName(item.category), 'اسم الفلتر': item.name, 'رقم القطعة': item.partNo, 'دورة التغيير (ساعة)': item.interval || 250, 'الوحدة': item.unit, 'المتوفر': totalQty(item), 'المطلوب': needs[item.id] || 0, 'النقص': (needs[item.id] || 0) - totalQty(item), 'سعر الوحدة': item.price || 0, 'التكلفة': ((needs[item.id] || 0) - totalQty(item)) * (item.price || 0) }));
+  const ws = XLSX.utils.json_to_sheet(shortages);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'طلبية_الفلاتر');
+  XLSX.writeFile(wb, `طلبيه_فلاتر_${new Date().toISOString().split('T')[0]}.xlsx`);
+  showToast('تم تصدير الطلبية إلى Excel');
 }
 
-// ═══════════════════════════════════════════════
-// EDIT EQUIPMENT
-// ═══════════════════════════════════════════════
-function openEditModal(id){
-  const e=getEq(id); if(!e) return;
-  currentEqId=id;
-  // fill all fields
-  document.getElementById('e-code').value=e.code||'';
-  document.getElementById('e-name').value=e.name||'';
-  document.getElementById('e-chassis').value=e.chassis||'';
-  document.getElementById('e-arrival').value=e.arrivalDate||'';
-  document.getElementById('e-loc').value=e.location||'';
-  document.getElementById('e-hours').value=e.hours||0;
-  document.getElementById('e-hoursArrival').value=e.hoursArrival||0;
-  document.getElementById('e-nextHours').value=e.nextHours||0;
-  document.getElementById('e-interval').value=e.maintenanceInterval||250;
-  document.getElementById('e-last').value=e.lastMaintenance||'';
-  document.getElementById('e-next').value=e.nextMaintenance||'';
-  document.getElementById('e-notes').value=e.notes||'';
-  document.getElementById('e-kva').value=e.kva||'';
-  // set selects
-  const typeEl=document.getElementById('e-type');
-  Array.from(typeEl.options).forEach(o=>o.selected=o.value===e.type);
-  toggleKvaField('e');
-  const statusEl=document.getElementById('e-status');
-  Array.from(statusEl.options).forEach(o=>o.selected=o.value===e.status);
-  document.getElementById('edit-modal').classList.add('active');
-}
-function closeEditModal(){
-  document.getElementById('edit-modal').classList.remove('active');
-}
-function updateEquipment(){
-  const code=document.getElementById('e-code').value.trim();
-  const name=document.getElementById('e-name').value.trim();
-  if(!code||!name){toast('يرجى إدخال الكود والاسم');return;}
-  const patch={
-    code, name,
-    chassis:document.getElementById('e-chassis').value.trim(),
-    arrivalDate:document.getElementById('e-arrival').value,
-    location:document.getElementById('e-loc').value.trim(),
-    hours:parseInt(document.getElementById('e-hours').value)||0,
-    hoursArrival:parseInt(document.getElementById('e-hoursArrival').value)||0,
-    nextHours:parseInt(document.getElementById('e-nextHours').value)||0,
-    type:document.getElementById('e-type').value,
-    status:document.getElementById('e-status').value,
-    maintenanceInterval:parseInt(document.getElementById('e-interval').value)||250,
-    lastMaintenance:document.getElementById('e-last').value,
-    nextMaintenance:document.getElementById('e-next').value,
-    notes:document.getElementById('e-notes').value.trim(),
-    kva: document.getElementById('e-type').value==='مولد كهربائي' ? (parseInt(document.getElementById('e-kva').value)||0) : null,
-    updatedAt:new Date().toISOString(),
-  };
-  dbUpdate(`equipment/${currentEqId}`, patch);
-  closeEditModal();
-  renderDetail();
-  toast('✅ تم حفظ التعديلات');
-}
-function deleteEquipment(){
-  if(!confirm('هل أنت متأكد من حذف هذه المعدة؟')) return;
-  dbRemove(`equipment/${currentEqId}`);
-  closeEditModal();
-  closeDetail();
-  toast('🗑️ تم حذف المعدة');
+function sendOrderViaWhatsApp() {
+  const needs = calculateAllFiltersNeeded();
+  const shortages = inventoryItems.filter(item => item.category === 'filter' && (needs[item.id] || 0) > totalQty(item));
+  if (shortages.length === 0) { showToast('لا توجد فلاتر ناقصة'); return; }
+  let message = `📋 *طلبيه فلاتر - حسن علام القابضة*%0A📅 التاريخ: ${new Date().toLocaleDateString('ar-EG')}%0A⏱️ لـ 1000 ساعة تشغيل قادمة%0A━━━━━━━━━━━━━━━━%0A%0A`;
+  shortages.forEach(item => { const shortage = (needs[item.id] || 0) - totalQty(item); message += `📦 *${item.name}*%0A   رقم القطعة: ${item.partNo}%0A   دورة التغيير: كل ${item.interval || 250} ساعة%0A   المتوفر: ${totalQty(item)} ${item.unit}%0A   المطلوب: ${needs[item.id] || 0} ${item.unit}%0A   *العجز: ${shortage} ${item.unit}*%0A   السعر: ${item.price || 0} ر.س%0A%0A`; });
+  message += `━━━━━━━━━━━━━━━━%0A🏢 حسن علام القابضة%0A📞 للتواصل: [رقم المشتريات]`;
+  window.open(`https://wa.me/?text=${message}`, '_blank');
+  showToast('تم فتح واتساب لإرسال الطلبية');
 }
 
-// ═══════════════════════════════════════════════
+function getCategoryName(category) {
+  const names = { filter: 'فلتر', oil: 'زيت', tire: 'إطار', spare: 'قطعة غيار', other: 'أخرى' };
+  return names[category] || category;
+}
+
+// ============================================
+// UI RENDERING
+// ============================================
+function refreshUI() {
+  const working = equipmentData.filter(e => e.status === 'يعمل').length;
+  const activeDrivers = driversData.filter(d => d.status === 'نشط').length;
+  const totalFuelCost = fuelData.reduce((sum, f) => sum + (f.cost || 0), 0);
+  const pendingMaintenance = maintenanceSchedules.filter(m => m.status === 'مجدول').length;
+  const needs = calculateAllFiltersNeeded();
+  const lowStockCount = inventoryItems.filter(item => item.category === 'filter' && (needs[item.id] || 0) > totalQty(item)).length;
+  
+  document.getElementById('stats-summary').innerHTML = `<div class="stat-card"><div class="stat-number">${equipmentData.length}</div><div class="stat-label">المعدات</div></div><div class="stat-card"><div class="stat-number" style="color:#10b981">${working}</div><div class="stat-label">يعمل</div></div><div class="stat-card"><div class="stat-number" style="color:#dbeafe">${activeDrivers}</div><div class="stat-label">سائقين</div></div><div class="stat-card"><div class="stat-number" style="color:#f59e0b">${pendingMaintenance}</div><div class="stat-label">صيانة قادمة</div></div><div class="stat-card"><div class="stat-number" style="color:#8b5cf6">${lowStockCount}</div><div class="stat-label">فلاتر ناقصة</div></div>`;
+  
+  const sortedEquipment = [...equipmentData].sort((a, b) => hoursRemaining(a) - hoursRemaining(b));
+  document.getElementById('equipment-count').innerHTML = `(${equipmentData.length})`;
+  document.getElementById('equipment-list-home').innerHTML = sortedEquipment.map(eq => {
+    const rem = hoursRemaining(eq);
+    const percentRemaining = getRemainingPercent(eq);
+    const remStatus = getRemainingStatus(eq);
+    const barColor = getBarColor(rem);
+    const driver = driversData.find(d => d.id === eq.assignedDriver);
+    return `<div class="equipment-card" onclick="openEquipmentDetail('${eq.id}')"><div class="card-header"><div><div class="card-title">${eq.name}</div><div class="card-code">${eq.code} | ${eq.type}</div></div><span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span></div><div style="margin: 12px 0 6px 0"><div style="display: flex; justify-content: space-between; margin-bottom: 4px"><span style="font-size: 11px; color: var(--gray)">⏱️ الساعات المتبقية</span><span style="font-size: 12px; font-weight: 700; color: ${remStatus.color}">${remStatus.text}</span></div><div class="progress-bar"><div class="progress-fill" style="width: ${percentRemaining}%; background: ${barColor}"></div></div><div style="display: flex; justify-content: space-between; margin-top: 4px"><span style="font-size: 9px; color: var(--gray)">0 ساعة</span><span style="font-size: 9px; color: var(--gray)">الصيانة عند ${formatNumber(eq.nextHours)} س</span></div></div><div class="grid-2" style="margin-top: 8px"><div><span class="detail-label">⏱️ العداد الحالي</span><div class="detail-value" style="font-size: 13px">${formatNumber(eq.hours)} ساعة</div></div><div><span class="detail-label">🔧 الصيانة القادمة</span><div class="detail-value" style="font-size: 13px">${formatNumber(eq.nextHours)} ساعة</div></div></div>${driver ? `<div style="margin-top: 8px; font-size: 11px; color: var(--gray); padding-top: 6px; border-top: 1px solid #eef2f6">👨‍✈️ السائق: ${driver.name}</div>` : ''}</div>`;
+  }).join('');
+  if (equipmentData.length === 0) document.getElementById('equipment-list-home').innerHTML = '<div class="empty-state">لا توجد معدات مسجلة<br>اضغط زر + لإضافة معدة جديدة</div>';
+  
+  const search = document.getElementById('search-equipment')?.value || '';
+  const filteredEq = equipmentData.filter(e => e.name.includes(search) || e.code.includes(search));
+  document.getElementById('equipment-list').innerHTML = filteredEq.map(eq => `<div class="equipment-card" onclick="openEquipmentDetail('${eq.id}')"><div class="card-header"><div><div class="card-title">${eq.name}</div><div class="card-code">${eq.code}</div></div><span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span></div><div><span>⏱️ ${formatNumber(eq.hours)} ساعة</span> | <span>🔧 عند ${formatNumber(eq.nextHours)} ساعة</span></div><div class="progress-bar"><div class="progress-fill" style="width: ${getRemainingPercent(eq)}%; background: ${getBarColor(hoursRemaining(eq))}"></div></div></div>`).join('');
+  
+  const driverSearch = document.getElementById('search-driver')?.value || '';
+  const filteredDrivers = driversData.filter(d => d.name.includes(driverSearch));
+  document.getElementById('drivers-list').innerHTML = filteredDrivers.map(d => { const assignedEqs = equipmentData.filter(eq => eq.assignedDriver === d.id); const licenseExpired = d.licenseExpiry && new Date(d.licenseExpiry) < new Date(); return `<div class="driver-card" onclick="openDriverDetail('${d.id}')"><div class="card-header"><div><div class="card-title">👨‍✈️ ${d.name}</div><div class="card-code">${d.phone || 'لا يوجد هاتف'}</div></div><span class="badge ${d.status === 'نشط' ? 'badge-active' : 'badge-stopped'}">${d.status}</span></div><div class="grid-2" style="margin-top:8px"><div><span class="detail-label">🚜 معدة</span><br><span class="detail-value">${assignedEqs.map(e => e.name).join(', ') || '—'}</span></div><div><span class="detail-label">📜 الرخصة</span><br><span class="detail-value" style="color:${licenseExpired ? 'var(--danger)' : 'var(--success)'}">${d.licenseExpiry || '—'}</span></div></div></div>`; }).join('');
+  
+  const totalFuelAmount = fuelData.reduce((sum, f) => sum + (f.amount || 0), 0);
+  const avgFuelCost = fuelData.length ? totalFuelCost / fuelData.length : 0;
+  document.getElementById('fuel-stats').innerHTML = `<div class="stat-card"><div class="stat-number">${formatNumber(totalFuelAmount)}</div><div class="stat-label">إجمالي اللترات</div></div><div class="stat-card"><div class="stat-number">${formatNumber(totalFuelCost)}</div><div class="stat-label">التكلفة الإجمالية</div></div><div class="stat-card"><div class="stat-number">${formatNumber(Math.round(avgFuelCost))}</div><div class="stat-label">متوسط التكلفة</div></div>`;
+  document.getElementById('fuel-list').innerHTML = fuelData.slice(-20).reverse().map(f => { const eq = equipmentData.find(e => e.id === f.equipmentId); const driver = driversData.find(d => d.id === f.driverId); return `<div class="fuel-card"><div class="card-header"><div><div class="card-title">⛽ ${eq?.name || 'معدة غير معروفة'}</div><div class="card-code">${f.date}</div></div><span class="badge badge-working">${f.amount} لتر</span></div><div class="grid-2" style="margin-top:8px"><div><span class="detail-label">التكلفة</span><div class="detail-value">${f.cost || 0} ر.س</div></div><div><span class="detail-label">العداد</span><div class="detail-value">${f.hours || 0} ساعة</div></div><div><span class="detail-label">السائق</span><div class="detail-value">${driver?.name || '—'}</div></div></div></div>`; }).join('');
+  
+  document.getElementById('maintenance-list').innerHTML = maintenanceSchedules.filter(m => m.status === 'مجدول').map(m => { const eq = equipmentData.find(e => e.id === m.equipmentId); const isToday = m.date === new Date().toISOString().split('T')[0]; return `<div class="maintenance-card" onclick="showMaintenanceDetail('${m.id}')"><div class="card-header"><div><div class="card-title">🔧 ${m.type}</div><div class="card-code">${eq?.name || 'معدة غير معروفة'}</div></div><span class="badge ${isToday ? 'badge-maintenance' : 'badge-active'}">${isToday ? 'اليوم' : m.date}</span></div><div class="grid-2" style="margin-top:8px"><div><span class="detail-label">العداد المستهدف</span><div class="detail-value">${m.targetHours || '—'} ساعة</div></div><div><span class="detail-label">التكلفة المتوقعة</span><div class="detail-value">${m.estimatedCost || 0} ر.س</div></div></div></div>`; }).join('');
+  if (maintenanceSchedules.filter(m => m.status === 'مجدول').length === 0) document.getElementById('maintenance-list').innerHTML = '<div class="empty-state">لا توجد صيانات مجدولة</div>';
+  
+  renderInventory();
+}
+
+// ============================================
 // VIEW SWITCHING
-// ═══════════════════════════════════════════════
-function switchView(view){
-  currentView=view;
-  ['home','equipment','inventory','reports'].forEach(v=>{
-    document.getElementById(`view-${v}`).style.display=v===view?'block':'none';
-    const l=document.getElementById(`tab-lbl-${v}`);
-    if(l){ l.style.fontWeight=v===view?'700':'400'; l.style.color=v===view?'var(--navy)':'var(--muted)'; }
-  });
-  // FAB — set onclick every time
-  const fab=document.getElementById('fab-btn');
-  if(view==='inventory'){
-    fab.onclick = ()=>openInvModal(null);
-    fab.style.background='linear-gradient(135deg,#065f46,#0e7490)';
-  } else {
-    fab.onclick = ()=>openAddModal();
-    fab.style.background='linear-gradient(135deg,var(--accent),var(--accent2))';
-  }
-  refreshCurrentView();
-  window.scrollTo(0,0);
+// ============================================
+function switchView(view) {
+  document.getElementById('view-home').style.display = view === 'home' ? 'block' : 'none';
+  document.getElementById('view-equipment').style.display = view === 'equipment' ? 'block' : 'none';
+  document.getElementById('view-drivers').style.display = view === 'drivers' ? 'block' : 'none';
+  document.getElementById('view-fuel').style.display = view === 'fuel' ? 'block' : 'none';
+  document.getElementById('view-maintenance').style.display = view === 'maintenance' ? 'block' : 'none';
+  document.getElementById('view-inventory').style.display = view === 'inventory' ? 'block' : 'none';
+  document.querySelectorAll('.tab-btn').forEach(btn => { if (btn.dataset.view === view) btn.classList.add('active'); else btn.classList.remove('active'); });
+  const titles = { home: '📊 لوحة القيادة', equipment: '🏗️ إدارة المعدات', drivers: '👨‍✈️ إدارة السائقين', fuel: '⛽ تتبع الوقود', maintenance: '🔧 الصيانة الدورية', inventory: '📦 المخزن المتكامل' };
+  document.getElementById('header-title').innerHTML = titles[view];
+  const fab = document.getElementById('fab-btn');
+  if (view === 'equipment') fab.onclick = () => openAddEquipmentModal();
+  else if (view === 'drivers') fab.onclick = () => openAddDriverModal();
+  else if (view === 'fuel') fab.onclick = () => openAddFuelModal();
+  else if (view === 'maintenance') fab.onclick = () => openAddMaintenanceModal();
+  else if (view === 'inventory') fab.onclick = () => openAddInventoryItemModal();
+  else fab.onclick = () => openAddEquipmentModal();
+  refreshUI();
 }
 
-// ═══════════════════════════════════════════════
-// DEMO DATA
-// ═══════════════════════════════════════════════
-function getDemoData(){
-  return {
-    "eq1":{code:"EX-001",name:"حفارة كاتربيلار 320",type:"حفارة",chassis:"CAT0320DKDP02541",arrivalDate:"2024-03-15",location:"موقع A - القطاع 3",status:"يعمل",lastMaintenance:"2026-04-10",nextMaintenance:"2026-05-20",maintenanceInterval:250,hours:4520,notes:"تغيير زيت المحرك",filters:{
-      "f1":{type:"فلتر زيت المحرك",partNo:"1R-0739",qty:3,usedPerService:1},
-      "f2":{type:"فلتر الهواء",partNo:"6I-2501",qty:2,usedPerService:1},
-      "f3":{type:"فلتر الديزل",partNo:"326-1641",qty:2,usedPerService:1},
-      "f4":{type:"فلتر الهيدروليك",partNo:"093-7521",qty:1,usedPerService:2},
-    }},
-    "eq2":{code:"LD-002",name:"لودر كوماتسو WA380",type:"لودر",chassis:"WA380-6H52167",arrivalDate:"2023-11-01",location:"موقع B - المدخل",status:"صيانة",lastMaintenance:"2026-05-01",nextMaintenance:"2026-05-15",maintenanceInterval:250,hours:3210,notes:"تغيير إطار أمامي",filters:{
-      "f1":{type:"فلتر زيت المحرك",partNo:"07000-15251",qty:4,usedPerService:1},
-      "f2":{type:"فلتر الهيدروليك",partNo:"424-60-21250",qty:0,usedPerService:1},
-    }},
-    "eq3":{code:"BL-003",name:"بلدوزر كاتربيلار D6",type:"بلدوزر",chassis:"CAT00D6RLAR04892",arrivalDate:"2024-01-20",location:"موقع C - التسوية",status:"متوقف",lastMaintenance:"2026-02-18",nextMaintenance:"2026-05-10",maintenanceInterval:500,hours:6740,notes:"عطل هيدروليك",filters:{
-      "f1":{type:"فلتر زيت المحرك",partNo:"1R-0716",qty:2,usedPerService:1},
-      "f2":{type:"فلتر الهواء",partNo:"6I-2506",qty:0,usedPerService:1},
-    }},
-  };
-}
-
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-const savedCfg = getSavedConfig();
-if(savedCfg){
-  initFirebase(savedCfg);
-  // إذا لم يتصل خلال 8 ثوانٍ — أظهر شاشة الإعداد
-  setTimeout(()=>{
-    if(Object.keys(equipment).length===0 && !demoMode){
-      setSyncStatus('انقر للإعداد 🔧', true);
-      document.getElementById('setup-screen').style.display='flex';
-    }
-  }, 8000);
-} else {
-  document.getElementById('setup-screen').style.display='flex';
-}
-requestNotifPermission();
-document.getElementById('fab-btn').onclick = ()=>openAddModal();
-setInterval(checkMaintenanceAlerts, 30*60*1000);
-
-// ── EXPOSE ALL GLOBALS (must be after all function definitions) ──
+// ============================================
+// INITIALIZATION
+// ============================================
+window.performLogin = null;
+window.logout = logout;
 window.switchView = switchView;
-window.openDetail = openDetail;
-window.closeDetail = closeDetail;
-window.switchDetailTab = switchDetailTab;
-window.setStatus = setStatus;
-window.openOrder = openOrder;
-window.closeOrder = closeOrder;
-window.openAddModal = openAddModal;
-window.closeAddModal = closeAddModal;
+window.openAddEquipmentModal = openAddEquipmentModal;
+window.openAddDriverModal = openAddDriverModal;
+window.openAddFuelModal = openAddFuelModal;
+window.openAddMaintenanceModal = openAddMaintenanceModal;
+window.openAddInventoryItemModal = openAddInventoryItemModal;
+window.openEquipmentDetail = openEquipmentDetail;
+window.openDriverDetail = openDriverDetail;
+window.closeModal = closeModal;
+window.openMeterUpdate = openMeterUpdate;
+window.updateSingleMeter = updateSingleMeter;
+window.saveAllMeters = saveAllMeters;
+window.deleteFromFirebase = deleteFromFirebase;
 window.saveEquipment = saveEquipment;
-window.adjustQty = adjustQty;
-window.adjustAltQty = adjustAltQty;
-window.nfAddAlt = nfAddAlt;
-window.nfRemoveAlt = nfRemoveAlt;
-window.deleteFilter = deleteFilter;
-window.addFilter = addFilter;
-window.setFilter = setFilter;
-window.saveFirebaseConfig = saveFirebaseConfig;
-window.useDemoMode = useDemoMode;
-window.openEditModal = openEditModal;
-window.closeEditModal = closeEditModal;
-window.updateEquipment = updateEquipment;
-window.deleteEquipment = deleteEquipment;
-window.toggleKvaField = toggleKvaField;
-window.calcNextMaintHours = calcNextMaintHours;
-window.openMeterOverlay = openMeterOverlay;
-window.closeMeterOverlay = closeMeterOverlay;
-window.saveDailyMeters = saveDailyMeters;
-window.updateMeterPreview = updateMeterPreview;
-window.openInvModal = openInvModal;
-window.closeInvModal = closeInvModal;
-window.saveInvFilter = saveInvFilter;
-window.openLinkModal = openLinkModal;
-window.closeLinkModal = closeLinkModal;
-window.saveLinkFilter = saveLinkFilter;
-window.adjustInvQty = adjustInvQty;
-window.adjustInvAltQty = adjustInvAltQty;
-window.toggleCustomInterval = toggleCustomInterval;
-window.addAltField = addAltField;
-window.removeAltField = removeAltField;
+window.saveDriver = saveDriver;
+window.saveFuelRecord = saveFuelRecord;
+window.saveMaintenanceSchedule = saveMaintenanceSchedule;
+window.editEquipment = editEquipment;
+window.editDriver = editDriver;
+window.completeMaintenance = completeMaintenance;
+window.showMaintenanceDetail = showMaintenanceDetail;
+window.editInventoryItem = editInventoryItem;
+window.adjustInventoryQty = adjustInventoryQty;
+window.filterInventory = filterInventory;
+window.generateOrderReport = generateOrderReport;
+window.exportOrderToExcel = exportOrderToExcel;
+window.sendOrderViaWhatsApp = sendOrderViaWhatsApp;
+window.addInvAltField = addInvAltField;
+window.openLinkFilterModal = openLinkFilterModal;
+window.saveFilterLink = saveFilterLink;
+
+loadSavedSettings();
 </script>
 </body>
 </html>
