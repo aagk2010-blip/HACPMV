@@ -120,6 +120,10 @@ body {
 .badge-maintenance { background: #fef3c7; color: #78350f; }
 .badge-stopped { background: #fee2e2; color: #7f1d1d; }
 .badge-active { background: #dbeafe; color: #1e40af; }
+.badge-admin { background: #f1f5f9; color: #0f172a; }
+.badge-supervisor { background: #e0e7ff; color: #4338ca; }
+.badge-technician { background: #d1fae5; color: #065f46; }
+.badge-operator { background: #fef3c7; color: #b45309; }
 .progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
 .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
 
@@ -355,19 +359,18 @@ body {
       <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1; padding:10px; border-radius:30px; border:none; background:rgba(255,255,255,0.1); color:white; font-weight:700; cursor:pointer; font-family:inherit">🔐 دخول آمن</button>
     </div>
     
-    <!-- قسم الدخول المباشر -->
+    <!-- قسم الدخول المباشر (مشاهدة فقط) -->
     <div id="direct-login-panel">
       <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:20px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1)">
         <div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border-radius:15px; padding:4px 18px">
           <span style="color:var(--accent); font-size:18px">👤</span>
           <select id="direct-username" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px; font-family:inherit">
-            <option value="admin" style="background:#1a2a3a">👨‍💼 مدير النظام (كامل الصلاحيات)</option>
-            <option value="viewer" style="background:#1a2a3a">👁️ مشاهد (صلاحيات محدودة)</option>
+            <option value="viewer" style="background:#1a2a3a">👁️ مشاهد (صلاحيات مشاهدة فقط)</option>
           </select>
         </div>
       </div>
       <button onclick="directLogin()" style="width:100%; background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:var(--primary); border:none; padding:15px; border-radius:30px; font-weight:800; font-size:16px; cursor:pointer; transition:all 0.3s; box-shadow:0 5px 20px rgba(232,160,32,0.4); display:flex; align-items:center; justify-content:center; gap:10px; font-family:inherit">
-        <span>🚀</span> دخول مباشر
+        <span>🚀</span> دخول مباشر (مشاهدة فقط)
       </button>
     </div>
     
@@ -386,7 +389,7 @@ body {
         </div>
       </div>
       <button onclick="secureLogin()" style="width:100%; background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:var(--primary); border:none; padding:15px; border-radius:30px; font-weight:800; font-size:16px; cursor:pointer; transition:all 0.3s; box-shadow:0 5px 20px rgba(232,160,32,0.4); display:flex; align-items:center; justify-content:center; gap:10px; font-family:inherit">
-        <span>🔐</span> دخول آمن
+        <span>🔐</span> دخول آمن (صلاحيات كاملة)
       </button>
     </div>
     
@@ -409,7 +412,10 @@ body {
 <!-- Main App -->
 <div id="app-container" style="display:none">
   <div class="status-bar">
-    <span>🏗️ نظام صيانة الأسطول</span>
+    <div style="display:flex; align-items:center; gap:8px">
+      <span style="font-size:16px">🏗️</span>
+      <span style="font-weight:600">HASSAN ALLAM HOLDING</span>
+    </div>
     <div>
       <span id="user-name-display"></span>
       <button onclick="logout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button>
@@ -423,7 +429,7 @@ body {
 
   <div id="view-home">
     <div class="stats-row" id="stats-summary"></div>
-    <button class="big-btn" onclick="openMeterUpdate()">⏱️ تحديث العدادات اليومي</button>
+    <button class="big-btn" id="meter-update-btn" onclick="openMeterUpdate()">⏱️ تحديث العدادات اليومي</button>
     <div class="section">
       <div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div>
       <div id="equipment-list-home"></div>
@@ -453,14 +459,14 @@ body {
   <div id="view-fuel" style="display:none">
     <div style="padding:14px">
       <div id="fuel-stats" class="grid-3" style="margin-bottom:16px"></div>
-      <button class="big-btn" style="margin-bottom:16px" onclick="openAddFuelModal()">⛽ تسجيل تزود جديد</button>
+      <button class="big-btn" id="add-fuel-btn" style="margin-bottom:16px" onclick="openAddFuelModal()">⛽ تسجيل تزود جديد</button>
       <div id="fuel-list"></div>
     </div>
   </div>
 
   <div id="view-maintenance" style="display:none">
     <div style="padding:14px">
-      <button class="big-btn" style="margin-bottom:16px" onclick="openAddMaintenanceModal()">🔧 جدولة صيانة جديدة</button>
+      <button class="big-btn" id="add-maintenance-btn" style="margin-bottom:16px" onclick="openAddMaintenanceModal()">🔧 جدولة صيانة جديدة</button>
       <div id="maintenance-list"></div>
     </div>
   </div>
@@ -478,8 +484,8 @@ body {
           <option value="other">أخرى</option>
         </select>
       </div>
-      <button class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg, var(--purple), var(--pink))" onclick="openAddInventoryItemModal()">📦 إضافة صنف جديد</button>
-      <button class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg, var(--danger), var(--warning))" onclick="generateOrderReport()">📋 إنشاء طلبية للنواقص (1000 ساعة)</button>
+      <button class="big-btn" id="add-inventory-btn" style="margin-bottom:16px; background:linear-gradient(135deg, var(--purple), var(--pink))" onclick="openAddInventoryItemModal()">📦 إضافة صنف جديد</button>
+      <button class="big-btn" id="order-report-btn" style="margin-bottom:16px; background:linear-gradient(135deg, var(--danger), var(--warning))" onclick="generateOrderReport()">📋 إنشاء طلبية للنواقص (1000 ساعة)</button>
       <div id="inv-list"></div>
     </div>
   </div>
@@ -730,14 +736,9 @@ function setLoginMode(mode) {
 }
 
 function directLogin() {
-  const username = document.getElementById('direct-username').value;
-  if (username === 'admin') {
-    currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
-    showToast('مرحباً مدير النظام');
-  } else {
-    currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
-    showToast('مرحباً مشاهد');
-  }
+  // الدخول المباشر فقط كمشاهد (صلاحيات مشاهدة فقط)
+  currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
+  showToast('مرحباً مشاهد - صلاحيات مشاهدة فقط');
   proceedToApp();
 }
 
@@ -746,11 +747,7 @@ function secureLogin() {
   const password = document.getElementById('secure-password').value;
   if (username === 'admin' && password === 'admin123') {
     currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
-    showToast('مرحباً مدير النظام');
-    proceedToApp();
-  } else if (username === 'viewer' && password === 'viewer123') {
-    currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
-    showToast('مرحباً مشاهد');
+    showToast('مرحباً مدير النظام - صلاحيات كاملة');
     proceedToApp();
   } else {
     showToast('بيانات الدخول غير صحيحة');
@@ -761,6 +758,33 @@ function proceedToApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-container').style.display = 'block';
   document.getElementById('user-name-display').innerHTML = `${currentUser.name} (${currentUser.role === 'admin' ? 'مدير' : 'مشاهد'})`;
+  
+  // إخفاء أزرار الإضافة والتعديل والحذف للمشاهد
+  if (!hasPermission('all')) {
+    // إخفاء زر الإضافة العلوي
+    const fab = document.getElementById('fab-btn');
+    if (fab) fab.style.display = 'none';
+    
+    // إخفاء أزرار الإضافة في كل صفحة
+    const addButtons = ['add-fuel-btn', 'add-maintenance-btn', 'add-inventory-btn', 'order-report-btn', 'meter-update-btn'];
+    addButtons.forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.style.display = 'none';
+    });
+    
+    // إخفاء أزرار الحذف والتعديل في القوائم
+    const style = document.createElement('style');
+    style.textContent = `
+      .save-btn.danger-btn, button[onclick*="deleteFromFirebase"], button[onclick*="editEquipment"], button[onclick*="editDriver"], button[onclick*="editInventoryItem"], .qty-btn, .fab {
+        display: none !important;
+      }
+      .filter-card .qty-btn, .inventory-item-card .qty-btn, .equipment-card .qty-btn {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
   initFirebase();
 }
 
@@ -886,7 +910,7 @@ function updateDriverSelects() {
 }
 
 function openAddEquipmentModal() {
-  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
+  if (!hasPermission('all')) { showToast('غير مصرح لك - هذه العملية تتطلب صلاحيات مدير'); return; }
   editingEquipmentId = null;
   document.getElementById('modal-title-equipment').innerHTML = 'إضافة معدة جديدة';
   ['eq-code', 'eq-name', 'eq-chassis', 'eq-location', 'eq-hours', 'eq-next-hours', 'eq-interval', 'eq-notes'].forEach(id => {
@@ -1141,6 +1165,7 @@ function showMaintenanceDetail(id) {
 // دوال تحديث العدادات
 // ============================================
 function openMeterUpdate() {
+  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
   const container = document.getElementById('meter-list');
   container.innerHTML = equipmentData.map(eq => {
     const rem = hoursRemaining(eq);
@@ -1413,7 +1438,9 @@ function refreshUI() {
     const remStatus = getRemainingStatus(eq);
     const barColor = getBarColor(rem);
     const driver = driversData.find(d => d.id === eq.assignedDriver);
-    return `<div class="equipment-card" onclick="openEquipmentDetail('${eq.id}')"><div class="card-header"><div><div class="card-title">${eq.name}</div><div class="card-code">${eq.code} | ${eq.type}</div></div><span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span></div><div style="margin: 12px 0 6px 0"><div style="display: flex; justify-content: space-between; margin-bottom: 4px"><span style="font-size: 11px; color: var(--gray)">⏱️ الساعات المتبقية</span><span style="font-size: 12px; font-weight: 700; color: ${remStatus.color}">${remStatus.text}</span></div><div class="progress-bar"><div class="progress-fill" style="width: ${percentRemaining}%; background: ${barColor}"></div></div><div style="display: flex; justify-content: space-between; margin-top: 4px"><span style="font-size: 9px; color: var(--gray)">0 ساعة</span><span style="font-size: 9px; color: var(--gray)">الصيانة عند ${formatNumber(eq.nextHours)} س</span></div></div><div class="grid-2" style="margin-top: 8px"><div><span class="detail-label">⏱️ العداد الحالي</span><div class="detail-value" style="font-size: 13px">${formatNumber(eq.hours)} ساعة</div></div><div><span class="detail-label">🔧 الصيانة القادمة</span><div class="detail-value" style="font-size: 13px">${formatNumber(eq.nextHours)} ساعة</div></div></div>${driver ? `<div style="margin-top: 8px; font-size: 11px; color: var(--gray); padding-top: 6px; border-top: 1px solid #eef2f6">👨‍✈️ السائق: ${driver.name}</div>` : ''}</div>`;
+    // إخفاء أزرار التحديث للمشاهد
+    const meterInputHtml = hasPermission('all') ? `<div class="meter-input-group" style="margin-top:8px; display:flex; gap:8px"><input type="number" id="home-meter-${eq.id}" class="meter-input" style="flex:1; border:1px solid #e2e8f0; border-radius:12px; padding:8px" value="${eq.hours}"><button class="update-meter-btn" style="background:var(--info); border:none; color:white; padding:8px 12px; border-radius:12px" onclick="event.stopPropagation(); updateSingleMeterFromHome('${eq.id}')">تحديث</button></div>` : '';
+    return `<div class="equipment-card" onclick="openEquipmentDetail('${eq.id}')"><div class="card-header"><div><div class="card-title">${eq.name}</div><div class="card-code">${eq.code} | ${eq.type}</div></div><span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span></div><div style="margin: 12px 0 6px 0"><div style="display: flex; justify-content: space-between; margin-bottom: 4px"><span style="font-size: 11px; color: var(--gray)">⏱️ الساعات المتبقية</span><span style="font-size: 12px; font-weight: 700; color: ${remStatus.color}">${remStatus.text}</span></div><div class="progress-bar"><div class="progress-fill" style="width: ${percentRemaining}%; background: ${barColor}"></div></div><div style="display: flex; justify-content: space-between; margin-top: 4px"><span style="font-size: 9px; color: var(--gray)">0 ساعة</span><span style="font-size: 9px; color: var(--gray)">الصيانة عند ${formatNumber(eq.nextHours)} س</span></div></div><div class="grid-2" style="margin-top: 8px"><div><span class="detail-label">⏱️ العداد الحالي</span><div class="detail-value" style="font-size: 13px">${formatNumber(eq.hours)} ساعة</div></div><div><span class="detail-label">🔧 الصيانة القادمة</span><div class="detail-value" style="font-size: 13px">${formatNumber(eq.nextHours)} ساعة</div></div></div>${driver ? `<div style="margin-top: 8px; font-size: 11px; color: var(--gray); padding-top: 6px; border-top: 1px solid #eef2f6">👨‍✈️ السائق: ${driver.name}</div>` : ''}${meterInputHtml}</div>`;
   }).join('');
   if (equipmentData.length === 0) document.getElementById('equipment-list-home').innerHTML = '<div class="empty-state">لا توجد معدات مسجلة<br>اضغط زر + لإضافة معدة جديدة</div>';
   
@@ -1434,6 +1461,22 @@ function refreshUI() {
   if (maintenanceSchedules.filter(m => m.status === 'مجدول').length === 0) document.getElementById('maintenance-list').innerHTML = '<div class="empty-state">لا توجد صيانات مجدولة</div>';
   
   renderInventory();
+}
+
+function updateSingleMeterFromHome(eqId) {
+  if (!hasPermission('all')) { showToast('غير مصرح لك'); return; }
+  const input = document.getElementById(`home-meter-${eqId}`);
+  if (!input || !input.value) return;
+  const eq = equipmentData.find(e => e.id === eqId);
+  if (!eq) return;
+  const newHours = parseInt(input.value);
+  if (isNaN(newHours) || newHours === eq.hours) return;
+  const log = { date: new Date().toISOString().split('T')[0], prev: eq.hours, hours: newHours };
+  eq.hours = newHours;
+  eq.hoursLog = [...(eq.hoursLog || []), log];
+  saveToFirebase('equipment', eq);
+  showToast(`تم تحديث عداد ${eq.name} إلى ${newHours} ساعة`);
+  refreshUI();
 }
 
 // ============================================
@@ -1494,6 +1537,7 @@ window.sendOrderViaWhatsApp = sendOrderViaWhatsApp;
 window.addInvAltField = addInvAltField;
 window.openLinkFilterModal = openLinkFilterModal;
 window.saveFilterLink = saveFilterLink;
+window.updateSingleMeterFromHome = updateSingleMeterFromHome;
 
 loadSavedSettings();
 </script>
