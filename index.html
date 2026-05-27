@@ -221,6 +221,29 @@ function displayImportPreview(sheets){const previewDiv=document.getElementById('
 function confirmImport(){if(!pendingImportData){showToast('لا توجد بيانات للاستيراد');return}document.getElementById('import-progress-modal').classList.add('active');document.getElementById('import-progress-bar').style.width='0%';document.getElementById('import-progress-text').innerHTML='جارٍ استيراد المعدات...';document.getElementById('import-status-list').innerHTML='';importResults={equipment:0,fuel:0,parts:0};setTimeout(()=>{importEquipmentData()},100)}
 let importResults={equipment:0,fuel:0,parts:0};
 function updateImportProgress(current,total,message){const percent=total>0?Math.round((current/total)*100):0;document.getElementById('import-progress-bar').style.width=percent+'%';document.getElementById('import-progress-text').innerHTML=message;const statusList=document.getElementById('import-status-list');statusList.innerHTML+=`<div>${message} (${current}/${total})</div>`;statusList.scrollTop=statusList.scrollHeight}
+function parseDateFromExcel(dateValue) {
+    if (!dateValue) return '';
+    if (typeof dateValue === 'number') {
+        const excelDate = new Date((dateValue - 25569) * 86400000);
+        if (!isNaN(excelDate.getTime())) {
+            return excelDate.toISOString().split('T')[0];
+        }
+        return '';
+    }
+    const dateStr = dateValue.toString();
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+        return dateStr.substring(0, 10);
+    }
+    if (dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            let year = parts[2];
+            if (year.length === 2) year = '20' + year;
+            return `${year}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+        }
+    }
+    return dateStr.substring(0, 10);
+}
 function importEquipmentData() {
     const sheet = pendingImportData['معدات الموقع'];
     if (!sheet || sheet.length < 8) {
@@ -228,59 +251,42 @@ function importEquipmentData() {
         return;
     }
     let equipmentCount = 0;
-    let totalRows = sheet.length - 6;
-    
+    let totalRows = 0;
+    for (let i = 6; i < sheet.length; i++) {
+        const row = sheet[i];
+        if (row && row[0] && row[0] !== '' && row[0] !== 'الاجمالي' && !row[0].toString().includes('الاجمالي')) {
+            totalRows++;
+        }
+    }
+    let processed = 0;
     for (let i = 6; i < sheet.length; i++) {
         const row = sheet[i];
         if (!row || row.length < 1) continue;
-        
         const code = row[0];
         if (!code || code === '' || code === 'الاجمالي' || code.toString().includes('الاجمالي')) continue;
-        
+        processed++;
         const name = row[1] || code;
-        const chassis = row[4] || '';
-        const engineModel = row[5] || '';
-        const engineSN = row[6] || '';
-        
-        let arrivalDate = '';
-        const arrivalDateRaw = row[7] || '';
-        if (arrivalDateRaw) {
-            if (typeof arrivalDateRaw === 'number') {
-                const excelDate = new Date((arrivalDateRaw - 25569) * 86400000);
-                arrivalDate = excelDate.toISOString().split('T')[0];
-            } else {
-                arrivalDate = arrivalDateRaw.toString().split(' ')[0];
-            }
-        }
-        
-        const arrivalHours = parseInt(row[8]) || 0;
-        
-        let lastMaintenanceDate = '';
-        const lastMaintenanceDateRaw = row[9] || '';
-        if (lastMaintenanceDateRaw) {
-            if (typeof lastMaintenanceDateRaw === 'number') {
-                const excelDate = new Date((lastMaintenanceDateRaw - 25569) * 86400000);
-                lastMaintenanceDate = excelDate.toISOString().split('T')[0];
-            } else {
-                lastMaintenanceDate = lastMaintenanceDateRaw.toString().split(' ')[0];
-            }
-        }
-        
-        const lastMaintenanceHours = parseInt(row[10]) || 0;
+        const chassis = row[3] || '';
+        const engineModel = row[4] || '';
+        const engineSN = row[5] || '';
+        const arrivalDate = parseDateFromExcel(row[6]);
+        const arrivalHours = parseInt(row[7]) || 0;
+        const lastMaintenanceDate = parseDateFromExcel(row[8]);
+        const lastMaintenanceHours = parseInt(row[9]) || 0;
         const currentHours = parseInt(row[11]) || 0;
         let nextHours = parseInt(row[12]) || 0;
-        const notes = row[14] || '';
-        
-        if (nextHours === 0) {
-            nextHours = currentHours + 250;
+        const notes = (row[14] && row[14] !== '=SUM(...)') ? row[14].toString() : '';
+        let interval = 250;
+        if (nextHours > 0 && lastMaintenanceHours > 0) {
+            interval = nextHours - lastMaintenanceHours;
+        } else if (nextHours > 0 && currentHours > 0) {
+            interval = nextHours - currentHours;
         }
-        
-        const interval = 250;
+        if (interval <= 0) interval = 250;
         let status = 'يعمل';
         const remaining = nextHours - currentHours;
         if (remaining <= 0) status = 'صيانة';
         else if (remaining <= 10) status = 'صيانة';
-        
         const equipment = {
             code: code.toString(),
             name: name.toString(),
@@ -296,12 +302,10 @@ function importEquipmentData() {
             nextHours: nextHours,
             interval: interval,
             status: status,
-            notes: notes || '',
+            notes: notes,
             updatedAt: new Date().toISOString()
         };
-        
         const existing = equipmentData.find(e => e.code === code.toString());
-        
         if (existing) {
             saveToFirebase('equipment', { ...equipment, id: existing.id });
             equipmentCount++;
@@ -310,11 +314,10 @@ function importEquipmentData() {
             saveToFirebase('equipment', equipment);
             equipmentCount++;
         }
-        
-        updateImportProgress(equipmentCount, totalRows, `جارٍ تحديث المعدات... (${equipmentCount}/${totalRows})`);
+        updateImportProgress(processed, totalRows, `جارٍ تحديث المعدات... (${processed}/${totalRows})`);
     }
-    
     importResults.equipment = equipmentCount;
+    console.log(`✅ تم تحديث ${equipmentCount} معدة`);
     setTimeout(() => { importFuelData(); }, 500);
 }
 function importFuelData(){const sheet=pendingImportData['متابعه الوقود'];if(!sheet||sheet.length<8){importPartsData();return;}let fuelCount=0;let totalRows=sheet.length-7;for(let i=7;i<sheet.length;i++){const row=sheet[i];if(!row||row.length<7)continue;const equipmentName=row[0]||'';if(!equipmentName||equipmentName===''||equipmentName.includes('الاجمالي'))continue;let dateRaw=row[5]||'';let date='';if(dateRaw){if(typeof dateRaw==='number'){const excelDate=new Date((dateRaw-25569)*86400000);date=excelDate.toISOString().split('T')[0];}else if(dateRaw.includes('/')){const parts=dateRaw.split('/');if(parts.length===3)date=`20${parts[2]}-${parts[1]}-${parts[0]}`;}else{date=dateRaw.substring(0,10);}}const amount=parseFloat(row[6])||0;if(amount<=0)continue;const fuelRecord={equipmentName:equipmentName,amount:amount,date:date,driverName:row[4]||'',notes:row[9]||'',createdAt:new Date().toISOString()};saveToFirebase('fuelRecords',fuelRecord);fuelCount++;updateImportProgress(fuelCount,totalRows,`جارٍ استيراد الوقود... (${fuelCount}/${totalRows})`);}importResults.fuel=fuelCount;setTimeout(()=>{importPartsData()},500)}
