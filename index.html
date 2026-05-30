@@ -27,7 +27,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .form-group{background:var(--white);margin:12px 14px;border-radius:16px;overflow:hidden}.form-field{padding:12px 16px;border-bottom:1px solid #eef2f6}.form-field:last-child{border-bottom:none}.form-label{font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:5px}.form-input,.form-select,.form-textarea{width:100%;border:none;outline:none;font-size:14px;font-family:inherit;background:transparent;color:var(--primary)}.form-textarea{resize:vertical;min-height:60px}
 .save-btn{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--primary);border:none;border-radius:14px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;width:calc(100% - 28px);margin:20px 14px}
 .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--primary);color:white;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;z-index:1000;opacity:0;transition:opacity 0.2s;pointer-events:none}.toast.show{opacity:1}
-.empty-state{text-align:center;padding:50px 20px;color:var(--gray)}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.detail-section{background:var(--white);border-radius:18px;margin:12px 14px;padding:16px;box-shadow:var(--shadow-sm)}.detail-label{font-size:12px;color:var(--gray);margin-bottom:4px}.detail-value{font-size:14px;font-weight:600;color:var(--primary)}
+.empty-state{text-align:center;padding:50px 20px;color:var(--gray)}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.detail-section{background:var(--white);border-radius:18px;margin:12px 14px;padding:16px;box-shadow:var(--shadow-sm)}.detail-label{font-size:12px;color:var(--gray);margin-bottom:4px}.detail-value{font-size:14px;font-weight:600;color:var(--primary);word-break:break-word}
 .big-btn{background:linear-gradient(135deg,var(--info),var(--primary));border:none;color:white;padding:14px;border-radius:16px;font-weight:700;width:calc(100% - 28px);margin:0 14px 16px;cursor:pointer;text-align:center}
 .qty-btn{width:30px;height:30px;border-radius:15px;border:none;font-size:18px;cursor:pointer}
 .search-box{background:white;border-radius:30px;padding:10px 16px;margin-bottom:12px;display:flex;gap:8px;box-shadow:var(--shadow-sm)}.search-box input,.search-box select{flex:1;border:none;outline:none;font-family:inherit;background:transparent;font-size:14px}
@@ -285,8 +285,8 @@ function renderAlternativesList(){const filter=inventoryItems.find(i=>i.id===cur
 function addAlternativeFilter(){const altFilterId=document.getElementById('new-alt-filter')?.value;if(!altFilterId){showToast('اختر فلتر بديل أولاً');return}const existing=filterAlternatives.find(alt=>alt.mainFilterId===currentEditingFilterId&&alt.alternativeFilterId===altFilterId);if(existing){showToast('هذا الفلتر مضاف بالفعل');return}const newAlt={mainFilterId:currentEditingFilterId,alternativeFilterId:altFilterId,createdAt:new Date().toISOString()};saveToFirebase('filterAlternatives',newAlt);showToast('تم إضافة الفلتر البديل');setTimeout(()=>{renderAlternativesList()},500)}
 function removeAlternative(altId){if(confirm('هل أنت متأكد من إزالة هذا الفلتر البديل؟')){deleteFromFirebase('filterAlternatives',altId);setTimeout(()=>{renderAlternativesList()},500)}}
 function saveFilterAlternatives(){closeModal('filter-alternatives-modal');showToast('تم حفظ البدائل')}
-function renderInventory(){const cont=document.getElementById('inv-list');let filtered=inventoryItems;const cat=document.getElementById('category-filter')?.value;if(cat&&cat!=='all')filtered=inventoryItems.filter(i=>i.category===cat);const needs=calculateAllFiltersNeeded();const enhancedNeeds=calculateEnhancedOrderNeeds();cont.innerHTML=filtered.map(item=>{const total=totalQty(item),needed=needs[item.id]||0,shortage=Math.max(0,needed-total),linked=equipmentFilterLinks.filter(l=>l.filterPartNo===item.partNo).map(l=>{const eq=equipmentData.find(e=>e.code===l.equipmentId);return eq?{name:eq.name,code:eq.code,qty:l.quantityPerService}:null}).filter(Boolean);const alternatives=filterAlternatives.filter(alt=>alt.mainFilterId===item.id).map(alt=>{const altFilter=inventoryItems.find(i=>i.id===alt.alternativeFilterId);return altFilter?{name:altFilter.name,partNo:altFilter.partNo}:null}).filter(Boolean);const enhancedAvailable=enhancedNeeds[item.id]?.available||total;const enhancedShortage=enhancedNeeds[item.id]?.shortage||shortage;return`<div class="inventory-item-card" onclick="showInventoryItemDetail('${item.id}')"><div class="card-header"><div><div class="card-title">${item.name}</div><div class="card-code">${item.partNo} ${getCategoryBadge(item.category)}</div>${item.category==='filter'?`<div style="font-size:10px;color:var(--info)">🔄 دورة ${item.interval||250} س</div>`:''}</div><span class="badge ${enhancedShortage>0?'badge-maintenance':'badge-working'}">${enhancedAvailable} ${item.unit}</span></div><div class="grid-3" style="margin-top:10px"><div><div class="detail-label">الأصلي</div><div class="detail-value">${item.qty}</div></div><div><div class="detail-label">البدائل</div><div class="detail-value">${(item.alts||[]).reduce((s,a)=>s+a.qty,0)}</div></div><div><div class="detail-label">الإجمالي</div><div class="detail-value">${total}</div></div></div>${item.category==='filter'?`<div class="grid-3" style="margin-top:6px;background:${enhancedShortage>0?'#fee2e2':'#d1fae5'};padding:6px;border-radius:8px"><div><div class="detail-label">المطلوب (1000 س)</div><div class="detail-value" style="color:${enhancedShortage>0?'var(--danger)':'var(--success)'}">${needed}</div></div><div><div class="detail-label">النقص</div><div class="detail-value" style="color:${enhancedShortage>0?'var(--danger)':'var(--success)'}">${enhancedShortage>0?enhancedShortage:'✓'}</div></div></div>`:''}${alternatives.length?`<div style="margin-top:6px;font-size:10px;color:var(--purple)">🔄 بدائل مرتبطة: ${alternatives.map(a=>a.name).join(', ')}</div>`:''}${linked.length?`<div style="margin-top:6px;font-size:10px;color:var(--info)">🔗 يستخدم في: ${linked.map(l=>`${l.name} (${l.qty}/صيانة)`).join(', ')}</div>`:''}<div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button onclick="event.stopPropagation();adjustInventoryQty('${item.id}',-1)" class="qty-btn" style="background:var(--danger);color:white">-</button><span>${total} ${item.unit}</span><button onclick="event.stopPropagation();adjustInventoryQty('${item.id}',1)" class="qty-btn" style="background:var(--success);color:white">+</button>${item.category==='filter'?`<button onclick="event.stopPropagation();openLinkFilterModal('${item.id}')" class="qty-btn" style="background:var(--info);color:white;width:auto;padding:0 12px">🔗 ربط بمعدات</button><button onclick="event.stopPropagation();openFilterAlternativesModal('${item.id}')" class="qty-btn" style="background:var(--purple);color:white;width:auto;padding:0 12px">🔄 بدائل</button>`:''}</div><button onclick="event.stopPropagation();deleteFromFirebase('inventoryItems','${item.id}')" class="save-btn" style="margin:10px 0 0 0;background:#fee2e2;color:var(--danger)">🗑️ حذف</button></div>`}).join('');if(!filtered.length)cont.innerHTML='<div class="empty-state">لا توجد أصناف</div>'}
-function showInventoryItemDetail(id){const i=inventoryItems.find(i=>i.id===id);if(!i)return;const total=totalQty(i),needs=calculateAllFiltersNeeded(),needed=needs[i.id]||0,shortage=Math.max(0,needed-total),linked=equipmentFilterLinks.filter(l=>l.filterPartNo===i.partNo).map(l=>{const eq=equipmentData.find(e=>e.code===l.equipmentId);return eq?{name:eq.name,code:eq.code,interval:eq.interval,qty:l.quantityPerService}:null}).filter(Boolean);const alternatives=filterAlternatives.filter(alt=>alt.mainFilterId===i.id).map(alt=>{const altFilter=inventoryItems.find(f=>f.id===alt.alternativeFilterId);return altFilter?{name:altFilter.name,partNo:altFilter.partNo,qty:altFilter.qty}:null}).filter(Boolean);const enhancedAvailable=getTotalAvailableWithAlternatives(i.id);const enhancedShortage=Math.max(0,needed-enhancedAvailable);document.getElementById('detail-title').innerHTML=`📦 ${i.name}`;document.getElementById('detail-content').innerHTML=`<div class="detail-section"><div class="grid-2"><div><div class="detail-label">التصنيف</div><div class="detail-value">${getCategoryBadge(i.category)}</div></div><div><div class="detail-label">رقم القطعة</div><div class="detail-value">${i.partNo}</div></div><div><div class="detail-label">الكمية الأصلية</div><div class="detail-value">${i.qty} ${i.unit}</div></div><div><div class="detail-label">البدائل الداخلية</div><div class="detail-value">${(i.alts||[]).reduce((s,a)=>s+a.qty,0)} ${i.unit}</div></div><div><div class="detail-label">الإجمالي</div><div class="detail-value" style="color:${enhancedShortage>0?'var(--danger)':'var(--success)'}">${enhancedAvailable} ${i.unit}</div></div><div><div class="detail-label">الحد الأدنى</div><div class="detail-value">${i.minQty} ${i.unit}</div></div>${i.category==='filter'?`<div><div class="detail-label">دورة التغيير</div><div class="detail-value">كل ${i.interval||250} س</div></div><div><div class="detail-label">المطلوب (1000 س)</div><div class="detail-value">${needed} ${i.unit}</div></div><div><div class="detail-label">الحالة</div><div class="detail-value">${enhancedShortage>0?`⚠️ ناقص ${enhancedShortage}`:'✅ كافٍ'}</div></div>`:''}<div><div class="detail-label">السعر</div><div class="detail-value">${formatNumber(i.price)} ر.س</div></div></div></div>${alternatives.length?`<div class="detail-section"><div class="detail-label">🔄 فلاتر بديلة مرتبطة</div>${alternatives.map(alt=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef2f6"><div><span style="font-weight:600">${alt.name}</span><br><span style="font-size:11px">${alt.partNo}</span></div><div><span class="detail-label">متوفر: ${alt.qty}</span></div></div>`).join('')}</div>`:''}${linked.length?`<div class="detail-section"><div class="detail-label">🔗 المعدات المستخدمة</div>${linked.map(l=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef2f6"><div><span style="font-weight:600">🏗️ ${l.name}</span><br><span style="font-size:11px">${l.code}</span></div><div style="text-align:left"><div class="detail-label">الكمية/صيانة</div><div class="detail-value">${l.qty}</div><div class="detail-label">دورة المعدة</div><div class="detail-value">كل ${l.interval} س</div></div></div>`).join('')}</div>`:''}${i.notes?`<div class="detail-section"><div class="detail-label">ملاحظات</div><div class="detail-value">${i.notes}</div></div>`:''}<div class="grid-2" style="margin:12px 14px"><button class="save-btn" style="margin:0;background:var(--accent)" onclick="editInventoryItem('${i.id}')">✏️ تعديل</button><button class="save-btn" style="margin:0;background:var(--danger)" onclick="deleteFromFirebase('inventoryItems','${i.id}')">🗑️ حذف</button></div>`;document.getElementById('detail-modal').classList.add('active')}
+function renderInventory(){const cont=document.getElementById('inv-list');let filtered=inventoryItems;const cat=document.getElementById('category-filter')?.value;if(cat&&cat!=='all')filtered=inventoryItems.filter(i=>i.category===cat);const needs=calculateAllFiltersNeeded();const enhancedNeeds=calculateEnhancedOrderNeeds();cont.innerHTML=filtered.map(item=>{const total=totalQty(item),needed=needs[item.id]||0,shortage=Math.max(0,needed-total),linked=equipmentFilterLinks.filter(l=>l.filterPartNo===item.partNo).map(l=>{const eq=equipmentData.find(e=>e.code===l.equipmentId);return eq?{name:eq.name,code:eq.code,qty:l.quantityPerService}:null}).filter(Boolean);const alternatives=filterAlternatives.filter(alt=>alt.mainFilterId===item.id).map(alt=>{const altFilter=inventoryItems.find(i=>i.id===alt.alternativeFilterId);return altFilter?{name:altFilter.name,partNo:altFilter.partNo}:null}).filter(Boolean);const enhancedAvailable=enhancedNeeds[item.id]?.available||total;const enhancedShortage=enhancedNeeds[item.id]?.shortage||shortage;return`<div class="inventory-item-card" onclick="showInventoryItemDetail('${item.id}')"><div class="card-header"><div><div class="card-title">${item.name}</div><div class="card-code">${item.partNo} ${getCategoryBadge(item.category)}</div>${item.fullMaterial?`<div class="card-code" style="font-size:9px;color:var(--info);margin-top:3px">📋 ${item.fullMaterial.substring(0,50)}${item.fullMaterial.length>50?'...':''}</div>`:''}${item.category==='filter'?`<div style="font-size:10px;color:var(--info)">🔄 دورة ${item.interval||250} س</div>`:''}</div><span class="badge ${enhancedShortage>0?'badge-maintenance':'badge-working'}">${enhancedAvailable} ${item.unit}</span></div><div class="grid-3" style="margin-top:10px"><div><div class="detail-label">الأصلي</div><div class="detail-value">${item.qty}</div></div><div><div class="detail-label">البدائل</div><div class="detail-value">${(item.alts||[]).reduce((s,a)=>s+a.qty,0)}</div></div><div><div class="detail-label">الإجمالي</div><div class="detail-value">${total}</div></div></div>${item.fullDescription && item.fullDescription!==item.name?`<div style="font-size:10px;color:var(--gray);margin-top:5px;border-top:1px solid #eef2f6;padding-top:5px">📝 ${item.fullDescription.substring(0,80)}${item.fullDescription.length>80?'...':''}</div>`:''}${item.category==='filter'?`<div class="grid-3" style="margin-top:6px;background:${enhancedShortage>0?'#fee2e2':'#d1fae5'};padding:6px;border-radius:8px"><div><div class="detail-label">المطلوب (1000 س)</div><div class="detail-value" style="color:${enhancedShortage>0?'var(--danger)':'var(--success)'}">${needed}</div></div><div><div class="detail-label">النقص</div><div class="detail-value" style="color:${enhancedShortage>0?'var(--danger)':'var(--success)'}">${enhancedShortage>0?enhancedShortage:'✓'}</div></div></div>`:''}${alternatives.length?`<div style="margin-top:6px;font-size:10px;color:var(--purple)">🔄 بدائل مرتبطة: ${alternatives.map(a=>a.name).join(', ')}</div>`:''}${linked.length?`<div style="margin-top:6px;font-size:10px;color:var(--info)">🔗 يستخدم في: ${linked.map(l=>`${l.name} (${l.qty}/صيانة)`).join(', ')}</div>`:''}<div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button onclick="event.stopPropagation();adjustInventoryQty('${item.id}',-1)" class="qty-btn" style="background:var(--danger);color:white">-</button><span>${total} ${item.unit}</span><button onclick="event.stopPropagation();adjustInventoryQty('${item.id}',1)" class="qty-btn" style="background:var(--success);color:white">+</button>${item.category==='filter'?`<button onclick="event.stopPropagation();openLinkFilterModal('${item.id}')" class="qty-btn" style="background:var(--info);color:white;width:auto;padding:0 12px">🔗 ربط بمعدات</button><button onclick="event.stopPropagation();openFilterAlternativesModal('${item.id}')" class="qty-btn" style="background:var(--purple);color:white;width:auto;padding:0 12px">🔄 بدائل</button>`:''}</div><button onclick="event.stopPropagation();deleteFromFirebase('inventoryItems','${item.id}')" class="save-btn" style="margin:10px 0 0 0;background:#fee2e2;color:var(--danger)">🗑️ حذف</button></div>`}).join('');if(!filtered.length)cont.innerHTML='<div class="empty-state">لا توجد أصناف</div>'}
+function showInventoryItemDetail(id){const i=inventoryItems.find(i=>i.id===id);if(!i)return;const total=totalQty(i),needs=calculateAllFiltersNeeded(),needed=needs[i.id]||0,shortage=Math.max(0,needed-total),linked=equipmentFilterLinks.filter(l=>l.filterPartNo===i.partNo).map(l=>{const eq=equipmentData.find(e=>e.code===l.equipmentId);return eq?{name:eq.name,code:eq.code,interval:eq.interval,qty:l.quantityPerService}:null}).filter(Boolean);const alternatives=filterAlternatives.filter(alt=>alt.mainFilterId===i.id).map(alt=>{const altFilter=inventoryItems.find(f=>f.id===alt.alternativeFilterId);return altFilter?{name:altFilter.name,partNo:altFilter.partNo,qty:altFilter.qty}:null}).filter(Boolean);const enhancedAvailable=getTotalAvailableWithAlternatives(i.id);const enhancedShortage=Math.max(0,needed-enhancedAvailable);document.getElementById('detail-title').innerHTML=`📦 ${i.name}`;document.getElementById('detail-content').innerHTML=`<div class="detail-section"><div class="grid-2"><div><div class="detail-label">التصنيف</div><div class="detail-value">${getCategoryBadge(i.category)}</div></div><div><div class="detail-label">رقم القطعة</div><div class="detail-value">${i.partNo}</div></div><div><div class="detail-label">الكمية الأصلية</div><div class="detail-value">${i.qty} ${i.unit}</div></div><div><div class="detail-label">البدائل الداخلية</div><div class="detail-value">${(i.alts||[]).reduce((s,a)=>s+a.qty,0)} ${i.unit}</div></div><div><div class="detail-label">الإجمالي</div><div class="detail-value" style="color:${enhancedShortage>0?'var(--danger)':'var(--success)'}">${enhancedAvailable} ${i.unit}</div></div><div><div class="detail-label">الحد الأدنى</div><div class="detail-value">${i.minQty} ${i.unit}</div></div>${i.category==='filter'?`<div><div class="detail-label">دورة التغيير</div><div class="detail-value">كل ${i.interval||250} س</div></div><div><div class="detail-label">المطلوب (1000 س)</div><div class="detail-value">${needed} ${i.unit}</div></div><div><div class="detail-label">الحالة</div><div class="detail-value">${enhancedShortage>0?`⚠️ ناقص ${enhancedShortage}`:'✅ كافٍ'}</div></div>`:''}<div><div class="detail-label">السعر</div><div class="detail-value">${formatNumber(i.price)} ر.س</div></div></div></div>${i.fullMaterial?`<div class="detail-section"><div class="detail-label">📋 رقم المادة كاملاً (Material)</div><div class="detail-value" style="font-family:monospace;font-size:12px;word-break:break-word">${i.fullMaterial}</div></div>`:''}${i.fullDescription?`<div class="detail-section"><div class="detail-label">📝 الوصف كاملاً (Description)</div><div class="detail-value" style="font-size:12px;word-break:break-word">${i.fullDescription}</div></div>`:''}${i.fullUnit?`<div class="detail-section"><div class="detail-label">📏 الوحدة الأصلية (Unit)</div><div class="detail-value">${i.fullUnit}</div></div>`:''}${alternatives.length?`<div class="detail-section"><div class="detail-label">🔄 فلاتر بديلة مرتبطة</div>${alternatives.map(alt=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef2f6"><div><span style="font-weight:600">${alt.name}</span><br><span style="font-size:11px">${alt.partNo}</span></div><div><span class="detail-label">متوفر: ${alt.qty}</span></div></div>`).join('')}</div>`:''}${linked.length?`<div class="detail-section"><div class="detail-label">🔗 المعدات المستخدمة</div>${linked.map(l=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef2f6"><div><span style="font-weight:600">🏗️ ${l.name}</span><br><span style="font-size:11px">${l.code}</span></div><div style="text-align:left"><div class="detail-label">الكمية/صيانة</div><div class="detail-value">${l.qty}</div><div class="detail-label">دورة المعدة</div><div class="detail-value">كل ${l.interval} س</div></div></div>`).join('')}</div>`:''}${i.notes?`<div class="detail-section"><div class="detail-label">ملاحظات</div><div class="detail-value">${i.notes}</div></div>`:''}<div class="grid-2" style="margin:12px 14px"><button class="save-btn" style="margin:0;background:var(--accent)" onclick="editInventoryItem('${i.id}')">✏️ تعديل</button><button class="save-btn" style="margin:0;background:var(--danger)" onclick="deleteFromFirebase('inventoryItems','${i.id}')">🗑️ حذف</button></div>`;document.getElementById('detail-modal').classList.add('active')}
 function generateOrderReport(){const needs=calculateEnhancedOrderNeeds();const shortages=Object.values(needs).filter(n=>n.shortage>0);const totalCost=shortages.reduce((s,i)=>s+(i.shortage*(inventoryItems.find(f=>f.id===i.id)?.price||0)),0);document.getElementById('order-report-content').innerHTML=`<div style="background:white;border-radius:16px;padding:16px"><div style="font-weight:800">📋 تقرير الطلبية (لـ 1000 س)</div><div style="font-size:12px;color:var(--gray);margin:8px 0">📅 ${new Date().toLocaleDateString('ar-SA')}</div><div class="grid-2" style="margin:15px 0;background:#eef2f6;padding:10px;border-radius:12px"><div>عدد الفلاتر الناقصة: ${shortages.length}</div><div>التكلفة التقديرية: ${formatNumber(Math.round(totalCost))} ر.س</div></div>${shortages.length===0?'<div class="empty-state">🎉 لا توجد فلاتر ناقصة (بعد حساب البدائل)</div>':shortages.map(i=>`<div style="border-bottom:1px solid #eef2f6;padding:12px 0"><div style="font-weight:700">${i.name}</div><div>${i.partNo} | متوفر: ${i.available} | مطلوب: ${i.needed} | <span style="color:var(--danger)">ناقص: ${i.shortage}</span></div>${i.alternatives.length?`<div style="font-size:11px;color:var(--purple);margin-top:4px">🔄 بدائل مرتبطة: ${i.alternatives.map(a=>`${a.name} (${a.qty})`).join(', ')}</div>`:''}</div>`).join('')}</div>`;document.getElementById('order-report-modal').classList.add('active')}
 function exportOrderToExcel(){const needs=calculateEnhancedOrderNeeds();const data=Object.values(needs).filter(n=>n.shortage>0).map(i=>({'اسم الفلتر':i.name,'رقم القطعة':i.partNo,'المتوفر':i.available,'المطلوب':i.needed,'الناقص':i.shortage,'السعر':inventoryItems.find(f=>f.id===i.id)?.price||0,'التكلفة':i.shortage*(inventoryItems.find(f=>f.id===i.id)?.price||0)}));const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'طلبية');XLSX.writeFile(wb,`طلبيه_${new Date().toISOString().split('T')[0]}.xlsx`);showToast('تم التصدير')}
 function sendOrderViaWhatsApp(){const needs=calculateEnhancedOrderNeeds();const shortages=Object.values(needs).filter(n=>n.shortage>0);if(shortages.length===0){showToast('لا توجد نواقص');return}let msg=`📋 *طلبيه فلاتر - حسن علام*%0A📅 ${new Date().toLocaleDateString('ar-EG')}%0A━━━━━━━━━━%0A`;shortages.forEach(i=>{msg+=`📦 *${i.name}*%0A   متوفر: ${i.available} | مطلوب: ${i.needed} | *ناقص: ${i.shortage}*%0A`;if(i.alternatives.length){msg+=`   🔄 بدائل: ${i.alternatives.map(a=>a.name).join(', ')}%0A`}msg+=`%0A`});window.open(`https://wa.me/?text=${msg}`,'_blank')}
@@ -335,10 +335,19 @@ function handleInventoryFileUpload(input) {
                 if (!row) continue;
                 
                 // قراءة أول 4 أعمدة كاملة
-                const colA = (row[0] !== undefined && row[0] !== null) ? row[0].toString().trim() : '';
-                const colB = (row[1] !== undefined && row[1] !== null) ? row[1].toString().trim() : '';
-                const colC = (row[2] !== undefined && row[2] !== null) ? row[2].toString().trim() : '';
-                const colD = parseFloat(row[3]) || 0;
+                const colA = (row[0] !== undefined && row[0] !== null) ? String(row[0]).trim() : '';
+                const colB = (row[1] !== undefined && row[1] !== null) ? String(row[1]).trim() : '';
+                const colC = (row[2] !== undefined && row[2] !== null) ? String(row[2]).trim() : '';
+                let colD = 0;
+                
+                // قراءة الكمية من العمود الرابع (index 3)
+                if (row[3] !== undefined && row[3] !== null) {
+                    if (typeof row[3] === 'number') {
+                        colD = row[3];
+                    } else {
+                        colD = parseFloat(String(row[3]).replace(/[^\d.-]/g, '')) || 0;
+                    }
+                }
                 
                 // تخطي الصفوف الفارغة
                 if (colA === '' && colB === '') continue;
@@ -385,10 +394,10 @@ function handleInventoryFileUpload(input) {
                 }
                 
                 cleanRows.push({
-                    fullMaterial: colA,        // العمود A كاملاً
-                    fullDescription: colB,     // العمود B كاملاً
-                    fullUnit: colC,            // العمود C كما هو
-                    quantity: colD,            // العمود D
+                    fullMaterial: colA,
+                    fullDescription: colB,
+                    fullUnit: colC,
+                    quantity: colD,
                     shortPartNo: shortPartNo,
                     displayUnit: displayUnit,
                     category: category
@@ -405,8 +414,8 @@ function handleInventoryFileUpload(input) {
             showToast(`✅ تم قراءة ${cleanRows.length} صنف بنجاح`);
             
         } catch (error) {
-            console.error(error);
-            showToast('حدث خطأ أثناء قراءة الملف');
+            console.error('خطأ:', error);
+            showToast('حدث خطأ أثناء قراءة الملف: ' + error.message);
         }
     };
     
@@ -438,19 +447,11 @@ function displayInventoryPreview(items) {
             );
         }
         
-        if (!existing && item.shortPartNo.length >= 4) {
-            existing = inventoryItems.find(i => 
-                i.partNo === item.shortPartNo ||
-                i.partNo.includes(item.shortPartNo) || 
-                item.shortPartNo.includes(i.partNo)
-            );
-        }
-        
         if (existing) {
             updatedCount++;
             itemsToUpdate.push({
                 id: existing.id,
-                name: existing.name || existing.fullDescription?.substring(0, 40),
+                name: existing.name || (existing.fullDescription ? existing.fullDescription.substring(0, 40) : ''),
                 fullMaterial: item.fullMaterial,
                 fullDescription: item.fullDescription,
                 fullUnit: item.fullUnit,
@@ -475,7 +476,6 @@ function displayInventoryPreview(items) {
         }
     }
     
-    // عرض جدول بالأعمدة الأربعة كاملة
     previewDiv.innerHTML = `
         <div class="grid-3" style="margin:10px 0">
             <div class="stat-card"><div class="stat-number">${updatedCount}</div><div class="stat-label">سيتم تحديث</div></div>
@@ -498,7 +498,7 @@ function displayInventoryPreview(items) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${itemsToUpdate.slice(0, 30).map((item, idx) => `
+                    ${itemsToUpdate.slice(0, 50).map((item, idx) => `
                         <tr style="border-bottom:1px solid #e2e8f0; ${item.isNew ? 'background:#f0fdf4' : ''}">
                             <td style="padding:8px; text-align:center">${idx + 1}</td>
                             <td style="padding:8px; text-align:right; font-family:monospace; font-size:10px; max-width:120px; word-break:break-word" title="${item.fullMaterial}">${item.fullMaterial.substring(0, 45)}${item.fullMaterial.length > 45 ? '...' : ''}</td>
@@ -510,7 +510,7 @@ function displayInventoryPreview(items) {
                     `).join('')}
                 </tbody>
             </table>
-            ${itemsToUpdate.length > 30 ? `<div style="padding:10px; text-align:center; background:#f8fafc; color:gray">...و${itemsToUpdate.length - 30} صنف آخر</div>` : ''}
+            ${itemsToUpdate.length > 50 ? `<div style="padding:10px; text-align:center; background:#f8fafc; color:gray">...و${itemsToUpdate.length - 50} صنف آخر</div>` : ''}
         </div>
         <div style="margin-top:12px; padding:8px; background:#fef3c7; border-radius:8px; font-size:11px">
             ✅ سيتم حفظ <strong>الأعمدة الأربعة كاملة</strong> (Material, Description, Unit, Quantity) في قاعدة البيانات.
@@ -546,14 +546,14 @@ function confirmInventoryImport() {
         if (!existing && item.shortPartNo.length >= 4) {
             existing = inventoryItems.find(i => 
                 i.partNo === item.shortPartNo ||
-                i.partNo.includes(item.shortPartNo) || 
-                item.shortPartNo.includes(i.partNo)
+                (i.partNo && i.partNo.includes(item.shortPartNo)) || 
+                (item.shortPartNo && item.shortPartNo.includes(i.partNo))
             );
         }
         
         try {
             if (existing) {
-                // تحديث الصنف الموجود - الحفاظ على الأعمدة الأربعة كاملة
+                // تحديث الصنف الموجود
                 existing.qty = item.quantity;
                 existing.fullMaterial = item.fullMaterial;
                 existing.fullDescription = item.fullDescription;
@@ -562,7 +562,7 @@ function confirmInventoryImport() {
                 saveToFirebase('inventoryItems', existing);
                 updated++;
             } else {
-                // إضافة صنف جديد مع حفظ الأعمدة الأربعة كاملة
+                // إضافة صنف جديد
                 const newItem = {
                     category: item.category,
                     name: item.fullDescription.length > 100 ? item.fullDescription.substring(0, 100) : item.fullDescription,
