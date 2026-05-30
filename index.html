@@ -108,7 +108,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
           <span style="font-weight:700">📦 استيراد المخزون اليومي (SOH)</span>
           <span class="daily-import-badge">تحديث يومي</span>
         </div>
-        <div style="font-size:12px; opacity:0.9; margin-bottom:12px">رفع ملف Excel SOH - سيتم قراءة أول 4 أعمدة فقط (رقم القطعة، الاسم، الوحدة، الكمية)</div>
+        <div style="font-size:12px; opacity:0.9; margin-bottom:12px">رفع ملف Excel SOH - سيتم قراءة أول 4 أعمدة فقط (Material, Description, Unit, Quantity)</div>
         <input type="file" id="inventory-excel-input" accept=".xlsx, .xls" style="display:none" onchange="handleInventoryFileUpload(this)">
         <button class="save-btn" onclick="document.getElementById('inventory-excel-input').click()" style="margin:0; background:rgba(255,255,255,0.2); color:white; width:100%">📂 اختيار ملف SOH</button>
       </div>
@@ -297,7 +297,7 @@ function switchView(v){document.getElementById('view-home').style.display=v==='h
 let pendingImportData=null;
 let pendingInventoryData=null;
 
-// ==================== دوال استيراد المخزون SOH (أول 4 أعمدة فقط) ====================
+// ==================== دوال استيراد المخزون SOH (أول 4 أعمدة كاملة) ====================
 
 function handleInventoryFileUpload(input) {
     const file = input.files[0];
@@ -334,52 +334,48 @@ function handleInventoryFileUpload(input) {
                 const row = rows[i];
                 if (!row) continue;
                 
-                // قراءة أول 4 أعمدة فقط
-                const materialRaw = (row[0] !== undefined && row[0] !== null) ? row[0].toString().trim() : '';
-                const descriptionRaw = (row[1] !== undefined && row[1] !== null) ? row[1].toString().trim() : '';
-                const unitRaw = (row[2] !== undefined && row[2] !== null) ? row[2].toString().trim() : '';
-                const quantityRaw = parseFloat(row[3]) || 0;
+                // قراءة أول 4 أعمدة كاملة
+                const colA = (row[0] !== undefined && row[0] !== null) ? row[0].toString().trim() : '';
+                const colB = (row[1] !== undefined && row[1] !== null) ? row[1].toString().trim() : '';
+                const colC = (row[2] !== undefined && row[2] !== null) ? row[2].toString().trim() : '';
+                const colD = parseFloat(row[3]) || 0;
                 
                 // تخطي الصفوف الفارغة
-                if (materialRaw === '' && descriptionRaw === '') continue;
+                if (colA === '' && colB === '') continue;
                 
                 // تخطي صفوف الإجماليات
-                const isTotalRow = materialRaw.includes('الاجمالي') || 
-                                  materialRaw.includes('إجمالي') ||
-                                  materialRaw.toLowerCase().includes('total') ||
-                                  descriptionRaw.includes('الاجمالي') ||
-                                  descriptionRaw.includes('إجمالي') ||
-                                  descriptionRaw.toLowerCase().includes('total');
+                const isTotal = colA.includes('الاجمالي') || colA.includes('إجمالي') || 
+                               colA.toLowerCase().includes('total') ||
+                               colB.includes('الاجمالي') || colB.includes('إجمالي') ||
+                               colB.toLowerCase().includes('total');
                 
-                if (isTotalRow) continue;
+                if (isTotal) continue;
                 
                 // تخطي الكميات الصفرية
-                if (quantityRaw <= 0) continue;
+                if (colD <= 0) continue;
                 
-                // استخراج رقم القطعة (آخر جزء بعد النقاط)
-                let partNo = materialRaw;
-                if (materialRaw.includes('.')) {
-                    const parts = materialRaw.split('.');
-                    partNo = parts[parts.length - 1];
+                // استخراج رقم قطعة مختصر للبحث (آخر جزء بعد النقاط)
+                let shortPartNo = colA;
+                if (colA.includes('.')) {
+                    const parts = colA.split('.');
+                    shortPartNo = parts[parts.length - 1];
+                }
+                shortPartNo = shortPartNo.replace(/[^\w\-]/g, '').substring(0, 35);
+                if (shortPartNo === '' || shortPartNo.length < 2) {
+                    shortPartNo = colB.replace(/[^a-zA-Z0-9\-]/g, '').substring(0, 25);
+                    if (shortPartNo === '') shortPartNo = `ITEM_${i}`;
                 }
                 
-                // تنظيف رقم القطعة
-                partNo = partNo.replace(/[^\w\-]/g, '').substring(0, 35);
-                if (partNo === '' || partNo.length < 2) {
-                    partNo = descriptionRaw.replace(/[^a-zA-Z0-9\-]/g, '').substring(0, 25);
-                    if (partNo === '') partNo = `ITEM_${i}`;
-                }
-                
-                // تحديد الوحدة
-                let unit = unitRaw;
-                if (unit === 'L' || unit === 'لتر') unit = 'لتر';
-                else if (unit === 'KG' || unit === 'كجم') unit = 'كجم';
-                else if (unit === 'EA' || unit === 'قطعة') unit = 'قطعة';
-                else if (!unit || unit === '') unit = 'قطعة';
+                // تحديد الوحدة المناسبة للعرض
+                let displayUnit = colC;
+                if (displayUnit === 'L' || displayUnit === 'لتر') displayUnit = 'لتر';
+                else if (displayUnit === 'KG' || displayUnit === 'كجم') displayUnit = 'كجم';
+                else if (displayUnit === 'EA' || displayUnit === 'قطعة') displayUnit = 'قطعة';
+                else if (!displayUnit || displayUnit === '') displayUnit = 'قطعة';
                 
                 // تحديد التصنيف
                 let category = 'spare';
-                const descLower = descriptionRaw.toLowerCase();
+                const descLower = colB.toLowerCase();
                 if (descLower.includes('فلتر') || descLower.includes('filter')) {
                     category = 'filter';
                 } else if (descLower.includes('زيت') || descLower.includes('oil')) {
@@ -389,11 +385,12 @@ function handleInventoryFileUpload(input) {
                 }
                 
                 cleanRows.push({
-                    material: materialRaw,
-                    partNo: partNo,
-                    description: descriptionRaw.substring(0, 100),
-                    unit: unit,
-                    quantity: quantityRaw,
+                    fullMaterial: colA,        // العمود A كاملاً
+                    fullDescription: colB,     // العمود B كاملاً
+                    fullUnit: colC,            // العمود C كما هو
+                    quantity: colD,            // العمود D
+                    shortPartNo: shortPartNo,
+                    displayUnit: displayUnit,
                     category: category
                 });
             }
@@ -431,18 +428,21 @@ function displayInventoryPreview(items) {
         if (item.quantity <= 0) continue;
         totalQty += item.quantity;
         
-        let existing = inventoryItems.find(i => i.partNo === item.partNo);
+        // البحث عن صنف مطابق
+        let existing = inventoryItems.find(i => i.partNo === item.shortPartNo);
         
         if (!existing) {
             existing = inventoryItems.find(i => 
-                i.name === item.description ||
-                i.name.toLowerCase() === item.description.toLowerCase()
+                i.fullMaterial === item.fullMaterial ||
+                i.fullDescription === item.fullDescription
             );
         }
         
-        if (!existing && item.partNo.length >= 4) {
+        if (!existing && item.shortPartNo.length >= 4) {
             existing = inventoryItems.find(i => 
-                i.partNo.includes(item.partNo) || item.partNo.includes(i.partNo)
+                i.partNo === item.shortPartNo ||
+                i.partNo.includes(item.shortPartNo) || 
+                item.shortPartNo.includes(i.partNo)
             );
         }
         
@@ -450,42 +450,70 @@ function displayInventoryPreview(items) {
             updatedCount++;
             itemsToUpdate.push({
                 id: existing.id,
-                name: existing.name,
-                partNo: existing.partNo,
+                name: existing.name || existing.fullDescription?.substring(0, 40),
+                fullMaterial: item.fullMaterial,
+                fullDescription: item.fullDescription,
+                fullUnit: item.fullUnit,
                 oldQty: existing.qty,
                 newQty: item.quantity,
-                unit: item.unit
+                displayUnit: item.displayUnit,
+                status: 'update'
             });
         } else {
             newCount++;
             itemsToUpdate.push({
                 isNew: true,
-                name: item.description,
-                partNo: item.partNo,
+                fullMaterial: item.fullMaterial,
+                fullDescription: item.fullDescription,
+                fullUnit: item.fullUnit,
+                shortPartNo: item.shortPartNo,
                 qty: item.quantity,
-                unit: item.unit,
-                category: item.category
+                displayUnit: item.displayUnit,
+                category: item.category,
+                status: 'new'
             });
         }
     }
     
+    // عرض جدول بالأعمدة الأربعة كاملة
     previewDiv.innerHTML = `
         <div class="grid-3" style="margin:10px 0">
             <div class="stat-card"><div class="stat-number">${updatedCount}</div><div class="stat-label">سيتم تحديث</div></div>
             <div class="stat-card"><div class="stat-number">${newCount}</div><div class="stat-label">أصناف جديدة</div></div>
             <div class="stat-card"><div class="stat-number">${formatNumber(totalQty)}</div><div class="stat-label">إجمالي القطع</div></div>
         </div>
-        <hr>
-        <div style="max-height:250px; overflow:auto; font-size:11px">
-            ${itemsToUpdate.slice(0, 50).map(item => {
-                if (item.isNew) {
-                    return `<div style="padding:6px; border-bottom:1px solid #eef2f6; background:#f0fdf4">🆕 <strong>${item.name.substring(0, 40)}</strong> - ${item.qty} ${item.unit}</div>`;
-                } else {
-                    const changed = item.oldQty !== item.newQty;
-                    return `<div style="padding:6px; border-bottom:1px solid #eef2f6">🔄 <strong>${item.name.substring(0, 40)}</strong>: ${item.oldQty} → <span style="color:${changed?'#f59e0b':'gray'}">${item.newQty}</span> ${item.unit}</div>`;
-                }
-            }).join('')}
-            ${itemsToUpdate.length > 50 ? `<div style="padding:8px; text-align:center; color:gray">...و${itemsToUpdate.length - 50} صنف آخر</div>` : ''}
+        <div style="font-size:12px; background:#eef2ff; padding:8px; border-radius:12px; margin:8px 0; text-align:center">
+            📋 <strong>تفاصيل الأعمدة الأربعة الأولى</strong> (العمود A | العمود B | العمود C | العمود D)
+        </div>
+        <div style="max-height:300px; overflow:auto; font-size:11px; border:1px solid #e2e8f0; border-radius:12px">
+            <table style="width:100%; border-collapse:collapse">
+                <thead style="position:sticky; top:0; background:var(--primary); color:white">
+                    <tr>
+                        <th style="padding:8px; text-align:right">#</th>
+                        <th style="padding:8px; text-align:right">العمود A (Material)</th>
+                        <th style="padding:8px; text-align:right">العمود B (Description)</th>
+                        <th style="padding:8px; text-align:center">العمود C (Unit)</th>
+                        <th style="padding:8px; text-align:center">العمود D (Qty)</th>
+                        <th style="padding:8px; text-align:center">الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsToUpdate.slice(0, 30).map((item, idx) => `
+                        <tr style="border-bottom:1px solid #e2e8f0; ${item.isNew ? 'background:#f0fdf4' : ''}">
+                            <td style="padding:8px; text-align:center">${idx + 1}</td>
+                            <td style="padding:8px; text-align:right; font-family:monospace; font-size:10px; max-width:120px; word-break:break-word" title="${item.fullMaterial}">${item.fullMaterial.substring(0, 45)}${item.fullMaterial.length > 45 ? '...' : ''}</td>
+                            <td style="padding:8px; text-align:right; max-width:150px; word-break:break-word" title="${item.fullDescription}">${item.fullDescription.substring(0, 55)}${item.fullDescription.length > 55 ? '...' : ''}</td>
+                            <td style="padding:8px; text-align:center">${item.fullUnit || item.displayUnit}</td>
+                            <td style="padding:8px; text-align:center; font-weight:bold; ${!item.isNew && item.oldQty !== item.newQty ? 'color:#f59e0b' : ''}">${!item.isNew ? `${item.oldQty} → ${item.newQty}` : item.qty}</td>
+                            <td style="padding:8px; text-align:center"><span style="background:${item.isNew ? '#10b981' : '#f59e0b'}; color:white; padding:2px 8px; border-radius:20px; font-size:10px">${item.isNew ? 'جديد' : (item.oldQty !== item.newQty ? 'تحديث' : 'مطابق')}</span></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            ${itemsToUpdate.length > 30 ? `<div style="padding:10px; text-align:center; background:#f8fafc; color:gray">...و${itemsToUpdate.length - 30} صنف آخر</div>` : ''}
+        </div>
+        <div style="margin-top:12px; padding:8px; background:#fef3c7; border-radius:8px; font-size:11px">
+            ✅ سيتم حفظ <strong>الأعمدة الأربعة كاملة</strong> (Material, Description, Unit, Quantity) في قاعدة البيانات.
         </div>
     `;
     document.getElementById('inventory-import-preview').style.display = 'block';
@@ -500,46 +528,63 @@ function confirmInventoryImport() {
     let updated = 0;
     let created = 0;
     
+    showToast('🔄 جاري حفظ البيانات...');
+    
     for (const item of pendingInventoryData) {
         if (item.quantity <= 0) continue;
         
-        let existing = inventoryItems.find(i => i.partNo === item.partNo);
+        // البحث عن صنف مطابق
+        let existing = inventoryItems.find(i => i.partNo === item.shortPartNo);
         
         if (!existing) {
             existing = inventoryItems.find(i => 
-                i.name === item.description ||
-                i.name.toLowerCase() === item.description.toLowerCase()
+                i.fullMaterial === item.fullMaterial ||
+                i.fullDescription === item.fullDescription
             );
         }
         
-        if (!existing && item.partNo.length >= 4) {
+        if (!existing && item.shortPartNo.length >= 4) {
             existing = inventoryItems.find(i => 
-                i.partNo.includes(item.partNo) || item.partNo.includes(i.partNo)
+                i.partNo === item.shortPartNo ||
+                i.partNo.includes(item.shortPartNo) || 
+                item.shortPartNo.includes(i.partNo)
             );
         }
         
-        if (existing) {
-            existing.qty = item.quantity;
-            existing.updatedAt = new Date().toISOString();
-            saveToFirebase('inventoryItems', existing);
-            updated++;
-        } else {
-            const newItem = {
-                category: item.category,
-                name: item.description.length > 100 ? item.description.substring(0, 100) : item.description,
-                partNo: item.partNo,
-                qty: item.quantity,
-                minQty: (item.category === 'filter') ? 5 : 3,
-                price: 0,
-                unit: item.unit,
-                interval: (item.category === 'filter') ? 250 : 500,
-                alts: [],
-                notes: `تم الاستيراد من SOH بتاريخ ${new Date().toLocaleDateString('ar-EG')}`,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            saveToFirebase('inventoryItems', newItem);
-            created++;
+        try {
+            if (existing) {
+                // تحديث الصنف الموجود - الحفاظ على الأعمدة الأربعة كاملة
+                existing.qty = item.quantity;
+                existing.fullMaterial = item.fullMaterial;
+                existing.fullDescription = item.fullDescription;
+                existing.fullUnit = item.fullUnit;
+                existing.updatedAt = new Date().toISOString();
+                saveToFirebase('inventoryItems', existing);
+                updated++;
+            } else {
+                // إضافة صنف جديد مع حفظ الأعمدة الأربعة كاملة
+                const newItem = {
+                    category: item.category,
+                    name: item.fullDescription.length > 100 ? item.fullDescription.substring(0, 100) : item.fullDescription,
+                    partNo: item.shortPartNo,
+                    fullMaterial: item.fullMaterial,
+                    fullDescription: item.fullDescription,
+                    fullUnit: item.fullUnit,
+                    qty: item.quantity,
+                    minQty: (item.category === 'filter') ? 5 : 3,
+                    price: 0,
+                    unit: item.displayUnit,
+                    interval: (item.category === 'filter') ? 250 : 500,
+                    alts: [],
+                    notes: `تم الاستيراد من SOH بتاريخ ${new Date().toLocaleDateString('ar-EG')}`,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                saveToFirebase('inventoryItems', newItem);
+                created++;
+            }
+        } catch (err) {
+            console.error('خطأ في الحفظ:', err);
         }
     }
     
