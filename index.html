@@ -108,7 +108,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
           <span style="font-weight:700">📦 استيراد المخزون اليومي (SOH)</span>
           <span class="daily-import-badge">تحديث يومي</span>
         </div>
-        <div style="font-size:12px; opacity:0.9; margin-bottom:12px">رفع ملف Excel SOH لتحديث كميات المخزون (زيوت، فلاتر، إطارات، قطع غيار)</div>
+        <div style="font-size:12px; opacity:0.9; margin-bottom:12px">رفع ملف Excel SOH - سيتم قراءة أول 4 أعمدة فقط (رقم القطعة، الاسم، الوحدة، الكمية)</div>
         <input type="file" id="inventory-excel-input" accept=".xlsx, .xls" style="display:none" onchange="handleInventoryFileUpload(this)">
         <button class="save-btn" onclick="document.getElementById('inventory-excel-input').click()" style="margin:0; background:rgba(255,255,255,0.2); color:white; width:100%">📂 اختيار ملف SOH</button>
       </div>
@@ -297,7 +297,7 @@ function switchView(v){document.getElementById('view-home').style.display=v==='h
 let pendingImportData=null;
 let pendingInventoryData=null;
 
-// ==================== دوال استيراد المخزون SOH المعدلة ====================
+// ==================== دوال استيراد المخزون SOH (أول 4 أعمدة فقط) ====================
 
 function handleInventoryFileUpload(input) {
     const file = input.files[0];
@@ -306,101 +306,111 @@ function handleInventoryFileUpload(input) {
         return;
     }
     
+    if (!file.name.match(/\.(xlsx|xls)$/i)) {
+        showToast('الرجاء اختيار ملف Excel بصيغة .xlsx أو .xls');
+        return;
+    }
+    
+    showToast('📖 جاري قراءة الملف...');
+    
     const reader = new FileReader();
     reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-        
-        if (rows.length === 0) {
-            showToast('الملف فارغ');
-            return;
-        }
-        
-        // التحقق من وجود الرؤوس الصحيحة
-        const headers = rows[0] || [];
-        const isValidFormat = headers[0] === 'Material' && headers[1] === 'Material description';
-        
-        if (!isValidFormat) {
-            showToast('⚠️ تنسيق الملف غير متوقع. الرجاء استخدام ملف SOH القياسي (Material, Material description, Base Unit of Measure, Unrestricted)');
-            return;
-        }
-        
-        const cleanRows = [];
-        
-        // البدء من الصف الثاني (تخطي الرؤوس)
-        for (let i = 1; i < rows.length; i++) {
-            const row = rows[i];
-            if (!row || row.length < 4) continue;
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
             
-            const materialRaw = (row[0] || '').toString().trim();
-            const description = (row[1] || '').toString().trim();
-            const unitRaw = (row[2] || '').toString().trim();
-            const quantityRaw = parseFloat(row[3]) || 0;
-            const currency = (row[11] || '').toString().trim();
-            const valueRaw = parseFloat(row[12]) || 0;
-            
-            // تخطي الصفوف الفارغة والإجماليات
-            if (materialRaw === '' && description === '') continue;
-            if (materialRaw === 'Material' || description === 'Material description') continue;
-            if (description.includes('الاجمالي') || description.includes('إجمالي') || description.toLowerCase().includes('total')) continue;
-            if (materialRaw.includes('الاجمالي') || /^\d+$/.test(materialRaw) && materialRaw.length < 8) continue;
-            
-            // استخراج رقم القطعة (آخر جزء بعد النقاط)
-            let partNo = materialRaw;
-            if (materialRaw.includes('.')) {
-                const parts = materialRaw.split('.');
-                partNo = parts[parts.length - 1];
-            }
-            partNo = partNo.replace(/[^\w\-]/g, '').substring(0, 35);
-            if (partNo === '' || partNo.length < 3) {
-                partNo = description.replace(/[^a-zA-Z0-9\-]/g, '').substring(0, 25);
-                if (partNo === '') partNo = `ITEM_${i}`;
+            if (!rows || rows.length < 2) {
+                showToast('الملف فارغ أو لا يحتوي على بيانات');
+                return;
             }
             
-            // تحديد التصنيف
-            let category = 'spare';
-            const descLower = description.toLowerCase();
-            const materialLower = materialRaw.toLowerCase();
+            const cleanRows = [];
             
-            if (descLower.includes('فلتر') || descLower.includes('filter') || materialLower.includes('filter')) {
-                category = 'filter';
-            } else if (descLower.includes('زيت') || descLower.includes('oil') || materialLower.includes('oil')) {
-                category = 'oil';
-            } else if (descLower.includes('اطار') || descLower.includes('تاير') || descLower.includes('tire')) {
-                category = 'tire';
+            // البدء من الصف 1 (بعد الرؤوس)
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row) continue;
+                
+                // قراءة أول 4 أعمدة فقط
+                const materialRaw = (row[0] !== undefined && row[0] !== null) ? row[0].toString().trim() : '';
+                const descriptionRaw = (row[1] !== undefined && row[1] !== null) ? row[1].toString().trim() : '';
+                const unitRaw = (row[2] !== undefined && row[2] !== null) ? row[2].toString().trim() : '';
+                const quantityRaw = parseFloat(row[3]) || 0;
+                
+                // تخطي الصفوف الفارغة
+                if (materialRaw === '' && descriptionRaw === '') continue;
+                
+                // تخطي صفوف الإجماليات
+                const isTotalRow = materialRaw.includes('الاجمالي') || 
+                                  materialRaw.includes('إجمالي') ||
+                                  materialRaw.toLowerCase().includes('total') ||
+                                  descriptionRaw.includes('الاجمالي') ||
+                                  descriptionRaw.includes('إجمالي') ||
+                                  descriptionRaw.toLowerCase().includes('total');
+                
+                if (isTotalRow) continue;
+                
+                // تخطي الكميات الصفرية
+                if (quantityRaw <= 0) continue;
+                
+                // استخراج رقم القطعة (آخر جزء بعد النقاط)
+                let partNo = materialRaw;
+                if (materialRaw.includes('.')) {
+                    const parts = materialRaw.split('.');
+                    partNo = parts[parts.length - 1];
+                }
+                
+                // تنظيف رقم القطعة
+                partNo = partNo.replace(/[^\w\-]/g, '').substring(0, 35);
+                if (partNo === '' || partNo.length < 2) {
+                    partNo = descriptionRaw.replace(/[^a-zA-Z0-9\-]/g, '').substring(0, 25);
+                    if (partNo === '') partNo = `ITEM_${i}`;
+                }
+                
+                // تحديد الوحدة
+                let unit = unitRaw;
+                if (unit === 'L' || unit === 'لتر') unit = 'لتر';
+                else if (unit === 'KG' || unit === 'كجم') unit = 'كجم';
+                else if (unit === 'EA' || unit === 'قطعة') unit = 'قطعة';
+                else if (!unit || unit === '') unit = 'قطعة';
+                
+                // تحديد التصنيف
+                let category = 'spare';
+                const descLower = descriptionRaw.toLowerCase();
+                if (descLower.includes('فلتر') || descLower.includes('filter')) {
+                    category = 'filter';
+                } else if (descLower.includes('زيت') || descLower.includes('oil')) {
+                    category = 'oil';
+                } else if (descLower.includes('اطار') || descLower.includes('تاير') || descLower.includes('tire')) {
+                    category = 'tire';
+                }
+                
+                cleanRows.push({
+                    material: materialRaw,
+                    partNo: partNo,
+                    description: descriptionRaw.substring(0, 100),
+                    unit: unit,
+                    quantity: quantityRaw,
+                    category: category
+                });
             }
             
-            let unit = unitRaw;
-            if (unit === 'L') unit = 'لتر';
-            else if (unit === 'KG') unit = 'كجم';
-            else if (unit === 'EA') unit = 'قطعة';
-            else if (!unit || unit === '') unit = 'قطعة';
+            if (cleanRows.length === 0) {
+                showToast('لم يتم العثور على بيانات صالحة في الملف');
+                return;
+            }
             
-            const unitPrice = (quantityRaw > 0 && valueRaw > 0) ? valueRaw / quantityRaw : 0;
+            pendingInventoryData = cleanRows;
+            displayInventoryPreview(cleanRows);
+            showToast(`✅ تم قراءة ${cleanRows.length} صنف بنجاح`);
             
-            cleanRows.push({
-                material: materialRaw,
-                partNo: partNo,
-                description: description.substring(0, 100),
-                unit: unit,
-                quantity: quantityRaw,
-                value: valueRaw,
-                currency: currency,
-                unitPrice: unitPrice,
-                category: category
-            });
+        } catch (error) {
+            console.error(error);
+            showToast('حدث خطأ أثناء قراءة الملف');
         }
-        
-        if (cleanRows.length === 0) {
-            showToast('لم يتم العثور على بيانات صالحة في الملف');
-            return;
-        }
-        
-        pendingInventoryData = cleanRows;
-        displayInventoryPreview(cleanRows);
-        showToast(`✅ تم قراءة ${cleanRows.length} صنف بنجاح`);
     };
     
     reader.onerror = function() {
@@ -414,23 +424,23 @@ function displayInventoryPreview(items) {
     const previewDiv = document.getElementById('inventory-preview-content');
     let updatedCount = 0;
     let newCount = 0;
-    let totalValue = 0;
+    let totalQty = 0;
     const itemsToUpdate = [];
     
     for (const item of items) {
         if (item.quantity <= 0) continue;
+        totalQty += item.quantity;
         
         let existing = inventoryItems.find(i => i.partNo === item.partNo);
         
         if (!existing) {
             existing = inventoryItems.find(i => 
-                i.name.toLowerCase() === item.description.toLowerCase() ||
-                i.name.toLowerCase().includes(item.description.toLowerCase()) ||
-                item.description.toLowerCase().includes(i.name.toLowerCase())
+                i.name === item.description ||
+                i.name.toLowerCase() === item.description.toLowerCase()
             );
         }
         
-        if (!existing && item.partNo.length >= 5) {
+        if (!existing && item.partNo.length >= 4) {
             existing = inventoryItems.find(i => 
                 i.partNo.includes(item.partNo) || item.partNo.includes(i.partNo)
             );
@@ -438,26 +448,23 @@ function displayInventoryPreview(items) {
         
         if (existing) {
             updatedCount++;
-            totalValue += item.value;
             itemsToUpdate.push({
                 id: existing.id,
-                partNo: existing.partNo,
                 name: existing.name,
+                partNo: existing.partNo,
                 oldQty: existing.qty,
                 newQty: item.quantity,
                 unit: item.unit
             });
-        } else if (item.category !== 'spare' || item.quantity >= 2) {
+        } else {
             newCount++;
-            totalValue += item.value;
             itemsToUpdate.push({
                 isNew: true,
                 name: item.description,
                 partNo: item.partNo,
                 qty: item.quantity,
                 unit: item.unit,
-                category: item.category,
-                price: item.unitPrice
+                category: item.category
             });
         }
     }
@@ -466,20 +473,19 @@ function displayInventoryPreview(items) {
         <div class="grid-3" style="margin:10px 0">
             <div class="stat-card"><div class="stat-number">${updatedCount}</div><div class="stat-label">سيتم تحديث</div></div>
             <div class="stat-card"><div class="stat-number">${newCount}</div><div class="stat-label">أصناف جديدة</div></div>
-            <div class="stat-card"><div class="stat-number">${formatNumber(Math.round(totalValue))}</div><div class="stat-label">قيمة المخزون</div></div>
+            <div class="stat-card"><div class="stat-number">${formatNumber(totalQty)}</div><div class="stat-label">إجمالي القطع</div></div>
         </div>
-        <div style="font-size:11px;color:gray;text-align:center;margin:8px 0">إجمالي: ${itemsToUpdate.length} صنف</div>
         <hr>
-        <div style="max-height:250px;overflow:auto;font-size:11px">
-            ${itemsToUpdate.slice(0, 40).map(item => {
+        <div style="max-height:250px; overflow:auto; font-size:11px">
+            ${itemsToUpdate.slice(0, 50).map(item => {
                 if (item.isNew) {
-                    return `<div style="padding:6px;border-bottom:1px solid #eef2f6">🆕 <strong>${item.name.substring(0, 35)}</strong> - ${item.qty} ${item.unit}</div>`;
+                    return `<div style="padding:6px; border-bottom:1px solid #eef2f6; background:#f0fdf4">🆕 <strong>${item.name.substring(0, 40)}</strong> - ${item.qty} ${item.unit}</div>`;
                 } else {
                     const changed = item.oldQty !== item.newQty;
-                    return `<div style="padding:6px;border-bottom:1px solid #eef2f6">🔄 <strong>${item.name.substring(0, 35)}</strong>: ${item.oldQty} → <span style="color:${changed?'#f59e0b':'gray'}">${item.newQty}</span> ${item.unit}</div>`;
+                    return `<div style="padding:6px; border-bottom:1px solid #eef2f6">🔄 <strong>${item.name.substring(0, 40)}</strong>: ${item.oldQty} → <span style="color:${changed?'#f59e0b':'gray'}">${item.newQty}</span> ${item.unit}</div>`;
                 }
             }).join('')}
-            ${itemsToUpdate.length > 40 ? `<div style="padding:8px;text-align:center;color:gray">...و${itemsToUpdate.length - 40} صنف آخر</div>` : ''}
+            ${itemsToUpdate.length > 50 ? `<div style="padding:8px; text-align:center; color:gray">...و${itemsToUpdate.length - 50} صنف آخر</div>` : ''}
         </div>
     `;
     document.getElementById('inventory-import-preview').style.display = 'block';
@@ -501,13 +507,12 @@ function confirmInventoryImport() {
         
         if (!existing) {
             existing = inventoryItems.find(i => 
-                i.name.toLowerCase() === item.description.toLowerCase() ||
-                i.name.toLowerCase().includes(item.description.toLowerCase()) ||
-                item.description.toLowerCase().includes(i.name.toLowerCase())
+                i.name === item.description ||
+                i.name.toLowerCase() === item.description.toLowerCase()
             );
         }
         
-        if (!existing && item.partNo.length >= 5) {
+        if (!existing && item.partNo.length >= 4) {
             existing = inventoryItems.find(i => 
                 i.partNo.includes(item.partNo) || item.partNo.includes(i.partNo)
             );
@@ -516,19 +521,16 @@ function confirmInventoryImport() {
         if (existing) {
             existing.qty = item.quantity;
             existing.updatedAt = new Date().toISOString();
-            if (item.unitPrice > 0 && (existing.price === 0 || existing.price === undefined)) {
-                existing.price = item.unitPrice;
-            }
             saveToFirebase('inventoryItems', existing);
             updated++;
-        } else if (item.category === 'filter' || item.category === 'oil' || item.category === 'tire' || item.quantity >= 2) {
+        } else {
             const newItem = {
                 category: item.category,
                 name: item.description.length > 100 ? item.description.substring(0, 100) : item.description,
                 partNo: item.partNo,
                 qty: item.quantity,
                 minQty: (item.category === 'filter') ? 5 : 3,
-                price: item.unitPrice,
+                price: 0,
                 unit: item.unit,
                 interval: (item.category === 'filter') ? 250 : 500,
                 alts: [],
