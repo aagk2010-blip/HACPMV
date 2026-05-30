@@ -46,8 +46,8 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
       <div style="font-size:22px; font-weight:800; letter-spacing:1.5px; color:white">HASSAN ALLAM</div>
       <div style="font-size:13px; color:var(--accent); letter-spacing:3px; margin-top:3px; font-weight:600">HOLDING</div>
     </div>
-    <div style="font-size:24px; font-weight:800; margin-bottom:6px; color:white">نظام الأسطول المتكامل</div>
-    <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:30px">Integrated Fleet Management System</div>
+    <div style="font-size:24px; font-weight:800; margin-bottom:6px; color:white">Equipment Maintenance Service</div>
+    <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:30px">Equipment Maintenance Service</div>
     <div style="display:flex; gap:10px; margin-bottom:20px; background:rgba(255,255,255,0.05); border-radius:40px; padding:4px">
       <button id="direct-login-btn" onclick="setLoginMode('direct')" style="flex:1; padding:10px; border-radius:30px; border:none; background:var(--accent); color:var(--primary); font-weight:700; cursor:pointer">🚪 دخول مباشر</button>
       <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1; padding:10px; border-radius:30px; border:none; background:rgba(255,255,255,0.1); color:white; font-weight:700; cursor:pointer">🔐 دخول آمن</button>
@@ -89,7 +89,11 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 </div>
 <div id="app-container" style="display:none">
   <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button onclick="logout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button></div></div>
-  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
+  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+<div class="header-sub" id="sync-status-placeholder" style="display:none"></div>
+<button onclick="openNotifSettings()" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px" id="notif-bell-btn">🔔 الإشعارات</button>
+</div>
+<div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="view-home">
     <div class="stats-row" id="stats-summary"></div>
     <button class="big-btn" id="meter-update-btn" onclick="openMeterUpdate()">⏱️ تحديث العدادات اليومي</button>
@@ -169,6 +173,41 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 <div class="modal-overlay" id="order-report-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--danger),var(--warning))"><div class="modal-title">📋 تقرير الطلبية</div><button class="modal-close" onclick="closeModal('order-report-modal')">✕</button></div><div id="order-report-content" style="padding:14px; padding-bottom:100px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="exportOrderToExcel()">📊 Excel</button><button class="save-btn" style="background:var(--success); margin-top:10px" onclick="sendOrderViaWhatsApp()">📱 واتساب</button></div></div>
 <div class="modal-overlay" id="import-progress-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--success),var(--info))"><div class="modal-title">📊 جاري استيراد البيانات...</div><button class="modal-close" onclick="closeModal('import-progress-modal')">✕</button></div><div style="padding:20px; text-align:center"><div style="font-size:40px; margin-bottom:15px">⏳</div><div id="import-progress-text" style="margin-bottom:10px">جارٍ قراءة الملف...</div><div class="progress-bar" style="height:10px"><div id="import-progress-bar" class="progress-fill" style="width:0%"></div></div><div id="import-status-list" style="margin-top:15px; font-size:12px; text-align:right; max-height:200px; overflow:auto"></div></div></div>
 
+
+<!-- Modal إعدادات الإشعارات -->
+<div class="modal-overlay" id="notif-settings-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)">
+    <div class="modal-title">🔔 إعدادات الإشعارات</div>
+    <button class="modal-close" onclick="closeModal('notif-settings-modal')">✕</button>
+  </div>
+  <div style="padding:16px">
+    <div class="detail-section" style="margin:0 0 12px 0">
+      <div class="detail-label" style="margin-bottom:8px">📱 رقم واتساب لاستقبال التنبيهات</div>
+      <input class="form-input" id="whatsapp-number" type="tel" placeholder="مثال: 201012345678" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%; font-size:14px">
+      <div style="font-size:11px; color:var(--gray); margin-top:6px">أدخل الرقم مع كود الدولة بدون + مثلاً 201012345678</div>
+    </div>
+    <div class="detail-section" style="margin:0 0 12px 0">
+      <div class="detail-label" style="margin-bottom:8px">⏰ إشعار عند باقي (ساعات)</div>
+      <select class="form-select" id="notif-threshold" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%">
+        <option value="10">10 ساعات فأقل</option>
+        <option value="25">25 ساعة فأقل</option>
+        <option value="50" selected>50 ساعة فأقل</option>
+        <option value="100">100 ساعة فأقل</option>
+      </select>
+    </div>
+    <div class="detail-section" style="margin:0 0 12px 0; display:flex; justify-content:space-between; align-items:center">
+      <div>
+        <div class="detail-label">🔔 إشعارات المتصفح</div>
+        <div style="font-size:11px; color:var(--gray)">تنبيه تلقائي عند فتح التطبيق</div>
+      </div>
+      <div id="notif-permission-status" style="font-size:12px; font-weight:600"></div>
+    </div>
+    <button class="save-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5); margin-bottom:10px" onclick="enableBrowserNotifications()">🔔 تفعيل إشعارات المتصفح</button>
+    <button class="save-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)" onclick="sendWhatsAppMaintenanceAlert()">📱 إرسال تقرير واتساب الآن</button>
+    <button class="save-btn" onclick="saveNotifSettings()">✅ حفظ الإعدادات</button>
+  </div>
+</div>
+
 <script>
 const FIREBASE_CONFIG={apiKey:"AIzaSyD3eWEZZDXCfHtJ6xdD9VwW8hT5vZzV0W4",authDomain:"hah-pmv.firebaseapp.com",databaseURL:"https://hah-pmv-default-rtdb.firebaseio.com",projectId:"hah-pmv",storageBucket:"hah-pmv.appspot.com"};
 let fbDb=null,equipmentData=[],driversData=[],fuelData=[],maintenanceSchedules=[],inventoryItems=[],equipmentFilterLinks=[],filterAlternatives=[],currentUser=null,editingEquipmentId=null,editingDriverId=null,editingInventoryId=null,currentDetailId=null,currentCategoryFilter='all',invAltCount=0,currentLinkingItem=null,importData=null,currentEditingFuelId=null,currentEditingFilterId=null;
@@ -238,13 +277,178 @@ function calculateEnhancedOrderNeeds(){
     });
     return needs;
 }
+
+// ==================== نظام الإشعارات ====================
+
+let notifSettings = { whatsappNumber: '', threshold: 50 };
+
+function loadNotifSettings() {
+    const saved = localStorage.getItem('notifSettings');
+    if (saved) {
+        try { notifSettings = JSON.parse(saved); } catch(e) {}
+    }
+}
+
+function saveNotifSettings() {
+    const num = document.getElementById('whatsapp-number').value.trim();
+    const thr = parseInt(document.getElementById('notif-threshold').value) || 50;
+    notifSettings = { whatsappNumber: num, threshold: thr };
+    localStorage.setItem('notifSettings', JSON.stringify(notifSettings));
+    closeModal('notif-settings-modal');
+    showToast('✅ تم حفظ إعدادات الإشعارات');
+}
+
+function openNotifSettings() {
+    document.getElementById('whatsapp-number').value = notifSettings.whatsappNumber || '';
+    document.getElementById('notif-threshold').value = notifSettings.threshold || 50;
+    const perm = Notification.permission;
+    const statusEl = document.getElementById('notif-permission-status');
+    if (perm === 'granted') statusEl.innerHTML = '<span style="color:#10b981">✅ مفعّل</span>';
+    else if (perm === 'denied') statusEl.innerHTML = '<span style="color:#ef4444">❌ محجوب</span>';
+    else statusEl.innerHTML = '<span style="color:#f59e0b">⚠️ غير مفعّل</span>';
+    document.getElementById('notif-settings-modal').classList.add('active');
+}
+
+function enableBrowserNotifications() {
+    if (!('Notification' in window)) {
+        showToast('المتصفح لا يدعم الإشعارات');
+        return;
+    }
+    Notification.requestPermission().then(perm => {
+        const statusEl = document.getElementById('notif-permission-status');
+        if (perm === 'granted') {
+            statusEl.innerHTML = '<span style="color:#10b981">✅ مفعّل</span>';
+            showToast('✅ تم تفعيل الإشعارات');
+            // إرسال إشعار تجريبي
+            new Notification('✅ حسن علام - نظام الأسطول', {
+                body: 'تم تفعيل الإشعارات بنجاح! ستصلك تنبيهات الصيانة تلقائياً.',
+                icon: 'https://cdn-icons-png.flaticon.com/512/1995/1995562.png'
+            });
+        } else {
+            statusEl.innerHTML = '<span style="color:#ef4444">❌ محجوب</span>';
+            showToast('تم رفض الإشعارات من إعدادات المتصفح');
+        }
+    });
+}
+
+function checkMaintenanceAlerts() {
+    if (!equipmentData.length) return;
+    loadNotifSettings();
+    const threshold = notifSettings.threshold || 50;
+    const critical = equipmentData.filter(eq => {
+        if (eq.status === 'متوقف') return false;
+        const rem = hoursRemaining(eq);
+        return rem <= threshold;
+    });
+    if (!critical.length) return;
+
+    // إشعار المتصفح
+    if (Notification.permission === 'granted') {
+        const overdue = critical.filter(eq => hoursRemaining(eq) <= 0);
+        const soon = critical.filter(eq => hoursRemaining(eq) > 0);
+        let body = '';
+        if (overdue.length) body += `⚠️ تجاوزت الصيانة: ${overdue.map(e => e.name).join('، ')}
+`;
+        if (soon.length) body += `🔴 قريبة الصيانة: ${soon.map(e => `${e.name} (${hoursRemaining(e)} س)`).join('، ')}`;
+        new Notification(`🔧 تنبيه صيانة - ${critical.length} معدة`, {
+            body: body.trim(),
+            icon: 'https://cdn-icons-png.flaticon.com/512/1995/1995562.png',
+            tag: 'maintenance-alert'
+        });
+    }
+}
+
+function buildMaintenanceWhatsAppMsg() {
+    const threshold = notifSettings.threshold || 50;
+    const critical = equipmentData.filter(eq => {
+        if (eq.status === 'متوقف') return false;
+        return hoursRemaining(eq) <= threshold;
+    }).sort((a, b) => hoursRemaining(a) - hoursRemaining(b));
+
+    if (!critical.length) {
+        showToast('✅ لا توجد معدات تحتاج تنبيه حالياً');
+        return null;
+    }
+
+    const date = new Date().toLocaleDateString('ar-EG');
+    let msg = `🔧 *تقرير الصيانة - حسن علام القابضة*
+`;
+    msg += `📅 ${date}
+`;
+    msg += `━━━━━━━━━━━━━━
+
+`;
+
+    const overdue = critical.filter(eq => hoursRemaining(eq) <= 0);
+    const urgent = critical.filter(eq => hoursRemaining(eq) > 0 && hoursRemaining(eq) <= 10);
+    const warning = critical.filter(eq => hoursRemaining(eq) > 10);
+
+    if (overdue.length) {
+        msg += `🚨 *تجاوزت موعد الصيانة (${overdue.length} معدة):*
+`;
+        overdue.forEach(eq => {
+            msg += `• ${eq.name} (${eq.code})
+`;
+            msg += `  العداد: ${eq.hours} س | كان يجب عند: ${eq.nextHours} س
+`;
+            msg += `  تجاوز: ${Math.abs(hoursRemaining(eq))} ساعة ⚠️
+
+`;
+        });
+    }
+    if (urgent.length) {
+        msg += `🔴 *عاجل - باقي أقل من 10 ساعات (${urgent.length} معدة):*
+`;
+        urgent.forEach(eq => {
+            msg += `• ${eq.name} (${eq.code})
+`;
+            msg += `  باقي: ${hoursRemaining(eq)} ساعة فقط
+
+`;
+        });
+    }
+    if (warning.length) {
+        msg += `🟡 *قريبة من الصيانة (${warning.length} معدة):*
+`;
+        warning.forEach(eq => {
+            msg += `• ${eq.name} (${eq.code}) - باقي ${hoursRemaining(eq)} س
+`;
+        });
+    }
+    msg += `
+━━━━━━━━━━━━━━
+إجمالي المعدات التي تحتاج متابعة: ${critical.length}`;
+    return msg;
+}
+
+function sendWhatsAppMaintenanceAlert() {
+    const msg = buildMaintenanceWhatsAppMsg();
+    if (!msg) return;
+    const number = notifSettings.whatsappNumber || '';
+    const encoded = encodeURIComponent(msg);
+    const url = number
+        ? `https://wa.me/${number}?text=${encoded}`
+        : `https://wa.me/?text=${encoded}`;
+    window.open(url, '_blank');
+}
+
+// فحص الإشعارات تلقائياً كل مرة يتم فيها تحديث البيانات
+let lastAlertCheck = 0;
+function autoCheckAlerts() {
+    const now = Date.now();
+    // فحص مرة كل 60 دقيقة كحد أقصى
+    if (now - lastAlertCheck < 60 * 60 * 1000) return;
+    lastAlertCheck = now;
+    checkMaintenanceAlerts();
+}
+
 function loadSavedSettings(){const m=localStorage.getItem('loginMode');if(m)setLoginMode(m)}
 function saveLoginMode(){if(document.getElementById('remember-mode').checked)localStorage.setItem('loginMode',SYSTEM_CONFIG.loginMode);else localStorage.removeItem('loginMode')}
 let SYSTEM_CONFIG={loginMode:'direct'};
 function setLoginMode(m){SYSTEM_CONFIG.loginMode=m;const db=document.getElementById('direct-login-btn'),sb=document.getElementById('secure-login-btn'),dp=document.getElementById('direct-login-panel'),sp=document.getElementById('secure-login-panel');if(m==='direct'){db.style.background='var(--accent)';db.style.color='var(--primary)';sb.style.background='rgba(255,255,255,0.1)';sb.style.color='white';dp.style.display='block';sp.style.display='none'}else{sb.style.background='var(--accent)';sb.style.color='var(--primary)';db.style.background='rgba(255,255,255,0.1)';db.style.color='white';dp.style.display='none';sp.style.display='block'}}
 function directLogin(){currentUser={username:'viewer',role:'viewer',name:'مشاهد',permissions:['view']};showToast('مرحباً مشاهد');proceedToApp()}
 function secureLogin(){const u=document.getElementById('secure-username').value.trim(),p=document.getElementById('secure-password').value;if(u==='admin'&&p==='admin123'){currentUser={username:'admin',role:'admin',name:'المدير',permissions:['all']};showToast('مرحباً مدير النظام');proceedToApp()}else{showToast('بيانات الدخول غير صحيحة')}}
-function proceedToApp(){document.getElementById('login-screen').style.display='none';document.getElementById('app-container').style.display='block';document.getElementById('user-name-display').innerHTML=`${currentUser.name} (${currentUser.role==='admin'?'مدير':'مشاهد'})`;if(!hasPermission('all')){const fab=document.getElementById('fab-btn');if(fab)fab.style.display='none';['add-fuel-btn','add-maintenance-btn','add-inventory-btn','order-report-btn','meter-update-btn'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.style.display='none'});const s=document.createElement('style');s.textContent='.save-btn.danger-btn,button[onclick*="deleteFromFirebase"],button[onclick*="editEquipment"],button[onclick*="editDriver"],button[onclick*="editInventoryItem"],.qty-btn,.fab{display:none!important}.filter-card .qty-btn,.inventory-item-card .qty-btn,.equipment-card .qty-btn{display:none!important}';document.head.appendChild(s)}initFirebase()}
+function proceedToApp(){document.getElementById('login-screen').style.display='none';document.getElementById('app-container').style.display='block';document.getElementById('user-name-display').innerHTML=`${currentUser.name} (${currentUser.role==='admin'?'مدير':'مشاهد'})`;if(!hasPermission('all')){const fab=document.getElementById('fab-btn');if(fab)fab.style.display='none';['add-fuel-btn','add-maintenance-btn','add-inventory-btn','order-report-btn','meter-update-btn'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.style.display='none'});const s=document.createElement('style');s.textContent='.save-btn.danger-btn,button[onclick*="deleteFromFirebase"],button[onclick*="editEquipment"],button[onclick*="editDriver"],button[onclick*="editInventoryItem"],.qty-btn,.fab{display:none!important}.filter-card .qty-btn,.inventory-item-card .qty-btn,.equipment-card .qty-btn{display:none!important}';document.head.appendChild(s)}loadNotifSettings();initFirebase();}
 function logout(){currentUser=null;document.getElementById('app-container').style.display='none';document.getElementById('login-screen').style.display='flex'}
 function hasPermission(p){if(!currentUser)return false;if(currentUser.permissions.includes('all'))return true;return currentUser.permissions.includes(p)}
 function initFirebase(){try{if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);fbDb=firebase.database();fbDb.goOnline();firebase.auth().signInAnonymously().then(()=>console.log('✅ تم تسجيل الدخول')).catch(console.error);fbDb.ref('.info/connected').on('value',(s)=>{const div=document.getElementById('sync-status');if(s.val()){if(div)div.innerHTML='🟢 متصل - مزامنة فورية'}else{if(div)div.innerHTML='🔴 غير متصل - بيانات محلية'}});fbDb.ref('equipment').on('value',(s)=>{const d=s.val();if(d){equipmentData=Object.entries(d).map(([id,eq])=>({...eq,id}));console.log('تم تحميل المعدات:',equipmentData.length)}refreshUI()});fbDb.ref('drivers').on('value',(s)=>{const d=s.val();if(d)driversData=Object.entries(d).map(([id,dr])=>({...dr,id}));refreshUI();updateDriverSelects()});fbDb.ref('fuelRecords').on('value',(s)=>{const d=s.val();if(d)fuelData=Object.entries(d).map(([id,f])=>({...f,id}));refreshUI()});fbDb.ref('maintenanceSchedules').on('value',(s)=>{const d=s.val();if(d)maintenanceSchedules=Object.entries(d).map(([id,m])=>({...m,id}));refreshUI()});fbDb.ref('inventoryItems').on('value',(s)=>{const d=s.val();if(d)inventoryItems=Object.entries(d).map(([id,i])=>({...i,id}));refreshUI()});fbDb.ref('equipmentFilterLinks').on('value',(s)=>{const d=s.val();if(d)equipmentFilterLinks=Object.entries(d).map(([id,l])=>({...l,id}));refreshUI()});fbDb.ref('filterAlternatives').on('value',(s)=>{const d=s.val();if(d)filterAlternatives=Object.entries(d).map(([id,a])=>({...a,id}));refreshUI()});showToast('جاري تحميل البيانات...');setTimeout(()=>{if(equipmentData.length>0)showToast(`✅ تم تحميل ${equipmentData.length} معدة`);else showToast('⚠️ لا توجد بيانات، أضف معدات جديدة')},3000)}catch(e){console.error(e);showToast('خطأ في الاتصال')}}
@@ -286,6 +490,18 @@ function addAlternativeFilter(){const altFilterId=document.getElementById('new-a
 function removeAlternative(altId){if(confirm('هل أنت متأكد من إزالة هذا الفلتر البديل؟')){deleteFromFirebase('filterAlternatives',altId);setTimeout(()=>{renderAlternativesList()},500)}}
 function saveFilterAlternatives(){closeModal('filter-alternatives-modal');showToast('تم حفظ البدائل')}
 function renderInventory(){const cont=document.getElementById('inv-list');let filtered=inventoryItems;const cat=document.getElementById('category-filter')?.value;if(cat&&cat!=='all')filtered=inventoryItems.filter(i=>i.category===cat);const needs=calculateAllFiltersNeeded();const enhancedNeeds=calculateEnhancedOrderNeeds();cont.innerHTML=filtered.map(item=>{const total=totalQty(item),needed=needs[item.id]||0,shortage=Math.max(0,needed-total),linked=equipmentFilterLinks.filter(l=>l.filterPartNo===item.partNo).map(l=>{const eq=equipmentData.find(e=>e.code===l.equipmentId);return eq?{name:eq.name,code:eq.code,qty:l.quantityPerService}:null}).filter(Boolean);const alternatives=filterAlternatives.filter(alt=>alt.mainFilterId===item.id).map(alt=>{const altFilter=inventoryItems.find(i=>i.id===alt.alternativeFilterId);return altFilter?{name:altFilter.name,partNo:altFilter.partNo}:null}).filter(Boolean);const enhancedAvailable=enhancedNeeds[item.id]?.available||total;const enhancedShortage=enhancedNeeds[item.id]?.shortage||shortage;return`<div class="inventory-item-card" onclick="showInventoryItemDetail('${item.id}')"><div class="card-header"><div><div class="card-title">${item.name}</div><div class="card-code">${item.partNo} ${getCategoryBadge(item.category)}</div>${item.fullMaterial?`<div class="card-code" style="font-size:9px;color:var(--info);margin-top:3px">📋 ${item.fullMaterial.substring(0,50)}${item.fullMaterial.length>50?'...':''}</div>`:''}${item.category==='filter'?`<div style="font-size:10px;color:var(--info)">🔄 دورة ${item.interval||250} س</div>`:''}</div><span class="badge ${enhancedShortage>0?'badge-maintenance':'badge-working'}">${enhancedAvailable} ${item.unit}</span></div><div class="grid-3" style="margin-top:10px"><div><div class="detail-label">الأصلي</div><div class="detail-value">${item.qty}</div></div><div><div class="detail-label">البدائل</div><div class="detail-value">${(item.alts||[]).reduce((s,a)=>s+a.qty,0)}</div></div><div><div class="detail-label">الإجمالي</div><div class="detail-value">${total}</div></div></div>${item.fullDescription && item.fullDescription!==item.name?`<div style="font-size:10px;color:var(--gray);margin-top:5px;border-top:1px solid #eef2f6;padding-top:5px">📝 ${item.fullDescription.substring(0,80)}${item.fullDescription.length>80?'...':''}</div>`:''}${item.category==='filter'?`<div class="grid-3" style="margin-top:6px;background:${enhancedShortage>0?'#fee2e2':'#d1fae5'};padding:6px;border-radius:8px"><div><div class="detail-label">المطلوب (1000 س)</div><div class="detail-value" style="color:${enhancedShortage>0?'var(--danger)':'var(--success)'}">${needed}</div></div><div><div class="detail-label">النقص</div><div class="detail-value" style="color:${enhancedShortage>0?'var(--danger)':'var(--success)'}">${enhancedShortage>0?enhancedShortage:'✓'}</div></div></div>`:''}${alternatives.length?`<div style="margin-top:6px;font-size:10px;color:var(--purple)">🔄 بدائل مرتبطة: ${alternatives.map(a=>a.name).join(', ')}</div>`:''}${linked.length?`<div style="margin-top:6px;font-size:10px;color:var(--info)">🔗 يستخدم في: ${linked.map(l=>`${l.name} (${l.qty}/صيانة)`).join(', ')}</div>`:''}<div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button onclick="event.stopPropagation();adjustInventoryQty('${item.id}',-1)" class="qty-btn" style="background:var(--danger);color:white">-</button><span>${total} ${item.unit}</span><button onclick="event.stopPropagation();adjustInventoryQty('${item.id}',1)" class="qty-btn" style="background:var(--success);color:white">+</button>${item.category==='filter'?`<button onclick="event.stopPropagation();openLinkFilterModal('${item.id}')" class="qty-btn" style="background:var(--info);color:white;width:auto;padding:0 12px">🔗 ربط بمعدات</button><button onclick="event.stopPropagation();openFilterAlternativesModal('${item.id}')" class="qty-btn" style="background:var(--purple);color:white;width:auto;padding:0 12px">🔄 بدائل</button>`:''}</div><button onclick="event.stopPropagation();deleteFromFirebase('inventoryItems','${item.id}')" class="save-btn" style="margin:10px 0 0 0;background:#fee2e2;color:var(--danger)">🗑️ حذف</button></div>`}).join('');if(!filtered.length)cont.innerHTML='<div class="empty-state">لا توجد أصناف</div>'}
+// تحديث زر الإشعارات بعدد المعدات الحرجة
+(function(){
+    const threshold = (notifSettings && notifSettings.threshold) ? notifSettings.threshold : 50;
+    const critCount = equipmentData.filter(eq => eq.status !== 'متوقف' && hoursRemaining(eq) <= threshold).length;
+    const bellBtn = document.getElementById('notif-bell-btn');
+    if(bellBtn){
+        bellBtn.innerHTML = critCount > 0
+            ? `🔔 <span style="background:#ef4444;color:white;border-radius:10px;padding:1px 6px;font-size:11px">${critCount}</span>`
+            : '🔔 الإشعارات';
+    }
+})();
+autoCheckAlerts();
 function showInventoryItemDetail(id){const i=inventoryItems.find(i=>i.id===id);if(!i)return;const total=totalQty(i),needs=calculateAllFiltersNeeded(),needed=needs[i.id]||0,shortage=Math.max(0,needed-total),linked=equipmentFilterLinks.filter(l=>l.filterPartNo===i.partNo).map(l=>{const eq=equipmentData.find(e=>e.code===l.equipmentId);return eq?{name:eq.name,code:eq.code,interval:eq.interval,qty:l.quantityPerService}:null}).filter(Boolean);const alternatives=filterAlternatives.filter(alt=>alt.mainFilterId===i.id).map(alt=>{const altFilter=inventoryItems.find(f=>f.id===alt.alternativeFilterId);return altFilter?{name:altFilter.name,partNo:altFilter.partNo,qty:altFilter.qty}:null}).filter(Boolean);const enhancedAvailable=getTotalAvailableWithAlternatives(i.id);const enhancedShortage=Math.max(0,needed-enhancedAvailable);document.getElementById('detail-title').innerHTML=`📦 ${i.name}`;document.getElementById('detail-content').innerHTML=`<div class="detail-section"><div class="grid-2"><div><div class="detail-label">التصنيف</div><div class="detail-value">${getCategoryBadge(i.category)}</div></div><div><div class="detail-label">رقم القطعة</div><div class="detail-value">${i.partNo}</div></div><div><div class="detail-label">الكمية الأصلية</div><div class="detail-value">${i.qty} ${i.unit}</div></div><div><div class="detail-label">البدائل الداخلية</div><div class="detail-value">${(i.alts||[]).reduce((s,a)=>s+a.qty,0)} ${i.unit}</div></div><div><div class="detail-label">الإجمالي</div><div class="detail-value" style="color:${enhancedShortage>0?'var(--danger)':'var(--success)'}">${enhancedAvailable} ${i.unit}</div></div><div><div class="detail-label">الحد الأدنى</div><div class="detail-value">${i.minQty} ${i.unit}</div></div>${i.category==='filter'?`<div><div class="detail-label">دورة التغيير</div><div class="detail-value">كل ${i.interval||250} س</div></div><div><div class="detail-label">المطلوب (1000 س)</div><div class="detail-value">${needed} ${i.unit}</div></div><div><div class="detail-label">الحالة</div><div class="detail-value">${enhancedShortage>0?`⚠️ ناقص ${enhancedShortage}`:'✅ كافٍ'}</div></div>`:''}<div><div class="detail-label">السعر</div><div class="detail-value">${formatNumber(i.price)} ر.س</div></div></div></div>${i.fullMaterial?`<div class="detail-section"><div class="detail-label">📋 رقم المادة كاملاً (Material)</div><div class="detail-value" style="font-family:monospace;font-size:12px;word-break:break-word">${i.fullMaterial}</div></div>`:''}${i.fullDescription?`<div class="detail-section"><div class="detail-label">📝 الوصف كاملاً (Description)</div><div class="detail-value" style="font-size:12px;word-break:break-word">${i.fullDescription}</div></div>`:''}${i.fullUnit?`<div class="detail-section"><div class="detail-label">📏 الوحدة الأصلية (Unit)</div><div class="detail-value">${i.fullUnit}</div></div>`:''}${alternatives.length?`<div class="detail-section"><div class="detail-label">🔄 فلاتر بديلة مرتبطة</div>${alternatives.map(alt=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef2f6"><div><span style="font-weight:600">${alt.name}</span><br><span style="font-size:11px">${alt.partNo}</span></div><div><span class="detail-label">متوفر: ${alt.qty}</span></div></div>`).join('')}</div>`:''}${linked.length?`<div class="detail-section"><div class="detail-label">🔗 المعدات المستخدمة</div>${linked.map(l=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef2f6"><div><span style="font-weight:600">🏗️ ${l.name}</span><br><span style="font-size:11px">${l.code}</span></div><div style="text-align:left"><div class="detail-label">الكمية/صيانة</div><div class="detail-value">${l.qty}</div><div class="detail-label">دورة المعدة</div><div class="detail-value">كل ${l.interval} س</div></div></div>`).join('')}</div>`:''}${i.notes?`<div class="detail-section"><div class="detail-label">ملاحظات</div><div class="detail-value">${i.notes}</div></div>`:''}<div class="grid-2" style="margin:12px 14px"><button class="save-btn" style="margin:0;background:var(--accent)" onclick="editInventoryItem('${i.id}')">✏️ تعديل</button><button class="save-btn" style="margin:0;background:var(--danger)" onclick="deleteFromFirebase('inventoryItems','${i.id}')">🗑️ حذف</button></div>`;document.getElementById('detail-modal').classList.add('active')}
 function generateOrderReport(){const needs=calculateEnhancedOrderNeeds();const shortages=Object.values(needs).filter(n=>n.shortage>0);const totalCost=shortages.reduce((s,i)=>s+(i.shortage*(inventoryItems.find(f=>f.id===i.id)?.price||0)),0);document.getElementById('order-report-content').innerHTML=`<div style="background:white;border-radius:16px;padding:16px"><div style="font-weight:800">📋 تقرير الطلبية (لـ 1000 س)</div><div style="font-size:12px;color:var(--gray);margin:8px 0">📅 ${new Date().toLocaleDateString('ar-SA')}</div><div class="grid-2" style="margin:15px 0;background:#eef2f6;padding:10px;border-radius:12px"><div>عدد الفلاتر الناقصة: ${shortages.length}</div><div>التكلفة التقديرية: ${formatNumber(Math.round(totalCost))} ر.س</div></div>${shortages.length===0?'<div class="empty-state">🎉 لا توجد فلاتر ناقصة (بعد حساب البدائل)</div>':shortages.map(i=>`<div style="border-bottom:1px solid #eef2f6;padding:12px 0"><div style="font-weight:700">${i.name}</div><div>${i.partNo} | متوفر: ${i.available} | مطلوب: ${i.needed} | <span style="color:var(--danger)">ناقص: ${i.shortage}</span></div>${i.alternatives.length?`<div style="font-size:11px;color:var(--purple);margin-top:4px">🔄 بدائل مرتبطة: ${i.alternatives.map(a=>`${a.name} (${a.qty})`).join(', ')}</div>`:''}</div>`).join('')}</div>`;document.getElementById('order-report-modal').classList.add('active')}
 function exportOrderToExcel(){const needs=calculateEnhancedOrderNeeds();const data=Object.values(needs).filter(n=>n.shortage>0).map(i=>({'اسم الفلتر':i.name,'رقم القطعة':i.partNo,'المتوفر':i.available,'المطلوب':i.needed,'الناقص':i.shortage,'السعر':inventoryItems.find(f=>f.id===i.id)?.price||0,'التكلفة':i.shortage*(inventoryItems.find(f=>f.id===i.id)?.price||0)}));const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'طلبية');XLSX.writeFile(wb,`طلبيه_${new Date().toISOString().split('T')[0]}.xlsx`);showToast('تم التصدير')}
@@ -601,7 +817,7 @@ function finalizeImport(){document.getElementById('import-progress-text').innerH
 function cancelImport(){pendingImportData=null;document.getElementById('import-preview').style.display='none';document.getElementById('excel-file-input').value='';showToast('تم إلغاء الاستيراد')}
 
 // ربط الدوال
-window.openAddEquipmentModal=openAddEquipmentModal;window.openAddDriverModal=openAddDriverModal;window.openAddFuelModal=openAddFuelModal;window.openAddMaintenanceModal=openAddMaintenanceModal;window.openAddInventoryItemModal=openAddInventoryItemModal;window.openEquipmentDetail=openEquipmentDetail;window.openDriverDetail=openDriverDetail;window.closeModal=closeModal;window.openMeterUpdate=openMeterUpdate;window.updateSingleMeter=updateSingleMeter;window.saveAllMeters=saveAllMeters;window.deleteFromFirebase=deleteFromFirebase;window.saveEquipment=saveEquipment;window.saveDriver=saveDriver;window.saveFuelRecord=saveFuelRecord;window.saveMaintenanceSchedule=saveMaintenanceSchedule;window.editEquipment=editEquipment;window.editDriver=editDriver;window.completeMaintenance=completeMaintenance;window.showMaintenanceDetail=showMaintenanceDetail;window.editInventoryItem=editInventoryItem;window.adjustInventoryQty=adjustInventoryQty;window.filterInventory=filterInventory;window.generateOrderReport=generateOrderReport;window.exportOrderToExcel=exportOrderToExcel;window.sendOrderViaWhatsApp=sendOrderViaWhatsApp;window.addInvAltField=addInvAltField;window.openLinkFilterModal=openLinkFilterModal;window.saveFilterLink=saveFilterLink;window.updateSingleMeterFromHome=updateSingleMeterFromHome;window.logout=logout;window.switchView=switchView;window.forceRefreshData=forceRefreshData;window.directLogin=directLogin;window.secureLogin=secureLogin;window.setLoginMode=setLoginMode;window.saveLoginMode=saveLoginMode;window.handleFileUpload=handleFileUpload;window.confirmImport=confirmImport;window.cancelImport=cancelImport;window.openEditFuelModal=openEditFuelModal;window.updateFuelRecord=updateFuelRecord;window.deleteFuelRecord=deleteFuelRecord;window.handleInventoryFileUpload=handleInventoryFileUpload;window.confirmInventoryImport=confirmInventoryImport;window.cancelInventoryImport=cancelInventoryImport;window.openFilterAlternativesModal=openFilterAlternativesModal;window.addAlternativeFilter=addAlternativeFilter;window.removeAlternative=removeAlternative;window.saveFilterAlternatives=saveFilterAlternatives;
+window.openAddEquipmentModal=openAddEquipmentModal;window.openAddDriverModal=openAddDriverModal;window.openAddFuelModal=openAddFuelModal;window.openAddMaintenanceModal=openAddMaintenanceModal;window.openAddInventoryItemModal=openAddInventoryItemModal;window.openEquipmentDetail=openEquipmentDetail;window.openDriverDetail=openDriverDetail;window.closeModal=closeModal;window.openMeterUpdate=openMeterUpdate;window.updateSingleMeter=updateSingleMeter;window.saveAllMeters=saveAllMeters;window.deleteFromFirebase=deleteFromFirebase;window.saveEquipment=saveEquipment;window.saveDriver=saveDriver;window.saveFuelRecord=saveFuelRecord;window.saveMaintenanceSchedule=saveMaintenanceSchedule;window.editEquipment=editEquipment;window.editDriver=editDriver;window.completeMaintenance=completeMaintenance;window.showMaintenanceDetail=showMaintenanceDetail;window.editInventoryItem=editInventoryItem;window.adjustInventoryQty=adjustInventoryQty;window.filterInventory=filterInventory;window.generateOrderReport=generateOrderReport;window.exportOrderToExcel=exportOrderToExcel;window.sendOrderViaWhatsApp=sendOrderViaWhatsApp;window.addInvAltField=addInvAltField;window.openLinkFilterModal=openLinkFilterModal;window.saveFilterLink=saveFilterLink;window.updateSingleMeterFromHome=updateSingleMeterFromHome;window.logout=logout;window.switchView=switchView;window.forceRefreshData=forceRefreshData;window.directLogin=directLogin;window.secureLogin=secureLogin;window.setLoginMode=setLoginMode;window.saveLoginMode=saveLoginMode;window.handleFileUpload=handleFileUpload;window.confirmImport=confirmImport;window.cancelImport=cancelImport;window.openEditFuelModal=openEditFuelModal;window.updateFuelRecord=updateFuelRecord;window.deleteFuelRecord=deleteFuelRecord;window.handleInventoryFileUpload=handleInventoryFileUpload;window.confirmInventoryImport=confirmInventoryImport;window.cancelInventoryImport=cancelInventoryImport;window.openFilterAlternativesModal=openFilterAlternativesModal;window.addAlternativeFilter=addAlternativeFilter;window.removeAlternative=removeAlternative;window.saveFilterAlternatives=saveFilterAlternatives;window.openNotifSettings=openNotifSettings;window.enableBrowserNotifications=enableBrowserNotifications;window.saveNotifSettings=saveNotifSettings;window.sendWhatsAppMaintenanceAlert=sendWhatsAppMaintenanceAlert;window.checkMaintenanceAlerts=checkMaintenanceAlerts;
 loadSavedSettings();
 </script>
 </body>
