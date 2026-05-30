@@ -276,7 +276,7 @@ function getInvAltsValues(){const a=[];for(let i=1;i<=invAltCount;i++){const pn=
 function openAddInventoryItemModal(){if(!hasPermission('all')){showToast('غير مصرح');return}editingInventoryId=null;invAltCount=0;document.getElementById('inv-item-title').innerHTML='📦 إضافة صنف جديد';['inv-name','inv-partno','inv-qty','inv-min-qty','inv-price','inv-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});document.getElementById('inv-category').value='filter';document.getElementById('inv-unit').value='قطعة';document.getElementById('inv-interval').value='250';document.getElementById('inv-alt-list').innerHTML='';document.getElementById('inventory-item-modal').classList.add('active')}
 function saveInventoryItem(){const alts=getInvAltsValues(),item={category:document.getElementById('inv-category').value,name:document.getElementById('inv-name').value.trim(),partNo:document.getElementById('inv-partno').value.trim(),qty:parseInt(document.getElementById('inv-qty').value)||0,minQty:parseInt(document.getElementById('inv-min-qty').value)||5,price:parseFloat(document.getElementById('inv-price').value)||0,unit:document.getElementById('inv-unit').value,interval:parseInt(document.getElementById('inv-interval').value)||250,notes:document.getElementById('inv-notes').value,alts:alts,updatedAt:new Date().toISOString()};if(!item.name||!item.partNo){showToast('أدخل الاسم ورقم القطعة');return}if(editingInventoryId){saveToFirebase('inventoryItems',{...item,id:editingInventoryId});showToast('تم تحديث الصنف')}else{item.createdAt=new Date().toISOString();saveToFirebase('inventoryItems',item);showToast('تم إضافة الصنف')}closeModal('inventory-item-modal')}
 function editInventoryItem(id){const i=inventoryItems.find(i=>i.id===id);if(!i)return;editingInventoryId=id;invAltCount=0;document.getElementById('inv-item-title').innerHTML='✏️ تعديل صنف';document.getElementById('inv-category').value=i.category||'filter';document.getElementById('inv-name').value=i.name||'';document.getElementById('inv-partno').value=i.partNo||'';document.getElementById('inv-qty').value=i.qty||0;document.getElementById('inv-min-qty').value=i.minQty||5;document.getElementById('inv-price').value=i.price||0;document.getElementById('inv-unit').value=i.unit||'قطعة';document.getElementById('inv-interval').value=i.interval||250;document.getElementById('inv-notes').value=i.notes||'';document.getElementById('inv-alt-list').innerHTML='';(i.alts||[]).forEach(alt=>{invAltCount++;const d=document.createElement('div');d.id=`inv-alt-${invAltCount}`;d.style.cssText='display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:8px;background:#f8fafc;padding:8px;border-radius:12px';d.innerHTML=`<input class="form-input" id="inv-alt-pn-${invAltCount}" value="${alt.partNo}" style="background:white;border-radius:8px;padding:8px;border:1px solid #e2e8f0"><input class="form-input" type="number" id="inv-alt-qty-${invAltCount}" value="${alt.qty}" style="background:white;border-radius:8px;padding:8px;border:1px solid #e2e8f0"><button onclick="document.getElementById('inv-alt-${invAltCount}').remove()" style="background:#fee2e2;border:none;border-radius:8px;padding:8px">×</button>`;document.getElementById('inv-alt-list').appendChild(d)});closeModal('detail-modal');document.getElementById('inventory-item-modal').classList.add('active')}
-function adjustInventoryQty(id,delta){const i=inventoryItems.find(i=>i.id===id);if(i){i.qty=Math.max(0,(i.qty||0)+delta);saveToFirebase('inventoryItems',i)}}
+function adjustInventoryQty(id,delta){const i=inventoryItems.find(i=>i.id===id);if(i){i.qty=Math.max(0,(i.qty||0)+delta);saveToFirebase('inventoryItems',i);renderInventory()}}
 function filterInventory(){currentCategoryFilter=document.getElementById('category-filter').value;renderInventory()}
 function openLinkFilterModal(itemId){if(!hasPermission('all')){showToast('غير مصرح');return}currentLinkingItem=inventoryItems.find(i=>i.id===itemId);if(!currentLinkingItem)return;document.getElementById('link-filter-content').innerHTML=`<div style="background:white;border-radius:16px;padding:14px;margin-bottom:16px"><div style="font-weight:700">🔧 ${currentLinkingItem.name}</div><div style="font-size:12px;color:var(--gray)">${currentLinkingItem.partNo}</div><div style="font-size:12px;color:var(--info)">دورة التغيير: كل ${currentLinkingItem.interval||250} س</div></div><div id="link-eq-checkboxes"></div>`;const c=document.getElementById('link-eq-checkboxes');c.innerHTML=equipmentData.map(eq=>{const existing=equipmentFilterLinks.find(l=>l.equipmentId===eq.code&&l.filterPartNo===currentLinkingItem.partNo);return`<label style="display:flex;align-items:center;gap:12px;padding:12px;background:white;border-radius:14px;margin-bottom:8px;border:1px solid #eef2f6"><input type="checkbox" id="link-eq-${eq.id}" value="${eq.code}" ${existing?'checked':''} style="width:20px;height:20px"><div style="flex:1"><div style="font-weight:700">${eq.name}</div><div style="font-size:11px;color:var(--gray)">${eq.code} | دورة: ${eq.interval||250} س</div></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px">الكمية/صيانة:</span><input type="number" id="qty-${eq.id}" value="${existing?.quantityPerService||1}" style="width:60px;border:1px solid #e2e8f0;border-radius:8px;padding:6px;text-align:center" min="1"></div></label>`}).join('');if(equipmentData.length===0)c.innerHTML='<div class="empty-state">لا توجد معدات</div>';document.getElementById('link-filter-modal').classList.add('active')}
 function saveFilterLink(){if(!currentLinkingItem)return;equipmentData.forEach(eq=>{const cb=document.getElementById(`link-eq-${eq.id}`),qty=parseInt(document.getElementById(`qty-${eq.id}`)?.value)||1,existing=equipmentFilterLinks.find(l=>l.equipmentId===eq.code&&l.filterPartNo===currentLinkingItem.partNo);if(cb?.checked&&!existing){saveToFirebase('equipmentFilterLinks',{equipmentId:eq.code,filterPartNo:currentLinkingItem.partNo,filterName:currentLinkingItem.name,filterInterval:currentLinkingItem.interval||250,quantityPerService:qty,createdAt:new Date().toISOString()})}else if(!cb?.checked&&existing){deleteFromFirebase('equipmentFilterLinks',existing.id)}else if(cb?.checked&&existing&&existing.quantityPerService!==qty){saveToFirebase('equipmentFilterLinks',{...existing,quantityPerService:qty})}});closeModal('link-filter-modal');showToast('تم تحديث الربط')}
@@ -297,7 +297,7 @@ function switchView(v){document.getElementById('view-home').style.display=v==='h
 let pendingImportData=null;
 let pendingInventoryData=null;
 
-// ==================== دوال استيراد المخزون SOH (أول 4 أعمدة كاملة) ====================
+// ==================== دوال استيراد المخزون SOH ====================
 
 function handleInventoryFileUpload(input) {
     const file = input.files[0];
@@ -329,41 +329,34 @@ function handleInventoryFileUpload(input) {
             
             const cleanRows = [];
             
-            // البدء من الصف 1 (بعد الرؤوس)
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
                 if (!row) continue;
                 
-                // قراءة أول 4 أعمدة كاملة
                 const colA = (row[0] !== undefined && row[0] !== null) ? String(row[0]).trim() : '';
                 const colB = (row[1] !== undefined && row[1] !== null) ? String(row[1]).trim() : '';
                 const colC = (row[2] !== undefined && row[2] !== null) ? String(row[2]).trim() : '';
                 let colD = 0;
                 
-                // قراءة الكمية من العمود الرابع (index 3)
                 if (row[3] !== undefined && row[3] !== null) {
                     if (typeof row[3] === 'number') {
                         colD = row[3];
                     } else {
-                        colD = parseFloat(String(row[3]).replace(/[^\d.-]/g, '')) || 0;
+                        const cleanNumber = String(row[3]).replace(/[^\d.-]/g, '');
+                        colD = parseFloat(cleanNumber) || 0;
                     }
                 }
                 
-                // تخطي الصفوف الفارغة
                 if (colA === '' && colB === '') continue;
                 
-                // تخطي صفوف الإجماليات
                 const isTotal = colA.includes('الاجمالي') || colA.includes('إجمالي') || 
                                colA.toLowerCase().includes('total') ||
                                colB.includes('الاجمالي') || colB.includes('إجمالي') ||
                                colB.toLowerCase().includes('total');
                 
                 if (isTotal) continue;
-                
-                // تخطي الكميات الصفرية
                 if (colD <= 0) continue;
                 
-                // استخراج رقم قطعة مختصر للبحث (آخر جزء بعد النقاط)
                 let shortPartNo = colA;
                 if (colA.includes('.')) {
                     const parts = colA.split('.');
@@ -375,14 +368,12 @@ function handleInventoryFileUpload(input) {
                     if (shortPartNo === '') shortPartNo = `ITEM_${i}`;
                 }
                 
-                // تحديد الوحدة المناسبة للعرض
                 let displayUnit = colC;
                 if (displayUnit === 'L' || displayUnit === 'لتر') displayUnit = 'لتر';
                 else if (displayUnit === 'KG' || displayUnit === 'كجم') displayUnit = 'كجم';
                 else if (displayUnit === 'EA' || displayUnit === 'قطعة') displayUnit = 'قطعة';
                 else if (!displayUnit || displayUnit === '') displayUnit = 'قطعة';
                 
-                // تحديد التصنيف
                 let category = 'spare';
                 const descLower = colB.toLowerCase();
                 if (descLower.includes('فلتر') || descLower.includes('filter')) {
@@ -437,14 +428,14 @@ function displayInventoryPreview(items) {
         if (item.quantity <= 0) continue;
         totalQty += item.quantity;
         
-        // البحث عن صنف مطابق
         let existing = inventoryItems.find(i => i.partNo === item.shortPartNo);
         
         if (!existing) {
-            existing = inventoryItems.find(i => 
-                i.fullMaterial === item.fullMaterial ||
-                i.fullDescription === item.fullDescription
-            );
+            existing = inventoryItems.find(i => i.fullMaterial === item.fullMaterial);
+        }
+        
+        if (!existing) {
+            existing = inventoryItems.find(i => i.fullDescription === item.fullDescription);
         }
         
         if (existing) {
@@ -482,27 +473,17 @@ function displayInventoryPreview(items) {
             <div class="stat-card"><div class="stat-number">${newCount}</div><div class="stat-label">أصناف جديدة</div></div>
             <div class="stat-card"><div class="stat-number">${formatNumber(totalQty)}</div><div class="stat-label">إجمالي القطع</div></div>
         </div>
-        <div style="font-size:12px; background:#eef2ff; padding:8px; border-radius:12px; margin:8px 0; text-align:center">
-            📋 <strong>تفاصيل الأعمدة الأربعة الأولى</strong> (العمود A | العمود B | العمود C | العمود D)
-        </div>
         <div style="max-height:300px; overflow:auto; font-size:11px; border:1px solid #e2e8f0; border-radius:12px">
             <table style="width:100%; border-collapse:collapse">
                 <thead style="position:sticky; top:0; background:var(--primary); color:white">
-                    <tr>
-                        <th style="padding:8px; text-align:right">#</th>
-                        <th style="padding:8px; text-align:right">العمود A (Material)</th>
-                        <th style="padding:8px; text-align:right">العمود B (Description)</th>
-                        <th style="padding:8px; text-align:center">العمود C (Unit)</th>
-                        <th style="padding:8px; text-align:center">العمود D (Qty)</th>
-                        <th style="padding:8px; text-align:center">الحالة</th>
-                    </tr>
+                    <tr><th style="padding:8px">#</th><th style="padding:8px">العمود A</th><th style="padding:8px">العمود B</th><th style="padding:8px">الوحدة</th><th style="padding:8px">الكمية</th><th style="padding:8px">الحالة</th></tr>
                 </thead>
                 <tbody>
                     ${itemsToUpdate.slice(0, 50).map((item, idx) => `
                         <tr style="border-bottom:1px solid #e2e8f0; ${item.isNew ? 'background:#f0fdf4' : ''}">
                             <td style="padding:8px; text-align:center">${idx + 1}</td>
-                            <td style="padding:8px; text-align:right; font-family:monospace; font-size:10px; max-width:120px; word-break:break-word" title="${item.fullMaterial}">${item.fullMaterial.substring(0, 45)}${item.fullMaterial.length > 45 ? '...' : ''}</td>
-                            <td style="padding:8px; text-align:right; max-width:150px; word-break:break-word" title="${item.fullDescription}">${item.fullDescription.substring(0, 55)}${item.fullDescription.length > 55 ? '...' : ''}</td>
+                            <td style="padding:8px; font-family:monospace; font-size:10px; max-width:120px; word-break:break-word">${item.fullMaterial.substring(0, 40)}${item.fullMaterial.length > 40 ? '...' : ''}</td>
+                            <td style="padding:8px; max-width:150px; word-break:break-word">${item.fullDescription.substring(0, 50)}${item.fullDescription.length > 50 ? '...' : ''}</td>
                             <td style="padding:8px; text-align:center">${item.fullUnit || item.displayUnit}</td>
                             <td style="padding:8px; text-align:center; font-weight:bold; ${!item.isNew && item.oldQty !== item.newQty ? 'color:#f59e0b' : ''}">${!item.isNew ? `${item.oldQty} → ${item.newQty}` : item.qty}</td>
                             <td style="padding:8px; text-align:center"><span style="background:${item.isNew ? '#10b981' : '#f59e0b'}; color:white; padding:2px 8px; border-radius:20px; font-size:10px">${item.isNew ? 'جديد' : (item.oldQty !== item.newQty ? 'تحديث' : 'مطابق')}</span></td>
@@ -511,9 +492,6 @@ function displayInventoryPreview(items) {
                 </tbody>
             </table>
             ${itemsToUpdate.length > 50 ? `<div style="padding:10px; text-align:center; background:#f8fafc; color:gray">...و${itemsToUpdate.length - 50} صنف آخر</div>` : ''}
-        </div>
-        <div style="margin-top:12px; padding:8px; background:#fef3c7; border-radius:8px; font-size:11px">
-            ✅ سيتم حفظ <strong>الأعمدة الأربعة كاملة</strong> (Material, Description, Unit, Quantity) في قاعدة البيانات.
         </div>
     `;
     document.getElementById('inventory-import-preview').style.display = 'block';
@@ -527,40 +505,37 @@ function confirmInventoryImport() {
     
     let updated = 0;
     let created = 0;
+    let errors = 0;
     
     showToast('🔄 جاري حفظ البيانات...');
     
     for (const item of pendingInventoryData) {
         if (item.quantity <= 0) continue;
         
-        // البحث عن صنف مطابق
-        let existing = inventoryItems.find(i => i.partNo === item.shortPartNo);
-        
-        if (!existing) {
-            existing = inventoryItems.find(i => 
-                i.fullMaterial === item.fullMaterial ||
-                i.fullDescription === item.fullDescription
-            );
-        }
-        
-        if (!existing && item.shortPartNo.length >= 4) {
-            existing = inventoryItems.find(i => 
-                i.partNo === item.shortPartNo ||
-                (i.partNo && i.partNo.includes(item.shortPartNo)) || 
-                (item.shortPartNo && item.shortPartNo.includes(i.partNo))
-            );
-        }
-        
         try {
+            let existing = inventoryItems.find(i => i.partNo === item.shortPartNo);
+            
+            if (!existing) {
+                existing = inventoryItems.find(i => i.fullMaterial === item.fullMaterial);
+            }
+            
+            if (!existing) {
+                existing = inventoryItems.find(i => i.fullDescription === item.fullDescription);
+            }
+            
             if (existing) {
                 // تحديث الصنف الموجود
-                existing.qty = item.quantity;
-                existing.fullMaterial = item.fullMaterial;
-                existing.fullDescription = item.fullDescription;
-                existing.fullUnit = item.fullUnit;
-                existing.updatedAt = new Date().toISOString();
-                saveToFirebase('inventoryItems', existing);
+                const updatedItem = {
+                    ...existing,
+                    qty: item.quantity,
+                    fullMaterial: item.fullMaterial,
+                    fullDescription: item.fullDescription,
+                    fullUnit: item.fullUnit,
+                    updatedAt: new Date().toISOString()
+                };
+                saveToFirebase('inventoryItems', updatedItem);
                 updated++;
+                console.log(`تم تحديث: ${existing.name} - الكمية الجديدة: ${item.quantity}`);
             } else {
                 // إضافة صنف جديد
                 const newItem = {
@@ -582,17 +557,22 @@ function confirmInventoryImport() {
                 };
                 saveToFirebase('inventoryItems', newItem);
                 created++;
+                console.log(`تم إضافة صنف جديد: ${item.fullDescription} - الكمية: ${item.quantity}`);
             }
         } catch (err) {
             console.error('خطأ في الحفظ:', err);
+            errors++;
         }
     }
     
-    showToast(`✅ تم الاستيراد: تحديث ${updated} صنف، إضافة ${created} صنف جديد`);
+    showToast(`✅ تم الاستيراد: تحديث ${updated} صنف، إضافة ${created} صنف جديد${errors > 0 ? `، ${errors} خطأ` : ''}`);
     document.getElementById('inventory-import-preview').style.display = 'none';
     pendingInventoryData = null;
     document.getElementById('inventory-excel-input').value = '';
-    forceRefreshData();
+    
+    setTimeout(() => {
+        forceRefreshData();
+    }, 500);
 }
 
 function cancelInventoryImport() {
@@ -602,7 +582,7 @@ function cancelInventoryImport() {
     showToast('تم إلغاء استيراد المخزون');
 }
 
-// ==================== دوال استيراد المعدات والوقود (بدون تغيير) ====================
+// ==================== دوال استيراد المعدات والوقود ====================
 
 function handleFileUpload(input){const file=input.files[0];if(!file){showToast('الرجاء اختيار ملف');return}const reader=new FileReader();reader.onload=function(e){const data=new Uint8Array(e.target.result);const workbook=XLSX.read(data,{type:'array'});const sheets={};workbook.SheetNames.forEach(name=>{const sheet=workbook.Sheets[name];sheets[name]=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''})});pendingImportData=sheets;displayImportPreview(sheets);showToast('تم قراءة الملف بنجاح')};reader.readAsArrayBuffer(file)}
 function displayImportPreview(sheets){const previewDiv=document.getElementById('preview-content');let html='<h4>📊 ملخص البيانات المستوردة:</h4><div class="grid-3" style="margin:10px 0">';let totalEquipment=0,totalFuel=0,totalParts=0;if(sheets['معدات الموقع']){const eqSheet=sheets['معدات الموقع'];if(eqSheet.length>6)totalEquipment=eqSheet.length-6}if(sheets['متابعه الوقود']){const fuelSheet=sheets['متابعه الوقود'];if(fuelSheet.length>7)totalFuel=fuelSheet.length-7}if(sheets['متابعه المنصرف من المخزن']){const partsSheet=sheets['متابعه المنصرف من المخزن'];if(partsSheet.length>7)totalParts=partsSheet.length-7}html+=`<div class="stat-card"><div class="stat-number">${totalEquipment}</div><div class="stat-label">معدات</div></div><div class="stat-card"><div class="stat-number">${totalFuel}</div><div class="stat-label">تزودات</div></div><div class="stat-card"><div class="stat-number">${totalParts}</div><div class="stat-label">قطع غيار</div></div>`;html+='</div><hr>';if(totalEquipment>0)html+=`<div class="status-badge status-success" style="margin:5px">✅ سيتم تحديث ${totalEquipment} معدة (العدادات، مواعيد الصيانة)</div>`;if(totalFuel>0)html+=`<div class="status-badge status-success" style="margin:5px">⛽ سيتم إضافة ${totalFuel} سجل تزود وقود</div>`;if(totalParts>0)html+=`<div class="status-badge status-warning" style="margin:5px">📦 سيتم تسجيل ${totalParts} قطعة غيار منصرفة</div>`;previewDiv.innerHTML=html;document.getElementById('import-preview').style.display='block'}
