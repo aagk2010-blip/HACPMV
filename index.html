@@ -357,16 +357,8 @@ function handleInventoryFileUpload(input) {
                 if (isTotal) continue;
                 if (colD <= 0) continue;
                 
-                let shortPartNo = colA;
-                if (colA.includes('.')) {
-                    const parts = colA.split('.');
-                    shortPartNo = parts[parts.length - 1];
-                }
-                shortPartNo = shortPartNo.replace(/[^\w\-]/g, '').substring(0, 35);
-                if (shortPartNo === '' || shortPartNo.length < 2) {
-                    shortPartNo = colB.replace(/[^a-zA-Z0-9\-]/g, '').substring(0, 25);
-                    if (shortPartNo === '') shortPartNo = `ITEM_${i}`;
-                }
+                // رقم القطعة = العمود الأول كامل (Material)
+                let shortPartNo = colA.trim() || `ITEM_${i}`;
                 
                 let displayUnit = colC;
                 if (displayUnit === 'L' || displayUnit === 'لتر') displayUnit = 'لتر';
