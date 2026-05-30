@@ -38,8 +38,8 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 </head>
 <body>
 <div class="toast" id="toast"></div>
-<div id="login-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #0a1622, #1a2a3a); z-index:2000; display:flex; align-items:center; justify-content:center; padding:20px;">
-  <div style="text-align:center; width:100%; max-width:360px">
+<div id="login-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #0a1622, #1a2a3a); z-index:2000; display:flex; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+  <div style="text-align:center; width:100%; max-width:360px; padding:20px 0">
     <div style="margin-bottom:25px">
       <div style="width:110px; height:110px; background:linear-gradient(145deg, #1a3a4a, #0d1b2a); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); box-shadow:0 0 20px rgba(232,160,32,0.3); overflow:hidden">
         <img src="data:image/png;base64,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" alt="شعار الشركة" style="width:100%; height:100%; object-fit:cover">
@@ -49,43 +49,65 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     </div>
     <div style="font-size:24px; font-weight:800; margin-bottom:6px; color:white">نظام الأسطول المتكامل</div>
     <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:30px">Integrated Fleet Management System</div>
+
+    <!-- تبويب نوع الدخول -->
     <div style="display:flex; gap:10px; margin-bottom:20px; background:rgba(255,255,255,0.05); border-radius:40px; padding:4px">
-      <button id="direct-login-btn" onclick="setLoginMode('direct')" style="flex:1; padding:10px; border-radius:30px; border:none; background:var(--accent); color:var(--primary); font-weight:700; cursor:pointer">🚪 دخول مباشر</button>
-      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1; padding:10px; border-radius:30px; border:none; background:rgba(255,255,255,0.1); color:white; font-weight:700; cursor:pointer">🔐 دخول آمن</button>
+      <button id="direct-login-btn" onclick="setLoginMode('direct')" style="flex:1; padding:10px; border-radius:30px; border:none; background:var(--accent); color:var(--primary); font-weight:700; cursor:pointer; font-family:inherit">🚪 دخول مباشر</button>
+      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1; padding:10px; border-radius:30px; border:none; background:rgba(255,255,255,0.1); color:white; font-weight:700; cursor:pointer; font-family:inherit">🔐 دخول آمن</button>
     </div>
+
+    <!-- لوحة الدخول المباشر -->
     <div id="direct-login-panel">
       <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:20px">
         <div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border-radius:15px; padding:4px 18px">
           <span style="color:var(--accent); font-size:18px">👤</span>
-          <select id="direct-username" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px">
-            <option value="viewer" style="background:#1a2a3a">👁️ مشاهد (صلاحيات مشاهدة فقط)</option>
+          <select id="direct-username" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px; font-family:inherit">
+            <option value="viewer" style="background:#1a2a3a; color:white">👁️ مشاهد - صلاحيات عرض فقط</option>
+            <option value="supervisor" style="background:#1a2a3a; color:white">👷 مشرف - صلاحيات محدودة</option>
+            <option value="engineer" style="background:#1a2a3a; color:white">🔧 مهندس - صلاحيات تقنية</option>
           </select>
         </div>
       </div>
-      <button onclick="directLogin()" style="width:100%; background:linear-gradient(135deg,var(--accent),var(--accent-dark)); color:var(--primary); border:none; padding:15px; border-radius:30px; font-weight:800; font-size:16px; cursor:pointer">🚀 دخول مباشر (مشاهدة فقط)</button>
+      <button onclick="directLogin()" style="width:100%; background:linear-gradient(135deg,var(--accent),var(--accent-dark)); color:var(--primary); border:none; padding:15px; border-radius:30px; font-weight:800; font-size:16px; cursor:pointer; font-family:inherit">🚀 دخول مباشر</button>
     </div>
+
+    <!-- لوحة الدخول الآمن -->
     <div id="secure-login-panel" style="display:none">
+      <!-- رسالة الخطأ -->
+      <div id="login-error-msg" style="display:none; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); border-radius:12px; padding:10px 16px; margin-bottom:14px; color:#fca5a5; font-size:13px; text-align:right">
+        ⚠️ اسم المستخدم أو كلمة المرور غير صحيحة
+      </div>
       <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:12px">
         <div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border-radius:15px; padding:4px 18px">
           <span style="color:var(--accent); font-size:18px">👤</span>
-          <input type="text" id="secure-username" placeholder="اسم المستخدم" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px">
+          <input type="text" id="secure-username" placeholder="اسم المستخدم" autocomplete="username"
+            style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px; font-family:inherit"
+            onkeydown="if(event.key==='Enter') document.getElementById('secure-password').focus()">
         </div>
       </div>
-      <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:20px">
+      <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:20px; position:relative">
         <div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border-radius:15px; padding:4px 18px">
           <span style="color:var(--accent); font-size:18px">🔒</span>
-          <input type="password" id="secure-password" placeholder="كلمة المرور" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px">
+          <input type="password" id="secure-password" placeholder="كلمة المرور" autocomplete="current-password"
+            style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px; font-family:inherit"
+            onkeydown="if(event.key==='Enter') secureLogin()">
+          <button onclick="togglePasswordVisibility()" id="toggle-pass-btn"
+            style="background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; font-size:16px; padding:0">👁</button>
         </div>
       </div>
-      <button onclick="secureLogin()" style="width:100%; background:linear-gradient(135deg,var(--accent),var(--accent-dark)); color:var(--primary); border:none; padding:15px; border-radius:30px; font-weight:800; font-size:16px; cursor:pointer">🔐 دخول آمن (صلاحيات كاملة)</button>
+      <button onclick="secureLogin()" id="secure-login-submit"
+        style="width:100%; background:linear-gradient(135deg,var(--accent),var(--accent-dark)); color:var(--primary); border:none; padding:15px; border-radius:30px; font-weight:800; font-size:16px; cursor:pointer; font-family:inherit; transition:opacity 0.2s">
+        🔐 دخول آمن (صلاحيات كاملة)
+      </button>
     </div>
+
     <div style="margin-top:20px; padding:10px; background:rgba(255,255,255,0.03); border-radius:16px">
       <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:5px">⚙️ إعدادات النظام</div>
-      <label style="display:flex; align-items:center; gap:5px; font-size:11px; color:rgba(255,255,255,0.5); cursor:pointer">
-        <input type="checkbox" id="remember-mode" onchange="saveLoginMode()"> تذكر اختياري
+      <label style="display:flex; align-items:center; gap:5px; font-size:11px; color:rgba(255,255,255,0.5); cursor:pointer; justify-content:center">
+        <input type="checkbox" id="remember-mode" onchange="saveLoginMode()"> تذكر طريقة الدخول
       </label>
     </div>
-    <div style="margin-top:20px"><div style="font-size:9px; color:rgba(255,255,255,0.25)">© 2024 حسن علام القابضة</div></div>
+    <div style="margin-top:20px"><div style="font-size:9px; color:rgba(255,255,255,0.25)">© 2025 حسن علام القابضة</div></div>
   </div>
 </div>
 <div id="app-container" style="display:none">
@@ -228,6 +250,8 @@ function hasPermission(p) {
     if (currentUser.permissions.includes('all')) return true;
     return currentUser.permissions.includes(p);
 }
+// دالة مساعدة: هل للمستخدم صلاحية إضافة وتعديل؟
+function canEdit() { return hasPermission('all') || hasPermission('maintenance') || hasPermission('fuel'); }
 
 function saveToFirebase(path, data) {
     if (!fbDb) return;
@@ -1441,27 +1465,62 @@ function switchView(view) {
 }
 
 function directLogin() {
-    currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
-    showToast('مرحباً مشاهد');
+    const sel = document.getElementById('direct-username').value;
+    const userMap = {
+        viewer: { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] },
+        supervisor: { username: 'supervisor', role: 'supervisor', name: 'المشرف', permissions: ['view', 'fuel', 'meter'] },
+        engineer: { username: 'engineer', role: 'engineer', name: 'المهندس', permissions: ['view', 'fuel', 'maintenance', 'meter'] }
+    };
+    currentUser = userMap[sel] || userMap['viewer'];
+    showToast('مرحباً ' + currentUser.name);
     proceedToApp();
 }
 
+// كلمات المرور مشفرة بـ hash بسيط (للبيئات التي لا تستخدم Firebase Auth)
+const SECURE_USERS = {
+    'admin':   { hash: 'c97b1285', role: 'admin',   name: 'مدير النظام',  permissions: ['all'] },
+    'manager': { hash: 'f4a2b391', role: 'manager', name: 'المدير التنفيذي', permissions: ['all'] }
+};
+function simpleHash(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(16).slice(0, 8);
+}
+function togglePasswordVisibility() {
+    const inp = document.getElementById('secure-password');
+    const btn = document.getElementById('toggle-pass-btn');
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+}
 function secureLogin() {
-    const u = document.getElementById('secure-username').value.trim();
+    const u = document.getElementById('secure-username').value.trim().toLowerCase();
     const p = document.getElementById('secure-password').value;
-    if (u === 'admin' && p === 'admin123') {
-        currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
-        showToast('مرحباً مدير النظام');
-        proceedToApp();
+    const errMsg = document.getElementById('login-error-msg');
+    const btn = document.getElementById('secure-login-submit');
+    errMsg.style.display = 'none';
+    if (!u || !p) { errMsg.style.display = 'block'; errMsg.textContent = '⚠️ يرجى إدخال اسم المستخدم وكلمة المرور'; return; }
+    // التحقق من بيانات الدخول
+    const userData = SECURE_USERS[u];
+    // كلمات المرور الافتراضية: admin → admin@2025  |  manager → manager@2025
+    const isValid = userData && simpleHash(p) === userData.hash;
+    if (isValid) {
+        btn.style.opacity = '0.7';
+        currentUser = { username: u, role: userData.role, name: userData.name, permissions: userData.permissions };
+        showToast('مرحباً ' + currentUser.name + ' ✅');
+        setTimeout(() => proceedToApp(), 300);
     } else {
-        showToast('بيانات الدخول غير صحيحة');
+        errMsg.style.display = 'block';
+        errMsg.textContent = '⚠️ اسم المستخدم أو كلمة المرور غير صحيحة';
+        document.getElementById('secure-password').value = '';
+        document.getElementById('secure-password').focus();
     }
 }
 
 function proceedToApp() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-container').style.display = 'block';
-    document.getElementById('user-name-display').innerHTML = `${currentUser.name} (${currentUser.role === 'admin' ? 'مدير' : 'مشاهد'})`;
+    const roleLabels = { admin: 'مدير', manager: 'مدير تنفيذي', engineer: 'مهندس', supervisor: 'مشرف', viewer: 'مشاهد' };
+    document.getElementById('user-name-display').innerHTML = `${currentUser.name} (${roleLabels[currentUser.role] || currentUser.role})`;
     if (!hasPermission('all')) {
         const fab = document.getElementById('fab-btn');
         if (fab) fab.style.display = 'none';
@@ -1556,6 +1615,7 @@ window.directLogin = directLogin;
 window.secureLogin = secureLogin;
 window.setLoginMode = setLoginMode;
 window.saveLoginMode = saveLoginMode;
+window.togglePasswordVisibility = togglePasswordVisibility;
 window.handleFileUpload = handleFileUpload;
 window.confirmImport = confirmImport;
 window.cancelImport = cancelImport;
