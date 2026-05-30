@@ -421,29 +421,30 @@ function displayInventoryPreview(items) {
     const previewDiv = document.getElementById('inventory-preview-content');
     let updatedCount = 0;
     let newCount = 0;
-    let totalQty = 0;
+    let totalQtySum = 0;
     const itemsToUpdate = [];
-    
+
+    // أخذ snapshot من inventoryItems الحالية
+    const snapshot = [...inventoryItems];
+
     for (const item of items) {
-        totalQty += item.quantity;
-        
-        // البحث بنفس ترتيب الحفظ: الكود الكامل أولاً ثم المختصر ثم الاسم
-        let existing = inventoryItems.find(i => i.fullMaterial === item.fullMaterial);
-        if (!existing) existing = inventoryItems.find(i => i.partNo === item.shortPartNo && item.shortPartNo.length > 3);
-        if (!existing) existing = inventoryItems.find(i => (i.fullDescription || i.name) === item.fullDescription);
-        
+        totalQtySum += item.quantity;
+
+        // نفس منطق البحث المستخدم في الحفظ
+        let existing = snapshot.find(i => i.fullMaterial && i.fullMaterial === item.fullMaterial);
+        if (!existing) existing = snapshot.find(i => i.partNo === item.shortPartNo && item.shortPartNo.length > 3);
+        if (!existing) existing = snapshot.find(i => (i.fullDescription || i.name) === item.fullDescription);
+
         if (existing) {
             updatedCount++;
             itemsToUpdate.push({
-                id: existing.id,
-                name: existing.name || '',
+                isNew: false,
                 fullMaterial: item.fullMaterial,
                 fullDescription: item.fullDescription,
                 fullUnit: item.fullUnit,
-                oldQty: existing.qty,
+                oldQty: existing.qty || 0,
                 newQty: item.quantity,
-                displayUnit: item.displayUnit,
-                isNew: false
+                displayUnit: item.displayUnit
             });
         } else {
             newCount++;
@@ -459,12 +460,12 @@ function displayInventoryPreview(items) {
             });
         }
     }
-    
+
     previewDiv.innerHTML = `
         <div class="grid-3" style="margin:10px 0">
             <div class="stat-card"><div class="stat-number">${updatedCount}</div><div class="stat-label">سيتم تحديث</div></div>
             <div class="stat-card"><div class="stat-number">${newCount}</div><div class="stat-label">أصناف جديدة</div></div>
-            <div class="stat-card"><div class="stat-number">${formatNumber(totalQty)}</div><div class="stat-label">إجمالي القطع</div></div>
+            <div class="stat-card"><div class="stat-number">${formatNumber(totalQtySum)}</div><div class="stat-label">إجمالي القطع</div></div>
         </div>
         <div style="max-height:300px; overflow:auto; font-size:11px; border:1px solid #e2e8f0; border-radius:12px">
             <table style="width:100%; border-collapse:collapse">
@@ -482,11 +483,17 @@ function displayInventoryPreview(items) {
                     ${itemsToUpdate.slice(0, 50).map((item, idx) => `
                         <tr style="border-bottom:1px solid #e2e8f0; ${item.isNew ? 'background:#f0fdf4' : ''}">
                             <td style="padding:8px; text-align:center">${idx + 1}</td>
-                            <td style="padding:8px; font-family:monospace; font-size:10px; max-width:110px; word-break:break-word">${item.fullMaterial.substring(0, 35)}${item.fullMaterial.length > 35 ? '...' : ''}</td>
+                            <td style="padding:8px; font-family:monospace; font-size:10px; max-width:110px; word-break:break-word">${item.fullMaterial.substring(0, 30)}${item.fullMaterial.length > 30 ? '...' : ''}</td>
                             <td style="padding:8px; max-width:150px; word-break:break-word">${item.fullDescription.substring(0, 45)}${item.fullDescription.length > 45 ? '...' : ''}</td>
                             <td style="padding:8px; text-align:center">${item.fullUnit || item.displayUnit}</td>
-                            <td style="padding:8px; text-align:center; font-weight:bold; ${!item.isNew && item.oldQty !== item.newQty ? 'color:#f59e0b' : ''}">${!item.isNew ? `${item.oldQty} ← ${item.newQty}` : item.qty}</td>
-                            <td style="padding:8px; text-align:center"><span style="background:${item.isNew ? '#10b981' : (item.oldQty !== item.newQty ? '#f59e0b' : '#6b7a8d')}; color:white; padding:2px 8px; border-radius:20px; font-size:10px">${item.isNew ? 'جديد' : (item.oldQty !== item.newQty ? 'تحديث' : 'مطابق')}</span></td>
+                            <td style="padding:8px; text-align:center; font-weight:bold; color:${!item.isNew && item.oldQty !== item.newQty ? '#f59e0b' : 'inherit'}">
+                                ${!item.isNew ? `${item.oldQty} ← ${item.newQty}` : item.qty}
+                            </td>
+                            <td style="padding:8px; text-align:center">
+                                <span style="background:${item.isNew ? '#10b981' : (item.oldQty !== item.newQty ? '#f59e0b' : '#6b7a8d')}; color:white; padding:2px 8px; border-radius:20px; font-size:10px">
+                                    ${item.isNew ? 'جديد' : (item.oldQty !== item.newQty ? 'تحديث' : 'مطابق')}
+                                </span>
+                            </td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -502,24 +509,32 @@ function confirmInventoryImport() {
         showToast('لا توجد بيانات للاستيراد');
         return;
     }
-    
+    if (!fbDb) { showToast('❌ غير متصل بقاعدة البيانات'); return; }
+
+    showToast('🔄 جاري حفظ البيانات...');
+
+    // بناء batch update واحد لتجنب race condition مع Firebase listeners
+    const batchUpdates = {};
     let updated = 0;
     let created = 0;
-    let errors = 0;
-    
-    showToast('🔄 جاري حفظ البيانات...');
-    
+    const now = new Date().toISOString();
+    const dateStr = new Date().toLocaleDateString('ar-EG');
+
+    // أخذ snapshot من inventoryItems الحالية قبل بدء الحفظ
+    const snapshot = [...inventoryItems];
+
     for (const item of pendingInventoryData) {
         try {
-            // البحث عن الصنف الموجود بالكود الكامل أولاً ثم الكود المختصر ثم الاسم
-            let existing = inventoryItems.find(i => i.fullMaterial === item.fullMaterial);
-            if (!existing) existing = inventoryItems.find(i => i.partNo === item.shortPartNo && item.shortPartNo.length > 3);
-            if (!existing) existing = inventoryItems.find(i => (i.fullDescription || i.name) === item.fullDescription);
-            
+            // البحث بالكود الكامل أولاً ثم المختصر ثم الاسم
+            let existing = snapshot.find(i => i.fullMaterial && i.fullMaterial === item.fullMaterial);
+            if (!existing) existing = snapshot.find(i => i.partNo === item.shortPartNo && item.shortPartNo.length > 3);
+            if (!existing) existing = snapshot.find(i => (i.fullDescription || i.name) === item.fullDescription);
+
             if (existing) {
-                // تحديث الصنف الموجود - تحديث الأربعة حقول الأساسية والحفاظ على باقي البيانات
-                const updatedItem = {
-                    ...existing,
+                // تحديث الصنف الموجود - الحفاظ على كل البيانات وتحديث الأربعة حقول فقط
+                const { id, ...rest } = existing;
+                batchUpdates[`inventoryItems/${id}`] = {
+                    ...rest,
                     partNo: item.shortPartNo,
                     name: item.fullDescription.length > 100 ? item.fullDescription.substring(0, 100) : item.fullDescription,
                     unit: item.displayUnit,
@@ -527,14 +542,13 @@ function confirmInventoryImport() {
                     fullMaterial: item.fullMaterial,
                     fullDescription: item.fullDescription,
                     fullUnit: item.fullUnit,
-                    updatedAt: new Date().toISOString()
+                    updatedAt: now
                 };
-                saveToFirebase('inventoryItems', updatedItem);
                 updated++;
-                console.log(`تم تحديث: ${existing.name} - الكمية الجديدة: ${item.quantity}`);
             } else {
-                // إضافة صنف جديد بالأربعة حقول من الملف
-                const newItem = {
+                // إضافة صنف جديد
+                const newKey = fbDb.ref('inventoryItems').push().key;
+                batchUpdates[`inventoryItems/${newKey}`] = {
                     category: item.category,
                     name: item.fullDescription.length > 100 ? item.fullDescription.substring(0, 100) : item.fullDescription,
                     partNo: item.shortPartNo,
@@ -547,28 +561,30 @@ function confirmInventoryImport() {
                     unit: item.displayUnit,
                     interval: (item.category === 'filter') ? 250 : 500,
                     alts: [],
-                    notes: `تم الاستيراد من SOH بتاريخ ${new Date().toLocaleDateString('ar-EG')}`,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
+                    notes: `تم الاستيراد من SOH بتاريخ ${dateStr}`,
+                    createdAt: now,
+                    updatedAt: now
                 };
-                saveToFirebase('inventoryItems', newItem);
                 created++;
-                console.log(`تم إضافة صنف جديد: ${item.fullDescription} - الكمية: ${item.quantity}`);
             }
         } catch (err) {
-            console.error('خطأ في الحفظ:', err);
-            errors++;
+            console.error('خطأ في الإعداد:', err);
         }
     }
-    
-    showToast(`✅ تم الاستيراد: تحديث ${updated} صنف، إضافة ${created} صنف جديد${errors > 0 ? `، ${errors} خطأ` : ''}`);
-    document.getElementById('inventory-import-preview').style.display = 'none';
-    pendingInventoryData = null;
-    document.getElementById('inventory-excel-input').value = '';
-    
-    setTimeout(() => {
-        forceRefreshData();
-    }, 500);
+
+    // إرسال كل التحديثات دفعة واحدة لقاعدة البيانات
+    fbDb.ref('/').update(batchUpdates)
+        .then(() => {
+            showToast(`✅ تم الاستيراد: تحديث ${updated} صنف، إضافة ${created} صنف جديد`);
+            document.getElementById('inventory-import-preview').style.display = 'none';
+            pendingInventoryData = null;
+            document.getElementById('inventory-excel-input').value = '';
+            setTimeout(() => forceRefreshData(), 800);
+        })
+        .catch(err => {
+            console.error('خطأ في الحفظ:', err);
+            showToast('❌ خطأ في حفظ البيانات: ' + err.message);
+        });
 }
 
 function cancelInventoryImport() {
