@@ -694,7 +694,7 @@ function displayInventoryPreview(items) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${itemsToUpdate.slice(0, 50).map((item, idx) => `
+                    ${itemsToUpdate.slice(0, 200).map((item, idx) => `
                         <tr style="border-bottom:1px solid #e2e8f0; ${item.isNew ? 'background:#f0fdf4' : ''}">
                             <td style="padding:8px; text-align:center">${idx + 1}</td>
                             <td style="padding:8px; font-family:monospace; font-size:10px; max-width:110px; word-break:break-word">${item.fullMaterial.substring(0, 30)}${item.fullMaterial.length > 30 ? '...' : ''}</td>
@@ -712,7 +712,7 @@ function displayInventoryPreview(items) {
                     `).join('')}
                 </tbody>
             </table>
-            ${itemsToUpdate.length > 50 ? `<div style="padding:10px; text-align:center; background:#f8fafc; color:gray">...و${itemsToUpdate.length - 50} صنف آخر</div>` : ''}
+            ${itemsToUpdate.length > 200 ? `<div style="padding:10px; text-align:center; background:#f8fafc; color:gray">...و${itemsToUpdate.length - 200} صنف آخر</div>` : ''}
         </div>
     `;
     document.getElementById('inventory-import-preview').style.display = 'block';
