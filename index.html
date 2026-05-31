@@ -413,27 +413,16 @@ function saveLoginMode(){if(document.getElementById('remember-mode').checked)loc
 let SYSTEM_CONFIG={loginMode:'direct'};
 function setLoginMode(m){SYSTEM_CONFIG.loginMode=m;const db=document.getElementById('direct-login-btn'),sb=document.getElementById('secure-login-btn'),dp=document.getElementById('direct-login-panel'),sp=document.getElementById('secure-login-panel');if(m==='direct'){db.style.background='var(--accent)';db.style.color='var(--primary)';sb.style.background='rgba(255,255,255,0.1)';sb.style.color='white';dp.style.display='block';sp.style.display='none'}else{sb.style.background='var(--accent)';sb.style.color='var(--primary)';db.style.background='rgba(255,255,255,0.1)';db.style.color='white';dp.style.display='none';sp.style.display='block'}}
 function directLogin(){currentUser={username:'viewer',role:'viewer',name:'مشاهد',permissions:['view']};showToast('مرحباً مشاهد');proceedToApp()}
-function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0;}return h.toString(36);}
-const ADMIN_HASH=hashStr('admin:EMS@2025#secure');
-let loginAttempts=0;
 function secureLogin(){
     const u=document.getElementById('secure-username').value.trim();
     const p=document.getElementById('secure-password').value;
     if(!u||!p){showToast('أدخل اسم المستخدم وكلمة المرور');return;}
-    if(loginAttempts>=3){showToast('❌ تم قفل الحساب - انتظر دقيقة');return;}
-    if(hashStr(u+':'+p)===ADMIN_HASH){
-        loginAttempts=0;
+    if(u==='admin'&&p==='Admin123'){
         currentUser={username:'admin',role:'admin',name:'المدير',permissions:['all']};
         showToast('مرحباً مدير النظام ✅');
         proceedToApp();
     } else {
-        loginAttempts++;
-        if(loginAttempts>=3){
-            showToast('❌ تم تجاوز المحاولات - انتظر دقيقة');
-            setTimeout(()=>loginAttempts=0,60000);
-        } else {
-            showToast('❌ بيانات غير صحيحة ('+loginAttempts+'/3)');
-        }
+        showToast('❌ بيانات الدخول غير صحيحة');
     }
 }
 function proceedToApp(){document.getElementById('login-screen').style.display='none';document.getElementById('app-container').style.display='block';document.getElementById('user-name-display').innerHTML=`${currentUser.name} (${currentUser.role==='admin'?'مدير':'مشاهد'})`;if(!hasPermission('all')){const fab=document.getElementById('fab-btn');if(fab)fab.style.display='none';const importTab=document.querySelector('.tab-btn[data-view="import"]');if(importTab)importTab.style.display='none';['add-fuel-btn','add-maintenance-btn','add-inventory-btn','order-report-btn','meter-update-btn','whatsapp-maint-btn'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.style.display='none'});const s=document.createElement('style');s.textContent='.save-btn.danger-btn,button[onclick*="deleteFromFirebase"],button[onclick*="editEquipment"],button[onclick*="editDriver"],button[onclick*="editInventoryItem"],.qty-btn,.fab{display:none!important}.filter-card .qty-btn,.inventory-item-card .qty-btn,.equipment-card .qty-btn{display:none!important}';document.head.appendChild(s)}loadNotifSettings();loadDarkMode();initFirebase();initIndexedDB();setTimeout(()=>{checkOnlineAndWarn();checkDriverLicenses();},2000);setInterval(()=>{lastAlertCheck=0;checkMaintenanceAlerts();},30*60*1000);if(!hasPermission('all')){const fab=document.getElementById('fab-btn');if(fab)fab.style.display='none';}}
@@ -469,9 +458,7 @@ function openNotifSettings(){loadNotifSettings();document.getElementById('whatsa
 function enableBrowserNotifications(){if(!('Notification' in window)){showToast('المتصفح لا يدعم الإشعارات');return;}Notification.requestPermission().then(perm=>{const statusEl=document.getElementById('notif-permission-status');if(perm==='granted'){statusEl.innerHTML='<span style="color:#10b981">✅ مفعّل</span>';showToast('✅ تم تفعيل الإشعارات');new Notification('✅ حسن علام - نظام الأسطول',{body:'تم تفعيل الإشعارات بنجاح! ستصلك تنبيهات الصيانة تلقائياً.',icon:'https://cdn-icons-png.flaticon.com/512/1995/1995562.png'});}else{statusEl.innerHTML='<span style="color:#ef4444">❌ محجوب</span>';showToast('تم رفض الإشعارات من إعدادات المتصفح');}});}
 
 // ==================== باسورد آمنة ====================
-function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0;}return h.toString(36);}
-const ADMIN_HASH=hashStr('admin:EMS@2025#secure');
-let loginAttempts=0,sessionStartTime=0;
+let sessionStartTime=0;
 
 // ==================== Offline Detector ====================
 function initOfflineDetector(){
