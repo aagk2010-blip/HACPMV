@@ -457,8 +457,8 @@ function saveNotifSettings(){const num=document.getElementById('whatsapp-number'
 function openNotifSettings(){loadNotifSettings();document.getElementById('whatsapp-number').value=notifSettings.whatsappNumber||'';document.getElementById('notif-threshold').value=notifSettings.threshold||50;const perm=Notification.permission;const statusEl=document.getElementById('notif-permission-status');if(perm==='granted')statusEl.innerHTML='<span style="color:#10b981">✅ مفعّل</span>';else if(perm==='denied')statusEl.innerHTML='<span style="color:#ef4444">❌ محجوب</span>';else statusEl.innerHTML='<span style="color:#f59e0b">⚠️ غير مفعّل</span>';document.getElementById('notif-settings-modal').classList.add('active');}
 function enableBrowserNotifications(){if(!('Notification' in window)){showToast('المتصفح لا يدعم الإشعارات');return;}Notification.requestPermission().then(perm=>{const statusEl=document.getElementById('notif-permission-status');if(perm==='granted'){statusEl.innerHTML='<span style="color:#10b981">✅ مفعّل</span>';showToast('✅ تم تفعيل الإشعارات');new Notification('✅ حسن علام - نظام الأسطول',{body:'تم تفعيل الإشعارات بنجاح! ستصلك تنبيهات الصيانة تلقائياً.',icon:'https://cdn-icons-png.flaticon.com/512/1995/1995562.png'});}else{statusEl.innerHTML='<span style="color:#ef4444">❌ محجوب</span>';showToast('تم رفض الإشعارات من إعدادات المتصفح');}});}
 
-// ==================== باسورد آمنة ====================
 let sessionStartTime=0;
+
 
 // ==================== Offline Detector ====================
 function initOfflineDetector(){
@@ -466,97 +466,28 @@ function initOfflineDetector(){
         const syncEl=document.getElementById('sync-status');
         if(!syncEl)return;
         if(navigator.onLine){syncEl.innerHTML='🟢 متصل';syncEl.style.color='rgba(255,255,255,0.7)';}
-        else{syncEl.innerHTML='🔴 غير متصل - البيانات لن تُحفظ!';syncEl.style.color='#fca5a5';showToast('⚠️ انقطع الإنترنت - التغييرات لن تُحفظ');}
+        else{syncEl.innerHTML='🔴 غير متصل!';syncEl.style.color='#fca5a5';showToast('⚠️ انقطع الإنترنت');}
     }
     window.addEventListener('online',updateStatus);
     window.addEventListener('offline',updateStatus);
     updateStatus();
 }
 
-// ==================== تنبيه رخصة السائق ====================
-function getLicenseWarningBadge(d){
-    if(!d.licenseExpiry)return'';
-    const days=Math.ceil((new Date(d.licenseExpiry)-new Date())/(1000*60*60*24));
-    if(days<0)return'<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:10px;display:inline-block;margin-top:4px">❌ رخصة منتهية</span>';
-    if(days<=30)return`<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:10px;display:inline-block;margin-top:4px">⚠️ تنتهي خلال ${days} يوم</span>`;
-    return'';
-}
-
-function checkDriverLicenses(){
-    if(!driversData.length)return;
-    const today=new Date();
-    const soon=driversData.filter(d=>{
-        if(!d.licenseExpiry||d.status!=='نشط')return false;
-        const days=Math.ceil((new Date(d.licenseExpiry)-today)/(1000*60*60*24));
-        return days<=30;
-    });
-    if(!soon.length)return;
-    if(!('Notification'in window)||Notification.permission!=='granted')return;
-    const expired=soon.filter(d=>new Date(d.licenseExpiry)<today);
-    const expiringSoon=soon.filter(d=>new Date(d.licenseExpiry)>=today);
-    let body='';
-    if(expired.length)body+='❌ منتهية: '+expired.map(d=>d.name).join('، ')+'\n';
-    if(expiringSoon.length)body+='⚠️ تنتهي قريباً: '+expiringSoon.map(d=>d.name).join('، ');
-    try{new Notification('📜 تنبيه رخص السائقين - '+soon.length,{body:body.trim(),icon:'https://cdn-icons-png.flaticon.com/512/1995/1995562.png',tag:'license-alert'});}catch(e){}
-}
-
-// ==================== فحص الإشعارات ====================
-function checkMaintenanceAlerts(){
-    if(!equipmentData.length)return;
-    loadNotifSettings();
-    const threshold=notifSettings.threshold||50;
-    const critical=equipmentData.filter(eq=>eq.status!=='متوقف'&&hoursRemaining(eq)<=threshold);
-    console.log('🔔 فحص الإشعارات: '+critical.length+' معدة | إذن: '+(('Notification'in window)?Notification.permission:'غير مدعوم'));
-    if(!critical.length)return;
-    if(!('Notification'in window)||Notification.permission!=='granted')return;
-    try{
-        const overdue=critical.filter(eq=>hoursRemaining(eq)<=0);
-        const soon=critical.filter(eq=>hoursRemaining(eq)>0);
-        let body='';
-        if(overdue.length)body+='⚠️ تجاوزت الصيانة: '+overdue.map(e=>e.name).join('، ')+'\n';
-        if(soon.length)body+='🔴 قريبة: '+soon.map(e=>e.name+' ('+hoursRemaining(e)+' س)').join('، ');
-        const notif=new Notification('🔧 تنبيه صيانة - '+critical.length+' معدة',{body:body.trim(),icon:'https://cdn-icons-png.flaticon.com/512/1995/1995562.png',tag:'maintenance-alert',requireInteraction:false});
-        notif.onclick=()=>{window.focus();notif.close();};
-        console.log('✅ تم إرسال الإشعار');
-    }catch(e){console.error('خطأ في الإشعار:',e);}
-}
-let lastAlertCheck=0;
-function autoCheckAlerts(){
-    if(!equipmentData.length)return;
-    const now=Date.now();
-    if(now-lastAlertCheck<5*60*1000)return;
-    lastAlertCheck=now;
-    checkMaintenanceAlerts();
-}
-
-// ==================== عداد الإشعارات ====================
-function updateBellCounter(){
-    const threshold=(notifSettings&&notifSettings.threshold)?notifSettings.threshold:50;
-    const critCount=equipmentData.filter(eq=>eq.status!=='متوقف'&&hoursRemaining(eq)<=threshold).length;
-    const bellBtn=document.getElementById('notif-bell-btn');
-    if(bellBtn){bellBtn.innerHTML=critCount>0?'🔔 <span style="background:#ef4444;color:white;border-radius:10px;padding:1px 6px;font-size:11px">'+critCount+'</span>':'🔔 الإشعارات';}
-}
-
 // ==================== بحث عالمي ====================
 function toggleGlobalSearch(){
-    const bar=document.getElementById('global-search-bar');
-    const inp=document.getElementById('global-search-input');
+    let bar=document.getElementById('global-search-bar');
     if(!bar){
-        // إنشاء شريط البحث ديناميكياً إذا لم يكن موجوداً
-        const newBar=document.createElement('div');
-        newBar.id='global-search-bar';
-        newBar.style.cssText='padding:0 14px 10px;position:relative';
-        newBar.innerHTML='<input id="global-search-input" type="text" placeholder="🔍 بحث في المعدات، السائقين، المخزون..." oninput="globalSearch(this.value)" style="width:100%;border:1px solid #e2e8f0;border-radius:20px;padding:10px 16px;font-size:13px;font-family:inherit;outline:none"><div id="global-search-results" style="background:white;border-radius:12px;margin-top:6px;max-height:250px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.15);position:absolute;width:calc(100% - 28px);z-index:50"></div>';
+        bar=document.createElement('div');
+        bar.id='global-search-bar';
+        bar.style.cssText='padding:0 14px 10px;position:relative';
+        bar.innerHTML='<input id="global-search-input" type="text" placeholder="🔍 بحث..." oninput="globalSearch(this.value)" style="width:100%;border:1px solid #e2e8f0;border-radius:20px;padding:10px 16px;font-size:13px;font-family:inherit;outline:none"><div id="global-search-results" style="background:white;border-radius:12px;margin-top:6px;max-height:250px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.15);position:absolute;width:calc(100% - 28px);z-index:50"></div>';
         const header=document.querySelector('.header');
-        if(header)header.appendChild(newBar);
+        if(header)header.appendChild(bar);
         setTimeout(()=>document.getElementById('global-search-input')?.focus(),100);
         return;
     }
-    const isVisible=bar.style.display!=='none';
-    bar.style.display=isVisible?'none':'block';
-    if(!isVisible){inp?.focus();if(inp)inp.value='';const res=document.getElementById('global-search-results');if(res)res.style.display='none';}
+    bar.style.display=bar.style.display==='none'?'block':'none';
 }
-
 function globalSearch(q){
     const res=document.getElementById('global-search-results');
     if(!res)return;
@@ -566,8 +497,8 @@ function globalSearch(q){
     equipmentData.forEach(e=>{if(e.name?.toLowerCase().includes(ql)||e.code?.toLowerCase().includes(ql)){results.push({icon:'🏗️',type:'معدة',title:e.name,sub:e.code+' | '+e.status,action:"openEquipmentDetail('"+e.id+"')"});}});
     driversData.forEach(d=>{if(d.name?.toLowerCase().includes(ql)||d.phone?.includes(q)){results.push({icon:'👨‍✈️',type:'سائق',title:d.name,sub:d.phone||'—',action:"openDriverDetail('"+d.id+"')"});}});
     inventoryItems.forEach(i=>{if(i.name?.toLowerCase().includes(ql)||i.partNo?.toLowerCase().includes(ql)){results.push({icon:'📦',type:'مخزون',title:i.name,sub:'#'+i.partNo+' | '+i.qty+' '+i.unit,action:"switchView('inventory')"});}});
-    if(!results.length){res.innerHTML='<div style="padding:12px;text-align:center;color:#999;font-size:13px">لا توجد نتائج</div>';}
-    else{res.innerHTML=results.slice(0,8).map(r=>'<div onclick="'+r.action+';toggleGlobalSearch()" style="padding:10px 14px;border-bottom:1px solid #f0f4f8;cursor:pointer;display:flex;align-items:center;gap:10px" onmouseenter="this.style.background='#f8fafc'" onmouseleave="this.style.background='white'"><span style="font-size:20px">'+r.icon+'</span><div><div style="font-weight:600;font-size:13px">'+r.title+'</div><div style="font-size:11px;color:#999">'+r.type+' • '+r.sub+'</div></div></div>').join('');}
+    if(!results.length){res.innerHTML='<div style="padding:12px;text-align:center;color:#999">لا توجد نتائج</div>';}
+    else{res.innerHTML=results.slice(0,8).map(r=>'<div onclick="'+r.action+';toggleGlobalSearch()" style="padding:10px 14px;border-bottom:1px solid #f0f4f8;cursor:pointer;display:flex;align-items:center;gap:10px"><span style="font-size:20px">'+r.icon+'</span><div><div style="font-weight:600;font-size:13px">'+r.title+'</div><div style="font-size:11px;color:#999">'+r.type+' • '+r.sub+'</div></div></div>').join('');}
     res.style.display='block';
 }
 
@@ -576,70 +507,13 @@ function exportInventoryExcel(){
     if(!inventoryItems.length){showToast('لا توجد بيانات في المخزون');return;}
     const catMap={filter:'فلتر',oil:'زيت',tire:'إطار',spare:'قطعة غيار',other:'أخرى'};
     const rows=[['كود الصنف','اسم الصنف','التصنيف','الكمية','الحد الأدنى','الوحدة','السعر','آخر تحديث']];
-    inventoryItems.forEach(i=>rows.push([i.partNo||'',i.name||'',catMap[i.category]||i.category||'',i.qty||0,i.minQty||0,i.unit||'',i.price||0,i.updatedAt?i.updatedAt.substring(0,10):'']));
+    inventoryItems.forEach(i=>rows.push([i.partNo||'',i.name||'',catMap[i.category]||'',i.qty||0,i.minQty||0,i.unit||'',i.price||0,i.updatedAt?i.updatedAt.substring(0,10):'']));
     const ws=XLSX.utils.aoa_to_sheet(rows);
     ws['!cols']=[{wch:20},{wch:40},{wch:12},{wch:10},{wch:10},{wch:8},{wch:10},{wch:14}];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,'المخزون',ws);
     XLSX.writeFile(wb,'Inventory_'+new Date().toISOString().substring(0,10)+'.xlsx');
-    showToast('✅ تم تصدير المخزون كـ Excel');
-}
-
-// ==================== تصدير سجل العداد Excel ====================
-function exportHoursHistoryToExcel(eqId){
-    const eq=equipmentData.find(e=>e.id===eqId);
-    if(!eq||!eq.hoursLog?.length){showToast('لا يوجد سجل تاريخي');return;}
-    const rows=[['التاريخ','العداد (ساعة)','الفرق','المحدِّث']];
-    const log=[...eq.hoursLog].reverse();
-    log.forEach((l,i)=>{const prev=log[i+1];const diff=prev?l.hours-prev.hours:'—';rows.push([l.date||'',l.hours,diff,l.updatedBy||'—']);});
-    const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols']=[{wch:14},{wch:14},{wch:10},{wch:16}];
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,'سجل العداد',ws);
-    XLSX.writeFile(wb,eq.name+'_Hours_'+new Date().toISOString().substring(0,10)+'.xlsx');
-    showToast('✅ تم تصدير السجل');
-}
-
-// ==================== Dark Mode ====================
-function loadDarkMode(){if(localStorage.getItem('darkMode')==='1'){document.body.classList.add('dark-mode');const btn=document.getElementById('dark-mode-btn');if(btn)btn.innerHTML='☀️';}}
-
-// ==================== Session Timeout ====================
-function initSessionTimeout(){
-    sessionStartTime=Date.now();
-    setTimeout(()=>{if(currentUser)showToast('⚠️ تحذير: ستنتهي جلستك خلال 5 دقائق');},7*60*60*1000+55*60*1000);
-    setTimeout(()=>{if(currentUser){showToast('⚠️ انتهت الجلسة - يرجى تسجيل الدخول مجدداً');setTimeout(logout,3000);}},8*60*60*1000);
-}
-
-// ==================== واتساب الصيانة ====================
-function buildMaintenanceWhatsAppMsg(){
-    loadNotifSettings();
-    const threshold=notifSettings.threshold||50;
-    const critical=equipmentData.filter(eq=>eq.status!=='متوقف'&&hoursRemaining(eq)<=threshold).sort((a,b)=>hoursRemaining(a)-hoursRemaining(b));
-    if(!critical.length){showToast('✅ لا توجد معدات تحتاج تنبيه');return null;}
-    const date=new Date().toLocaleDateString('ar-EG');
-    let msg='🔧 *تقرير الصيانة - حسن علام القابضة*\n📅 '+date+'\n━━━━━━━━━━━━━━\n\n';
-    const overdue=critical.filter(eq=>hoursRemaining(eq)<=0);
-    const urgent=critical.filter(eq=>hoursRemaining(eq)>0&&hoursRemaining(eq)<=10);
-    const warning=critical.filter(eq=>hoursRemaining(eq)>10);
-    if(overdue.length){msg+='🚨 *تجاوزت موعد الصيانة ('+overdue.length+' معدة):*\n';overdue.forEach(eq=>{const driver=driversData.find(d=>d.id===eq.assignedDriver);msg+='• *'+eq.name+'* ('+eq.code+')\n  النوع: '+(eq.type||'—')+' | الموقع: '+(eq.location||'—')+'\n  العداد: '+eq.hours+' س | الصيانة كانت عند: '+eq.nextHours+' س\n  تجاوز: *'+Math.abs(hoursRemaining(eq))+' ساعة* ⚠️\n'+(driver?'  السائق: '+driver.name+'\n':'')+'\n';});}
-    if(urgent.length){msg+='🔴 *عاجل - أقل من 10 ساعات ('+urgent.length+' معدة):*\n';urgent.forEach(eq=>{msg+='• *'+eq.name+'* ('+eq.code+') - باقي *'+hoursRemaining(eq)+' ساعة فقط*\n';});}
-    if(warning.length){msg+='🟡 *قريبة من الصيانة:*\n';warning.forEach(eq=>{msg+='• '+eq.name+' ('+eq.code+') - باقي '+hoursRemaining(eq)+' س\n';});}
-    msg+='\n━━━━━━━━━━━━━━\n📊 إجمالي: *'+critical.length+' معدة*\nEquipment Maintenance Service';
-    return msg;
-}
-function sendWhatsAppMaintenanceAlert(){
-    const msg=buildMaintenanceWhatsAppMsg();
-    if(!msg)return;
-    loadNotifSettings();
-    const number=notifSettings.whatsappNumber||'';
-    const url=number?'https://wa.me/'+number+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
-    window.open(url,'_blank');
-}
-
-// ==================== confirmDelete ====================
-function confirmDelete(path,id,message){
-    if(!hasPermission('all')){showToast('غير مصرح');return;}
-    if(confirm(message||'هل أنت متأكد من الحذف؟')){deleteFromFirebase(path,id);}
+    showToast('✅ تم تصدير المخزون');
 }
 
 window.openAddEquipmentModal=openAddEquipmentModal;window.openAddDriverModal=openAddDriverModal;window.openAddFuelModal=openAddFuelModal;window.openAddMaintenanceModal=openAddMaintenanceModal;window.openAddInventoryItemModal=openAddInventoryItemModal;window.openEquipmentDetail=openEquipmentDetail;window.openDriverDetail=openDriverDetail;window.closeModal=closeModal;window.openMeterUpdate=openMeterUpdate;window.updateSingleMeter=updateSingleMeter;window.saveAllMeters=saveAllMeters;window.confirmDelete=confirmDelete;window.saveEquipment=saveEquipment;window.saveDriver=saveDriver;window.saveFuelRecord=saveFuelRecord;window.saveMaintenanceSchedule=saveMaintenanceSchedule;window.editEquipment=editEquipment;window.editDriver=editDriver;window.completeMaintenance=completeMaintenance;window.showMaintenanceDetail=showMaintenanceDetail;window.editInventoryItem=editInventoryItem;window.adjustInventoryQty=adjustInventoryQty;window.filterInventory=filterInventory;window.generateOrderReport=generateOrderReport;window.exportOrderToExcel=exportOrderToExcel;window.sendOrderViaWhatsApp=sendOrderViaWhatsApp;window.addInvAltField=addInvAltField;window.openLinkFilterModal=openLinkFilterModal;window.openLinkOilModal=openLinkOilModal;window.saveFilterLink=saveFilterLink;window.saveOilLink=saveOilLink;window.updateSingleMeterFromHome=updateSingleMeterFromHome;window.logout=logout;window.switchView=switchView;window.forceRefreshData=forceRefreshData;window.directLogin=directLogin;window.secureLogin=secureLogin;window.setLoginMode=setLoginMode;window.saveLoginMode=saveLoginMode;window.handleFileUpload=handleFileUpload;window.confirmImport=confirmImport;window.cancelImport=cancelImport;window.openEditFuelModal=openEditFuelModal;window.updateFuelRecord=updateFuelRecord;window.deleteFuelRecord=deleteFuelRecord;window.handleInventoryFileUpload=handleInventoryFileUpload;window.confirmInventoryImport=confirmInventoryImport;window.cancelInventoryImport=cancelInventoryImport;window.openFilterAlternativesModal=openFilterAlternativesModal;window.addAlternativeFilter=addAlternativeFilter;window.removeAlternative=removeAlternative;window.saveFilterAlternatives=saveFilterAlternatives;window.openNotifSettings=openNotifSettings;window.enableBrowserNotifications=enableBrowserNotifications;window.saveNotifSettings=saveNotifSettings;window.sendWhatsAppMaintenanceAlert=sendWhatsAppMaintenanceAlert;window.checkMaintenanceAlerts=checkMaintenanceAlerts;window.updateBellCounter=updateBellCounter;window.showHoursHistory=showHoursHistory;window.exportMaintenancePDF=exportMaintenancePDF;window.toggleDarkMode=toggleDarkMode;window.checkDriverLicenses=checkDriverLicenses;window.cleanMockFuelData=cleanMockFuelData;
