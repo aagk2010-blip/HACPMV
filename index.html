@@ -339,39 +339,29 @@ window.proceedToApp = function () { document.getElementById('login-screen').styl
 function initSessionTimeout() { let to; function reset() { if (to) clearTimeout(to); if (currentUser) to = setTimeout(() => { showToast('انتهت الجلسة - يرجى تسجيل الدخول مجدداً'); setTimeout(() => logout(), 2000); }, 8 * 60 * 60 * 1000); } reset(); window.addEventListener('click', reset); window.addEventListener('keypress', reset); }
 function logout() { detachFirebaseListeners(); currentUser = null; document.getElementById('app-container').style.display = 'none'; document.getElementById('login-screen').style.display = 'flex'; if (fbDb) fbDb.goOffline(); showToast('تم تسجيل الخروج'); }
 
-// ==================== دالة موحدة لفتح تفاصيل المعدة (تم إصلاحها بالكامل) ====================
-function openEquipmentDetail(id) { 
-    console.log('===== فتح تفاصيل المعدة =====');
-    console.log('ID المستلم:', id, 'النوع:', typeof id);
+// ==================== دالة عرض تفاصيل المعدة (المحسنة) ====================
+function openEquipmentDetail(id) {
+    console.log('فتح تفاصيل المعدة - ID:', id);
     
     if (!id) {
         showToast('خطأ: معرف المعدة غير صالح');
         return;
     }
     
-    // تحويل ID إلى string للمقارنة الصحيحة
+    // تحويل ID إلى string للمقارنة
     const targetId = String(id);
     
-    // البحث عن المعدة - محاولة بطرق متعددة
-    let eq = equipmentData.find(e => String(e.id) === targetId);
+    // البحث عن المعدة
+    const eq = equipmentData.find(e => String(e.id) === targetId);
     
     if (!eq) {
-        eq = equipmentData.find(e => e.code === targetId);
-    }
-    
-    if (!eq) {
-        eq = equipmentData.find(e => e.name === targetId);
-    }
-    
-    if (!eq) {
-        console.error('لم يتم العثور على المعدة! جميع المعدات المتاحة:', equipmentData.map(e => ({ id: e.id, type: typeof e.id, name: e.name, code: e.code })));
-        showToast('المعدة غير موجودة في النظام');
+        console.error('المعدة غير موجودة:', targetId);
+        showToast('المعدة غير موجودة');
         return;
     }
     
-    console.log('تم العثور على المعدة:', eq.name, 'بـ ID:', eq.id);
+    console.log('تم العثور على المعدة:', eq.name);
     
-    // البحث عن السائق المسند
     const driver = driversData.find(d => d && String(d.id) === String(eq.assignedDriver));
     const rem = hoursRemaining(eq);
     const percent = getRemainingPercent(eq);
@@ -441,7 +431,7 @@ function openEquipmentDetail(id) {
     document.getElementById('detail-modal').classList.add('active'); 
 }
 
-// دالة آمنة بديلة (للتأكد من العمل)
+// دالة آمنة بديلة
 function safeOpenEquipmentDetail(id) {
     openEquipmentDetail(id);
 }
@@ -549,7 +539,7 @@ function exportMaintenancePDF() { const date = new Date().toLocaleDateString('ar
 function exportAllHoursExcel() { if (!equipmentData.length) { showToast('لا توجد بيانات معدات'); return; } try { const summaryRows = [['الكود', 'اسم المعدة', 'النوع', 'العداد الحالي', 'موعد الصيانة', 'الباقي', 'الحالة', 'آخر تحديث']]; equipmentData.sort((a, b) => hoursRemaining(a) - hoursRemaining(b)).forEach(eq => { const rem = hoursRemaining(eq); summaryRows.push([eq.code || '', eq.name || '', eq.type || '', eq.hours || 0, eq.nextHours || 0, rem, eq.status || '', eq.updatedAt ? eq.updatedAt.substring(0, 10) : '']); }); const historyRows = [['الكود', 'اسم المعدة', 'التاريخ', 'العداد', 'الفرق', 'المحدِّث']]; equipmentData.forEach(eq => { if (!eq.hoursLog || !eq.hoursLog.length) return; const log = [...eq.hoursLog].reverse(); log.forEach((l, i) => { const prev = log[i + 1]; const diff = prev ? l.hours - prev.hours : '—'; historyRows.push([eq.code || '', eq.name || '', l.date || '', l.hours, diff, l.updatedBy || '—']); }); }); const wb = XLSX.utils.book_new(); const ws1 = XLSX.utils.aoa_to_sheet(summaryRows); const ws2 = XLSX.utils.aoa_to_sheet(historyRows); ws1['!cols'] = [{ wch: 14 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 14 }]; ws2['!cols'] = [{ wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 16 }]; XLSX.utils.book_append_sheet(wb, ws1, 'العدادات الحالية'); XLSX.utils.book_append_sheet(wb, ws2, 'السجل التاريخي'); XLSX.writeFile(wb, 'Equipment_Hours_' + new Date().toISOString().substring(0, 10) + '.xlsx'); showToast('✅ تم تصدير سجل العدادات - ' + equipmentData.length + ' معدة'); } catch (e) { showToast('خطأ في التصدير: ' + e.message); } }
 function exportInventoryExcel() { if (!inventoryItems.length) { showToast('لا توجد بيانات في المخزون'); return; } try { const catMap = { filter: 'فلتر', oil: 'زيت', tire: 'إطار', spare: 'قطعة غيار', other: 'أخرى' }; const rows = [['كود الصنف', 'اسم الصنف', 'التصنيف', 'الكمية الحالية', 'الحد الأدنى', 'الفرق', 'الوحدة', 'السعر', 'الحالة', 'آخر تحديث']]; inventoryItems.sort((a, b) => (a.qty || 0) - (b.qty || 0)).forEach(i => { const diff = (i.qty || 0) - (i.minQty || 0); const status = diff < 0 ? 'نقص' : diff === 0 ? 'حد أدنى' : 'كافي'; rows.push([i.partNo || '', i.name || '', catMap[i.category] || i.category || '', i.qty || 0, i.minQty || 0, diff, i.unit || '', i.price || 0, status, i.updatedAt ? i.updatedAt.substring(0, 10) : '']); }); const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = [{ wch: 22 }, { wch: 40 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 14 }]; const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'المخزون'); XLSX.writeFile(wb, 'Inventory_' + new Date().toISOString().substring(0, 10) + '.xlsx'); showToast('✅ تم تصدير ' + inventoryItems.length + ' صنف'); } catch (e) { showToast('خطأ في التصدير: ' + e.message); } }
 
-// ==================== دوال الاستيراد (مختصرة ولكنها تعمل) ====================
+// ==================== دوال الاستيراد ====================
 function handleFileUpload(input) { const file = input.files[0]; if (!file) { showToast('الرجاء اختيار ملف'); return; } if (file.size > 10 * 1024 * 1024) { showToast('الحد الأقصى 10 ميجابايت'); return; } if (isImporting) { showToast('⚠️ عملية استيراد أخرى قيد التنفيذ'); return; } isImporting = true; const reader = new FileReader(); reader.onload = function (e) { try { const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' }); const sheets = {}; workbook.SheetNames.forEach(name => { const sheet = workbook.Sheets[name]; sheets[name] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }); }); pendingImportData = sheets; displayImportPreview(sheets); showToast('تم قراءة الملف بنجاح'); isImporting = false; } catch (err) { showToast('خطأ في قراءة الملف: ' + err.message); isImporting = false; } }; reader.onerror = function () { showToast('خطأ في قراءة الملف'); isImporting = false; }; reader.readAsArrayBuffer(file); }
 function displayImportPreview(sheets) { const previewDiv = document.getElementById('preview-content'); let html = '<h4>📊 ملخص البيانات المستوردة:</h4><div class="grid-3" style="margin:10px 0">'; let totalEquipment = 0, totalFuel = 0, totalParts = 0; if (sheets['معدات الموقع']) { const eqSheet = sheets['معدات الموقع']; if (eqSheet.length > 6) totalEquipment = eqSheet.length - 6; } if (sheets['متابعه الوقود']) { const fuelSheet = sheets['متابعه الوقود']; if (fuelSheet.length > 7) totalFuel = fuelSheet.length - 7; } if (sheets['متابعه المنصرف من المخزن']) { const partsSheet = sheets['متابعه المنصرف من المخزن']; if (partsSheet.length > 7) totalParts = partsSheet.length - 7; } html += `<div class="stat-card"><div class="stat-number">${totalEquipment}</div><div class="stat-label">معدات</div></div><div class="stat-card"><div class="stat-number">${totalFuel}</div><div class="stat-label">تزودات</div></div><div class="stat-card"><div class="stat-number">${totalParts}</div><div class="stat-label">قطع غيار</div></div>`; html += '</div><hr>'; if (totalEquipment > 0) html += `<div class="status-badge status-success">✅ سيتم تحديث ${totalEquipment} معدة</div>`; if (totalFuel > 0) html += `<div class="status-badge status-success">⛽ سيتم إضافة ${totalFuel} سجل وقود (النوع العادي)</div>`; if (sheets['ورقة1']) { const equipMap = {}; equipmentData.forEach(eq => { equipMap[eq.name] = eq.id; equipMap[eq.code] = eq.id; }); const fuelFromDaily = parseDailyFuelSheet(sheets['ورقة1'], equipMap); const days = new Set(fuelFromDaily.map(r => r.date)).size; if (fuelFromDaily.length > 0) html += `<div class="status-badge status-success">📅 جدول وقود يومي: ${fuelFromDaily.length} سجل تزويد من ${days} يوم</div>`; } previewDiv.innerHTML = html; document.getElementById('import-preview').style.display = 'block'; }
 function parseDailyFuelSheet(sheet, equipmentMap) { const records = []; if (!sheet || sheet.length < 2) return records; const headers = sheet[0]; const DATE_COL = 2; const START_COL = 3; let found = false; for (let c = START_COL; c < headers.length; c++) { const name = headers[c]?.toString().trim(); if (name && equipmentMap[name]) { found = true; break; } } if (!found) return records; for (let r = 1; r < sheet.length; r++) { const row = sheet[r]; if (!row || row.length <= DATE_COL) continue; const dateStr = parseDateFromExcel(row[DATE_COL]); if (!dateStr) continue; for (let c = START_COL; c < headers.length; c++) { const eqName = headers[c]?.toString().trim(); if (!eqName) continue; const eqId = equipmentMap[eqName]; if (!eqId) continue; const amount = parseFloat(row[c]); if (isNaN(amount) || amount <= 0) continue; const isDup = fuelData.some(f => f.equipmentId === eqId && f.date === dateStr && f.amount === amount); if (isDup) continue; records.push({ equipmentId: eqId, equipmentName: eqName, date: dateStr, amount: amount, notes: 'استيراد يومي' }); } } return records; }
@@ -561,7 +551,7 @@ function finalizeImport() { document.getElementById('import-progress-text').inne
 function updateImportProgress(current, total, message) { const percent = total > 0 ? Math.round((current / total) * 100) : 0; document.getElementById('import-progress-bar').style.width = percent + '%'; document.getElementById('import-progress-text').innerHTML = message; const statusList = document.getElementById('import-status-list'); statusList.innerHTML += `<div>${message} (${current}/${total})</div>`; statusList.scrollTop = statusList.scrollTop; }
 function cancelImport() { pendingImportData = null; document.getElementById('import-preview').style.display = 'none'; document.getElementById('excel-file-input').value = ''; showToast('تم إلغاء الاستيراد'); isImporting = false; }
 function handleInventoryFileUpload(input) { const file = input.files[0]; if (!file) { showToast('الرجاء اختيار ملف'); return; } if (!file.name.match(/\.(xlsx|xls)$/i)) { showToast('الرجاء اختيار ملف Excel بصيغة .xlsx أو .xls'); return; } showToast('📖 جاري قراءة الملف...'); const reader = new FileReader(); reader.onload = function (e) { try { const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' }); const sheetName = workbook.SheetNames[0]; const sheet = workbook.Sheets[sheetName]; const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }); if (!rows || rows.length < 2) { showToast('الملف فارغ أو لا يحتوي على بيانات'); return; } const cleanRows = []; for (let i = 1; i < rows.length; i++) { const row = rows[i]; if (!row) continue; const colA = (row[0] !== undefined && row[0] !== null) ? String(row[0]).trim() : ''; const colB = (row[1] !== undefined && row[1] !== null) ? String(row[1]).trim() : ''; const colC = (row[2] !== undefined && row[2] !== null) ? String(row[2]).trim() : ''; let colD = 0; if (row[3] !== undefined && row[3] !== null) { if (typeof row[3] === 'number') colD = row[3]; else { const cleanNumber = String(row[3]).replace(/[^\d.-]/g, ''); colD = parseFloat(cleanNumber) || 0; } } if (colA === '' && colB === '') continue; if (colA.includes('الاجمالي') || colA.toLowerCase().includes('total')) continue; let shortPartNo = colA.trim() || `ITEM_${i}`; let displayUnit = colC; if (displayUnit === 'L' || displayUnit === 'لتر') displayUnit = 'لتر'; else if (displayUnit === 'KG' || displayUnit === 'كجم') displayUnit = 'كجم'; else if (displayUnit === 'EA' || displayUnit === 'قطعة') displayUnit = 'قطعة'; else if (!displayUnit) displayUnit = 'قطعة'; let category = 'spare'; const descLower = colB.toLowerCase(); if (descLower.includes('فلتر') || descLower.includes('filter')) category = 'filter'; else if (descLower.includes('زيت') || descLower.includes('oil')) category = 'oil'; else if (descLower.includes('اطار') || descLower.includes('تاير')) category = 'tire'; cleanRows.push({ fullMaterial: colA, fullDescription: colB, fullUnit: colC, quantity: colD, shortPartNo: shortPartNo, displayUnit: displayUnit, category: category }); } if (cleanRows.length === 0) { showToast('لا توجد بيانات صالحة'); return; } pendingInventoryData = cleanRows; displayInventoryPreview(cleanRows); showToast(`✅ تم قراءة ${cleanRows.length} صنف`); } catch (err) { showToast('خطأ: ' + err.message); } }; reader.onerror = function () { showToast('خطأ في قراءة الملف'); }; reader.readAsArrayBuffer(file); }
-function displayInventoryPreview(items) { const previewDiv = document.getElementById('inventory-preview-content'); let updatedCount = 0, newCount = 0, totalQtySum = 0; const itemsToUpdate = []; const snapshot = [...inventoryItems]; for (const item of items) { totalQtySum += item.quantity; let existing = snapshot.find(i => i.fullMaterial && i.fullMaterial === item.fullMaterial); if (!existing) existing = snapshot.find(i => i.partNo === item.shortPartNo && item.shortPartNo.length > 3); if (existing) { updatedCount++; itemsToUpdate.push({ isNew: false, fullMaterial: item.fullMaterial, fullDescription: item.fullDescription, fullUnit: item.fullUnit, oldQty: existing.qty || 0, newQty: item.quantity, displayUnit: item.displayUnit }); } else { newCount++; itemsToUpdate.push({ isNew: true, fullMaterial: item.fullMaterial, fullDescription: item.fullDescription, fullUnit: item.fullUnit, shortPartNo: item.shortPartNo, qty: item.quantity, displayUnit: item.displayUnit, category: item.category }); } } previewDiv.innerHTML = `<div class="grid-3" style="margin:10px 0"><div class="stat-card"><div class="stat-number">${updatedCount}</div><div class="stat-label">سيتم تحديث</div></div><div class="stat-card"><div class="stat-number">${newCount}</div><div class="stat-label">جديد</div></div><div class="stat-card"><div class="stat-number">${formatNumber(totalQtySum)}</div><div class="stat-label">إجمالي القطع</div></div></div><div style="max-height:300px;overflow:auto;border:1px solid #e2e8f0;border-radius:12px"><table style="width:100%"><thead><tr><th>#</th><th>كود</th><th>الاسم</th><th>الوحدة</th><th>الكمية</th><th>الحالة</th></tr></thead><tbody>${itemsToUpdate.slice(0, 500).map((item, idx) => `<tr><td style="text-align:center">${idx+1}</td><td style="text-align:center">${escapeHtml(item.fullMaterial.substring(0, 30))}</td><td style="text-align:center">${escapeHtml(item.fullDescription.substring(0, 45))}</td><td style="text-align:center">${escapeHtml(item.fullUnit || item.displayUnit)}<td style="font-weight:bold;color:${!item.isNew && item.oldQty !== item.newQty ? '#f59e0b' : 'inherit'}">${!item.isNew ? `${item.oldQty} ← ${item.newQty}` : item.qty}</td><td style="text-align:center"><span style="background:${item.isNew ? '#10b981' : (item.oldQty !== item.newQty ? '#f59e0b' : '#6b7a8d')};color:white;padding:2px 8px;border-radius:20px">${item.isNew ? 'جديد' : (item.oldQty !== item.newQty ? 'تحديث' : 'مطابق')}</span></td>`).join('')}</tbody><td></div>`; document.getElementById('inventory-import-preview').style.display = 'block'; }
+function displayInventoryPreview(items) { const previewDiv = document.getElementById('inventory-preview-content'); let updatedCount = 0, newCount = 0, totalQtySum = 0; const itemsToUpdate = []; const snapshot = [...inventoryItems]; for (const item of items) { totalQtySum += item.quantity; let existing = snapshot.find(i => i.fullMaterial && i.fullMaterial === item.fullMaterial); if (!existing) existing = snapshot.find(i => i.partNo === item.shortPartNo && item.shortPartNo.length > 3); if (existing) { updatedCount++; itemsToUpdate.push({ isNew: false, fullMaterial: item.fullMaterial, fullDescription: item.fullDescription, fullUnit: item.fullUnit, oldQty: existing.qty || 0, newQty: item.quantity, displayUnit: item.displayUnit }); } else { newCount++; itemsToUpdate.push({ isNew: true, fullMaterial: item.fullMaterial, fullDescription: item.fullDescription, fullUnit: item.fullUnit, shortPartNo: item.shortPartNo, qty: item.quantity, displayUnit: item.displayUnit, category: item.category }); } } previewDiv.innerHTML = `<div class="grid-3" style="margin:10px 0"><div class="stat-card"><div class="stat-number">${updatedCount}</div><div class="stat-label">سيتم تحديث</div></div><div class="stat-card"><div class="stat-number">${newCount}</div><div class="stat-label">جديد</div></div><div class="stat-card"><div class="stat-number">${formatNumber(totalQtySum)}</div><div class="stat-label">إجمالي القطع</div></div></div><div style="max-height:300px;overflow:auto;border:1px solid #e2e8f0;border-radius:12px"><table style="width:100%"><thead><tr><th>#</th><th>كود</th><th>الاسم</th><th>الوحدة</th><th>الكمية</th><th>الحالة</th></tr></thead><tbody>${itemsToUpdate.slice(0, 500).map((item, idx) => `<tr><td style="text-align:center">${idx+1}</td><td style="text-align:center">${escapeHtml(item.fullMaterial.substring(0, 30))}</td><td style="text-align:center">${escapeHtml(item.fullDescription.substring(0, 45))}<td><td style="text-align:center">${escapeHtml(item.fullUnit || item.displayUnit)}<td style="font-weight:bold;color:${!item.isNew && item.oldQty !== item.newQty ? '#f59e0b' : 'inherit'}">${!item.isNew ? `${item.oldQty} ← ${item.newQty}` : item.qty}</td><td style="text-align:center"><span style="background:${item.isNew ? '#10b981' : (item.oldQty !== item.newQty ? '#f59e0b' : '#6b7a8d')};color:white;padding:2px 8px;border-radius:20px">${item.isNew ? 'جديد' : (item.oldQty !== item.newQty ? 'تحديث' : 'مطابق')}</span></td>`).join('')}</tbody></table></div>`; document.getElementById('inventory-import-preview').style.display = 'block'; }
 function confirmInventoryImport() { if (!pendingInventoryData || !pendingInventoryData.length) { showToast('لا توجد بيانات'); return; } if (!fbDb) { showToast('❌ غير متصل'); return; } showToast('🔄 جاري حفظ البيانات...'); const now = new Date().toISOString(); const dateStr = new Date().toLocaleDateString('ar-EG'); const snapshot = [...inventoryItems]; const allUpdates = {}; let updated = 0, created = 0; for (const item of pendingInventoryData) { try { let existing = snapshot.find(i => i.fullMaterial && i.fullMaterial === item.fullMaterial); if (!existing) existing = snapshot.find(i => i.partNo === item.shortPartNo && item.shortPartNo.length > 3); if (existing) { const { id, ...rest } = existing; allUpdates[`inventoryItems/${id}`] = { ...rest, partNo: item.shortPartNo, name: item.fullDescription.length > 100 ? item.fullDescription.substring(0, 100) : item.fullDescription, unit: item.displayUnit, qty: item.quantity, fullMaterial: item.fullMaterial, fullDescription: item.fullDescription, fullUnit: item.fullUnit, updatedAt: now }; updated++; } else { const newKey = fbDb.ref('inventoryItems').push().key; allUpdates[`inventoryItems/${newKey}`] = { category: item.category, name: item.fullDescription.length > 100 ? item.fullDescription.substring(0, 100) : item.fullDescription, partNo: item.shortPartNo, fullMaterial: item.fullMaterial, fullDescription: item.fullDescription, fullUnit: item.fullUnit, qty: item.quantity, minQty: (item.category === 'filter' || item.category === 'oil') ? 5 : 3, price: 0, unit: item.displayUnit, interval: (item.category === 'filter' || item.category === 'oil') ? 250 : 500, alts: [], notes: `تم الاستيراد من SOH بتاريخ ${dateStr}`, createdAt: now, updatedAt: now }; created++; } } catch (err) { console.error(err); } } const updatesArray = Object.entries(allUpdates); const batchSize = 500; let processed = 0; function processBatch(start) { const end = Math.min(start + batchSize, updatesArray.length); const batch = {}; for (let i = start; i < end; i++) batch[updatesArray[i][0]] = updatesArray[i][1]; fbDb.ref('/').update(batch).then(() => { processed = end; if (processed < updatesArray.length) processBatch(processed); else { showToast(`✅ تم الاستيراد: تحديث ${updated} صنف، إضافة ${created} صنف`); document.getElementById('inventory-import-preview').style.display = 'none'; pendingInventoryData = null; document.getElementById('inventory-excel-input').value = ''; setTimeout(() => forceRefreshData(), 800); } }).catch(err => { console.error(err); showToast('❌ خطأ في حفظ البيانات: ' + err.message); }); } if (updatesArray.length > 0) processBatch(0); else showToast('لا توجد تغييرات لحفظها'); }
 function cancelInventoryImport() { pendingInventoryData = null; document.getElementById('inventory-import-preview').style.display = 'none'; document.getElementById('inventory-excel-input').value = ''; showToast('تم إلغاء استيراد المخزون'); }
 function cleanMockFuelData() { if (!hasPermission('all')) { showToast('غير مصرح'); return; } const yearFrom = parseInt(document.getElementById('clean-year-from')?.value) || 2020; let yearTo = parseInt(document.getElementById('clean-year-to')?.value); if (!yearTo || isNaN(yearTo)) yearTo = new Date().getFullYear() + 1; const toDelete = fuelData.filter(f => { if (!f.date) return true; const d = new Date(f.date); if (isNaN(d.getTime())) return true; const year = d.getFullYear(); return year < yearFrom || year > yearTo; }); if (toDelete.length === 0) { showToast(`✅ لا توجد سجلات خارج النطاق ${yearFrom}-${yearTo}`); return; } if (!confirm(`سيتم حذف ${toDelete.length} سجل وقود خارج ${yearFrom}-${yearTo}. هل أنت متأكد؟`)) return; toDelete.forEach(f => deleteFromFirebase('fuelRecords', f.id)); showToast(`✅ تم حذف ${toDelete.length} سجل`); setTimeout(() => forceRefreshData(), 1000); }
@@ -573,7 +563,34 @@ function refreshUI() {
     if (activeView === 'home') updateHomeStatsAndList(); 
     if (activeView === 'equipment') { 
         const search = document.getElementById('search-equipment')?.value || ''; 
-        document.getElementById('equipment-list').innerHTML = equipmentData.filter(e => e.name.includes(search) || e.code.includes(search)).map(eq => `<div class="equipment-card" data-eqid="${eq.id}" style="cursor:pointer"><div class="card-header"><div><div class="card-title">${escapeHtml(eq.name)}</div><div class="card-code">${escapeHtml(eq.code)}</div></div><span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span></div><div><span>⏱️ ${formatNumber(eq.hours)} س</span> | <span>🔧 ${formatNumber(eq.nextHours)} س</span></div><div class="progress-bar"><div class="progress-fill" style="width:${getRemainingPercent(eq)}%;background:${getBarColor(hoursRemaining(eq))}"></div></div></div>`).join(''); 
+        let cardsHtml = '';
+        equipmentData.filter(e => e.name.includes(search) || e.code.includes(search)).forEach(eq => {
+            cardsHtml += `
+                <div class="equipment-card" data-eqid="${eq.id}" style="cursor:pointer">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">${escapeHtml(eq.name)}</div>
+                            <div class="card-code">${escapeHtml(eq.code)}</div>
+                        </div>
+                        <span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span>
+                    </div>
+                    <div><span>⏱️ ${formatNumber(eq.hours)} س</span> | <span>🔧 ${formatNumber(eq.nextHours)} س</span></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${getRemainingPercent(eq)}%;background:${getBarColor(hoursRemaining(eq))}"></div></div>
+                </div>
+            `;
+        });
+        document.getElementById('equipment-list').innerHTML = cardsHtml;
+        
+        // ربط حدث النقر على بطاقات المعدات في صفحة المعدات
+        setTimeout(() => {
+            document.querySelectorAll('#equipment-list .equipment-card').forEach(card => {
+                card.onclick = function(e) {
+                    e.stopPropagation();
+                    const eqId = this.getAttribute('data-eqid');
+                    if (eqId) openEquipmentDetail(eqId);
+                };
+            });
+        }, 100);
     } 
     if (activeView === 'drivers') { 
         const search = document.getElementById('search-driver')?.value || ''; 
@@ -602,18 +619,99 @@ function updateHomeStatsAndList() {
     const shortagesCount = Object.values(needs).filter(n => n.shortage > 0).length; 
     const totalFuel = fuelData.reduce((s, f) => s + (f.amount || 0), 0); 
     const expiredLicenses = driversData.filter(d => d.licenseExpiry && new Date(d.licenseExpiry) < new Date() && d.status === 'نشط').length; 
-    document.getElementById('stats-summary').innerHTML = `<div class="stat-card"><div class="stat-number">${equipmentData.length}</div><div class="stat-label">المعدات</div></div><div class="stat-card"><div class="stat-number" style="color:var(--success)">${working}</div><div class="stat-label">تعمل ✅</div></div><div class="stat-card"><div class="stat-number" style="color:var(--danger)">${overdue}</div><div class="stat-label">متأخرة ⚠️</div></div><div class="stat-card"><div class="stat-number" style="color:var(--warning)">${scheduled}</div><div class="stat-label">مجدولة 🔧</div></div><div class="stat-card"><div class="stat-number" style="color:var(--purple)">${shortagesCount}</div><div class="stat-label">نواقص 📦</div></div><div class="stat-card"><div class="stat-number" style="color:var(--info)">${formatNumber(totalFuel)}</div><div class="stat-label">لتر ⛽</div></div>${expiredLicenses > 0 ? `<div class="stat-card" style="border:2px solid var(--danger)"><div class="stat-number" style="color:var(--danger)">${expiredLicenses}</div><div class="stat-label">رخصة منتهية ❌</div></div>` : ''}`; 
+    
+    document.getElementById('stats-summary').innerHTML = `
+        <div class="stat-card"><div class="stat-number">${equipmentData.length}</div><div class="stat-label">المعدات</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:var(--success)">${working}</div><div class="stat-label">تعمل ✅</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:var(--danger)">${overdue}</div><div class="stat-label">متأخرة ⚠️</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:var(--warning)">${scheduled}</div><div class="stat-label">مجدولة 🔧</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:var(--purple)">${shortagesCount}</div><div class="stat-label">نواقص 📦</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:var(--info)">${formatNumber(totalFuel)}</div><div class="stat-label">لتر ⛽</div></div>
+        ${expiredLicenses > 0 ? `<div class="stat-card" style="border:2px solid var(--danger)"><div class="stat-number" style="color:var(--danger)">${expiredLicenses}</div><div class="stat-label">رخصة منتهية ❌</div></div>` : ''}
+    `; 
+    
     const sorted = [...equipmentData].sort((a, b) => hoursRemaining(a) - hoursRemaining(b)); 
     document.getElementById('equipment-count').innerHTML = `(${equipmentData.length})`; 
-    document.getElementById('equipment-list-home').innerHTML = sorted.map(eq => { 
-        const rem = hoursRemaining(eq), percent = getRemainingPercent(eq), statusText = getRemainingStatus(eq), barColor = getBarColor(rem), driver = driversData.find(d => d.id === eq.assignedDriver); 
-        const meterHtml = hasPermission('all') ? `<div class="meter-input-group" style="margin-top:8px;display:flex;gap:8px"><input type="number" id="home-meter-${eq.id}" style="flex:1;border:1px solid #e2e8f0;border-radius:12px;padding:8px" value="${eq.hours}"><button class="update-meter-btn" data-id="${eq.id}" style="background:var(--info);border:none;color:white;padding:8px 12px;border-radius:12px">تحديث</button></div>` : ''; 
-        return `<div class="equipment-card" data-eqid="${eq.id}" style="cursor:pointer"><div class="card-header"><div><div class="card-title">${escapeHtml(eq.name)}</div><div class="card-code">${escapeHtml(eq.code)} | ${eq.type}</div></div><span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span></div><div style="margin:12px 0"><div style="display:flex;justify-content:space-between"><span style="font-size:11px">⏱️ الساعات المتبقية</span><span style="font-size:12px;font-weight:700;color:${statusText.color}">${statusText.text}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%;background:${barColor}"></div></div><div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px">0 س</span><span style="font-size:9px">الصيانة عند ${formatNumber(eq.nextHours)} س</span></div></div><div class="grid-2"><div><div class="detail-label">⏱️ العداد</div><div class="detail-value">${formatNumber(eq.hours)} س</div></div><div><div class="detail-label">🔧 الصيانة</div><div class="detail-value">${formatNumber(eq.nextHours)} س</div></div></div>${driver ? `<div style="margin-top:8px;font-size:11px;color:var(--gray);border-top:1px solid #eef2f6;padding-top:6px">👨‍✈️ ${escapeHtml(driver.name)}</div>` : ''}${meterHtml}</div>`; 
-    }).join(''); 
-    if (equipmentData.length === 0) document.getElementById('equipment-list-home').innerHTML = '<div class="empty-state">لا توجد معدات</div>'; 
+    
+    let cardsHtml = '';
+    sorted.forEach(eq => {
+        const rem = hoursRemaining(eq); 
+        const percent = getRemainingPercent(eq); 
+        const statusText = getRemainingStatus(eq); 
+        const barColor = getBarColor(rem); 
+        const driver = driversData.find(d => d && String(d.id) === String(eq.assignedDriver));
+        
+        let barBgColor = 'var(--success)';
+        if (rem <= 0) barBgColor = 'var(--danger)';
+        else if (rem <= 50) barBgColor = 'var(--warning)';
+        
+        let statusBadge = '';
+        if (eq.status === 'يعمل') statusBadge = '<span class="badge badge-working">يعمل</span>';
+        else if (eq.status === 'صيانة') statusBadge = '<span class="badge badge-maintenance">صيانة</span>';
+        else statusBadge = '<span class="badge badge-stopped">متوقف</span>';
+        
+        cardsHtml += `
+            <div class="equipment-card" data-eqid="${eq.id}" style="cursor:pointer">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">${escapeHtml(eq.name)}</div>
+                        <div class="card-code">${escapeHtml(eq.code)} | ${escapeHtml(eq.type)}</div>
+                    </div>
+                    ${statusBadge}
+                </div>
+                <div style="margin:12px 0">
+                    <div style="display:flex;justify-content:space-between">
+                        <span style="font-size:11px">⏱️ الساعات المتبقية</span>
+                        <span style="font-size:12px;font-weight:700;color:${statusText.color}">${statusText.text}</span>
+                    </div>
+                    <div class="progress-bar" style="background:#e2e8f0">
+                        <div class="progress-fill" style="width:${Math.min(100, percent)}%;background:${barBgColor};height:100%;border-radius:4px"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-top:4px">
+                        <span style="font-size:9px">0 س</span>
+                        <span style="font-size:9px">الصيانة عند ${formatNumber(eq.nextHours)} س</span>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div><div class="detail-label">⏱️ العداد</div><div class="detail-value">${formatNumber(eq.hours)} س</div></div>
+                    <div><div class="detail-label">🔧 الصيانة</div><div class="detail-value">${formatNumber(eq.nextHours)} س</div></div>
+                </div>
+                ${driver ? `<div style="margin-top:8px;font-size:11px;color:var(--gray);border-top:1px solid #eef2f6;padding-top:6px">👨‍✈️ ${escapeHtml(driver.name)}</div>` : ''}
+            </div>
+        `;
+    });
+    
+    document.getElementById('equipment-list-home').innerHTML = cardsHtml;
+    
+    if (equipmentData.length === 0) {
+        document.getElementById('equipment-list-home').innerHTML = '<div class="empty-state">لا توجد معدات</div>';
+    }
+    
+    // ربط حدث النقر على بطاقات المعدات في الصفحة الرئيسية
+    setTimeout(() => {
+        document.querySelectorAll('#equipment-list-home .equipment-card').forEach(card => {
+            card.onclick = function(e) {
+                e.stopPropagation();
+                const eqId = this.getAttribute('data-eqid');
+                if (eqId) {
+                    console.log('تم النقر على البطاقة، ID:', eqId);
+                    openEquipmentDetail(eqId);
+                }
+            };
+        });
+        
+        // ربط أزرار التحديث المنفصلة
+        document.querySelectorAll('.update-meter-btn').forEach(btn => {
+            btn.onclick = function(e) {
+                e.stopPropagation();
+                const id = this.getAttribute('data-id');
+                if (id) updateSingleMeterFromHome(id);
+            };
+        });
+    }, 100);
 }
 
-// دالة تبديل الوضع المظلم - تم إصلاحها
+// دالة تبديل الوضع المظلم
 function toggleDarkMode() { 
     const isDark = document.body.classList.toggle('dark-mode'); 
     localStorage.setItem('darkMode', isDark ? '1' : '0'); 
@@ -660,54 +758,11 @@ function switchView(v) {
 function confirmDelete(path, id, msg = 'هل أنت متأكد من الحذف؟') { if (!hasPermission('all')) { showToast('غير مصرح'); return; } if (confirm(msg)) { deleteFromFirebase(path, id); } }
 function loadSavedSettings() { const m = localStorage.getItem('loginMode'); if (m) setLoginMode(m); }
 
-// ==================== تفعيل النقر على كروت المعدات ====================
-function initEquipmentCardClicks() {
-    // استخدام event delegation على الحاوية الرئيسية
-    const container = document.getElementById('app-container');
-    if (!container) return;
-    
-    // إزالة المستمع القديم إذا وجد
-    if (container._clickHandler) {
-        container.removeEventListener('click', container._clickHandler);
-    }
-    
-    // إضافة مستمع جديد
-    container._clickHandler = function(e) {
-        // تجاهل النقر على الأزرار والحقول
-        if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select') || e.target.closest('.update-meter-btn')) {
-            return;
-        }
-        
-        // البحث عن أقرب كارت معدة
-        const card = e.target.closest('[data-eqid]');
-        if (!card) return;
-        
-        const eqId = card.getAttribute('data-eqid');
-        if (!eqId) return;
-        
-        e.stopPropagation();
-        console.log('تم النقر على كارت المعدة:', eqId);
-        openEquipmentDetail(eqId);
-    };
-    
-    container.addEventListener('click', container._clickHandler);
-    
-    // ربط أزرار التحديث المنفصلة
-    document.querySelectorAll('.update-meter-btn').forEach(btn => {
-        btn.removeEventListener('click', function(e) {});
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const id = this.getAttribute('data-id');
-            if (id) updateSingleMeterFromHome(id);
-        });
-    });
-}
-
-// ==================== ربط الأحداث ====================
+// ==================== ربط الأحداث النهائي ====================
 document.addEventListener('DOMContentLoaded', function () {
   console.log('تم تحميل الصفحة - جاري تهيئة التطبيق');
   
-  // ربط أزرار الدخول
+  // أزرار الدخول
   const directBtn = document.getElementById('direct-login-btn');
   const secureBtn = document.getElementById('secure-login-btn');
   const directSubmit = document.getElementById('direct-login-submit');
@@ -723,10 +778,9 @@ document.addEventListener('DOMContentLoaded', function () {
   
   const savedMode = localStorage.getItem('loginMode');
   if (savedMode === 'secure') setLoginMode('secure'); else setLoginMode('direct');
-  
   if (logoutBtn) logoutBtn.onclick = () => logout();
   
-  // ربط أزرار التحكم
+  // أزرار التحكم
   const darkModeBtn = document.getElementById('dark-mode-btn');
   if (darkModeBtn) darkModeBtn.onclick = () => toggleDarkMode();
   
@@ -817,15 +871,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const categoryFilter = document.getElementById('category-filter');
   if (categoryFilter) categoryFilter.onchange = () => filterInventory();
   
-  // ربط أزرار التبويب
+  // أزرار التبويب
   document.querySelectorAll('.tab-btn').forEach(btn => { btn.onclick = () => switchView(btn.dataset.view); });
   
   loadSavedSettings();
-  
-  // تفعيل النقر على كروت المعدات بعد تحميل البيانات
-  setTimeout(() => {
-    initEquipmentCardClicks();
-  }, 1000);
   
   console.log('✅ تم تهيئة جميع الأزرار والدوال بنجاح');
 });
