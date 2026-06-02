@@ -590,18 +590,8 @@ function refreshUI() {
     if (activeView === 'home') updateHomeStatsAndList(); 
     if (activeView === 'equipment') { 
         const search = document.getElementById('search-equipment')?.value || ''; 
-        document.getElementById('equipment-list').innerHTML = equipmentData.filter(e => e.name.includes(search) || e.code.includes(search)).map(eq => `<div class="equipment-card" data-eqid="${eq.id}" style="cursor:pointer"><div class="card-header"><div><div class="card-title">${escapeHtml(eq.name)}</div><div class="card-code">${escapeHtml(eq.code)}</div></div><span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span></div><div><span>⏱️ ${formatNumber(eq.hours)} س</span> | <span>🔧 ${formatNumber(eq.nextHours)} س</span></div><div class="progress-bar"><div class="progress-fill" style="width:${getRemainingPercent(eq)}%;
-    // Event delegation لكارت المعدات
-    const eqList = document.getElementById('equipment-list');
-    if (eqList && !eqList._delegated) {
-        eqList._delegated = true;
-        eqList.addEventListener('click', function(e) {
-            const card = e.target.closest('[data-eqid]');
-            if (card && !e.target.closest('button')) {
-                openEquipmentDetail(card.getAttribute('data-eqid'));
-            }
-        });
-    }background:${getBarColor(hoursRemaining(eq))}"></div></div></div>`).join(''); 
+        document.getElementById('equipment-list').innerHTML = equipmentData.filter(e => e.name.includes(search) || e.code.includes(search)).map(eq => `<div class="equipment-card" data-eqid="${eq.id}" style="cursor:pointer" onclick="openEquipmentDetail(this.dataset.eqid)"><div class="card-header"><div><div class="card-title">${escapeHtml(eq.name)}</div><div class="card-code">${escapeHtml(eq.code)}</div></div><span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span></div><div><span>⏱️ ${formatNumber(eq.hours)} س</span> | <span>🔧 ${formatNumber(eq.nextHours)} س</span></div><div class="progress-bar"><div class="progress-fill" style="width:${getRemainingPercent(eq)}%;
+background:${getBarColor(hoursRemaining(eq))}"></div></div></div>`).join(''); 
     } 
     if (activeView === 'drivers') { 
         const search = document.getElementById('search-driver')?.value || ''; 
@@ -634,33 +624,12 @@ function updateHomeStatsAndList() {
     const sorted = [...equipmentData].sort((a, b) => hoursRemaining(a) - hoursRemaining(b)); 
     document.getElementById('equipment-count').innerHTML = `(${equipmentData.length})`; 
     document.getElementById('equipment-list-home').innerHTML = sorted.map(eq => { 
-        const rem = hoursRemaining(eq), percent = getRemainingPercent(eq), statusText = getRemainingStatus(eq), barColor = getBarColor(rem), driver = driversData.find(d => d.id === eq.assignedDriver);
-    // Event delegation للهوم
-    const eqListHome = document.getElementById('equipment-list-home');
-    if (eqListHome && !eqListHome._delegated) {
-        eqListHome._delegated = true;
-        eqListHome.addEventListener('click', function(e) {
-            const card = e.target.closest('[data-eqid]');
-            if (card && !e.target.closest('button')) {
-                openEquipmentDetail(card.getAttribute('data-eqid'));
-            }
-        });
-    } 
+        const rem = hoursRemaining(eq), percent = getRemainingPercent(eq), statusText = getRemainingStatus(eq), barColor = getBarColor(rem), driver = driversData.find(d => d.id === eq.assignedDriver); 
         const meterHtml = hasPermission('all') ? `<div class="meter-input-group" style="margin-top:8px;display:flex;gap:8px"><input type="number" id="home-meter-${eq.id}" style="flex:1;border:1px solid #e2e8f0;border-radius:12px;padding:8px" value="${eq.hours}"><button style="background:var(--info);border:none;color:white;padding:8px 12px;border-radius:12px" onclick="event.stopPropagation();updateSingleMeterFromHome('${eq.id}')">تحديث</button></div>` : ''; 
-        return `<div class="equipment-card" data-eqid="${eq.id}" style="cursor:pointer"><div class="card-header"><div><div class="card-title">${escapeHtml(eq.name)}</div><div class="card-code">${escapeHtml(eq.code)} | ${eq.type}</div></div><span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span></div><div style="margin:12px 0"><div style="display:flex;justify-content:space-between"><span style="font-size:11px">⏱️ الساعات المتبقية</span><span style="font-size:12px;font-weight:700;color:${statusText.color}">${statusText.text}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%;background:${barColor}"></div></div><div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px">0 س</span><span style="font-size:9px">الصيانة عند ${formatNumber(eq.nextHours)} س</span></div></div><div class="grid-2"><div><div class="detail-label">⏱️ العداد</div><div class="detail-value">${formatNumber(eq.hours)} س</div></div><div><div class="detail-label">🔧 الصيانة</div><div class="detail-value">${formatNumber(eq.nextHours)} س</div></div></div>${driver ? `<div style="margin-top:8px;font-size:11px;color:var(--gray);border-top:1px solid #eef2f6;padding-top:6px">👨‍✈️ ${escapeHtml(driver.name)}</div>` : ''}${meterHtml}</div>`; 
+        return `<div class="equipment-card" data-eqid="${eq.id}" style="cursor:pointer" onclick="openEquipmentDetail(this.dataset.eqid)"><div class="card-header"><div><div class="card-title">${escapeHtml(eq.name)}</div><div class="card-code">${escapeHtml(eq.code)} | ${eq.type}</div></div><span class="badge ${eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped'}">${eq.status}</span></div><div style="margin:12px 0"><div style="display:flex;justify-content:space-between"><span style="font-size:11px">⏱️ الساعات المتبقية</span><span style="font-size:12px;font-weight:700;color:${statusText.color}">${statusText.text}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${percent}%;background:${barColor}"></div></div><div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px">0 س</span><span style="font-size:9px">الصيانة عند ${formatNumber(eq.nextHours)} س</span></div></div><div class="grid-2"><div><div class="detail-label">⏱️ العداد</div><div class="detail-value">${formatNumber(eq.hours)} س</div></div><div><div class="detail-label">🔧 الصيانة</div><div class="detail-value">${formatNumber(eq.nextHours)} س</div></div></div>${driver ? `<div style="margin-top:8px;font-size:11px;color:var(--gray);border-top:1px solid #eef2f6;padding-top:6px">👨‍✈️ ${escapeHtml(driver.name)}</div>` : ''}${meterHtml}</div>`; 
     }).join(''); 
     if (equipmentData.length === 0) document.getElementById('equipment-list-home').innerHTML = '<div class="empty-state">لا توجد معدات</div>';
-    // Event delegation للهوم
-    const eqListHome = document.getElementById('equipment-list-home');
-    if (eqListHome && !eqListHome._delegated) {
-        eqListHome._delegated = true;
-        eqListHome.addEventListener('click', function(e) {
-            const card = e.target.closest('[data-eqid]');
-            if (card && !e.target.closest('button')) {
-                openEquipmentDetail(card.getAttribute('data-eqid'));
-            }
-        });
-    } 
+ 
 }
 
 // دالة تبديل الوضع المظلم - تم إصلاحها
@@ -696,12 +665,13 @@ function switchView(v) {
     document.getElementById('header-title').innerHTML = titles[v]; 
     const fab = document.getElementById('fab-btn');
     if (!fab) return;
-    // إظهار FAB فقط في الصفحات اللي فيها إضافة وللمدير فقط
     if (!hasPermission('all')) { fab.style.display = 'none'; return; }
-    if (v === 'equipment') { fab.style.display = 'flex'; fab.onclick = () => openAddEquipmentModal(); }
-    else if (v === 'drivers') { fab.style.display = 'flex'; fab.onclick = () => openAddDriverModal(); }
-    else if (v === 'fuel') { fab.style.display = 'flex'; fab.onclick = () => openAddFuelModal(); }
-    else if (v === 'inventory') { fab.style.display = 'flex'; fab.onclick = () => openAddInventoryItemModal(); }
+    fab.style.display = 'flex';
+    if (v === 'equipment') fab.onclick = () => openAddEquipmentModal();
+    else if (v === 'drivers') fab.onclick = () => openAddDriverModal();
+    else if (v === 'fuel') fab.onclick = () => openAddFuelModal();
+    else if (v === 'inventory') fab.onclick = () => openAddInventoryItemModal();
+    else if (v === 'maintenance') fab.onclick = () => openAddMaintenanceModal();
     else { fab.style.display = 'none'; fab.onclick = null; } 
     debouncedRefresh(); 
 }
@@ -950,6 +920,26 @@ function initOfflineDetector() {
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
+}
+
+
+// ==================== تفعيل النقر على كروت المعدات ====================
+function initEquipmentCardClicks() {
+    // event delegation على app-container - يشمل كل الصفحات
+    const appContainer = document.getElementById('app-container');
+    if (!appContainer || appContainer._eqClicksInit) return;
+    appContainer._eqClicksInit = true;
+    appContainer.addEventListener('click', function(e) {
+        // تجاهل النقر على الأزرار
+        if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
+        // البحث عن أقرب كارت معدة
+        const card = e.target.closest('[data-eqid]');
+        if (!card) return;
+        const eqId = card.getAttribute('data-eqid');
+        if (!eqId) return;
+        e.stopPropagation();
+        openEquipmentDetail(eqId);
+    });
 }
 
   loadSavedSettings();
