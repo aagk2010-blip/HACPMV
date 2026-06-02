@@ -747,9 +747,226 @@ document.addEventListener('DOMContentLoaded', function () {
   
   document.querySelectorAll('.tab-btn').forEach(btn => { btn.onclick = () => switchView(btn.dataset.view); });
   
+
+// ==================== openFuelReportModal ====================
+function openFuelReportModal() {
+    const sel = document.getElementById('fuel-report-equipment');
+    if (sel) {
+        sel.innerHTML = '<option value="">كل المعدات</option>' +
+            equipmentData.map(e => `<option value="${escapeHtml(e.id)}">${escapeHtml(e.code)} - ${escapeHtml(e.name)}</option>`).join('');
+    }
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    const fromEl = document.getElementById('fuel-report-from');
+    const toEl = document.getElementById('fuel-report-to');
+    if (fromEl) fromEl.value = firstDay;
+    if (toEl) toEl.value = lastDay;
+    const resEl = document.getElementById('fuel-report-results');
+    if (resEl) resEl.innerHTML = '';
+    document.getElementById('fuel-report-modal').classList.add('active');
+}
+
+// ==================== generateFuelReport ====================
+function generateFuelReport() {
+    const from = document.getElementById('fuel-report-from').value;
+    const to = document.getElementById('fuel-report-to').value;
+    const eqId = document.getElementById('fuel-report-equipment').value;
+    if (!from || !to) { showToast('حدد الفترة الزمنية'); return; }
+    if (from > to) { showToast('تاريخ البداية يجب أن يكون قبل تاريخ النهاية'); return; }
+
+    let filtered = fuelData.filter(f => f.date && f.date >= from && f.date <= to);
+    if (eqId) filtered = filtered.filter(f => f.equipmentId === eqId);
+
+    const resEl = document.getElementById('fuel-report-results');
+    if (!filtered.length) {
+        resEl.innerHTML = '<div class="empty-state">لا توجد سجلات وقود في هذه الفترة</div>';
+        return;
+    }
+
+    const eqMap = {};
+    filtered.forEach(f => {
+        const eq = equipmentData.find(e => e.id === f.equipmentId);
+        const name = eq ? (eq.code + ' - ' + eq.name) : (f.equipmentName || f.equipmentId || '—');
+        if (!eqMap[name]) eqMap[name] = { total: 0, cost: 0, count: 0 };
+        eqMap[name].total += parseFloat(f.amount) || 0;
+        eqMap[name].cost += parseFloat(f.cost) || 0;
+        eqMap[name].count++;
+    });
+
+    const grandTotal = filtered.reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+    const grandCost = filtered.reduce((s, f) => s + (parseFloat(f.cost) || 0), 0);
+    const days = Math.ceil((new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24)) + 1;
+
+    let html = `<div style="background:#f0fdf4;border-radius:12px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+        <div><div style="font-size:18px;font-weight:800;color:var(--info)">${grandTotal.toLocaleString()}</div><div style="font-size:10px;color:var(--gray)">إجمالي لتر</div></div>
+        <div><div style="font-size:18px;font-weight:800;color:var(--success)">${filtered.length}</div><div style="font-size:10px;color:var(--gray)">سجل تزود</div></div>
+        <div><div style="font-size:18px;font-weight:800;color:var(--accent)">${Math.round(grandTotal / days)}</div><div style="font-size:10px;color:var(--gray)">لتر/يوم</div></div>
+    </div>`;
+
+    html += '<div style="max-height:250px;overflow-y:auto">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+    html += '<thead><tr style="background:var(--primary);color:white;position:sticky;top:0"><th style="padding:7px">المعدة</th><th style="padding:7px">تزودات</th><th style="padding:7px">لتر</th><th style="padding:7px">تكلفة</th></tr></thead><tbody>';
+    Object.entries(eqMap).sort((a, b) => b[1].total - a[1].total).forEach(([name, d]) => {
+        html += `<tr style="border-bottom:1px solid #eef2f6">
+            <td style="padding:7px">${escapeHtml(name)}</td>
+            <td style="padding:7px;text-align:center">${d.count}</td>
+            <td style="padding:7px;text-align:center;font-weight:700;color:var(--info)">${d.total.toLocaleString()}</td>
+            <td style="padding:7px;text-align:center">${d.cost > 0 ? d.cost.toLocaleString() + ' ر.س' : '—'}</td>
+        </tr>`;
+    });
+    html += `<tr style="background:#fef9ec;font-weight:700">
+        <td style="padding:7px">الإجمالي</td><td style="padding:7px;text-align:center">${filtered.length}</td>
+        <td style="padding:7px;text-align:center;color:var(--info)">${grandTotal.toLocaleString()}</td>
+        <td style="padding:7px;text-align:center">${grandCost > 0 ? grandCost.toLocaleString() + ' ر.س' : '—'}</td>
+    </tr>`;
+    html += '</tbody></table></div>';
+    resEl.innerHTML = html;
+}
+
+// ==================== exportFuelReportRange ====================
+function exportFuelReportRange() {
+    const from = document.getElementById('fuel-report-from') ? document.getElementById('fuel-report-from').value : '';
+    const to = document.getElementById('fuel-report-to') ? document.getElementById('fuel-report-to').value : '';
+    const eqId = document.getElementById('fuel-report-equipment') ? document.getElementById('fuel-report-equipment').value : '';
+    if (!from || !to) { showToast('حدد الفترة أولاً'); return; }
+
+    let filtered = fuelData.filter(f => f.date && f.date >= from && f.date <= to);
+    if (eqId) filtered = filtered.filter(f => f.equipmentId === eqId);
+    if (!filtered.length) { showToast('لا توجد بيانات في هذه الفترة'); return; }
+
+    try {
+        const detailRows = [['التاريخ', 'المعدة', 'الكمية (لتر)', 'التكلفة (ر.س)', 'السائق', 'ملاحظات']];
+        filtered.sort((a, b) => (a.date || '').localeCompare(b.date || '')).forEach(f => {
+            const eq = equipmentData.find(e => e.id === f.equipmentId);
+            const name = eq ? (eq.code + ' - ' + eq.name) : (f.equipmentName || '—');
+            detailRows.push([f.date || '', name, f.amount || 0, f.cost || 0, f.driverName || '', f.notes || '']);
+        });
+
+        const eqMap = {};
+        filtered.forEach(f => {
+            const eq = equipmentData.find(e => e.id === f.equipmentId);
+            const name = eq ? (eq.code + ' - ' + eq.name) : (f.equipmentName || '—');
+            if (!eqMap[name]) eqMap[name] = { total: 0, cost: 0, count: 0 };
+            eqMap[name].total += parseFloat(f.amount) || 0;
+            eqMap[name].cost += parseFloat(f.cost) || 0;
+            eqMap[name].count++;
+        });
+        const summaryRows = [['المعدة', 'عدد التزودات', 'الإجمالي (لتر)', 'التكلفة الإجمالية (ر.س)']];
+        Object.entries(eqMap).sort((a, b) => b[1].total - a[1].total).forEach(([name, d]) => {
+            summaryRows.push([name, d.count, d.total, d.cost]);
+        });
+        const grandTotal = filtered.reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+        const grandCost = filtered.reduce((s, f) => s + (parseFloat(f.cost) || 0), 0);
+        summaryRows.push(['الإجمالي', filtered.length, grandTotal, grandCost]);
+
+        const wb = XLSX.utils.book_new();
+        const ws1 = XLSX.utils.aoa_to_sheet(detailRows);
+        const ws2 = XLSX.utils.aoa_to_sheet(summaryRows);
+        ws1['!cols'] = [{wch:14},{wch:35},{wch:14},{wch:14},{wch:18},{wch:20}];
+        ws2['!cols'] = [{wch:35},{wch:14},{wch:16},{wch:18}];
+        XLSX.utils.book_append_sheet(wb, ws1, 'تفاصيل الفترة');
+        XLSX.utils.book_append_sheet(wb, ws2, 'ملخص المعدات');
+        XLSX.writeFile(wb, 'Fuel_' + from + '_to_' + to + '.xlsx');
+        showToast('✅ تم تصدير ' + filtered.length + ' سجل');
+    } catch(e) { showToast('خطأ في التصدير: ' + e.message); console.error(e); }
+}
+
+// ==================== checkMeterWarning ====================
+function checkMeterWarning(eq, prevHours, newHours) {
+    if (!eq || !eq.nextHours) return;
+    const prevRem = eq.nextHours - prevHours;
+    const newRem = eq.nextHours - newHours;
+    if (prevRem > 0 && newRem <= 0) {
+        setTimeout(() => showToast('🚨 ' + eq.name + ' تجاوزت موعد الصيانة بـ ' + Math.abs(newRem) + ' ساعة!'), 1500);
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            try { new Notification('🚨 تجاوز صيانة - ' + eq.name, {
+                body: 'العداد ' + newHours + ' س تجاوز موعد الصيانة ' + eq.nextHours + ' س',
+                icon: 'https://cdn-icons-png.flaticon.com/512/1995/1995562.png', tag: 'overdue-' + eq.id
+            }); } catch(ex) {}
+        }
+    } else if (newRem > 0 && newRem <= 25 && prevRem > 25) {
+        setTimeout(() => showToast('⚠️ ' + eq.name + ' باقي ' + newRem + ' ساعة على الصيانة!'), 1500);
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            try { new Notification('⚠️ اقتراب صيانة - ' + eq.name, {
+                body: 'باقي ' + newRem + ' ساعة فقط على الصيانة الدورية عند ' + eq.nextHours + ' س',
+                icon: 'https://cdn-icons-png.flaticon.com/512/1995/1995562.png', tag: 'warn-' + eq.id
+            }); } catch(ex) {}
+        }
+    } else if (newRem > 0 && newRem <= 50 && prevRem > 50) {
+        setTimeout(() => showToast('🔔 ' + eq.name + ' باقي ' + newRem + ' ساعة على الصيانة'), 1500);
+    }
+}
+
+// ==================== initOfflineDetector ====================
+function initOfflineDetector() {
+    function updateOnlineStatus() {
+        const syncEl = document.getElementById('sync-status');
+        if (!syncEl) return;
+        if (navigator.onLine) {
+            syncEl.innerHTML = '🟢 متصل';
+            syncEl.style.color = 'rgba(255,255,255,0.7)';
+        } else {
+            syncEl.innerHTML = '🔴 غير متصل - البيانات لن تُحفظ!';
+            syncEl.style.color = '#fca5a5';
+            showToast('⚠️ انقطع الإنترنت - التغييرات لن تُحفظ');
+        }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+}
+
   loadSavedSettings();
-  console.log('تم تهيئة جميع الأزرار والدوال بنجاح');
+  // ربط الدوال بـ window لضمان الوصول من HTML
+  window.safeOpenEquipmentDetail = safeOpenEquipmentDetail;
+  window.openFuelReportModal = openFuelReportModal;
+  window.generateFuelReport = generateFuelReport;
+  window.exportFuelReportRange = exportFuelReportRange;
+  window.checkMeterWarning = checkMeterWarning;
+  window.initOfflineDetector = initOfflineDetector;
+  window.exportFuelReportExcel = exportFuelReportExcel;
+  window.showFuelMonthlyChart = showFuelMonthlyChart;
+  window.exportMaintenancePDF = exportMaintenancePDF;
+  window.exportInventoryExcel = exportInventoryExcel;
+  window.exportAllHoursExcel = exportAllHoursExcel;
+  window.showHoursHistory = showHoursHistory;
+  window.exportHoursHistoryToExcel = exportHoursHistoryToExcel;
+  window.toggleDarkMode = toggleDarkMode;
+  window.toggleGlobalSearch = toggleGlobalSearch;
+  window.globalSearch = globalSearch;
+  window.updateBellCounter = updateBellCounter;
+  window.checkMaintenanceAlerts = checkMaintenanceAlerts;
+  window.checkDriverLicenses = checkDriverLicenses;
+  window.sendWhatsAppMaintenanceAlert = sendWhatsAppMaintenanceAlert;
+  window.autoCheckAlerts = autoCheckAlerts;
+  window.loadDarkMode = loadDarkMode;
+  window.initSessionTimeout = initSessionTimeout;
+  console.log('✅ تم تهيئة جميع الأزرار والدوال بنجاح');
 });
 </script>
+<div class="modal-overlay" id="fuel-report-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)">
+    <div class="modal-title">⛽ تقرير استهلاك الوقود</div>
+    <button class="modal-close" onclick="closeModal('fuel-report-modal')">✕</button>
+  </div>
+  <div style="padding:16px">
+    <div class="detail-section" style="margin:0 0 12px 0">
+      <div class="detail-label" style="margin-bottom:8px">📅 تحديد الفترة</div>
+      <div class="grid-2" style="gap:8px">
+        <div><label class="form-label">من تاريخ</label><input class="form-input" type="date" id="fuel-report-from" style="border:1px solid #e2e8f0;border-radius:12px;padding:8px 12px;width:100%"></div>
+        <div><label class="form-label">إلى تاريخ</label><input class="form-input" type="date" id="fuel-report-to" style="border:1px solid #e2e8f0;border-radius:12px;padding:8px 12px;width:100%"></div>
+      </div>
+    </div>
+    <div class="detail-section" style="margin:0 0 12px 0">
+      <div class="detail-label" style="margin-bottom:8px">🏗️ المعدة (اختياري)</div>
+      <select class="form-select" id="fuel-report-equipment" style="border:1px solid #e2e8f0;border-radius:12px;padding:8px;width:100%"><option value="">كل المعدات</option></select>
+    </div>
+    <button class="save-btn" onclick="generateFuelReport()" style="background:linear-gradient(135deg,#065f46,#0e7490);margin-bottom:8px">📊 عرض التقرير</button>
+    <button class="save-btn" onclick="exportFuelReportRange()" style="background:linear-gradient(135deg,#10b981,#0e7490)">📥 تصدير Excel للفترة</button>
+    <div id="fuel-report-results" style="margin-top:16px"></div>
+  </div>
+</div>
+
 </body>
 </html>
