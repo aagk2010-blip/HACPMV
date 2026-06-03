@@ -145,9 +145,9 @@ body.dark-mode .tab-btn.active{color:#e8a020}
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الاسم الكامل *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label">رقم الهاتف</label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label">رقم رخصة القيادة</label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label">تاريخ انتهاء الرخصة</label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
 
-<div class="modal-overlay" id="fuel-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">⛽ تسجيل تزود بالوقود</div><button class="modal-close" onclick="closeModal('fuel-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">المعدة</label><select class="form-select" id="fuel-equipment"></select></div><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="fuel-amount"></div><div class="form-field"><label class="form-label">التكلفة (ر.س)</label><input class="form-input" type="number" id="fuel-cost"></div><div class="form-field"><label class="form-label">العداد الحالي</label><input class="form-input" type="number" id="fuel-hours"></div><div class="form-field"><label class="form-label">التاريخ</label><input class="form-input" type="date" id="fuel-date"></div><div class="form-field"><label class="form-label">السائق</label><select class="form-select" id="fuel-driver"></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="fuel-notes"></textarea></div></div><button class="save-btn" onclick="saveFuelRecord()">✅ حفظ التزود</button></div></div>
+<div class="modal-overlay" id="fuel-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">⛽ تسجيل تزود بالوقود</div><button class="modal-close" onclick="closeModal('fuel-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">المعدة</label><select class="form-select" id="fuel-equipment"></select></div><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="fuel-amount"></div><div class="form-field"><label class="form-label">التكلفة (ج.م)</label><input class="form-input" type="number" id="fuel-cost"></div><div class="form-field"><label class="form-label">العداد الحالي</label><input class="form-input" type="number" id="fuel-hours"></div><div class="form-field"><label class="form-label">التاريخ</label><input class="form-input" type="date" id="fuel-date"></div><div class="form-field"><label class="form-label">السائق</label><select class="form-select" id="fuel-driver"></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="fuel-notes"></textarea></div></div><button class="save-btn" onclick="saveFuelRecord()">✅ حفظ التزود</button></div></div>
 
-<div class="modal-overlay" id="fuel-edit-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">✏️ تعديل سجل الوقود</div><button class="modal-close" onclick="closeModal('fuel-edit-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="edit-fuel-amount"></div><div class="form-field"><label class="form-label">التكلفة (ر.س)</label><input class="form-input" type="number" id="edit-fuel-cost"></div><div class="form-field"><label class="form-label">العداد الحالي</label><input class="form-input" type="number" id="edit-fuel-hours"></div><div class="form-field"><label class="form-label">التاريخ</label><input class="form-input" type="date" id="edit-fuel-date"></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="edit-fuel-notes"></textarea></div></div><button class="save-btn" onclick="updateFuelRecord()">✅ حفظ التعديلات</button><button class="save-btn" style="background:var(--danger)" onclick="deleteFuelRecord()">🗑️ حذف السجل</button></div></div>
+<div class="modal-overlay" id="fuel-edit-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">✏️ تعديل سجل الوقود</div><button class="modal-close" onclick="closeModal('fuel-edit-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="edit-fuel-amount"></div><div class="form-field"><label class="form-label">التكلفة (ج.م)</label><input class="form-input" type="number" id="edit-fuel-cost"></div><div class="form-field"><label class="form-label">العداد الحالي</label><input class="form-input" type="number" id="edit-fuel-hours"></div><div class="form-field"><label class="form-label">التاريخ</label><input class="form-input" type="date" id="edit-fuel-date"></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="edit-fuel-notes"></textarea></div></div><button class="save-btn" onclick="updateFuelRecord()">✅ حفظ التعديلات</button><button class="save-btn" style="background:var(--danger)" onclick="deleteFuelRecord()">🗑️ حذف السجل</button></div></div>
 
 <div class="modal-overlay" id="maintenance-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--warning),var(--accent-dark))"><div class="modal-title">🔧 جدولة صيانة دورية</div><button class="modal-close" onclick="closeModal('maintenance-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">المعدة</label><select class="form-select" id="maint-equipment"></select></div><div class="form-field"><label class="form-label">نوع الصيانة</label><select class="form-select" id="maint-type"><option>صيانة دورية</option><option>صيانة طارئة</option><option>فحص دوري</option><option>تغيير زيت</option><option>تغيير فلاتر</option></select></div><div class="form-field"><label class="form-label">التاريخ المحدد</label><input class="form-input" type="date" id="maint-date"></div><div class="form-field"><label class="form-label">العداد المستهدف</label><input class="form-input" type="number" id="maint-hours"></div><div class="form-field"><label class="form-label">التكلفة المتوقعة</label><input class="form-input" type="number" id="maint-cost"></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="maint-notes"></textarea></div><div class="form-field"><label class="form-label">📎 مرفقات</label><input type="file" id="maint-attachment" accept="image/*,application/pdf" style="display:none"><button type="button" class="save-btn" style="margin:0;margin-top:8px;padding:8px" onclick="document.getElementById('maint-attachment').click()">📎 رفع مرفق</button><div id="maint-attachment-preview" style="margin-top:8px"></div></div></div><button class="save-btn" onclick="saveMaintenanceSchedule()">✅ جدولة الصيانة</button></div></div>
 
@@ -267,11 +267,17 @@ function hoursRemaining(equipment) {
     return (equipment.nextHours || 0) - (equipment.hours || 0);
 }
 
+// [تعديل] دالة حساب النسبة المئوية المتبقية - كلما زادت الساعات زاد طول الشريط
 function getRemainingPercent(equipment) {
     if (!equipment.nextHours || equipment.nextHours <= 0) return 0;
     const remaining = hoursRemaining(equipment);
     const total = equipment.interval || 250;
-    return Math.min(100, Math.max(0, (remaining / total) * 100));
+    // إذا كانت الساعات المتبقية سالبة (تجاوزت الموعد) -> نسبة 0%
+    if (remaining <= 0) return 0;
+    // حساب النسبة المئوية: (الساعات المتبقية / إجمالي الدورة) * 100
+    let percent = (remaining / total) * 100;
+    // الحد الأقصى 100%
+    return Math.min(100, Math.max(0, percent));
 }
 
 function getRemainingStatus(equipment) {
@@ -284,8 +290,9 @@ function getRemainingStatus(equipment) {
 
 function getBarColor(remaining) {
     if (remaining <= 0) return 'var(--danger)';
-    if (remaining <= 50) return 'var(--danger)';
-    if (remaining <= 100) return 'var(--warning)';
+    if (remaining <= 10) return 'var(--danger)';
+    if (remaining <= 50) return 'var(--warning)';
+    if (remaining <= 100) return '#f59e0b';
     return 'var(--success)';
 }
 
@@ -1059,7 +1066,7 @@ function openEquipmentDetail(id) {
     if (fuelRecords.length) {
         contentHtml += '<div class="detail-section"><div class="detail-label">⛽ آخر تزودات</div>' +
             fuelRecords.map(function(f) {
-                return '<div style="padding:6px 0;border-bottom:1px solid #eef2f6"><div>📅 ' + escapeHtml(f.date) + ' | ' + f.amount + ' لتر | ' + f.cost + ' ر.س</div></div>';
+                return '<div style="padding:6px 0;border-bottom:1px solid #eef2f6"><div>📅 ' + escapeHtml(f.date) + ' | ' + f.amount + ' لتر | ' + f.cost + ' ج.م</div></div>';
             }).join('') + '</div>';
     }
     if (equipment.notes) {
@@ -1112,7 +1119,7 @@ function generateEquipmentMaintenanceOrder(eqId) {
         '<p><strong>موعد الصيانة القادم:</strong> ' + equipment.nextHours + ' س</p>' +
         '<p><strong>التاريخ:</strong> ' + new Date().toLocaleDateString('ar-EG') + '</p>' +
         '<h3>القطع المطلوبة:</h3>' +
-        '<td><thead><tr><th>#</th><th>اسم القطعة</th><th>رقم القطعة</th><th>الكمية المطلوبة</th></tr></thead><tbody>';
+        '<table><thead><tr><th>#</th><th>اسم القطعة</th><th>رقم القطعة</th><th>الكمية المطلوبة</th></tr></thead><tbody>';
     
     neededFilters.forEach(function(f, i) {
         html += '<tr><td style="text-align:center">' + (i + 1) + '</td><td style="text-align:center">' + escapeHtml(f.name) + '</td><td style="text-align:center">' + escapeHtml(f.partNo) + '</td><td style="text-align:center">' + f.needed + '</td></tr>';
@@ -1434,7 +1441,7 @@ function exportFuelReportByDateRange() {
         eqMap[eqName].details.push({ date: f.date, amount: f.amount, cost: f.cost, driverName: f.driverName || '', notes: f.notes || '' });
     });
     var wb = XLSX.utils.book_new();
-    var summaryRows = [['المعدة', 'عدد التزودات', 'إجمالي الكمية (لتر)', 'متوسط الكمية', 'إجمالي التكلفة (ر.س)', 'متوسط التكلفة']];
+    var summaryRows = [['المعدة', 'عدد التزودات', 'إجمالي الكمية (لتر)', 'متوسط الكمية', 'إجمالي التكلفة (ج.م)', 'متوسط التكلفة']];
     Object.entries(eqMap).forEach(function(entry) {
         var name = entry[0];
         var data = entry[1];
@@ -1446,7 +1453,7 @@ function exportFuelReportByDateRange() {
     var ws1 = XLSX.utils.aoa_to_sheet(summaryRows);
     ws1['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 20 }];
     XLSX.utils.book_append_sheet(wb, ws1, 'ملخص الوقود');
-    var detailRows = [['التاريخ', 'المعدة', 'الكمية (لتر)', 'التكلفة (ر.س)', 'السائق', 'ملاحظات']];
+    var detailRows = [['التاريخ', 'المعدة', 'الكمية (لتر)', 'التكلفة (ج.م)', 'السائق', 'ملاحظات']];
     filteredFuel.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); }).forEach(function(f) {
         var eq = equipmentData.find(function(e) { return e.id === f.equipmentId; });
         var eqName = eq ? eq.name + ' (' + eq.code + ')' : (f.equipmentName || 'غير معروف');
@@ -1553,9 +1560,9 @@ function showFuelMonthlyChart() {
         var val = monthlyMap[m].totalAmount;
         var cost = monthlyMap[m].totalCost;
         var pct = Math.round((val / maxVal) * 100);
-        html += '<div style="margin-bottom:15px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:600">' + m + '</span><span><span style="color:var(--info);font-weight:700">' + val.toLocaleString() + ' لتر</span> | ' + cost.toLocaleString() + ' ر.س</span></div>' +
+        html += '<div style="margin-bottom:15px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:600">' + m + '</span><span><span style="color:var(--info);font-weight:700">' + val.toLocaleString() + ' لتر</span> | ' + cost.toLocaleString() + ' ج.م</span></div>' +
             '<div style="background:#e2e8f0;border-radius:10px;height:12px"><div style="background:linear-gradient(135deg,var(--info),var(--accent));width:' + pct + '%;height:100%;border-radius:10px;transition:width 0.5s"></div></div>' +
-            '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray);margin-top:4px"><span>📊 ' + monthlyMap[m].count + ' تزودة</span><span>💵 متوسط ' + (cost / val).toFixed(2) + ' ر.س/لتر</span></div></div>';
+            '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray);margin-top:4px"><span>📊 ' + monthlyMap[m].count + ' تزودة</span><span>💵 متوسط ' + (cost / val).toFixed(2) + ' ج.م/لتر</span></div></div>';
     });
     var grandTotal = Object.values(monthlyMap).reduce(function(sum, v) { return sum + v.totalAmount; }, 0);
     var grandCost = Object.values(monthlyMap).reduce(function(sum, v) { return sum + v.totalCost; }, 0);
@@ -1632,7 +1639,7 @@ function exportFuelReportExcel() {
         });
         var totalRecommended = Object.values(avgConsumption).reduce(function(sum, v) { return sum + v.recommended; }, 0);
         orderRows.push(['الإجمالي', '', totalRecommended, '']);
-        var detailRows = [['التاريخ', 'الشهر', 'المعدة', 'الكمية (لتر)', 'التكلفة (ر.س)', 'السائق', 'ملاحظات']];
+        var detailRows = [['التاريخ', 'الشهر', 'المعدة', 'الكمية (لتر)', 'التكلفة (ج.م)', 'السائق', 'ملاحظات']];
         fuelData.slice().sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); }).forEach(function(f) {
             var eq = equipmentData.find(function(e) { return e.id === f.equipmentId; });
             var eqName = eq ? (eq.code || eq.name) : (f.equipmentName || '—');
@@ -1930,7 +1937,7 @@ function showMaintenanceDetail(id) {
         '<div><div class="detail-label">النوع</div><div class="detail-value">' + escapeHtml(maintenance.type) + '</div></div>' +
         '<div><div class="detail-label">التاريخ</div><div class="detail-value">' + escapeHtml(maintenance.date) + '</div></div>' +
         '<div><div class="detail-label">العداد</div><div class="detail-value">' + (maintenance.targetHours || '—') + ' س</div></div>' +
-        '<div><div class="detail-label">التكلفة</div><div class="detail-value">' + (maintenance.estimatedCost || 0) + ' ر.س</div></div>' +
+        '<div><div class="detail-label">التكلفة</div><div class="detail-value">' + (maintenance.estimatedCost || 0) + ' ج.م</div></div>' +
         '<div><div class="detail-label">الحالة</div><div class="detail-value">' + escapeHtml(maintenance.status) + '</div></div>' +
         '</div></div>' + attachmentHtml;
     if (maintenance.notes) {
@@ -2365,7 +2372,7 @@ function showInventoryItemDetail(id) {
         '<div><div class="detail-label">دورة التغيير</div><div class="detail-value">كل ' + (item.interval || 250) + ' س</div></div>' +
         '<div><div class="detail-label">المطلوب (1000 س)</div><div class="detail-value">' + needed + ' ' + item.unit + '</div></div>' +
         '<div><div class="detail-label">الحالة</div><div class="detail-value">' + (enhancedShortage > 0 ? '⚠️ ناقص ' + enhancedShortage : '✅ كافٍ') + '</div></div>' +
-        '<div><div class="detail-label">السعر</div><div class="detail-value">' + formatNumber(item.price) + ' ر.س</div></div>' +
+        '<div><div class="detail-label">السعر</div><div class="detail-value">' + formatNumber(item.price) + ' ج.م</div></div>' +
         '</div></div>';
     if (item.fullMaterial) contentHtml += '<div class="detail-section"><div class="detail-label">📋 رقم المادة كاملاً</div><div class="detail-value">' + escapeHtml(item.fullMaterial) + '</div></div>';
     if (item.fullDescription) contentHtml += '<div class="detail-section"><div class="detail-label">📝 الوصف كاملاً</div><div class="detail-value">' + escapeHtml(item.fullDescription) + '</div></div>';
@@ -2415,7 +2422,7 @@ function generateOrderReport() {
         '<div style="font-size:12px;color:var(--gray);margin:8px 0">📅 ' + new Date().toLocaleDateString('ar-SA') + '</div>' +
         '<div class="grid-2" style="margin:15px 0;background:#eef2f6;padding:10px;border-radius:12px">' +
         '<div>عدد الأصناف الناقصة: ' + shortages.length + '</div>' +
-        '<div>التكلفة التقديرية: ' + formatNumber(Math.round(totalCost)) + ' ر.س</div></div>';
+        '<div>التكلفة التقديرية: ' + formatNumber(Math.round(totalCost)) + ' ج.م</div></div>';
     if (shortages.length === 0) {
         contentHtml += '<div class="empty-state">🎉 لا توجد أصناف ناقصة (بعد حساب البدائل)</div>';
     } else {
@@ -3204,7 +3211,7 @@ function importFuelDataFromDailySheet() {
     setTimeout(function() { finalizeImport(); }, 500);
 }
 
-// [START] دالة معالجة ملف المخزون المحسنة - تقرأ 4 أعمدة فقط
+// [START] دالة معالجة ملف المخزون المحسنة - تقرأ 4 أعمدة فقط وتحافظ على رقم القطعة كاملاً
 function handleInventoryFileUpload(inputElement) {
     var file = inputElement.files[0];
     if (!file) {
@@ -3231,12 +3238,12 @@ function handleInventoryFileUpload(inputElement) {
             }
             
             var cleanRows = [];
-            // الأعمدة المتوقعة: العمود الأول = كود الصنف، الثاني = اسم الصنف، الثالث = التصنيف، الرابع = الكمية
+            // الأعمدة المتوقعة: العمود الأول = كود الصنف (يتم الحفاظ عليه كاملاً)، الثاني = اسم الصنف، الثالث = التصنيف، الرابع = الكمية
             for (var i = 1; i < rows.length; i++) {
                 var row = rows[i];
                 if (!row) continue;
                 
-                // العمود الأول: كود الصنف
+                // العمود الأول: كود الصنف - يتم الحفاظ عليه كاملاً بدون أي اختصار
                 var materialCode = row[0] ? row[0].toString().trim() : '';
                 // العمود الثاني: اسم الصنف
                 var description = row[1] ? row[1].toString().trim() : '';
@@ -3277,11 +3284,11 @@ function handleInventoryFileUpload(inputElement) {
                 else if (category === 'filter') displayUnit = 'قطعة';
                 
                 cleanRows.push({
-                    fullMaterial: materialCode,
+                    fullMaterial: materialCode,    // يتم الحفاظ على رقم القطعة كاملاً كما هو من الملف
                     fullDescription: description,
                     fullUnit: categoryRaw,
                     quantity: quantity,
-                    shortPartNo: materialCode.split('.').pop() || materialCode,
+                    shortPartNo: materialCode,     // يتم استخدام الرقم الكامل بدلاً من اختصاره
                     displayUnit: displayUnit,
                     category: category,
                     originalCategory: categoryRaw
@@ -3633,7 +3640,7 @@ function refreshUI() {
                 '<span class="badge badge-working">' + f.amount + ' لتر</span>' +
                 '</div>' +
                 '<div class="grid-2">' +
-                '<div><span class="detail-label">💰 ' + (f.cost || 0) + ' ر.س</span></div>' +
+                '<div><span class="detail-label">💰 ' + (f.cost || 0) + ' ج.م</span></div>' +
                 '<div><span class="detail-label">⏱️ ' + (f.hours || 0) + ' س</span></div>' +
                 '<div><span class="detail-label">👨‍✈️ ' + (dr ? escapeHtml(dr.name) : '—') + '</span></div>' +
                 '</div>' + (hasPermission('all') ? '<button class="fuel-edit-btn" onclick="event.stopPropagation();openEditFuelModal(\'' + f.id + '\')">✏️ تعديل</button>' : '') + '</div>';
@@ -3651,7 +3658,7 @@ function refreshUI() {
                 '</div>' +
                 '<div class="grid-2">' +
                 '<div><span class="detail-label">العداد</span><div class="detail-value">' + (m.targetHours || '—') + ' س</div></div>' +
-                '<div><span class="detail-label">التكلفة</span><div class="detail-value">' + (m.estimatedCost || 0) + ' ر.س</div></div>' +
+                '<div><span class="detail-label">التكلفة</span><div class="detail-value">' + (m.estimatedCost || 0) + ' ج.م</div></div>' +
                 '</div></div>';
         }).join('');
         if (!maintenanceSchedules.some(function(m) { return m.status === 'مجدول'; })) {
@@ -3691,8 +3698,10 @@ function updateHomeStatsAndList() {
         var remaining = hoursRemaining(eq);
         var percent = getRemainingPercent(eq);
         var statusText = getRemainingStatus(eq);
+        // تحديد لون الشريط بناءً على الساعات المتبقية
         var barBgColor = 'var(--success)';
         if (remaining <= 0) barBgColor = 'var(--danger)';
+        else if (remaining <= 10) barBgColor = 'var(--danger)';
         else if (remaining <= 50) barBgColor = 'var(--warning)';
         else if (remaining <= 100) barBgColor = '#f59e0b';
         
