@@ -692,78 +692,6 @@ function confirmDelete(path, id, msg = 'هل أنت متأكد من الحذف؟
 function loadSavedSettings() { const m = localStorage.getItem('loginMode'); if (m) setLoginMode(m); }
 
 // ==================== ربط الأحداث ====================
-document.addEventListener('DOMContentLoaded', function () {
-  console.log('تم تحميل الصفحة - جاري تهيئة التطبيق');
-  
-  document.getElementById('direct-login-btn').onclick = () => setLoginMode('direct');
-  document.getElementById('secure-login-btn').onclick = () => setLoginMode('secure');
-  document.getElementById('direct-login-submit').onclick = () => directLogin();
-  document.getElementById('secure-login-submit').onclick = () => secureLogin();
-  document.getElementById('remember-mode').onchange = () => saveLoginMode();
-  const savedMode = localStorage.getItem('loginMode');
-  if (savedMode === 'secure') setLoginMode('secure'); else setLoginMode('direct');
-  document.getElementById('logout-btn').onclick = () => logout();
-  
-  // زر الوضع المظلم - تم إصلاحه
-  const darkModeBtn = document.getElementById('dark-mode-btn');
-  if (darkModeBtn) darkModeBtn.onclick = () => toggleDarkMode();
-  
-  document.getElementById('global-search-toggle').onclick = () => toggleGlobalSearch();
-  document.getElementById('export-pdf-btn').onclick = () => exportMaintenancePDF();
-  document.getElementById('notif-settings-btn').onclick = () => openNotifSettings();
-  document.getElementById('enable-notif-btn').onclick = () => enableBrowserNotifications();
-  document.getElementById('send-wa-report-btn').onclick = () => sendWhatsAppMaintenanceAlert();
-  document.getElementById('save-notif-settings-btn').onclick = () => saveNotifSettings();
-  document.getElementById('meter-update-btn').onclick = () => openMeterUpdate();
-  document.getElementById('force-refresh-btn').onclick = () => forceRefreshData();
-  document.getElementById('export-hours-excel-btn').onclick = () => exportAllHoursExcel();
-  document.getElementById('export-inventory-excel-btn').onclick = () => exportInventoryExcel();
-  document.getElementById('order-report-btn').onclick = () => generateOrderReport();
-  document.getElementById('add-fuel-btn').onclick = () => openAddFuelModal();
-  document.getElementById('monthly-fuel-report-btn').onclick = () => showFuelMonthlyChart();
-  document.getElementById('custom-range-fuel-btn').onclick = () => openDateRangeModal();
-  document.getElementById('add-maintenance-btn').onclick = () => openAddMaintenanceModal();
-  document.getElementById('whatsapp-maint-btn').onclick = () => sendWhatsAppMaintenanceAlert();
-  document.getElementById('add-inventory-btn').onclick = () => openAddInventoryItemModal();
-  
-  const uploadExcelBtn = document.getElementById('upload-excel-integrated-btn');
-  if (uploadExcelBtn) uploadExcelBtn.onclick = () => document.getElementById('excel-file-input').click();
-  
-  const uploadSohBtn = document.getElementById('upload-inventory-soh-btn');
-  if (uploadSohBtn) uploadSohBtn.onclick = () => document.getElementById('inventory-excel-input').click();
-  
-  const cleanFuelBtn = document.getElementById('clean-fuel-btn');
-  if (cleanFuelBtn) cleanFuelBtn.onclick = () => cleanMockFuelData();
-  
-  const confirmImportBtn = document.getElementById('confirm-import-btn');
-  if (confirmImportBtn) confirmImportBtn.onclick = () => confirmImport();
-  
-  const cancelImportBtn = document.getElementById('cancel-import-btn');
-  if (cancelImportBtn) cancelImportBtn.onclick = () => cancelImport();
-  
-  const confirmInventoryBtn = document.getElementById('confirm-inventory-import-btn');
-  if (confirmInventoryBtn) confirmInventoryBtn.onclick = () => confirmInventoryImport();
-  
-  const cancelInventoryBtn = document.getElementById('cancel-inventory-import-btn');
-  if (cancelInventoryBtn) cancelInventoryBtn.onclick = () => cancelInventoryImport();
-  
-  const excelInput = document.getElementById('excel-file-input');
-  if (excelInput) excelInput.onchange = (e) => handleFileUpload(e.target);
-  
-  const invExcelInput = document.getElementById('inventory-excel-input');
-  if (invExcelInput) invExcelInput.onchange = (e) => handleInventoryFileUpload(e.target);
-  
-  const searchEquipment = document.getElementById('search-equipment');
-  if (searchEquipment) searchEquipment.oninput = () => debouncedRefresh();
-  
-  const searchDriver = document.getElementById('search-driver');
-  if (searchDriver) searchDriver.oninput = () => debouncedRefresh();
-  
-  const categoryFilter = document.getElementById('category-filter');
-  if (categoryFilter) categoryFilter.onchange = () => filterInventory();
-  
-  document.querySelectorAll('.tab-btn').forEach(btn => { btn.onclick = () => switchView(btn.dataset.view); });
-  
 
 // ==================== openFuelReportModal ====================
 function openFuelReportModal() {
@@ -791,16 +719,10 @@ function generateFuelReport() {
     const eqId = document.getElementById('fuel-report-equipment').value;
     if (!from || !to) { showToast('حدد الفترة الزمنية'); return; }
     if (from > to) { showToast('تاريخ البداية يجب أن يكون قبل تاريخ النهاية'); return; }
-
     let filtered = fuelData.filter(f => f.date && f.date >= from && f.date <= to);
     if (eqId) filtered = filtered.filter(f => f.equipmentId === eqId);
-
     const resEl = document.getElementById('fuel-report-results');
-    if (!filtered.length) {
-        resEl.innerHTML = '<div class="empty-state">لا توجد سجلات وقود في هذه الفترة</div>';
-        return;
-    }
-
+    if (!filtered.length) { resEl.innerHTML = '<div class="empty-state">لا توجد سجلات وقود في هذه الفترة</div>'; return; }
     const eqMap = {};
     filtered.forEach(f => {
         const eq = equipmentData.find(e => e.id === f.equipmentId);
@@ -810,33 +732,28 @@ function generateFuelReport() {
         eqMap[name].cost += parseFloat(f.cost) || 0;
         eqMap[name].count++;
     });
-
     const grandTotal = filtered.reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
     const grandCost = filtered.reduce((s, f) => s + (parseFloat(f.cost) || 0), 0);
     const days = Math.ceil((new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24)) + 1;
-
     let html = `<div style="background:#f0fdf4;border-radius:12px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
         <div><div style="font-size:18px;font-weight:800;color:var(--info)">${grandTotal.toLocaleString()}</div><div style="font-size:10px;color:var(--gray)">إجمالي لتر</div></div>
         <div><div style="font-size:18px;font-weight:800;color:var(--success)">${filtered.length}</div><div style="font-size:10px;color:var(--gray)">سجل تزود</div></div>
         <div><div style="font-size:18px;font-weight:800;color:var(--accent)">${Math.round(grandTotal / days)}</div><div style="font-size:10px;color:var(--gray)">لتر/يوم</div></div>
     </div>`;
-
-    html += '<div style="max-height:250px;overflow-y:auto">';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+    html += '<div style="max-height:250px;overflow-y:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
     html += '<thead><tr style="background:var(--primary);color:white;position:sticky;top:0"><th style="padding:7px">المعدة</th><th style="padding:7px">تزودات</th><th style="padding:7px">لتر</th><th style="padding:7px">تكلفة</th></tr></thead><tbody>';
     Object.entries(eqMap).sort((a, b) => b[1].total - a[1].total).forEach(([name, d]) => {
         html += `<tr style="border-bottom:1px solid #eef2f6">
             <td style="padding:7px">${escapeHtml(name)}</td>
             <td style="padding:7px;text-align:center">${d.count}</td>
             <td style="padding:7px;text-align:center;font-weight:700;color:var(--info)">${d.total.toLocaleString()}</td>
-            <td style="padding:7px;text-align:center">${d.cost > 0 ? d.cost.toLocaleString() + ' ر.س' : '—'}</td>
+            <td style="padding:7px;text-align:center">${d.cost > 0 ? d.cost.toLocaleString() + ' ج.م' : '—'}</td>
         </tr>`;
     });
-    html += `<tr style="background:#fef9ec;font-weight:700">
-        <td style="padding:7px">الإجمالي</td><td style="padding:7px;text-align:center">${filtered.length}</td>
+    html += `<tr style="background:#fef9ec;font-weight:700"><td style="padding:7px">الإجمالي</td>
+        <td style="padding:7px;text-align:center">${filtered.length}</td>
         <td style="padding:7px;text-align:center;color:var(--info)">${grandTotal.toLocaleString()}</td>
-        <td style="padding:7px;text-align:center">${grandCost > 0 ? grandCost.toLocaleString() + ' ر.س' : '—'}</td>
-    </tr>`;
+        <td style="padding:7px;text-align:center">${grandCost > 0 ? grandCost.toLocaleString() + ' ج.م' : '—'}</td></tr>`;
     html += '</tbody></table></div>';
     resEl.innerHTML = html;
 }
@@ -847,19 +764,16 @@ function exportFuelReportRange() {
     const to = document.getElementById('fuel-report-to') ? document.getElementById('fuel-report-to').value : '';
     const eqId = document.getElementById('fuel-report-equipment') ? document.getElementById('fuel-report-equipment').value : '';
     if (!from || !to) { showToast('حدد الفترة أولاً'); return; }
-
     let filtered = fuelData.filter(f => f.date && f.date >= from && f.date <= to);
     if (eqId) filtered = filtered.filter(f => f.equipmentId === eqId);
     if (!filtered.length) { showToast('لا توجد بيانات في هذه الفترة'); return; }
-
     try {
-        const detailRows = [['التاريخ', 'المعدة', 'الكمية (لتر)', 'التكلفة (ر.س)', 'السائق', 'ملاحظات']];
+        const detailRows = [['التاريخ', 'المعدة', 'الكمية (لتر)', 'التكلفة (ج.م)', 'السائق', 'ملاحظات']];
         filtered.sort((a, b) => (a.date || '').localeCompare(b.date || '')).forEach(f => {
             const eq = equipmentData.find(e => e.id === f.equipmentId);
             const name = eq ? (eq.code + ' - ' + eq.name) : (f.equipmentName || '—');
             detailRows.push([f.date || '', name, f.amount || 0, f.cost || 0, f.driverName || '', f.notes || '']);
         });
-
         const eqMap = {};
         filtered.forEach(f => {
             const eq = equipmentData.find(e => e.id === f.equipmentId);
@@ -869,14 +783,13 @@ function exportFuelReportRange() {
             eqMap[name].cost += parseFloat(f.cost) || 0;
             eqMap[name].count++;
         });
-        const summaryRows = [['المعدة', 'عدد التزودات', 'الإجمالي (لتر)', 'التكلفة الإجمالية (ر.س)']];
+        const summaryRows = [['المعدة', 'عدد التزودات', 'الإجمالي (لتر)', 'التكلفة الإجمالية (ج.م)']];
         Object.entries(eqMap).sort((a, b) => b[1].total - a[1].total).forEach(([name, d]) => {
             summaryRows.push([name, d.count, d.total, d.cost]);
         });
         const grandTotal = filtered.reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
         const grandCost = filtered.reduce((s, f) => s + (parseFloat(f.cost) || 0), 0);
         summaryRows.push(['الإجمالي', filtered.length, grandTotal, grandCost]);
-
         const wb = XLSX.utils.book_new();
         const ws1 = XLSX.utils.aoa_to_sheet(detailRows);
         const ws2 = XLSX.utils.aoa_to_sheet(summaryRows);
@@ -920,39 +833,88 @@ function initOfflineDetector() {
     function updateOnlineStatus() {
         const syncEl = document.getElementById('sync-status');
         if (!syncEl) return;
-        if (navigator.onLine) {
-            syncEl.innerHTML = '🟢 متصل';
-            syncEl.style.color = 'rgba(255,255,255,0.7)';
-        } else {
-            syncEl.innerHTML = '🔴 غير متصل - البيانات لن تُحفظ!';
-            syncEl.style.color = '#fca5a5';
-            showToast('⚠️ انقطع الإنترنت - التغييرات لن تُحفظ');
-        }
+        if (navigator.onLine) { syncEl.innerHTML = '🟢 متصل'; syncEl.style.color = 'rgba(255,255,255,0.7)'; }
+        else { syncEl.innerHTML = '🔴 غير متصل - البيانات لن تُحفظ!'; syncEl.style.color = '#fca5a5'; showToast('⚠️ انقطع الإنترنت'); }
     }
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+  console.log('تم تحميل الصفحة - جاري تهيئة التطبيق');
+  
+  // دالة مساعدة آمنة لربط الأزرار
+  const safeOn = (id, ev, fn) => { const el = document.getElementById(id); if (el) el[ev] = fn; };
+  const safeClick = (id, fn) => safeOn(id, 'onclick', fn);
 
-// ==================== تفعيل النقر على كروت المعدات ====================
-function initEquipmentCardClicks() {
-    // event delegation على app-container - يشمل كل الصفحات
-    const appContainer = document.getElementById('app-container');
-    if (!appContainer || appContainer._eqClicksInit) return;
-    appContainer._eqClicksInit = true;
-    appContainer.addEventListener('click', function(e) {
-        // تجاهل النقر على الأزرار
-        if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
-        // البحث عن أقرب كارت معدة
-        const card = e.target.closest('[data-eqid]');
-        if (!card) return;
-        const eqId = card.getAttribute('data-eqid');
-        if (!eqId) return;
-        e.stopPropagation();
-        openEquipmentDetail(eqId);
-    });
-}
+  // أزرار صفحة الدخول
+  safeClick('direct-login-btn', () => setLoginMode('direct'));
+  safeClick('secure-login-btn', () => setLoginMode('secure'));
+  safeClick('direct-login-submit', () => directLogin());
+  safeClick('secure-login-submit', () => secureLogin());
+  safeOn('remember-mode', 'onchange', () => saveLoginMode());
+  const savedMode = localStorage.getItem('loginMode');
+  if (savedMode === 'secure') setLoginMode('secure'); else setLoginMode('direct');
+
+  // أزرار التطبيق
+  safeClick('logout-btn', () => logout());
+  safeClick('dark-mode-btn', () => toggleDarkMode());
+  safeClick('global-search-toggle', () => toggleGlobalSearch());
+  safeClick('export-pdf-btn', () => exportMaintenancePDF());
+  safeClick('notif-settings-btn', () => openNotifSettings());
+  safeClick('enable-notif-btn', () => enableBrowserNotifications());
+  safeClick('send-wa-report-btn', () => sendWhatsAppMaintenanceAlert());
+  safeClick('save-notif-settings-btn', () => saveNotifSettings());
+  safeClick('meter-update-btn', () => openMeterUpdate());
+  safeClick('force-refresh-btn', () => forceRefreshData());
+  safeClick('export-hours-excel-btn', () => exportAllHoursExcel());
+  safeClick('export-inventory-excel-btn', () => exportInventoryExcel());
+  safeClick('order-report-btn', () => generateOrderReport());
+  safeClick('add-fuel-btn', () => openAddFuelModal());
+  safeClick('monthly-fuel-report-btn', () => showFuelMonthlyChart());
+  safeClick('custom-range-fuel-btn', () => openFuelReportModal());
+  safeClick('add-maintenance-btn', () => openAddMaintenanceModal());
+  safeClick('whatsapp-maint-btn', () => sendWhatsAppMaintenanceAlert());
+  safeClick('add-inventory-btn', () => openAddInventoryItemModal());
+  
+  const uploadExcelBtn = document.getElementById('upload-excel-integrated-btn');
+  if (uploadExcelBtn) uploadExcelBtn.onclick = () => document.getElementById('excel-file-input').click();
+  
+  const uploadSohBtn = document.getElementById('upload-inventory-soh-btn');
+  if (uploadSohBtn) uploadSohBtn.onclick = () => document.getElementById('inventory-excel-input').click();
+  
+  const cleanFuelBtn = document.getElementById('clean-fuel-btn');
+  if (cleanFuelBtn) cleanFuelBtn.onclick = () => cleanMockFuelData();
+  
+  const confirmImportBtn = document.getElementById('confirm-import-btn');
+  if (confirmImportBtn) confirmImportBtn.onclick = () => confirmImport();
+  
+  const cancelImportBtn = document.getElementById('cancel-import-btn');
+  if (cancelImportBtn) cancelImportBtn.onclick = () => cancelImport();
+  
+  const confirmInventoryBtn = document.getElementById('confirm-inventory-import-btn');
+  if (confirmInventoryBtn) confirmInventoryBtn.onclick = () => confirmInventoryImport();
+  
+  const cancelInventoryBtn = document.getElementById('cancel-inventory-import-btn');
+  if (cancelInventoryBtn) cancelInventoryBtn.onclick = () => cancelInventoryImport();
+  
+  const excelInput = document.getElementById('excel-file-input');
+  if (excelInput) excelInput.onchange = (e) => handleFileUpload(e.target);
+  
+  const invExcelInput = document.getElementById('inventory-excel-input');
+  if (invExcelInput) invExcelInput.onchange = (e) => handleInventoryFileUpload(e.target);
+  
+  const searchEquipment = document.getElementById('search-equipment');
+  if (searchEquipment) searchEquipment.oninput = () => debouncedRefresh();
+  
+  const searchDriver = document.getElementById('search-driver');
+  if (searchDriver) searchDriver.oninput = () => debouncedRefresh();
+  
+  const categoryFilter = document.getElementById('category-filter');
+  if (categoryFilter) categoryFilter.onchange = () => filterInventory();
+  
+  document.querySelectorAll('.tab-btn').forEach(btn => { btn.onclick = () => switchView(btn.dataset.view); });
 
   loadSavedSettings();
   // ربط الدوال بـ window لضمان الوصول من HTML
