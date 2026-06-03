@@ -79,8 +79,8 @@ body.dark-mode .tab-btn.active{color:#e8a020}
 
 <!-- حاوية التطبيق -->
 <div id="app-container" style="display:none">
-  <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button></div></div>
-  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><button id="dark-mode-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer">🌙</button><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button><button id="delete-all-equipment-btn" class="danger-btn" style="background:#dc2626;border:none;color:white;border-radius:20px;padding:6px 10px;font-size:11px;cursor:pointer;margin-right:5px">🗑️ حذف الكل</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
+  <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="delete-all-equipment-btn" class="danger-btn" style="background:#dc2626;border:none;color:white;border-radius:20px;padding:6px 10px;font-size:11px;cursor:pointer;margin-right:5px">🗑️ حذف الكل</button></div></div>
+  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><button id="dark-mode-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer">🌙</button><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
   <!-- الصفحة الرئيسية -->
@@ -108,17 +108,29 @@ body.dark-mode .tab-btn.active{color:#e8a020}
   
   <div id="view-import" style="display:none">
     <div style="padding:14px">
-      <div class="inventory-import-section" style="margin-bottom:16px">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px"><span style="font-weight:700">📦 استيراد المخزون اليومي (SOH)</span><span class="daily-import-badge">تحديث يومي</span></div>
-        <div style="font-size:12px; opacity:0.9; margin-bottom:12px">رفع ملف Excel SOH - سيتم قراءة أول 4 أعمدة فقط (Material, Description, Unit, Quantity)</div>
-        <input type="file" id="inventory-excel-input" accept=".xlsx, .xls" style="display:none">
-        <button id="upload-inventory-soh-btn" class="save-btn" style="margin:0; background:#8b5cf6; color:white; font-weight:bold; border:2px solid white; width:100%">📂 اختيار ملف SOH</button>
+      
+      <!-- قسم رفع ملف معدات الموقع -->
+      <div style="background:white; border-radius:18px; padding:20px; margin-bottom:16px; text-align:center">
+        <div style="font-size:32px; margin-bottom:10px">🏗️</div>
+        <div style="font-weight:700; margin-bottom:8px">رفع ملف معدات الموقع</div>
+        <div style="font-size:12px; color:var(--gray); margin-bottom:16px">تحديث ساعات العمل ومواعيد الصيانة والوقود اليومي</div>
+        <input type="file" id="equipment-excel-input" accept=".xlsx, .xls" style="display:none">
+        <button id="upload-equipment-excel-btn" class="save-btn" style="margin:0; background:linear-gradient(135deg,#0e7490,#065f46); width:100%">📂 رفع ملف المعدات</button>
       </div>
-      <div class="search-box" style="margin-bottom:16px; background:linear-gradient(135deg,var(--success),var(--info)); color:white"><span>📂</span><span style="flex:1">رفع ملف Excel لتحديث بيانات المعدات والوقود</span></div>
-      <div style="background:white; border-radius:18px; padding:20px; margin-bottom:16px; text-align:center"><div style="font-size:48px; margin-bottom:10px">📊</div><div style="font-weight:700; margin-bottom:8px">رفع ملف Excel متكامل</div><div style="font-size:12px; color:var(--gray); margin-bottom:16px">سيتم تحديث بيانات المعدات (العدادات، مواعيد الصيانة) والوقود وقطع الغيار</div><input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display:none"><button id="upload-excel-integrated-btn" class="save-btn" style="margin:0; width:100%">📁 اختيار ملف Excel</button></div>
-      <div style="background:white; border-radius:18px; padding:20px; margin-bottom:16px; text-align:center"><div style="font-size:32px; margin-bottom:10px">🧹</div><div style="font-weight:700; margin-bottom:8px">تنظيف البيانات الوهمية</div><div style="font-size:12px; color:var(--gray); margin-bottom:16px">حذف سجلات الوقود التجريبية حسب التاريخ</div><div style="display:flex; gap:8px; justify-content:center; margin-bottom:12px"><input type="number" id="clean-year-from" placeholder="من سنة" value="2020" style="border:1px solid #ccc; border-radius:8px; padding:8px; width:100px; font-size:12px"><input type="number" id="clean-year-to" placeholder="إلى سنة" style="border:1px solid #ccc; border-radius:8px; padding:8px; width:100px; font-size:12px"></div><button id="clean-fuel-btn" class="save-btn" style="margin:0; background:linear-gradient(135deg,var(--danger),var(--warning)); width:100%">🗑️ حذف سجلات وهمية</button></div>
+      
+      <!-- قسم رفع ملف المخزون SOH -->
+      <div style="background:white; border-radius:18px; padding:20px; margin-bottom:16px; text-align:center">
+        <div style="font-size:32px; margin-bottom:10px">📦</div>
+        <div style="font-weight:700; margin-bottom:8px">رفع ملف المخزون (SOH)</div>
+        <div style="font-size:12px; color:var(--gray); margin-bottom:16px">تحديث بيانات الفلاتر والزيوت وقطع الغيار</div>
+        <input type="file" id="inventory-excel-input" accept=".xlsx, .xls" style="display:none">
+        <button id="upload-inventory-soh-btn" class="save-btn" style="margin:0; background:#8b5cf6; color:white; font-weight:bold; width:100%">📂 رفع ملف SOH</button>
+      </div>
+      
       <div id="import-preview" style="display:none; background:white; border-radius:18px; padding:16px; margin-bottom:16px"><div class="section-title" style="margin-bottom:12px">📋 معاينة البيانات</div><div id="preview-content" class="import-preview"></div><div class="grid-2" style="margin-top:16px; gap:10px"><button id="confirm-import-btn" class="save-btn" style="margin:0; background:var(--success)">✅ تأكيد الاستيراد</button><button id="cancel-import-btn" class="save-btn" style="margin:0; background:var(--gray)">❌ إلغاء</button></div></div>
+      
       <div id="inventory-import-preview" style="display:none; background:white; border-radius:18px; padding:16px; margin-bottom:16px"><div class="section-title" style="margin-bottom:12px">📋 معاينة بيانات المخزون (SOH)</div><div id="inventory-preview-content" class="import-preview"></div><div class="grid-2" style="margin-top:16px; gap:10px"><button id="confirm-inventory-import-btn" class="save-btn" style="margin:0; background:var(--success)">✅ تأكيد استيراد المخزون</button><button id="cancel-inventory-import-btn" class="save-btn" style="margin:0; background:var(--gray)">❌ إلغاء</button></div></div>
+      
       <div id="import-history" style="background:white; border-radius:18px; padding:16px"><div class="section-title" style="margin-bottom:12px">📜 آخر عمليات الاستيراد</div><div id="import-history-list"></div></div>
     </div>
   </div>
@@ -458,7 +470,6 @@ function deleteFromFirebase(path, id) {
     });
 }
 
-// دالة حذف جميع المعدات
 function deleteAllEquipment() {
     if (!hasPermission('all')) {
         showToast('غير مصرح - هذه الخاصية للمدير فقط');
@@ -910,12 +921,10 @@ function editEquipment(id) {
 }
 
 function openEquipmentDetail(id) {
-    console.log('فتح تفاصيل المعدة - ID:', id);
     var targetId = String(id);
     var equipment = equipmentData.find(function(e) { return String(e.id) === targetId; });
     
     if (!equipment) {
-        console.error('المعدة غير موجودة! ID:', targetId);
         showToast('حدث خطأ في عرض تفاصيل المعدة');
         return;
     }
@@ -942,10 +951,6 @@ function openEquipmentDetail(id) {
         var need = calculateNeededFor1000Hours(equipment, oilItem);
         return '<div style="padding:6px 0;border-bottom:1px solid #eef2f6"><div style="font-weight:600">🛢️ ' + escapeHtml(oilItem.name) + '</div><div>' + (link.quantityPerChange || 1) + ' لتر/صيانة | المطلوب: ' + need + ' لتر</div></div>';
     }).join('');
-    
-    var attachmentsHtml = equipment.attachments ? '<div class="detail-section"><div class="detail-label">📎 المرفقات</div><div style="display:flex;flex-wrap:wrap">' + equipment.attachments.map(function(att) {
-        return '<img src="' + escapeHtml(att) + '" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin:4px;cursor:pointer" onclick="window.open(\'' + escapeHtml(att) + '\')">';
-    }).join('') + '</div></div>' : '';
     
     var contentHtml = '<div class="detail-section"><div class="grid-2">' +
         '<div><div class="detail-label">الكود</div><div class="detail-value">' + escapeHtml(equipment.code) + '</div></div>' +
@@ -985,7 +990,6 @@ function openEquipmentDetail(id) {
                 return '<div style="padding:6px 0;border-bottom:1px solid #eef2f6"><div>📅 ' + escapeHtml(f.date) + ' | ' + f.amount + ' لتر | ' + f.cost + ' ر.س</div></div>';
             }).join('') + '</div>';
     }
-    contentHtml += attachmentsHtml;
     if (equipment.notes) {
         contentHtml += '<div class="detail-section"><div class="detail-label">ملاحظات</div><div class="detail-value">' + escapeHtml(equipment.notes) + '</div></div>';
     }
@@ -1036,7 +1040,7 @@ function generateEquipmentMaintenanceOrder(eqId) {
         '<p><strong>موعد الصيانة القادم:</strong> ' + equipment.nextHours + ' س</p>' +
         '<p><strong>التاريخ:</strong> ' + new Date().toLocaleDateString('ar-EG') + '</p>' +
         '<h3>القطع المطلوبة:</h3>' +
-        '<table><thead><tr><th>#</th><th>اسم القطعة</th><th>رقم القطعة</th><th>الكمية المطلوبة</th></tr></thead><tbody>';
+        '<table><thead><tr><th>#</th><th>اسم القطعة</th><th>رقم القطعة</th><th>الكمية المطلوبة</th></table></thead><tbody>';
     
     neededFilters.forEach(function(f, i) {
         html += '<tr><td style="text-align:center">' + (i + 1) + '</td><td style="text-align:center">' + escapeHtml(f.name) + '</td><td style="text-align:center">' + escapeHtml(f.partNo) + '</td><td style="text-align:center">' + f.needed + '</td></tr>';
@@ -2765,7 +2769,7 @@ function exportInventoryExcel() {
 }
 
 // ==================== دوال الاستيراد ====================
-function handleFileUpload(inputElement) {
+function handleEquipmentFileUpload(inputElement) {
     var file = inputElement.files[0];
     if (!file) {
         showToast('الرجاء اختيار ملف');
@@ -2791,8 +2795,28 @@ function handleFileUpload(inputElement) {
                 sheets[name] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
             });
             pendingImportData = sheets;
-            displayImportPreview(sheets);
-            showToast('تم قراءة الملف بنجاح');
+            
+            var html = '<h4>📊 ملخص البيانات المستوردة:</h4><div class="grid-3" style="margin:10px 0">';
+            var totalEquipment = 0;
+            var totalFuelRecords = 0;
+            
+            if (sheets['معدات الموقع']) {
+                totalEquipment = sheets['معدات الموقع'].length - 1;
+            }
+            if (sheets['ورقة1']) {
+                totalFuelRecords = sheets['ورقة1'].length - 1;
+            }
+            
+            html += '<div class="stat-card"><div class="stat-number">' + totalEquipment + '</div><div class="stat-label">معدات</div></div>';
+            html += '<div class="stat-card"><div class="stat-number">' + totalFuelRecords + '</div><div class="stat-label">سجلات وقود</div></div>';
+            html += '</div><hr>';
+            
+            if (totalEquipment > 0) html += '<div class="status-badge status-success">✅ سيتم تحديث ' + totalEquipment + ' معدة</div>';
+            if (totalFuelRecords > 0) html += '<div class="status-badge status-success">⛽ سيتم إضافة ' + totalFuelRecords + ' سجل تزويد وقود</div>';
+            
+            document.getElementById('preview-content').innerHTML = html;
+            document.getElementById('import-preview').style.display = 'block';
+            showToast('تم قراءة الملف - ' + totalEquipment + ' معدة، ' + totalFuelRecords + ' سجل وقود');
             isImporting = false;
         } catch (err) {
             showToast('خطأ في قراءة الملف: ' + err.message);
@@ -2806,169 +2830,204 @@ function handleFileUpload(inputElement) {
     reader.readAsArrayBuffer(file);
 }
 
-function displayImportPreview(sheets) {
-    var previewDiv = document.getElementById('preview-content');
-    var html = '<h4>📊 ملخص البيانات المستوردة:</h4><div class="grid-3" style="margin:10px 0">';
-    var totalEquipment = 0, totalFuel = 0, totalParts = 0;
-    if (sheets['معدات الموقع']) {
-        var eqSheet = sheets['معدات الموقع'];
-        if (eqSheet.length > 6) totalEquipment = eqSheet.length - 6;
-    }
-    if (sheets['متابعه الوقود']) {
-        var fuelSheet = sheets['متابعه الوقود'];
-        if (fuelSheet.length > 7) totalFuel = fuelSheet.length - 7;
-    }
-    if (sheets['متابعه المنصرف من المخزن']) {
-        var partsSheet = sheets['متابعه المنصرف من المخزن'];
-        if (partsSheet.length > 7) totalParts = partsSheet.length - 7;
-    }
-    html += '<div class="stat-card"><div class="stat-number">' + totalEquipment + '</div><div class="stat-label">معدات</div></div>' +
-        '<div class="stat-card"><div class="stat-number">' + totalFuel + '</div><div class="stat-label">تزودات</div></div>' +
-        '<div class="stat-card"><div class="stat-number">' + totalParts + '</div><div class="stat-label">قطع غيار</div></div>';
-    html += '</div><hr>';
-    if (totalEquipment > 0) html += '<div class="status-badge status-success">✅ سيتم تحديث ' + totalEquipment + ' معدة</div>';
-    if (totalFuel > 0) html += '<div class="status-badge status-success">⛽ سيتم إضافة ' + totalFuel + ' سجل وقود (النوع العادي)</div>';
-    if (sheets['ورقة1']) {
-        var equipMap = {};
-        equipmentData.forEach(function(eq) {
-            equipMap[eq.name] = eq.id;
-            equipMap[eq.code] = eq.id;
-        });
-        var fuelFromDaily = parseDailyFuelSheet(sheets['ورقة1'], equipMap);
-        var days = new Set(fuelFromDaily.map(function(r) { return r.date; })).size;
-        if (fuelFromDaily.length > 0) html += '<div class="status-badge status-success">📅 جدول وقود يومي: ' + fuelFromDaily.length + ' سجل تزويد من ' + days + ' يوم</div>';
-    }
-    previewDiv.innerHTML = html;
-    document.getElementById('import-preview').style.display = 'block';
-}
-
-function parseDailyFuelSheet(sheet, equipmentMap) {
-    var records = [];
-    if (!sheet || sheet.length < 2) return records;
-    var headers = sheet[0];
-    var DATE_COL = 2;
-    var START_COL = 3;
-    var found = false;
-    for (var c = START_COL; c < headers.length; c++) {
-        var name = headers[c] ? headers[c].toString().trim() : '';
-        if (name && equipmentMap[name]) {
-            found = true;
-            break;
-        }
-    }
-    if (!found) return records;
-    for (var r = 1; r < sheet.length; r++) {
-        var row = sheet[r];
-        if (!row || row.length <= DATE_COL) continue;
-        var dateStr = parseDateFromExcel(row[DATE_COL]);
-        if (!dateStr) continue;
-        for (var c = START_COL; c < headers.length; c++) {
-            var eqName = headers[c] ? headers[c].toString().trim() : '';
-            if (!eqName) continue;
-            var eqId = equipmentMap[eqName];
-            if (!eqId) continue;
-            var amount = parseFloat(row[c]);
-            if (isNaN(amount) || amount <= 0) continue;
-            var isDup = fuelData.some(function(f) { return f.equipmentId === eqId && f.date === dateStr && f.amount === amount; });
-            if (isDup) continue;
-            records.push({
-                equipmentId: eqId,
-                equipmentName: eqName,
-                date: dateStr,
-                amount: amount,
-                notes: 'استيراد يومي'
-            });
-        }
-    }
-    return records;
-}
-
-function confirmImport() {
-    if (!pendingImportData) {
-        showToast('لا توجد بيانات للاستيراد');
-        return;
-    }
-    document.getElementById('import-progress-modal').classList.add('active');
-    document.getElementById('import-progress-bar').style.width = '0%';
-    document.getElementById('import-progress-text').innerHTML = 'جارٍ استيراد المعدات...';
-    document.getElementById('import-status-list').innerHTML = '';
-    importResults = { equipment: 0, fuel: 0, parts: 0 };
-    setTimeout(function() { importEquipmentData(); }, 100);
-}
-
 function importEquipmentData() {
+    console.log('بدء استيراد بيانات المعدات...');
     var sheet = pendingImportData['معدات الموقع'];
     if (!sheet || sheet.length < 2) {
-        importFuelData();
+        console.log('لا توجد ورقة معدات الموقع');
+        importFuelDataFromDailySheet();
         return;
     }
+    
+    var headers = sheet[0];
     var startRow = 1;
-    for (var i = 0; i < Math.min(5, sheet.length); i++) {
-        var cell = sheet[i] ? sheet[i][0] : '';
-        if (cell && (cell.toString().toUpperCase().includes('SAP') || cell.toString().toUpperCase().includes('CODE') || cell.toString().includes('كود'))) {
-            startRow = i + 1;
-            break;
-        }
+    
+    var colIndex = {
+        code: -1,
+        sapCode: -1,
+        chassis: -1,
+        engineModel: -1,
+        engineSN: -1,
+        arrivalDate: -1,
+        arrivalHours: -1,
+        lastMaintenanceDate: -1,
+        lastMaintenanceHours: -1,
+        currentHours: -1,
+        nextHours: -1
+    };
+    
+    for (var i = 0; i < headers.length; i++) {
+        var header = headers[i] ? headers[i].toString().trim() : '';
+        if (header === 'SAP CODE' || header.includes('SAP')) colIndex.sapCode = i;
+        if (header === 'الرقم التعريفي للمعدة' || header.includes('الرقم التعريفي')) colIndex.code = i;
+        if (header === 'رقم مسلسل S/N' || header.includes('رقم مسلسل')) colIndex.chassis = i;
+        if (header === 'Engine Model') colIndex.engineModel = i;
+        if (header === 'Engine S/N') colIndex.engineSN = i;
+        if (header === 'تاريخ الوصول') colIndex.arrivalDate = i;
+        if (header === 'عداد الساعة / الساعات عند الوصول') colIndex.arrivalHours = i;
+        if (header === 'تاريخ الصيانه السابقه') colIndex.lastMaintenanceDate = i;
+        if (header === 'عداد الصيانه الاخيره') colIndex.lastMaintenanceHours = i;
+        if (header === 'العداد الحالي') colIndex.currentHours = i;
+        if (header === 'ميعاد الصيانة القادمة') colIndex.nextHours = i;
     }
-    var equipmentCount = 0, updatedCount = 0, totalRows = 0;
-    for (var i = startRow; i < sheet.length; i++) {
-        var row = sheet[i];
-        var sapCode = row && row[0] ? row[0].toString().trim() : '';
-        var internalCode = row && row[1] ? row[1].toString().trim() : '';
-        if (sapCode && !sapCode.includes('الاجمالي') && !sapCode.toLowerCase().includes('total') && internalCode) totalRows++;
-    }
-    var eqBatch = {};
+    
+    if (colIndex.code === -1) colIndex.code = 1;
+    if (colIndex.sapCode === -1) colIndex.sapCode = 0;
+    if (colIndex.currentHours === -1) colIndex.currentHours = 11;
+    if (colIndex.nextHours === -1) colIndex.nextHours = 12;
+    
+    var equipmentUpdates = {};
+    var equipmentCount = 0;
     var processed = 0;
+    var totalRows = 0;
+    
     for (var i = startRow; i < sheet.length; i++) {
         var row = sheet[i];
         if (!row || row.length < 2) continue;
-        var sapCode = row[0] ? row[0].toString().trim() : '';
-        var internalCode = row[1] ? row[1].toString().trim() : '';
-        if (!sapCode || sapCode.includes('الاجمالي') || sapCode.toLowerCase().includes('total') || !internalCode) continue;
-        if (row.length < 12) continue;
-        var currentHoursRaw = row[11];
-        if (currentHoursRaw && currentHoursRaw.toString().includes('بدون')) continue;
+        var code = row[colIndex.code] ? row[colIndex.code].toString().trim() : '';
+        var sapCode = row[colIndex.sapCode] ? row[colIndex.sapCode].toString().trim() : '';
+        if ((code && !code.includes('الاجمالي')) || (sapCode && !sapCode.includes('الاجمالي'))) {
+            totalRows++;
+        }
+    }
+    
+    for (var i = startRow; i < sheet.length; i++) {
+        var row = sheet[i];
+        if (!row || row.length < 2) continue;
+        
+        var internalCode = row[colIndex.code] ? row[colIndex.code].toString().trim() : '';
+        var sapCode = row[colIndex.sapCode] ? row[colIndex.sapCode].toString().trim() : '';
+        
+        if (!internalCode && !sapCode) continue;
+        if (internalCode && (internalCode.includes('الاجمالي') || internalCode.toLowerCase().includes('total'))) continue;
+        if (sapCode && (sapCode.includes('الاجمالي') || sapCode.toLowerCase().includes('total'))) continue;
+        
         processed++;
-        var currentHours = parseInt(row[11]) || 0;
-        var nextHours = parseInt(row[12]) || 0;
-        var lastMaintenanceHours = parseInt(row[9]) || 0;
-        var lastMaintenanceDate = parseDateFromExcel(row[8]);
-        if (nextHours === 0 && currentHours > 0) nextHours = currentHours + 250;
+        
+        var currentHours = 0;
+        var currentHoursRaw = colIndex.currentHours !== -1 && row[colIndex.currentHours] ? row[colIndex.currentHours] : 0;
+        if (typeof currentHoursRaw === 'number') {
+            currentHours = currentHoursRaw;
+        } else if (currentHoursRaw && currentHoursRaw.toString().trim() !== '') {
+            currentHours = parseFloat(currentHoursRaw) || 0;
+        }
+        
+        var nextHours = 0;
+        var nextHoursRaw = colIndex.nextHours !== -1 && row[colIndex.nextHours] ? row[colIndex.nextHours] : 0;
+        if (typeof nextHoursRaw === 'number') {
+            nextHours = nextHoursRaw;
+        } else if (nextHoursRaw && nextHoursRaw.toString().trim() !== '') {
+            nextHours = parseFloat(nextHoursRaw) || 0;
+        }
+        
+        if (nextHours === 0 && currentHours > 0) {
+            nextHours = currentHours + 250;
+        }
+        
+        var name = internalCode || sapCode;
+        var chassis = colIndex.chassis !== -1 && row[colIndex.chassis] ? row[colIndex.chassis].toString().trim() : '';
+        var engineModel = colIndex.engineModel !== -1 && row[colIndex.engineModel] ? row[colIndex.engineModel].toString().trim() : '';
+        var engineSN = colIndex.engineSN !== -1 && row[colIndex.engineSN] ? row[colIndex.engineSN].toString().trim() : '';
+        
+        var arrivalDate = '';
+        if (colIndex.arrivalDate !== -1 && row[colIndex.arrivalDate]) {
+            arrivalDate = parseDateFromExcel(row[colIndex.arrivalDate]);
+        }
+        
+        var arrivalHours = 0;
+        if (colIndex.arrivalHours !== -1 && row[colIndex.arrivalHours]) {
+            var arrivalRaw = row[colIndex.arrivalHours];
+            if (typeof arrivalRaw === 'number') {
+                arrivalHours = arrivalRaw;
+            } else if (arrivalRaw && arrivalRaw.toString().trim() !== '' && arrivalRaw !== 'بدون عداد') {
+                arrivalHours = parseFloat(arrivalRaw) || 0;
+            }
+        }
+        
+        var lastMaintenanceDate = '';
+        if (colIndex.lastMaintenanceDate !== -1 && row[colIndex.lastMaintenanceDate]) {
+            lastMaintenanceDate = parseDateFromExcel(row[colIndex.lastMaintenanceDate]);
+        }
+        
+        var lastMaintenanceHours = 0;
+        if (colIndex.lastMaintenanceHours !== -1 && row[colIndex.lastMaintenanceHours]) {
+            var lastRaw = row[colIndex.lastMaintenanceHours];
+            if (typeof lastRaw === 'number') {
+                lastMaintenanceHours = lastRaw;
+            } else if (lastRaw && lastRaw.toString().trim() !== '') {
+                lastMaintenanceHours = parseFloat(lastRaw) || 0;
+            }
+        }
+        
         var interval = 250;
-        if (nextHours > 0 && lastMaintenanceHours > 0) interval = nextHours - lastMaintenanceHours;
-        else if (nextHours > 0 && currentHours > 0) interval = nextHours - currentHours;
-        if (interval <= 0) interval = 250;
+        if (nextHours > 0 && lastMaintenanceHours > 0 && nextHours > lastMaintenanceHours) {
+            interval = nextHours - lastMaintenanceHours;
+        } else if (nextHours > 0 && currentHours > 0 && nextHours > currentHours) {
+            interval = nextHours - currentHours;
+        }
+        if (interval <= 0 || interval > 1000) interval = 250;
+        
         var status = 'يعمل';
         var remaining = nextHours - currentHours;
         if (remaining <= 0) status = 'متأخر';
         else if (remaining <= 10) status = 'عاجل';
         else if (remaining <= 50) status = 'قريب';
-        var name = internalCode;
-        var existingEquipment = equipmentData.find(function(e) { return e.code === internalCode; });
-        if (!existingEquipment) existingEquipment = equipmentData.find(function(e) { return e.code === sapCode; });
+        
+        var type = 'معدة';
+        if (sapCode) {
+            if (sapCode.includes('ETGN')) type = 'حفارة';
+            else if (sapCode.includes('EELD')) type = 'لودر';
+            else if (sapCode.includes('ETLT')) type = 'رافعة شوكية';
+            else if (sapCode.includes('EETC')) type = 'تكتك';
+            else if (sapCode.includes('EFTE')) type = 'فرادة';
+            else if (sapCode.includes('مكينه لحام')) type = 'ماكينة لحام';
+        }
+        
+        var existingEquipment = null;
+        for (var j = 0; j < equipmentData.length; j++) {
+            var eq = equipmentData[j];
+            if (eq.code === internalCode || eq.code === sapCode || eq.sapCode === sapCode) {
+                existingEquipment = eq;
+                break;
+            }
+        }
+        
+        var equipmentId;
+        var updatePath;
+        var equipmentDataToSave;
+        
         if (existingEquipment) {
-            var reviewDate = parseDateFromExcel(row[10]) || new Date().toISOString().split('T')[0];
+            equipmentId = existingEquipment.id;
+            updatePath = 'equipment/' + equipmentId;
+            
             var existingLog = existingEquipment.hoursLog || [];
-            var alreadyLogged = existingLog.some(function(l) { return l.hours === currentHours && l.date === reviewDate; });
-            var newLog = alreadyLogged ? existingLog : existingLog.concat([{ date: reviewDate, hours: currentHours, updatedBy: 'استيراد ملف' }]);
-            eqBatch['equipment/' + existingEquipment.id] = {
-                code: existingEquipment.code,
-                name: existingEquipment.name,
-                type: existingEquipment.type,
-                chassis: existingEquipment.chassis,
-                location: existingEquipment.location,
-                assignedDriver: existingEquipment.assignedDriver,
+            var today = new Date().toISOString().split('T')[0];
+            var alreadyLogged = existingLog.some(function(l) { return l.hours === currentHours && l.date === today; });
+            var newLog = alreadyLogged ? existingLog : existingLog.concat([{
+                date: today,
+                hours: currentHours,
+                updatedBy: 'استيراد ملف'
+            }]);
+            
+            equipmentDataToSave = {
+                code: internalCode || existingEquipment.code,
+                sapCode: sapCode || existingEquipment.sapCode,
+                name: name,
+                type: type,
+                chassis: chassis || existingEquipment.chassis,
+                location: existingEquipment.location || '',
+                assignedDriver: existingEquipment.assignedDriver || null,
                 hours: currentHours,
                 nextHours: nextHours,
                 interval: interval,
-                engineModel: existingEquipment.engineModel,
-                engineSN: existingEquipment.engineSN,
-                arrivalDate: existingEquipment.arrivalDate,
-                arrivalHours: existingEquipment.arrivalHours,
-                lastMaintenanceDate: lastMaintenanceDate,
+                engineModel: engineModel || existingEquipment.engineModel,
+                engineSN: engineSN || existingEquipment.engineSN,
+                arrivalDate: arrivalDate || existingEquipment.arrivalDate,
+                arrivalHours: arrivalHours,
+                lastMaintenanceDate: lastMaintenanceDate || existingEquipment.lastMaintenanceDate,
                 lastMaintenanceHours: lastMaintenanceHours,
                 status: status,
-                notes: existingEquipment.notes,
+                notes: existingEquipment.notes || '',
                 filters: existingEquipment.filters || {},
                 maintenanceLogs: existingEquipment.maintenanceLogs || [],
                 hoursLog: newLog,
@@ -2976,99 +3035,149 @@ function importEquipmentData() {
                 createdAt: existingEquipment.createdAt,
                 updatedAt: new Date().toISOString()
             };
-            equipmentCount++;
-            if (currentHours !== existingEquipment.hours || nextHours !== existingEquipment.nextHours) updatedCount++;
         } else {
-            var newKey = fbDb.ref('equipment').push().key;
-            eqBatch['equipment/' + newKey] = {
-                code: internalCode,
+            equipmentId = fbDb.ref('equipment').push().key;
+            updatePath = 'equipment/' + equipmentId;
+            
+            equipmentDataToSave = {
+                code: internalCode || sapCode,
                 sapCode: sapCode,
-                name: row[1] ? row[1].toString() : '',
-                type: 'معدة',
-                chassis: row[3] || '',
-                engineModel: row[4] || '',
-                engineSN: row[5] || '',
-                arrivalDate: parseDateFromExcel(row[6]),
-                arrivalHours: parseInt(row[7]) || 0,
-                lastMaintenanceDate: lastMaintenanceDate,
-                lastMaintenanceHours: lastMaintenanceHours,
+                name: name,
+                type: type,
+                chassis: chassis,
+                location: '',
+                assignedDriver: null,
                 hours: currentHours,
                 nextHours: nextHours,
                 interval: interval,
+                engineModel: engineModel,
+                engineSN: engineSN,
+                arrivalDate: arrivalDate,
+                arrivalHours: arrivalHours,
+                lastMaintenanceDate: lastMaintenanceDate,
+                lastMaintenanceHours: lastMaintenanceHours,
                 status: status,
-                notes: row[13] ? row[13].toString() : '',
+                notes: '',
                 filters: {},
                 maintenanceLogs: [],
-                hoursLog: [{ date: reviewDate, hours: currentHours, updatedBy: 'استيراد ملف' }],
+                hoursLog: [{ date: new Date().toISOString().split('T')[0], hours: currentHours, updatedBy: 'استيراد ملف' }],
                 fuelRecords: [],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-            equipmentCount++;
-            updatedCount++;
         }
-        updateImportProgress(processed, totalRows, 'جارٍ تحديث المعدات... (' + processed + '/' + totalRows + ') - تم تحديث ' + updatedCount + ' معدة');
+        
+        equipmentUpdates[updatePath] = equipmentDataToSave;
+        equipmentCount++;
+        
+        updateImportProgress(processed, totalRows, 'جارٍ تحديث المعدات... (' + processed + '/' + totalRows + ') - تم تحديث ' + equipmentCount + ' معدة');
     }
-    if (Object.keys(eqBatch).length > 0) fbDb.ref('/').update(eqBatch).catch(console.error);
-    importResults.equipment = equipmentCount;
-    setTimeout(function() { importFuelData(); }, 800);
+    
+    if (Object.keys(equipmentUpdates).length > 0) {
+        fbDb.ref('/').update(equipmentUpdates).then(function() {
+            importResults.equipment = equipmentCount;
+            setTimeout(function() { importFuelDataFromDailySheet(); }, 800);
+        }).catch(function(error) {
+            console.error('خطأ في حفظ المعدات:', error);
+            showToast('خطأ في حفظ المعدات: ' + error.message);
+            importResults.equipment = 0;
+            setTimeout(function() { importFuelDataFromDailySheet(); }, 500);
+        });
+    } else {
+        importResults.equipment = 0;
+        setTimeout(function() { importFuelDataFromDailySheet(); }, 500);
+    }
 }
 
-function importFuelData() {
-    var sheet = pendingImportData['متابعه الوقود'];
-    var fuelRecordsToAdd = [];
-    if (sheet && sheet.length >= 3) {
-        var fuelStart = 1;
-        for (var i = 0; i < Math.min(10, sheet.length); i++) {
-            var cell = sheet[i] ? sheet[i][0] : '';
-            if (cell && (cell.toString().includes('المعده') || cell.toString().includes('اسم'))) {
-                fuelStart = i + 1;
-                break;
-            }
+function importFuelDataFromDailySheet() {
+    var sheet = pendingImportData['ورقة1'];
+    if (!sheet || sheet.length < 2) {
+        finalizeImport();
+        return;
+    }
+    
+    var headers = sheet[0];
+    var startRow = 1;
+    var dateColIndex = -1;
+    var equipmentCols = [];
+    
+    for (var i = 0; i < headers.length; i++) {
+        var header = headers[i] ? headers[i].toString().trim() : '';
+        if (header === 'التاريخ') {
+            dateColIndex = i;
+        } else if (header && header !== 'م' && header !== 'اليوم' && header !== 'التاريخ') {
+            equipmentCols.push({ index: i, name: header });
         }
-        for (var i = fuelStart; i < sheet.length; i++) {
-            var row = sheet[i];
-            if (!row || row.length < 7) continue;
-            var equipmentName = row[0] || '';
-            if (!equipmentName || equipmentName.includes('الاجمالي')) continue;
-            var dateRaw = row[5] || '';
-            var date = '';
-            if (dateRaw) {
-                if (typeof dateRaw === 'number') {
-                    var excelDate = new Date((dateRaw - 25569) * 86400000);
-                    date = excelDate.toISOString().split('T')[0];
-                } else if (dateRaw.includes('/')) {
-                    var parts = dateRaw.split('/');
-                    if (parts.length === 3) date = '20' + parts[2] + '-' + parts[1] + '-' + parts[0];
-                } else {
-                    date = dateRaw.substring(0, 10);
+    }
+    
+    if (dateColIndex === -1 || equipmentCols.length === 0) {
+        finalizeImport();
+        return;
+    }
+    
+    var fuelRecordsToAdd = [];
+    var equipMap = {};
+    
+    equipmentData.forEach(function(eq) {
+        equipMap[eq.code] = eq.id;
+        equipMap[eq.name] = eq.id;
+        if (eq.sapCode) equipMap[eq.sapCode] = eq.id;
+    });
+    
+    for (var i = startRow; i < sheet.length; i++) {
+        var row = sheet[i];
+        if (!row || row.length <= dateColIndex) continue;
+        
+        var dateRaw = row[dateColIndex];
+        var date = parseDateFromExcel(dateRaw);
+        if (!date) continue;
+        
+        for (var j = 0; j < equipmentCols.length; j++) {
+            var col = equipmentCols[j];
+            var eqName = col.name;
+            var amountRaw = row[col.index];
+            
+            if (!amountRaw) continue;
+            
+            var amount = 0;
+            if (typeof amountRaw === 'number') {
+                amount = amountRaw;
+            } else if (amountRaw && amountRaw.toString().trim() !== '') {
+                amount = parseFloat(amountRaw) || 0;
+            }
+            
+            if (amount <= 0) continue;
+            
+            var eqId = equipMap[eqName];
+            if (!eqId) {
+                for (var code in equipMap) {
+                    if (eqName.includes(code) || code.includes(eqName)) {
+                        eqId = equipMap[code];
+                        break;
+                    }
                 }
             }
-            var amount = parseFloat(row[6]) || 0;
-            if (amount <= 0) continue;
-            var matchedEquipment = equipmentData.find(function(e) { return e.name === equipmentName || e.code === equipmentName; });
-            if (!matchedEquipment) continue;
-            fuelRecordsToAdd.push({
-                equipmentId: matchedEquipment.id,
-                date: date,
-                amount: amount,
-                driverName: row[4] || '',
-                notes: row[9] || ''
+            
+            if (!eqId) continue;
+            
+            var isDuplicate = fuelData.some(function(f) {
+                return f.equipmentId === eqId && f.date === date && f.amount === amount;
             });
+            
+            if (!isDuplicate) {
+                fuelRecordsToAdd.push({
+                    equipmentId: eqId,
+                    date: date,
+                    amount: amount,
+                    notes: 'استيراد من الجدول اليومي'
+                });
+            }
         }
     }
-    var dailySheet = pendingImportData['ورقة1'];
-    if (dailySheet) {
-        var equipMap = {};
-        equipmentData.forEach(function(eq) {
-            equipMap[eq.name] = eq.id;
-            equipMap[eq.code] = eq.id;
-        });
-        var dailyRecords = parseDailyFuelSheet(dailySheet, equipMap);
-        fuelRecordsToAdd = fuelRecordsToAdd.concat(dailyRecords);
-    }
+    
     var fuelCount = 0;
     var fuelBatch = {};
+    
     for (var i = 0; i < fuelRecordsToAdd.length; i++) {
         var rec = fuelRecordsToAdd[i];
         var newKey = fbDb.ref('fuelRecords').push().key;
@@ -3076,87 +3185,19 @@ function importFuelData() {
             equipmentId: rec.equipmentId,
             amount: rec.amount,
             date: rec.date,
-            driverName: rec.driverName || '',
-            notes: rec.notes || '',
+            driverName: '',
+            notes: rec.notes,
             createdAt: new Date().toISOString()
         };
         fuelCount++;
     }
-    if (Object.keys(fuelBatch).length > 0) fbDb.ref('/').update(fuelBatch).catch(console.error);
+    
+    if (Object.keys(fuelBatch).length > 0) {
+        fbDb.ref('/').update(fuelBatch).catch(console.error);
+    }
+    
     importResults.fuel = fuelCount;
-    setTimeout(function() { importPartsData(); }, 500);
-}
-
-function importPartsData() {
-    var sheet = pendingImportData['متابعه المنصرف من المخزن'];
-    if (!sheet || sheet.length < 3) {
-        finalizeImport();
-        return;
-    }
-    var partsStart = 1;
-    for (var i = 0; i < Math.min(10, sheet.length); i++) {
-        var cell = sheet[i] ? sheet[i][0] : '';
-        if (cell && (cell.toString().includes('المعده') || cell.toString().includes('البند'))) {
-            partsStart = i + 1;
-            break;
-        }
-    }
-    var partsCount = 0;
-    var partsBatch = {};
-    for (var i = partsStart; i < sheet.length; i++) {
-        var row = sheet[i];
-        if (!row || row.length < 8) continue;
-        var itemName = row[9] || row[8] || row[7] || '';
-        if (!itemName || itemName.includes('الاجمالي')) continue;
-        var quantity = parseFloat(row[8]) || 1;
-        partsCount++;
-        var newKey = fbDb.ref('partsConsumption').push().key;
-        partsBatch['partsConsumption/' + newKey] = {
-            itemName: itemName,
-            quantity: quantity,
-            date: new Date().toISOString().split('T')[0],
-            source: 'Excel Import',
-            createdAt: new Date().toISOString()
-        };
-    }
-    if (Object.keys(partsBatch).length > 0) fbDb.ref('/').update(partsBatch).catch(console.error);
-    importResults.parts = partsCount;
     setTimeout(function() { finalizeImport(); }, 500);
-}
-
-function finalizeImport() {
-    document.getElementById('import-progress-text').innerHTML = '✅ تم الاستيراد بنجاح!';
-    document.getElementById('import-progress-bar').style.width = '100%';
-    setTimeout(function() {
-        closeModal('import-progress-modal');
-        showToast('✅ تم الاستيراد: ' + importResults.equipment + ' معدة، ' + importResults.fuel + ' سجل وقود، ' + importResults.parts + ' قطعة غيار');
-        refreshUI();
-        forceRefreshData();
-        pendingImportData = null;
-        document.getElementById('import-preview').style.display = 'none';
-        document.getElementById('excel-file-input').value = '';
-        var historyList = document.getElementById('import-history-list');
-        var now = new Date().toLocaleString('ar-EG');
-        historyList.innerHTML = '<div style="padding:10px;border-bottom:1px solid #eef2f6"><div><span>📅 ' + now + '</span><span class="status-badge status-success">✅ مكتمل</span></div><div>' + importResults.equipment + ' معدة | ' + importResults.fuel + ' تزود | ' + importResults.parts + ' قطعة</div></div>' + historyList.innerHTML;
-        isImporting = false;
-    }, 1500);
-}
-
-function updateImportProgress(current, total, message) {
-    var percent = total > 0 ? Math.round((current / total) * 100) : 0;
-    document.getElementById('import-progress-bar').style.width = percent + '%';
-    document.getElementById('import-progress-text').innerHTML = message;
-    var statusList = document.getElementById('import-status-list');
-    statusList.innerHTML += '<div>' + message + ' (' + current + '/' + total + ')</div>';
-    statusList.scrollTop = statusList.scrollHeight;
-}
-
-function cancelImport() {
-    pendingImportData = null;
-    document.getElementById('import-preview').style.display = 'none';
-    document.getElementById('excel-file-input').value = '';
-    showToast('تم إلغاء الاستيراد');
-    isImporting = false;
 }
 
 function handleInventoryFileUpload(inputElement) {
@@ -3169,7 +3210,7 @@ function handleInventoryFileUpload(inputElement) {
         showToast('الرجاء اختيار ملف Excel بصيغة .xlsx أو .xls');
         return;
     }
-    showToast('📖 جاري قراءة الملف...');
+    showToast('📖 جاري قراءة ملف SOH...');
     var reader = new FileReader();
     reader.onload = function(e) {
         try {
@@ -3178,56 +3219,82 @@ function handleInventoryFileUpload(inputElement) {
             var sheetName = workbook.SheetNames[0];
             var sheet = workbook.Sheets[sheetName];
             var rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+            
             if (!rows || rows.length < 2) {
                 showToast('الملف فارغ أو لا يحتوي على بيانات');
                 return;
             }
+            
             var cleanRows = [];
+            var headers = rows[0];
+            var colMaterial = -1, colDesc = -1, colUnit = -1, colQty = -1;
+            
+            for (var i = 0; i < headers.length; i++) {
+                var header = headers[i] ? headers[i].toString().toLowerCase() : '';
+                if (header === 'material' || header.includes('material')) colMaterial = i;
+                if (header === 'material description' || header.includes('description')) colDesc = i;
+                if (header === 'base unit of measure' || header.includes('unit')) colUnit = i;
+                if (header === 'unrestricted' || header.includes('unrestricted')) colQty = i;
+            }
+            
+            if (colMaterial === -1) colMaterial = 0;
+            if (colDesc === -1) colDesc = 1;
+            if (colUnit === -1) colUnit = 2;
+            if (colQty === -1) colQty = 3;
+            
             for (var i = 1; i < rows.length; i++) {
                 var row = rows[i];
                 if (!row) continue;
-                var colA = (row[0] !== undefined && row[0] !== null) ? String(row[0]).trim() : '';
-                var colB = (row[1] !== undefined && row[1] !== null) ? String(row[1]).trim() : '';
-                var colC = (row[2] !== undefined && row[2] !== null) ? String(row[2]).trim() : '';
-                var colD = 0;
-                if (row[3] !== undefined && row[3] !== null) {
-                    if (typeof row[3] === 'number') {
-                        colD = row[3];
+                
+                var materialCode = row[colMaterial] ? row[colMaterial].toString().trim() : '';
+                var description = row[colDesc] ? row[colDesc].toString().trim() : '';
+                var unit = row[colUnit] ? row[colUnit].toString().trim() : '';
+                var quantity = 0;
+                
+                if (row[colQty] !== undefined && row[colQty] !== null) {
+                    if (typeof row[colQty] === 'number') {
+                        quantity = row[colQty];
                     } else {
-                        var cleanNumber = String(row[3]).replace(/[^\d.-]/g, '');
-                        colD = parseFloat(cleanNumber) || 0;
+                        var cleanNumber = String(row[colQty]).replace(/[^\d.-]/g, '');
+                        quantity = parseFloat(cleanNumber) || 0;
                     }
                 }
-                if (colA === '' && colB === '') continue;
-                if (colA.includes('الاجمالي') || colA.toLowerCase().includes('total')) continue;
-                var shortPartNo = colA.trim() || 'ITEM_' + i;
-                var displayUnit = colC;
+                
+                if (!materialCode && !description) continue;
+                if (materialCode && (materialCode.includes('الاجمالي') || materialCode.toLowerCase().includes('total'))) continue;
+                if (quantity === 0) continue;
+                
+                var category = 'spare';
+                var descLower = description.toLowerCase();
+                if (descLower.includes('فلتر') || descLower.includes('filter')) category = 'filter';
+                else if (descLower.includes('زيت') || descLower.includes('oil')) category = 'oil';
+                else if (descLower.includes('اطار') || descLower.includes('تاير')) category = 'tire';
+                
+                var displayUnit = unit;
                 if (displayUnit === 'L' || displayUnit === 'لتر') displayUnit = 'لتر';
                 else if (displayUnit === 'KG' || displayUnit === 'كجم') displayUnit = 'كجم';
                 else if (displayUnit === 'EA' || displayUnit === 'قطعة') displayUnit = 'قطعة';
                 else if (!displayUnit) displayUnit = 'قطعة';
-                var category = 'spare';
-                var descLower = colB.toLowerCase();
-                if (descLower.includes('فلتر') || descLower.includes('filter')) category = 'filter';
-                else if (descLower.includes('زيت') || descLower.includes('oil')) category = 'oil';
-                else if (descLower.includes('اطار') || descLower.includes('تاير')) category = 'tire';
+                
                 cleanRows.push({
-                    fullMaterial: colA,
-                    fullDescription: colB,
-                    fullUnit: colC,
-                    quantity: colD,
-                    shortPartNo: shortPartNo,
+                    fullMaterial: materialCode,
+                    fullDescription: description,
+                    fullUnit: unit,
+                    quantity: quantity,
+                    shortPartNo: materialCode.split('.').pop() || materialCode,
                     displayUnit: displayUnit,
                     category: category
                 });
             }
+            
             if (cleanRows.length === 0) {
-                showToast('لا توجد بيانات صالحة');
+                showToast('لا توجد بيانات صالحة في الملف');
                 return;
             }
+            
             pendingInventoryData = cleanRows;
             displayInventoryPreview(cleanRows);
-            showToast('✅ تم قراءة ' + cleanRows.length + ' صنف');
+            showToast('✅ تم قراءة ' + cleanRows.length + ' صنف من ملف SOH');
         } catch (err) {
             showToast('خطأ: ' + err.message);
         }
@@ -3243,11 +3310,12 @@ function displayInventoryPreview(items) {
     var updatedCount = 0, newCount = 0, totalQtySum = 0;
     var itemsToUpdate = [];
     var snapshot = inventoryItems.slice();
+    
     for (var i = 0; i < items.length; i++) {
         var item = items[i];
         totalQtySum += item.quantity;
         var existing = snapshot.find(function(ex) { return ex.fullMaterial && ex.fullMaterial === item.fullMaterial; });
-        if (!existing) existing = snapshot.find(function(ex) { return ex.partNo === item.shortPartNo && item.shortPartNo.length > 3; });
+        if (!existing) existing = snapshot.find(function(ex) { return ex.partNo === item.shortPartNo && item.shortPartNo.length > 5; });
         if (existing) {
             updatedCount++;
             itemsToUpdate.push({
@@ -3273,6 +3341,7 @@ function displayInventoryPreview(items) {
             });
         }
     }
+    
     previewDiv.innerHTML = '<div class="grid-3" style="margin:10px 0">' +
         '<div class="stat-card"><div class="stat-number">' + updatedCount + '</div><div class="stat-label">سيتم تحديث</div></div>' +
         '<div class="stat-card"><div class="stat-number">' + newCount + '</div><div class="stat-label">جديد</div></div>' +
@@ -3293,43 +3362,54 @@ function displayInventoryPreview(items) {
 
 function confirmInventoryImport() {
     if (!pendingInventoryData || !pendingInventoryData.length) {
-        showToast('لا توجد بيانات');
+        showToast('لا توجد بيانات للاستيراد');
         return;
     }
     if (!fbDb) {
-        showToast('❌ غير متصل');
+        showToast('❌ غير متصل بقاعدة البيانات');
         return;
     }
-    showToast('🔄 جاري حفظ البيانات...');
+    
+    showToast('🔄 جاري حفظ بيانات المخزون...');
     var now = new Date().toISOString();
     var dateStr = new Date().toLocaleDateString('ar-EG');
     var snapshot = inventoryItems.slice();
     var allUpdates = {};
     var updated = 0, created = 0;
+    
     for (var i = 0; i < pendingInventoryData.length; i++) {
         var item = pendingInventoryData[i];
         try {
             var existing = snapshot.find(function(ex) { return ex.fullMaterial && ex.fullMaterial === item.fullMaterial; });
-            if (!existing) existing = snapshot.find(function(ex) { return ex.partNo === item.shortPartNo && item.shortPartNo.length > 3; });
+            if (!existing) existing = snapshot.find(function(ex) { return ex.partNo === item.shortPartNo && item.shortPartNo.length > 5; });
             if (existing) {
-                var rest = Object.assign({}, existing);
-                delete rest.id;
-                allUpdates['inventoryItems/' + existing.id] = Object.assign({}, rest, {
+                var rest = {};
+                for (var key in existing) {
+                    if (key !== 'id') rest[key] = existing[key];
+                }
+                allUpdates['inventoryItems/' + existing.id] = {
+                    category: existing.category || item.category,
+                    name: item.fullDescription.substring(0, 100),
                     partNo: item.shortPartNo,
-                    name: item.fullDescription.length > 100 ? item.fullDescription.substring(0, 100) : item.fullDescription,
-                    unit: item.displayUnit,
-                    qty: item.quantity,
                     fullMaterial: item.fullMaterial,
                     fullDescription: item.fullDescription,
                     fullUnit: item.fullUnit,
+                    qty: item.quantity,
+                    minQty: existing.minQty || ((item.category === 'filter' || item.category === 'oil') ? 5 : 3),
+                    price: existing.price || 0,
+                    unit: item.displayUnit,
+                    interval: existing.interval || ((item.category === 'filter' || item.category === 'oil') ? 250 : 500),
+                    alts: existing.alts || [],
+                    notes: 'تم التحديث من SOH بتاريخ ' + dateStr,
+                    createdAt: existing.createdAt || now,
                     updatedAt: now
-                });
+                };
                 updated++;
             } else {
                 var newKey = fbDb.ref('inventoryItems').push().key;
                 allUpdates['inventoryItems/' + newKey] = {
                     category: item.category,
-                    name: item.fullDescription.length > 100 ? item.fullDescription.substring(0, 100) : item.fullDescription,
+                    name: item.fullDescription.substring(0, 100),
                     partNo: item.shortPartNo,
                     fullMaterial: item.fullMaterial,
                     fullDescription: item.fullDescription,
@@ -3350,9 +3430,11 @@ function confirmInventoryImport() {
             console.error(err);
         }
     }
+    
     var updatesArray = Object.entries(allUpdates);
     var batchSize = 500;
     var processed = 0;
+    
     function processBatch(start) {
         var end = Math.min(start + batchSize, updatesArray.length);
         var batch = {};
@@ -3375,6 +3457,7 @@ function confirmInventoryImport() {
             showToast('❌ خطأ في حفظ البيانات: ' + err.message);
         });
     }
+    
     if (updatesArray.length > 0) {
         processBatch(0);
     } else {
@@ -3389,29 +3472,52 @@ function cancelInventoryImport() {
     showToast('تم إلغاء استيراد المخزون');
 }
 
-function cleanMockFuelData() {
-    if (!hasPermission('all')) {
-        showToast('غير مصرح');
+function confirmImport() {
+    if (!pendingImportData) {
+        showToast('لا توجد بيانات للاستيراد');
         return;
     }
-    var yearFrom = parseInt(document.getElementById('clean-year-from') ? document.getElementById('clean-year-from').value : 2020) || 2020;
-    var yearTo = parseInt(document.getElementById('clean-year-to') ? document.getElementById('clean-year-to').value : null);
-    if (!yearTo || isNaN(yearTo)) yearTo = new Date().getFullYear() + 1;
-    var toDelete = fuelData.filter(function(f) {
-        if (!f.date) return true;
-        var d = new Date(f.date);
-        if (isNaN(d.getTime())) return true;
-        var year = d.getFullYear();
-        return year < yearFrom || year > yearTo;
-    });
-    if (toDelete.length === 0) {
-        showToast('✅ لا توجد سجلات خارج النطاق ' + yearFrom + '-' + yearTo);
-        return;
-    }
-    if (!confirm('سيتم حذف ' + toDelete.length + ' سجل وقود خارج ' + yearFrom + '-' + yearTo + '. هل أنت متأكد؟')) return;
-    toDelete.forEach(function(f) { deleteFromFirebase('fuelRecords', f.id); });
-    showToast('✅ تم حذف ' + toDelete.length + ' سجل');
-    setTimeout(function() { forceRefreshData(); }, 1000);
+    document.getElementById('import-progress-modal').classList.add('active');
+    document.getElementById('import-progress-bar').style.width = '0%';
+    document.getElementById('import-progress-text').innerHTML = 'جارٍ استيراد المعدات...';
+    document.getElementById('import-status-list').innerHTML = '';
+    importResults = { equipment: 0, fuel: 0, parts: 0 };
+    setTimeout(function() { importEquipmentData(); }, 100);
+}
+
+function cancelImport() {
+    pendingImportData = null;
+    document.getElementById('import-preview').style.display = 'none';
+    document.getElementById('equipment-excel-input').value = '';
+    showToast('تم إلغاء الاستيراد');
+    isImporting = false;
+}
+
+function updateImportProgress(current, total, message) {
+    var percent = total > 0 ? Math.round((current / total) * 100) : 0;
+    document.getElementById('import-progress-bar').style.width = percent + '%';
+    document.getElementById('import-progress-text').innerHTML = message;
+    var statusList = document.getElementById('import-status-list');
+    statusList.innerHTML += '<div>' + message + ' (' + current + '/' + total + ')</div>';
+    statusList.scrollTop = statusList.scrollHeight;
+}
+
+function finalizeImport() {
+    document.getElementById('import-progress-text').innerHTML = '✅ تم الاستيراد بنجاح!';
+    document.getElementById('import-progress-bar').style.width = '100%';
+    setTimeout(function() {
+        closeModal('import-progress-modal');
+        showToast('✅ تم الاستيراد: ' + importResults.equipment + ' معدة، ' + importResults.fuel + ' سجل وقود');
+        refreshUI();
+        forceRefreshData();
+        pendingImportData = null;
+        document.getElementById('import-preview').style.display = 'none';
+        document.getElementById('equipment-excel-input').value = '';
+        var historyList = document.getElementById('import-history-list');
+        var now = new Date().toLocaleString('ar-EG');
+        historyList.innerHTML = '<div style="padding:10px;border-bottom:1px solid #eef2f6"><div><span>📅 ' + now + '</span><span class="status-badge status-success">✅ مكتمل</span></div><div>' + importResults.equipment + ' معدة | ' + importResults.fuel + ' سجل وقود</div></div>' + historyList.innerHTML;
+        isImporting = false;
+    }, 1500);
 }
 
 function forceRefreshData() {
@@ -3467,12 +3573,11 @@ function refreshUI() {
                 '<div><span>⏱️ ' + formatNumber(eq.hours) + ' س</span> | <span>🔧 ' + formatNumber(eq.nextHours) + ' س</span></div>' +
                 '<div class="progress-bar"><div class="progress-fill" style="width:' + getRemainingPercent(eq) + '%;background:' + getBarColor(hoursRemaining(eq)) + '"></div></div>' +
                 '<div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">' +
-                (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:6px 12px;border-radius:8px;cursor:pointer">✏️ تعديل</button>' : '') +
+                (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px">✏️ تعديل</button>' : '') +
                 '</div></div>';
         });
         document.getElementById('equipment-list').innerHTML = equipmentListHtml;
         
-        // ربط حدث النقر على بطاقات المعدات
         setTimeout(function() {
             document.querySelectorAll('#equipment-list .equipment-card').forEach(function(card) {
                 card.onclick = function(e) {
@@ -3639,7 +3744,6 @@ function updateHomeStatsAndList() {
         document.getElementById('equipment-list-home').innerHTML = '<div class="empty-state">لا توجد معدات</div>';
     }
     
-    // ربط أحداث النقر
     setTimeout(function() {
         document.querySelectorAll('#equipment-list-home .equipment-card').forEach(function(card) {
             card.onclick = function(e) {
@@ -4025,15 +4129,16 @@ document.addEventListener('DOMContentLoaded', function() {
     var addMaintenanceBtn = document.getElementById('add-maintenance-btn');
     var whatsappMaintBtn = document.getElementById('whatsapp-maint-btn');
     var addInventoryBtn = document.getElementById('add-inventory-btn');
-    var uploadExcelBtn = document.getElementById('upload-excel-integrated-btn');
-    var uploadSohBtn = document.getElementById('upload-inventory-soh-btn');
+    
+    var uploadEquipmentBtn = document.getElementById('upload-equipment-excel-btn');
+    var equipmentExcelInput = document.getElementById('equipment-excel-input');
+    var uploadInventoryBtn = document.getElementById('upload-inventory-soh-btn');
+    var inventoryExcelInput = document.getElementById('inventory-excel-input');
     var cleanFuelBtn = document.getElementById('clean-fuel-btn');
     var confirmImportBtn = document.getElementById('confirm-import-btn');
     var cancelImportBtn = document.getElementById('cancel-import-btn');
     var confirmInventoryBtn = document.getElementById('confirm-inventory-import-btn');
     var cancelInventoryBtn = document.getElementById('cancel-inventory-import-btn');
-    var excelInput = document.getElementById('excel-file-input');
-    var invExcelInput = document.getElementById('inventory-excel-input');
     var searchEquipment = document.getElementById('search-equipment');
     var searchDriver = document.getElementById('search-driver');
     var categoryFilter = document.getElementById('category-filter');
@@ -4056,15 +4161,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addMaintenanceBtn) addMaintenanceBtn.onclick = function() { openAddMaintenanceModal(); };
     if (whatsappMaintBtn) whatsappMaintBtn.onclick = function() { sendWhatsAppMaintenanceAlert(); };
     if (addInventoryBtn) addInventoryBtn.onclick = function() { openAddInventoryItemModal(); };
-    if (uploadExcelBtn) uploadExcelBtn.onclick = function() { document.getElementById('excel-file-input').click(); };
-    if (uploadSohBtn) uploadSohBtn.onclick = function() { document.getElementById('inventory-excel-input').click(); };
+    
+    if (uploadEquipmentBtn && equipmentExcelInput) {
+        uploadEquipmentBtn.onclick = function() { equipmentExcelInput.click(); };
+        equipmentExcelInput.onchange = function(e) { handleEquipmentFileUpload(e.target); };
+    }
+    if (uploadInventoryBtn && inventoryExcelInput) {
+        uploadInventoryBtn.onclick = function() { inventoryExcelInput.click(); };
+        inventoryExcelInput.onchange = function(e) { handleInventoryFileUpload(e.target); };
+    }
     if (cleanFuelBtn) cleanFuelBtn.onclick = function() { cleanMockFuelData(); };
     if (confirmImportBtn) confirmImportBtn.onclick = function() { confirmImport(); };
     if (cancelImportBtn) cancelImportBtn.onclick = function() { cancelImport(); };
     if (confirmInventoryBtn) confirmInventoryBtn.onclick = function() { confirmInventoryImport(); };
     if (cancelInventoryBtn) cancelInventoryBtn.onclick = function() { cancelInventoryImport(); };
-    if (excelInput) excelInput.onchange = function(e) { handleFileUpload(e.target); };
-    if (invExcelInput) invExcelInput.onchange = function(e) { handleInventoryFileUpload(e.target); };
     if (searchEquipment) searchEquipment.oninput = function() { debouncedRefresh(); };
     if (searchDriver) searchDriver.oninput = function() { debouncedRefresh(); };
     if (categoryFilter) categoryFilter.onchange = function() { filterInventory(); };
