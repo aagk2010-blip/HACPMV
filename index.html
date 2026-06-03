@@ -139,7 +139,7 @@ body.dark-mode .tab-btn.active{color:#e8a020}
   <button class="fab" id="fab-btn">+</button>
 </div>
 
-<!-- النوافذ المنبثقة -->
+<!-- النوافذ المنبثقة (نفس الكود الأصلي - تم اختصاره للطول ولكن يبقى كما هو) -->
 <div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">دورة الصيانة</label><input class="form-input" type="number" id="eq-interval" value="250"></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الاسم الكامل *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label">رقم الهاتف</label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label">رقم رخصة القيادة</label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label">تاريخ انتهاء الرخصة</label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
@@ -1040,7 +1040,7 @@ function generateEquipmentMaintenanceOrder(eqId) {
         '<p><strong>موعد الصيانة القادم:</strong> ' + equipment.nextHours + ' س</p>' +
         '<p><strong>التاريخ:</strong> ' + new Date().toLocaleDateString('ar-EG') + '</p>' +
         '<h3>القطع المطلوبة:</h3>' +
-        '<table><thead><tr><th>#</th><th>اسم القطعة</th><th>رقم القطعة</th><th>الكمية المطلوبة</th></table></thead><tbody>';
+        '<td><thead><tr><th>#</th><th>اسم القطعة</th><th>رقم القطعة</th><th>الكمية المطلوبة</th></tr></thead><tbody>';
     
     neededFilters.forEach(function(f, i) {
         html += '<tr><td style="text-align:center">' + (i + 1) + '</td><td style="text-align:center">' + escapeHtml(f.name) + '</td><td style="text-align:center">' + escapeHtml(f.partNo) + '</td><td style="text-align:center">' + f.needed + '</td></tr>';
@@ -2768,7 +2768,7 @@ function exportInventoryExcel() {
     }
 }
 
-// ==================== دوال الاستيراد ====================
+// ==================== دوال الاستيراد المحسنة ====================
 function handleEquipmentFileUpload(inputElement) {
     var file = inputElement.files[0];
     if (!file) {
@@ -2830,8 +2830,9 @@ function handleEquipmentFileUpload(inputElement) {
     reader.readAsArrayBuffer(file);
 }
 
+// [START] دالة استيراد المعدات المحسنة - تقرأ جميع الأعمدة
 function importEquipmentData() {
-    console.log('بدء استيراد بيانات المعدات...');
+    console.log('بدء استيراد بيانات المعدات - قراءة جميع الأعمدة');
     var sheet = pendingImportData['معدات الموقع'];
     if (!sheet || sheet.length < 2) {
         console.log('لا توجد ورقة معدات الموقع');
@@ -2842,55 +2843,78 @@ function importEquipmentData() {
     var headers = sheet[0];
     var startRow = 1;
     
+    // تحديد جميع الأعمدة المهمة
     var colIndex = {
-        code: -1,
-        sapCode: -1,
-        chassis: -1,
-        engineModel: -1,
-        engineSN: -1,
-        arrivalDate: -1,
-        arrivalHours: -1,
-        lastMaintenanceDate: -1,
-        lastMaintenanceHours: -1,
-        currentHours: -1,
-        nextHours: -1
+        // الأعمدة الأساسية
+        code: -1,           // الرقم التعريفي للمعدة
+        sapCode: -1,        // SAP CODE
+        name: -1,           // اسم المعدة (إن وجد)
+        type: -1,           // النوع
+        chassis: -1,        // رقم الشاسيه S/N
+        location: -1,       // الموقع
+        engineModel: -1,    // Engine Model
+        engineSN: -1,       // Engine S/N
+        arrivalDate: -1,    // تاريخ الوصول
+        arrivalHours: -1,   // عداد الساعة عند الوصول
+        lastMaintenanceDate: -1,  // تاريخ الصيانة السابقة
+        lastMaintenanceHours: -1, // عداد الصيانة السابقة
+        currentHours: -1,   // العداد الحالي
+        nextHours: -1,      // ميعاد الصيانة القادمة
+        interval: -1,       // دورة الصيانة
+        status: -1,         // الحالة
+        notes: -1           // ملاحظات
     };
     
+    // البحث عن الأعمدة حسب الترويسات المتوقعة
     for (var i = 0; i < headers.length; i++) {
         var header = headers[i] ? headers[i].toString().trim() : '';
-        if (header === 'SAP CODE' || header.includes('SAP')) colIndex.sapCode = i;
-        if (header === 'الرقم التعريفي للمعدة' || header.includes('الرقم التعريفي')) colIndex.code = i;
-        if (header === 'رقم مسلسل S/N' || header.includes('رقم مسلسل')) colIndex.chassis = i;
-        if (header === 'Engine Model') colIndex.engineModel = i;
-        if (header === 'Engine S/N') colIndex.engineSN = i;
-        if (header === 'تاريخ الوصول') colIndex.arrivalDate = i;
-        if (header === 'عداد الساعة / الساعات عند الوصول') colIndex.arrivalHours = i;
-        if (header === 'تاريخ الصيانه السابقه') colIndex.lastMaintenanceDate = i;
-        if (header === 'عداد الصيانه الاخيره') colIndex.lastMaintenanceHours = i;
-        if (header === 'العداد الحالي') colIndex.currentHours = i;
-        if (header === 'ميعاد الصيانة القادمة') colIndex.nextHours = i;
+        var headerLower = header.toLowerCase();
+        
+        if (header === 'SAP CODE' || headerLower.includes('sap')) colIndex.sapCode = i;
+        if (header === 'الرقم التعريفي للمعدة' || headerLower.includes('تعريفي') || (headerLower.includes('code') && !headerLower.includes('sap'))) colIndex.code = i;
+        if (header === 'اسم المعدة' || headerLower.includes('اسم') || headerLower.includes('name')) colIndex.name = i;
+        if (header === 'النوع' || headerLower.includes('type')) colIndex.type = i;
+        if (header === 'رقم مسلسل S/N' || headerLower.includes('مسلسل') || headerLower.includes('serial')) colIndex.chassis = i;
+        if (header === 'الموقع' || headerLower.includes('موقع') || headerLower.includes('location')) colIndex.location = i;
+        if (header === 'Engine Model' || headerLower.includes('engine model')) colIndex.engineModel = i;
+        if (header === 'Engine S/N' || headerLower.includes('engine sn')) colIndex.engineSN = i;
+        if (header === 'تاريخ الوصول' || headerLower.includes('تاريخ الوصول')) colIndex.arrivalDate = i;
+        if (header === 'عداد الساعة / الساعات عند الوصول' || headerLower.includes('عداد عند الوصول') || headerLower.includes('arrival hours')) colIndex.arrivalHours = i;
+        if (header === 'تاريخ الصيانه السابقه' || headerLower.includes('تاريخ الصيانة') || headerLower.includes('last maintenance date')) colIndex.lastMaintenanceDate = i;
+        if (header === 'عداد الصيانه الاخيره' || headerLower.includes('عداد الصيانة') || headerLower.includes('last maintenance hours')) colIndex.lastMaintenanceHours = i;
+        if (header === 'العداد الحالي' || headerLower.includes('current') || headerLower.includes('عداد حالي')) colIndex.currentHours = i;
+        if (header === 'ميعاد الصيانة القادمة' || headerLower.includes('next') || headerLower.includes('قادمة')) colIndex.nextHours = i;
+        if (header === 'دورة الصيانة' || headerLower.includes('دورة') || headerLower.includes('interval')) colIndex.interval = i;
+        if (header === 'الحالة' || headerLower.includes('status')) colIndex.status = i;
+        if (header === 'ملاحظات' || headerLower.includes('note')) colIndex.notes = i;
     }
     
-    if (colIndex.code === -1) colIndex.code = 1;
-    if (colIndex.sapCode === -1) colIndex.sapCode = 0;
-    if (colIndex.currentHours === -1) colIndex.currentHours = 11;
-    if (colIndex.nextHours === -1) colIndex.nextHours = 12;
+    // تعيين القيم الافتراضية للأعمدة المهمة
+    if (colIndex.code === -1 && colIndex.sapCode !== -1) colIndex.code = colIndex.sapCode;
+    if (colIndex.code === -1) colIndex.code = 0;
+    if (colIndex.sapCode === -1) colIndex.sapCode = colIndex.code;
+    if (colIndex.currentHours === -1 && colIndex.nextHours !== -1) colIndex.currentHours = colIndex.nextHours - 250;
+    if (colIndex.currentHours === -1) colIndex.currentHours = 10;
+    if (colIndex.nextHours === -1) colIndex.nextHours = 11;
     
     var equipmentUpdates = {};
     var equipmentCount = 0;
     var processed = 0;
     var totalRows = 0;
     
+    // حساب إجمالي الصفوف الصالحة
     for (var i = startRow; i < sheet.length; i++) {
         var row = sheet[i];
         if (!row || row.length < 2) continue;
         var code = row[colIndex.code] ? row[colIndex.code].toString().trim() : '';
         var sapCode = row[colIndex.sapCode] ? row[colIndex.sapCode].toString().trim() : '';
-        if ((code && !code.includes('الاجمالي')) || (sapCode && !sapCode.includes('الاجمالي'))) {
+        if ((code && !code.includes('الاجمالي') && !code.toLowerCase().includes('total')) || 
+            (sapCode && !sapCode.includes('الاجمالي') && !sapCode.toLowerCase().includes('total'))) {
             totalRows++;
         }
     }
     
+    // معالجة كل صف
     for (var i = startRow; i < sheet.length; i++) {
         var row = sheet[i];
         if (!row || row.length < 2) continue;
@@ -2903,7 +2927,9 @@ function importEquipmentData() {
         if (sapCode && (sapCode.includes('الاجمالي') || sapCode.toLowerCase().includes('total'))) continue;
         
         processed++;
+        updateImportProgress(processed, totalRows, 'جارٍ معالجة الصف ' + processed + '/' + totalRows);
         
+        // قراءة جميع البيانات
         var currentHours = 0;
         var currentHoursRaw = colIndex.currentHours !== -1 && row[colIndex.currentHours] ? row[colIndex.currentHours] : 0;
         if (typeof currentHoursRaw === 'number') {
@@ -2920,14 +2946,65 @@ function importEquipmentData() {
             nextHours = parseFloat(nextHoursRaw) || 0;
         }
         
-        if (nextHours === 0 && currentHours > 0) {
-            nextHours = currentHours + 250;
+        // تحديد دورة الصيانة
+        var interval = 250;
+        if (colIndex.interval !== -1 && row[colIndex.interval]) {
+            var intervalRaw = row[colIndex.interval];
+            if (typeof intervalRaw === 'number') {
+                interval = intervalRaw;
+            } else if (intervalRaw.toString().trim() !== '') {
+                interval = parseFloat(intervalRaw) || 250;
+            }
+        }
+        if (nextHours > 0 && currentHours > 0 && nextHours > currentHours) {
+            var computedInterval = nextHours - currentHours;
+            if (computedInterval > 0 && computedInterval <= 1000) interval = computedInterval;
+        }
+        if (interval <= 0 || interval > 1000) interval = 250;
+        
+        // تحديد الحالة بناءً على الفرق
+        var status = '';
+        var statusRaw = colIndex.status !== -1 && row[colIndex.status] ? row[colIndex.status].toString().trim() : '';
+        var remaining = nextHours - currentHours;
+        if (statusRaw) {
+            status = statusRaw;
+        } else if (remaining <= 0) {
+            status = 'متأخر';
+        } else if (remaining <= 10) {
+            status = 'عاجل';
+        } else if (remaining <= 50) {
+            status = 'قريب';
+        } else {
+            status = 'يعمل';
         }
         
-        var name = internalCode || sapCode;
+        // قراءة اسم المعدة
+        var name = '';
+        if (colIndex.name !== -1 && row[colIndex.name]) {
+            name = row[colIndex.name].toString().trim();
+        }
+        if (!name) name = internalCode || sapCode;
+        
+        // قراءة النوع
+        var type = '';
+        if (colIndex.type !== -1 && row[colIndex.type]) {
+            type = row[colIndex.type].toString().trim();
+        }
+        if (!type) {
+            if (sapCode && sapCode.includes('ETGN')) type = 'حفارة';
+            else if (sapCode && sapCode.includes('EELD')) type = 'لودر';
+            else if (sapCode && sapCode.includes('ETLT')) type = 'رافعة شوكية';
+            else if (sapCode && sapCode.includes('EETC')) type = 'تكتك';
+            else if (sapCode && sapCode.includes('EFTE')) type = 'فرادة';
+            else type = 'معدة';
+        }
+        
+        // قراءة باقي البيانات
         var chassis = colIndex.chassis !== -1 && row[colIndex.chassis] ? row[colIndex.chassis].toString().trim() : '';
+        var location = colIndex.location !== -1 && row[colIndex.location] ? row[colIndex.location].toString().trim() : '';
         var engineModel = colIndex.engineModel !== -1 && row[colIndex.engineModel] ? row[colIndex.engineModel].toString().trim() : '';
         var engineSN = colIndex.engineSN !== -1 && row[colIndex.engineSN] ? row[colIndex.engineSN].toString().trim() : '';
+        var notes = colIndex.notes !== -1 && row[colIndex.notes] ? row[colIndex.notes].toString().trim() : '';
         
         var arrivalDate = '';
         if (colIndex.arrivalDate !== -1 && row[colIndex.arrivalDate]) {
@@ -2959,47 +3036,25 @@ function importEquipmentData() {
             }
         }
         
-        var interval = 250;
-        if (nextHours > 0 && lastMaintenanceHours > 0 && nextHours > lastMaintenanceHours) {
-            interval = nextHours - lastMaintenanceHours;
-        } else if (nextHours > 0 && currentHours > 0 && nextHours > currentHours) {
-            interval = nextHours - currentHours;
-        }
-        if (interval <= 0 || interval > 1000) interval = 250;
-        
-        var status = 'يعمل';
-        var remaining = nextHours - currentHours;
-        if (remaining <= 0) status = 'متأخر';
-        else if (remaining <= 10) status = 'عاجل';
-        else if (remaining <= 50) status = 'قريب';
-        
-        var type = 'معدة';
-        if (sapCode) {
-            if (sapCode.includes('ETGN')) type = 'حفارة';
-            else if (sapCode.includes('EELD')) type = 'لودر';
-            else if (sapCode.includes('ETLT')) type = 'رافعة شوكية';
-            else if (sapCode.includes('EETC')) type = 'تكتك';
-            else if (sapCode.includes('EFTE')) type = 'فرادة';
-            else if (sapCode.includes('مكينه لحام')) type = 'ماكينة لحام';
-        }
-        
+        // البحث عن المعدة الموجودة
         var existingEquipment = null;
         for (var j = 0; j < equipmentData.length; j++) {
             var eq = equipmentData[j];
-            if (eq.code === internalCode || eq.code === sapCode || eq.sapCode === sapCode) {
+            if (eq.code === internalCode || eq.code === sapCode || eq.sapCode === sapCode || eq.name === name) {
                 existingEquipment = eq;
                 break;
             }
         }
         
         var equipmentId;
-        var updatePath;
         var equipmentDataToSave;
+        var updatePath;
         
         if (existingEquipment) {
             equipmentId = existingEquipment.id;
             updatePath = 'equipment/' + equipmentId;
             
+            // الحفاظ على سجل التغييرات
             var existingLog = existingEquipment.hoursLog || [];
             var today = new Date().toISOString().split('T')[0];
             var alreadyLogged = existingLog.some(function(l) { return l.hours === currentHours && l.date === today; });
@@ -3012,10 +3067,10 @@ function importEquipmentData() {
             equipmentDataToSave = {
                 code: internalCode || existingEquipment.code,
                 sapCode: sapCode || existingEquipment.sapCode,
-                name: name,
-                type: type,
+                name: name || existingEquipment.name,
+                type: type || existingEquipment.type,
                 chassis: chassis || existingEquipment.chassis,
-                location: existingEquipment.location || '',
+                location: location || existingEquipment.location,
                 assignedDriver: existingEquipment.assignedDriver || null,
                 hours: currentHours,
                 nextHours: nextHours,
@@ -3027,7 +3082,7 @@ function importEquipmentData() {
                 lastMaintenanceDate: lastMaintenanceDate || existingEquipment.lastMaintenanceDate,
                 lastMaintenanceHours: lastMaintenanceHours,
                 status: status,
-                notes: existingEquipment.notes || '',
+                notes: notes || existingEquipment.notes,
                 filters: existingEquipment.filters || {},
                 maintenanceLogs: existingEquipment.maintenanceLogs || [],
                 hoursLog: newLog,
@@ -3045,7 +3100,7 @@ function importEquipmentData() {
                 name: name,
                 type: type,
                 chassis: chassis,
-                location: '',
+                location: location,
                 assignedDriver: null,
                 hours: currentHours,
                 nextHours: nextHours,
@@ -3057,7 +3112,7 @@ function importEquipmentData() {
                 lastMaintenanceDate: lastMaintenanceDate,
                 lastMaintenanceHours: lastMaintenanceHours,
                 status: status,
-                notes: '',
+                notes: notes,
                 filters: {},
                 maintenanceLogs: [],
                 hoursLog: [{ date: new Date().toISOString().split('T')[0], hours: currentHours, updatedBy: 'استيراد ملف' }],
@@ -3069,13 +3124,14 @@ function importEquipmentData() {
         
         equipmentUpdates[updatePath] = equipmentDataToSave;
         equipmentCount++;
-        
         updateImportProgress(processed, totalRows, 'جارٍ تحديث المعدات... (' + processed + '/' + totalRows + ') - تم تحديث ' + equipmentCount + ' معدة');
     }
     
+    // حفظ جميع التحديثات في Firebase
     if (Object.keys(equipmentUpdates).length > 0) {
         fbDb.ref('/').update(equipmentUpdates).then(function() {
             importResults.equipment = equipmentCount;
+            updateImportProgress(processed, totalRows, '✅ تم تحديث ' + equipmentCount + ' معدة');
             setTimeout(function() { importFuelDataFromDailySheet(); }, 800);
         }).catch(function(error) {
             console.error('خطأ في حفظ المعدات:', error);
@@ -3088,10 +3144,13 @@ function importEquipmentData() {
         setTimeout(function() { importFuelDataFromDailySheet(); }, 500);
     }
 }
+// [END] دالة استيراد المعدات المحسنة
 
+// [START] دالة استيراد الوقود المحسنة من ورقة الوقود اليومي
 function importFuelDataFromDailySheet() {
     var sheet = pendingImportData['ورقة1'];
     if (!sheet || sheet.length < 2) {
+        console.log('لا توجد ورقة وقود (ورقة1)');
         finalizeImport();
         return;
     }
@@ -3101,16 +3160,20 @@ function importFuelDataFromDailySheet() {
     var dateColIndex = -1;
     var equipmentCols = [];
     
+    // تحديد أعمدة التاريخ والمعدات
     for (var i = 0; i < headers.length; i++) {
         var header = headers[i] ? headers[i].toString().trim() : '';
-        if (header === 'التاريخ') {
+        var headerLower = header.toLowerCase();
+        if (header === 'التاريخ' || headerLower === 'date' || headerLower.includes('تاريخ')) {
             dateColIndex = i;
-        } else if (header && header !== 'م' && header !== 'اليوم' && header !== 'التاريخ') {
+        } else if (header && header !== 'م' && header !== 'اليوم' && header !== 'التاريخ' && 
+                   !headerLower.includes('ملاحظات') && !headerLower.includes('note')) {
             equipmentCols.push({ index: i, name: header });
         }
     }
     
     if (dateColIndex === -1 || equipmentCols.length === 0) {
+        console.log('لم يتم العثور على أعمدة التاريخ أو المعدات');
         finalizeImport();
         return;
     }
@@ -3118,15 +3181,23 @@ function importFuelDataFromDailySheet() {
     var fuelRecordsToAdd = [];
     var equipMap = {};
     
+    // بناء خريطة للمعدات للبحث السريع
     equipmentData.forEach(function(eq) {
         equipMap[eq.code] = eq.id;
         equipMap[eq.name] = eq.id;
         if (eq.sapCode) equipMap[eq.sapCode] = eq.id;
     });
     
+    var fuelCount = 0;
+    var processedRows = 0;
+    var totalRows = sheet.length - startRow;
+    
     for (var i = startRow; i < sheet.length; i++) {
         var row = sheet[i];
         if (!row || row.length <= dateColIndex) continue;
+        
+        processedRows++;
+        updateImportProgress(processedRows, totalRows, 'جارٍ معالجة سجلات الوقود... (' + processedRows + '/' + totalRows + ')');
         
         var dateRaw = row[dateColIndex];
         var date = parseDateFromExcel(dateRaw);
@@ -3150,6 +3221,7 @@ function importFuelDataFromDailySheet() {
             
             var eqId = equipMap[eqName];
             if (!eqId) {
+                // محاولة مطابقة جزئية
                 for (var code in equipMap) {
                     if (eqName.includes(code) || code.includes(eqName)) {
                         eqId = equipMap[code];
@@ -3160,8 +3232,9 @@ function importFuelDataFromDailySheet() {
             
             if (!eqId) continue;
             
+            // التحقق من عدم التكرار
             var isDuplicate = fuelData.some(function(f) {
-                return f.equipmentId === eqId && f.date === date && f.amount === amount;
+                return f.equipmentId === eqId && f.date === date && Math.abs(f.amount - amount) < 0.1;
             });
             
             if (!isDuplicate) {
@@ -3169,15 +3242,16 @@ function importFuelDataFromDailySheet() {
                     equipmentId: eqId,
                     date: date,
                     amount: amount,
-                    notes: 'استيراد من الجدول اليومي'
+                    notes: 'استيراد من الجدول اليومي',
+                    createdAt: new Date().toISOString()
                 });
+                fuelCount++;
             }
         }
     }
     
-    var fuelCount = 0;
+    // حفظ سجلات الوقود دفعة واحدة
     var fuelBatch = {};
-    
     for (var i = 0; i < fuelRecordsToAdd.length; i++) {
         var rec = fuelRecordsToAdd[i];
         var newKey = fbDb.ref('fuelRecords').push().key;
@@ -3187,19 +3261,28 @@ function importFuelDataFromDailySheet() {
             date: rec.date,
             driverName: '',
             notes: rec.notes,
-            createdAt: new Date().toISOString()
+            createdAt: rec.createdAt
         };
-        fuelCount++;
     }
     
     if (Object.keys(fuelBatch).length > 0) {
-        fbDb.ref('/').update(fuelBatch).catch(console.error);
+        fbDb.ref('/').update(fuelBatch).then(function() {
+            importResults.fuel = fuelCount;
+            updateImportProgress(processedRows, totalRows, '✅ تم إضافة ' + fuelCount + ' سجل وقود');
+            setTimeout(function() { finalizeImport(); }, 500);
+        }).catch(function(error) {
+            console.error('خطأ في حفظ الوقود:', error);
+            importResults.fuel = 0;
+            setTimeout(function() { finalizeImport(); }, 500);
+        });
+    } else {
+        importResults.fuel = 0;
+        setTimeout(function() { finalizeImport(); }, 500);
     }
-    
-    importResults.fuel = fuelCount;
-    setTimeout(function() { finalizeImport(); }, 500);
 }
+// [END] دالة استيراد الوقود المحسنة
 
+// [START] دالة معالجة ملف المخزون المحسنة
 function handleInventoryFileUpload(inputElement) {
     var file = inputElement.files[0];
     if (!file) {
@@ -3229,6 +3312,7 @@ function handleInventoryFileUpload(inputElement) {
             var headers = rows[0];
             var colMaterial = -1, colDesc = -1, colUnit = -1, colQty = -1;
             
+            // البحث عن الأعمدة في ملف SOH
             for (var i = 0; i < headers.length; i++) {
                 var header = headers[i] ? headers[i].toString().toLowerCase() : '';
                 if (header === 'material' || header.includes('material')) colMaterial = i;
@@ -3237,6 +3321,7 @@ function handleInventoryFileUpload(inputElement) {
                 if (header === 'unrestricted' || header.includes('unrestricted')) colQty = i;
             }
             
+            // تعيين القيم الافتراضية
             if (colMaterial === -1) colMaterial = 0;
             if (colDesc === -1) colDesc = 1;
             if (colUnit === -1) colUnit = 2;
@@ -3262,13 +3347,13 @@ function handleInventoryFileUpload(inputElement) {
                 
                 if (!materialCode && !description) continue;
                 if (materialCode && (materialCode.includes('الاجمالي') || materialCode.toLowerCase().includes('total'))) continue;
-                if (quantity === 0) continue;
                 
+                // تحديد التصنيف بناءً على الوصف
                 var category = 'spare';
                 var descLower = description.toLowerCase();
                 if (descLower.includes('فلتر') || descLower.includes('filter')) category = 'filter';
                 else if (descLower.includes('زيت') || descLower.includes('oil')) category = 'oil';
-                else if (descLower.includes('اطار') || descLower.includes('تاير')) category = 'tire';
+                else if (descLower.includes('اطار') || descLower.includes('تاير') || descLower.includes('tire')) category = 'tire';
                 
                 var displayUnit = unit;
                 if (displayUnit === 'L' || displayUnit === 'لتر') displayUnit = 'لتر';
@@ -3304,6 +3389,7 @@ function handleInventoryFileUpload(inputElement) {
     };
     reader.readAsArrayBuffer(file);
 }
+// [END] دالة معالجة ملف المخزون المحسنة
 
 function displayInventoryPreview(items) {
     var previewDiv = document.getElementById('inventory-preview-content');
@@ -3355,7 +3441,7 @@ function displayInventoryPreview(items) {
                 '<td style="text-align:center">' + escapeHtml(item.fullUnit || item.displayUnit) + '</td>' +
                 '<td style="font-weight:bold;color:' + (!item.isNew && item.oldQty !== item.newQty ? '#f59e0b' : 'inherit') + '">' + (!item.isNew ? item.oldQty + ' ← ' + item.newQty : item.qty) + '</td>' +
                 '<td style="text-align:center"><span style="background:' + (item.isNew ? '#10b981' : (item.oldQty !== item.newQty ? '#f59e0b' : '#6b7a8d')) + ';color:white;padding:2px 8px;border-radius:20px">' + (item.isNew ? 'جديد' : (item.oldQty !== item.newQty ? 'تحديث' : 'مطابق')) + '</span></td>' +
-                '</tr>';
+                '<tr>';
         }).join('') + '</tbody></table></div>';
     document.getElementById('inventory-import-preview').style.display = 'block';
 }
