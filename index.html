@@ -80,7 +80,7 @@ body.dark-mode .tab-btn.active{color:#e8a020}
 <!-- حاوية التطبيق -->
 <div id="app-container" style="display:none">
   <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button></div></div>
-  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><button id="dark-mode-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer">🌙</button><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
+  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><button id="dark-mode-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer">🌙</button><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button><button id="delete-all-equipment-btn" class="danger-btn" style="background:#dc2626;border:none;color:white;border-radius:20px;padding:6px 10px;font-size:11px;cursor:pointer;margin-right:5px">🗑️ حذف الكل</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
   <!-- الصفحة الرئيسية -->
@@ -228,16 +228,12 @@ function showToast(message) {
     if (!toast) return;
     toast.textContent = message;
     toast.classList.add('show');
-    setTimeout(function() {
-        toast.classList.remove('show');
-    }, 2500);
+    setTimeout(function() { toast.classList.remove('show'); }, 2500);
 }
 
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('active');
-    }
+    if (modal) modal.classList.remove('active');
 }
 
 function formatNumber(number) {
@@ -267,15 +263,9 @@ function getRemainingPercent(equipment) {
 
 function getRemainingStatus(equipment) {
     const remaining = hoursRemaining(equipment);
-    if (remaining <= 0) {
-        return { text: '⚠️ تجاوز ' + Math.abs(remaining) + ' س', color: 'var(--danger)' };
-    }
-    if (remaining <= 10) {
-        return { text: '🔴 باقي ' + remaining + ' س فقط!', color: 'var(--danger)' };
-    }
-    if (remaining <= 50) {
-        return { text: '🟡 باقي ' + remaining + ' س', color: 'var(--warning)' };
-    }
+    if (remaining <= 0) return { text: '⚠️ تجاوز ' + Math.abs(remaining) + ' س', color: 'var(--danger)' };
+    if (remaining <= 10) return { text: '🔴 باقي ' + remaining + ' س فقط!', color: 'var(--danger)' };
+    if (remaining <= 50) return { text: '🟡 باقي ' + remaining + ' س', color: 'var(--warning)' };
     return { text: '✅ باقي ' + remaining + ' س', color: 'var(--success)' };
 }
 
@@ -309,15 +299,11 @@ function parseDateFromExcel(dateValue) {
         const excelEpoch = new Date(1899, 11, 30);
         const msPerDay = 86400000;
         const date = new Date(excelEpoch.getTime() + dateValue * msPerDay);
-        if (!isNaN(date.getTime())) {
-            return date.toISOString().split('T')[0];
-        }
+        if (!isNaN(date.getTime())) return date.toISOString().split('T')[0];
         return '';
     }
     const dateStr = dateValue.toString();
-    if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
-        return dateStr.substring(0, 10);
-    }
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return dateStr.substring(0, 10);
     if (dateStr.includes('/')) {
         const parts = dateStr.split('/');
         if (parts.length === 3) {
@@ -453,16 +439,12 @@ function saveToFirebase(path, data) {
         var rest = Object.assign({}, data);
         delete rest.id;
         ref = fbDb.ref(path + '/' + data.id);
-        ref.update(rest).catch(function(err) {
-            showToast('خطأ في الحفظ: ' + err.message);
-        });
+        ref.update(rest).catch(function(err) { showToast('خطأ في الحفظ: ' + err.message); });
     } else {
         ref = fbDb.ref(path).push();
         var newData = Object.assign({}, data);
         newData.id = Date.now().toString();
-        ref.set(newData).catch(function(err) {
-            showToast('خطأ في الحفظ: ' + err.message);
-        });
+        ref.set(newData).catch(function(err) { showToast('خطأ في الحفظ: ' + err.message); });
     }
     return true;
 }
@@ -474,6 +456,30 @@ function deleteFromFirebase(path, id) {
     }).catch(function(e) {
         showToast('خطأ في الحذف: ' + e.message);
     });
+}
+
+// دالة حذف جميع المعدات
+function deleteAllEquipment() {
+    if (!hasPermission('all')) {
+        showToast('غير مصرح - هذه الخاصية للمدير فقط');
+        return;
+    }
+    if (equipmentData.length === 0) {
+        showToast('لا توجد معدات للحذف');
+        return;
+    }
+    if (confirm('⚠️ تحذير: سيتم حذف جميع المعدات (' + equipmentData.length + ' معدة) بشكل نهائي!\n\nهل أنت متأكد من رغبتك في حذف جميع المعدات؟')) {
+        let deletedCount = 0;
+        equipmentData.forEach(function(equipment) {
+            deleteFromFirebase('equipment', equipment.id);
+            deletedCount++;
+        });
+        showToast('🗑️ جاري حذف ' + deletedCount + ' معدة...');
+        setTimeout(function() {
+            showToast('✅ تم حذف جميع المعدات بنجاح');
+            forceRefreshData();
+        }, 2000);
+    }
 }
 
 function initIndexedDB() {
@@ -489,9 +495,7 @@ function initIndexedDB() {
         dbRequest = e.target.result;
         processPendingOperations();
     };
-    request.onerror = function(e) {
-        console.error('IndexedDB error:', e);
-    };
+    request.onerror = function(e) { console.error('IndexedDB error:', e); };
 }
 
 function saveOfflineOperation(path, data) {
@@ -502,9 +506,7 @@ function saveOfflineOperation(path, data) {
     var tx = dbRequest.transaction('pending', 'readwrite');
     var store = tx.objectStore('pending');
     store.add({ path: path, data: data, timestamp: Date.now() });
-    tx.oncomplete = function() {
-        showToast('💾 تم حفظ العملية محلياً، سيتم مزامنتها عند الاتصال');
-    };
+    tx.oncomplete = function() { showToast('💾 تم حفظ العملية محلياً، سيتم مزامنتها عند الاتصال'); };
 }
 
 function processPendingOperations() {
@@ -637,27 +639,19 @@ function detachFirebaseListeners() {
 
 function initFirebase() {
     try {
-        if (!firebase.apps.length) {
-            firebase.initializeApp(FIREBASE_CONFIG);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
         fbDb = firebase.database();
         fbDb.goOnline();
         firebase.auth().signInAnonymously().catch(console.error);
         fbDb.ref('.info/connected').on('value', function(snapshot) {
-            if (snapshot.val()) {
-                checkOnlineAndWarn();
-            } else {
-                checkOnlineAndWarn();
-            }
+            if (snapshot.val()) checkOnlineAndWarn();
+            else checkOnlineAndWarn();
         });
         attachFirebaseListeners();
         showToast('جاري تحميل البيانات...');
         setTimeout(function() {
-            if (equipmentData.length > 0) {
-                showToast('✅ تم تحميل ' + equipmentData.length + ' معدة');
-            } else {
-                showToast('⚠️ لا توجد بيانات، أضف معدات جديدة');
-            }
+            if (equipmentData.length > 0) showToast('✅ تم تحميل ' + equipmentData.length + ' معدة');
+            else showToast('⚠️ لا توجد بيانات، أضف معدات جديدة');
         }, 3000);
     } catch (e) {
         console.error(e);
@@ -667,9 +661,7 @@ function initFirebase() {
 
 function debouncedRefresh() {
     if (refreshTimeout) clearTimeout(refreshTimeout);
-    refreshTimeout = setTimeout(function() {
-        refreshUI();
-    }, 100);
+    refreshTimeout = setTimeout(function() { refreshUI(); }, 100);
 }
 
 function updateDriverSelects() {
@@ -687,12 +679,7 @@ function updateDriverSelects() {
 
 // ==================== دوال الدخول ====================
 function directLogin() {
-    currentUser = {
-        username: 'viewer',
-        role: 'viewer',
-        name: 'مشاهد',
-        permissions: ['view']
-    };
+    currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
     showToast('مرحباً مشاهد');
     proceedToApp();
 }
@@ -705,12 +692,7 @@ function secureLogin() {
         return;
     }
     if (username === 'admin' && password === 'Admin123') {
-        currentUser = {
-            username: 'admin',
-            role: 'admin',
-            name: 'المدير',
-            permissions: ['all']
-        };
+        currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
         showToast('مرحباً مدير النظام ✅');
         proceedToApp();
     } else {
@@ -770,7 +752,7 @@ function proceedToApp() {
         var importTab = document.querySelector('.tab-btn[data-view="import"]');
         if (importTab) importTab.style.display = 'none';
         
-        var adminButtons = ['add-fuel-btn', 'add-maintenance-btn', 'add-inventory-btn', 'order-report-btn', 'meter-update-btn', 'whatsapp-maint-btn'];
+        var adminButtons = ['add-fuel-btn', 'add-maintenance-btn', 'add-inventory-btn', 'order-report-btn', 'meter-update-btn', 'whatsapp-maint-btn', 'delete-all-equipment-btn'];
         adminButtons.forEach(function(id) {
             var btn = document.getElementById(id);
             if (btn) btn.style.display = 'none';
@@ -1019,10 +1001,6 @@ function openEquipmentDetail(id) {
     document.getElementById('detail-title').innerHTML = '🏗️ ' + escapeHtml(equipment.name);
     document.getElementById('detail-content').innerHTML = contentHtml;
     document.getElementById('detail-modal').classList.add('active');
-}
-
-function safeOpenEquipmentDetail(id) {
-    openEquipmentDetail(id);
 }
 
 function generateEquipmentMaintenanceOrder(eqId) {
@@ -3488,17 +3466,31 @@ function refreshUI() {
                 '</div>' +
                 '<div><span>⏱️ ' + formatNumber(eq.hours) + ' س</span> | <span>🔧 ' + formatNumber(eq.nextHours) + ' س</span></div>' +
                 '<div class="progress-bar"><div class="progress-fill" style="width:' + getRemainingPercent(eq) + '%;background:' + getBarColor(hoursRemaining(eq)) + '"></div></div>' +
-                '</div>';
+                '<div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">' +
+                (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:6px 12px;border-radius:8px;cursor:pointer">✏️ تعديل</button>' : '') +
+                '</div></div>';
         });
         document.getElementById('equipment-list').innerHTML = equipmentListHtml;
         
-        // ربط حدث النقر
+        // ربط حدث النقر على بطاقات المعدات
         setTimeout(function() {
             document.querySelectorAll('#equipment-list .equipment-card').forEach(function(card) {
                 card.onclick = function(e) {
-                    e.stopPropagation();
+                    if (e.target.classList.contains('edit-equipment-btn')) {
+                        e.stopPropagation();
+                        var eqId = this.getAttribute('data-eqid');
+                        if (eqId) editEquipment(eqId);
+                        return;
+                    }
                     var eqId = this.getAttribute('data-eqid');
                     if (eqId) openEquipmentDetail(eqId);
+                };
+            });
+            document.querySelectorAll('#equipment-list .edit-equipment-btn').forEach(function(btn) {
+                btn.onclick = function(e) {
+                    e.stopPropagation();
+                    var eqId = this.getAttribute('data-id');
+                    if (eqId) editEquipment(eqId);
                 };
             });
         }, 100);
@@ -3635,6 +3627,9 @@ function updateHomeStatsAndList() {
             '<div><div class="detail-label">🔧 الصيانة</div><div class="detail-value">' + formatNumber(eq.nextHours) + ' س</div></div>' +
             '</div>' +
             (driver ? '<div style="margin-top:8px;font-size:11px;color:var(--gray);border-top:1px solid #eef2f6;padding-top:6px">👨‍✈️ ' + escapeHtml(driver.name) + '</div>' : '') +
+            '<div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">' +
+            (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px">✏️ تعديل</button>' : '') +
+            '</div>' +
             meterHtml +
             '</div>';
     });
@@ -3648,13 +3643,21 @@ function updateHomeStatsAndList() {
     setTimeout(function() {
         document.querySelectorAll('#equipment-list-home .equipment-card').forEach(function(card) {
             card.onclick = function(e) {
-                if (e.target.classList.contains('update-meter-btn') || e.target.closest('.update-meter-btn') || e.target.type === 'number') {
+                if (e.target.classList.contains('update-meter-btn') || e.target.closest('.update-meter-btn') || 
+                    e.target.type === 'number' || e.target.classList.contains('edit-equipment-btn')) {
                     return;
                 }
                 var eqId = this.getAttribute('data-eqid');
                 if (eqId) {
                     openEquipmentDetail(eqId);
                 }
+            };
+        });
+        document.querySelectorAll('#equipment-list-home .edit-equipment-btn').forEach(function(btn) {
+            btn.onclick = function(e) {
+                e.stopPropagation();
+                var id = this.getAttribute('data-id');
+                if (id) editEquipment(id);
             };
         });
         document.querySelectorAll('.update-meter-btn').forEach(function(btn) {
@@ -3856,7 +3859,7 @@ function generateFuelReport() {
         '<div><div style="font-size:18px;font-weight:800;color:var(--accent)">' + Math.round(grandTotal / days) + '</div><div style="font-size:10px;color:var(--gray)">لتر/يوم</div></div></div>' +
         '<div style="max-height:250px;overflow-y:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">' +
         '<thead><tr style="background:var(--primary);color:white;position:sticky;top:0">' +
-        '<th style="padding:7px">المعدة</th><th style="padding:7px">تزودات</th><th style="padding:7px">لتر</th><th style="padding:7px">تكلفة</th><tr></thead><tbody>';
+        '<th style="padding:7px">المعدة</th><th style="padding:7px">تزودات</th><th style="padding:7px">لتر</th><th style="padding:7px">تكلفة</th></tr></thead><tbody>';
     Object.entries(eqMap).sort(function(a, b) { return b[1].total - a[1].total; }).forEach(function(entry) {
         var name = entry[0];
         var data = entry[1];
@@ -3989,12 +3992,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var secureLoginSubmit = document.getElementById('secure-login-submit');
     var rememberMode = document.getElementById('remember-mode');
     var logoutBtn = document.getElementById('logout-btn');
+    var deleteAllEquipmentBtn = document.getElementById('delete-all-equipment-btn');
     
     if (directLoginBtn) directLoginBtn.onclick = function() { setLoginMode('direct'); };
     if (secureLoginBtn) secureLoginBtn.onclick = function() { setLoginMode('secure'); };
     if (directLoginSubmit) directLoginSubmit.onclick = function() { directLogin(); };
     if (secureLoginSubmit) secureLoginSubmit.onclick = function() { secureLogin(); };
     if (rememberMode) rememberMode.onchange = function() { saveLoginMode(); };
+    if (deleteAllEquipmentBtn) deleteAllEquipmentBtn.onclick = function() { deleteAllEquipment(); };
     
     var savedMode = localStorage.getItem('loginMode');
     if (savedMode === 'secure') setLoginMode('secure'); else setLoginMode('direct');
@@ -4072,8 +4077,9 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSavedSettings();
     
     // ربط الدوال بـ window لضمان الوصول من HTML
-    window.safeOpenEquipmentDetail = safeOpenEquipmentDetail;
+    window.safeOpenEquipmentDetail = openEquipmentDetail;
     window.openEquipmentDetail = openEquipmentDetail;
+    window.editEquipment = editEquipment;
     window.openFuelReportModal = openFuelReportModal;
     window.generateFuelReport = generateFuelReport;
     window.exportFuelReportRange = exportFuelReportRange;
@@ -4095,6 +4101,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.sendWhatsAppMaintenanceAlert = sendWhatsAppMaintenanceAlert;
     window.loadDarkMode = loadDarkMode;
     window.initSessionTimeout = initSessionTimeout;
+    window.deleteAllEquipment = deleteAllEquipment;
     
     console.log('✅ تم تهيئة جميع الأزرار والدوال بنجاح');
 });
