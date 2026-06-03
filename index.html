@@ -25,6 +25,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .modal-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:100%;background:var(--light);z-index:200;overflow-y:auto;display:none}.modal-overlay.active{display:block}.modal-header{background:linear-gradient(135deg,var(--primary),var(--secondary));padding:50px 20px 24px;color:white;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.modal-title{font-size:20px;font-weight:800}.modal-close{background:rgba(255,255,255,0.2);border:none;color:white;width:36px;height:36px;border-radius:18px;font-size:20px;cursor:pointer}
 .form-group{background:var(--white);margin:12px 14px;border-radius:16px;overflow:hidden}.form-field{padding:12px 16px;border-bottom:1px solid #eef2f6}.form-field:last-child{border-bottom:none}.form-label{font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:5px}.form-input,.form-select,.form-textarea{width:100%;border:none;outline:none;font-size:14px;font-family:inherit;background:transparent;color:var(--primary)}.form-textarea{resize:vertical;min-height:60px}
 .save-btn{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--primary);border:none;border-radius:14px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;width:calc(100% - 28px);margin:20px 14px}
+.danger-btn{background:#dc2626;color:white}
 .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--primary);color:white;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;z-index:1000;opacity:0;transition:opacity 0.2s;pointer-events:none}.toast.show{opacity:1}
 .empty-state{text-align:center;padding:50px 20px;color:var(--gray)}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.detail-section{background:var(--white);border-radius:18px;margin:12px 14px;padding:16px;box-shadow:var(--shadow-sm)}.detail-label{font-size:12px;color:var(--gray);margin-bottom:4px}.detail-value{font-size:14px;font-weight:600;color:var(--primary);word-break:break-word}
 .big-btn{background:linear-gradient(135deg,var(--info),var(--primary));border:none;color:white;padding:14px;border-radius:16px;font-weight:700;width:calc(100% - 28px);margin:0 14px 16px;cursor:pointer;text-align:center}
@@ -79,14 +80,14 @@ body.dark-mode .tab-btn.active{color:#e8a020}
 
 <!-- حاوية التطبيق -->
 <div id="app-container" style="display:none">
-  <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="delete-all-equipment-btn" class="danger-btn" style="background:#dc2626;border:none;color:white;border-radius:20px;padding:6px 10px;font-size:11px;cursor:pointer;margin-right:5px">🗑️ حذف الكل</button></div></div>
+  <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="delete-all-equipment-global-btn" class="danger-btn" style="background:#dc2626;border:none;color:white;border-radius:20px;padding:6px 10px;font-size:11px;cursor:pointer;margin-right:5px">🗑️ حذف الكل</button></div></div>
   <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><button id="dark-mode-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer">🌙</button><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
   <!-- الصفحة الرئيسية -->
   <div id="view-home"><div class="stats-row" id="stats-summary"></div><button id="meter-update-btn" class="big-btn">⏱️ تحديث العدادات اليومي</button><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info)); margin-top:5px">🔄 تحديث البيانات يدوياً</button><div class="section"><div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div><div id="equipment-list-home"></div></div></div>
   
-  <div id="view-equipment" style="display:none"><div style="padding:14px"><div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div><button id="export-hours-excel-btn" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات Excel</button><div id="equipment-list"></div></div></div>
+  <div id="view-equipment" style="display:none"><div style="padding:14px"><div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div><div style="display:flex;gap:10px;margin-bottom:10px"><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات</button><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ حذف الكل</button></div><div id="equipment-list"></div></div></div>
   
   <div id="view-drivers" style="display:none"><div style="padding:14px"><div class="search-box"><span>🔍</span><input type="text" id="search-driver" placeholder="بحث باسم السائق..."></div><div id="drivers-list"></div></div></div>
   
@@ -98,17 +99,17 @@ body.dark-mode .tab-btn.active{color:#e8a020}
         <button id="monthly-fuel-report-btn" class="big-btn" style="margin:0; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تقرير شهري</button>
       </div>
       <button id="custom-range-fuel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#8b5cf6,#ec4899)">📅 تصدير تقرير بمدة محددة</button>
+      <button id="delete-all-fuel-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع سجلات الوقود</button>
       <div id="fuel-list"></div>
     </div>
   </div>
   
-  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><div id="maintenance-list"></div></div></div>
+  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button><div id="maintenance-list"></div></div></div>
   
-  <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><button id="add-inventory-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,var(--purple),var(--pink))">📦 إضافة صنف جديد</button><button id="export-inventory-excel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير المخزون Excel</button><button id="order-report-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,var(--danger),var(--warning))">📋 إنشاء طلبية للنواقص (1000 ساعة)</button><div id="inv-list"></div></div></div>
+  <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><button id="add-inventory-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,var(--purple),var(--pink))">📦 إضافة صنف جديد</button><button id="export-inventory-excel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير المخزون Excel</button><button id="order-report-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,var(--danger),var(--warning))">📋 إنشاء طلبية للنواقص (1000 ساعة)</button><button id="delete-all-inventory-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع أصناف المخزون</button><div id="inv-list"></div></div></div>
   
   <div id="view-import" style="display:none">
     <div style="padding:14px">
-      
       <!-- قسم رفع ملف معدات الموقع -->
       <div style="background:white; border-radius:18px; padding:20px; margin-bottom:16px; text-align:center">
         <div style="font-size:32px; margin-bottom:10px">🏗️</div>
@@ -139,7 +140,7 @@ body.dark-mode .tab-btn.active{color:#e8a020}
   <button class="fab" id="fab-btn">+</button>
 </div>
 
-<!-- النوافذ المنبثقة (نفس الكود الأصلي - تم اختصاره للطول ولكن يبقى كما هو) -->
+<!-- النوافذ المنبثقة -->
 <div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">دورة الصيانة</label><input class="form-input" type="number" id="eq-interval" value="250"></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الاسم الكامل *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label">رقم الهاتف</label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label">رقم رخصة القيادة</label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label">تاريخ انتهاء الرخصة</label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
@@ -470,6 +471,7 @@ function deleteFromFirebase(path, id) {
     });
 }
 
+// دوال حذف الكل
 function deleteAllEquipment() {
     if (!hasPermission('all')) {
         showToast('غير مصرح - هذه الخاصية للمدير فقط');
@@ -488,6 +490,76 @@ function deleteAllEquipment() {
         showToast('🗑️ جاري حذف ' + deletedCount + ' معدة...');
         setTimeout(function() {
             showToast('✅ تم حذف جميع المعدات بنجاح');
+            forceRefreshData();
+        }, 2000);
+    }
+}
+
+function deleteAllFuelRecords() {
+    if (!hasPermission('all')) {
+        showToast('غير مصرح - هذه الخاصية للمدير فقط');
+        return;
+    }
+    if (fuelData.length === 0) {
+        showToast('لا توجد سجلات وقود للحذف');
+        return;
+    }
+    if (confirm('⚠️ تحذير: سيتم حذف جميع سجلات الوقود (' + fuelData.length + ' سجل) بشكل نهائي!\n\nهل أنت متأكد؟')) {
+        let deletedCount = 0;
+        fuelData.forEach(function(record) {
+            deleteFromFirebase('fuelRecords', record.id);
+            deletedCount++;
+        });
+        showToast('🗑️ جاري حذف ' + deletedCount + ' سجل وقود...');
+        setTimeout(function() {
+            showToast('✅ تم حذف جميع سجلات الوقود بنجاح');
+            forceRefreshData();
+        }, 2000);
+    }
+}
+
+function deleteAllMaintenance() {
+    if (!hasPermission('all')) {
+        showToast('غير مصرح - هذه الخاصية للمدير فقط');
+        return;
+    }
+    const scheduled = maintenanceSchedules.filter(function(m) { return m.status === 'مجدول'; });
+    if (scheduled.length === 0) {
+        showToast('لا توجد صيانات مجدولة للحذف');
+        return;
+    }
+    if (confirm('⚠️ تحذير: سيتم حذف جميع الصيانات المجدولة (' + scheduled.length + ' صيانة) بشكل نهائي!\n\nهل أنت متأكد؟')) {
+        let deletedCount = 0;
+        scheduled.forEach(function(maint) {
+            deleteFromFirebase('maintenanceSchedules', maint.id);
+            deletedCount++;
+        });
+        showToast('🗑️ جاري حذف ' + deletedCount + ' صيانة...');
+        setTimeout(function() {
+            showToast('✅ تم حذف جميع الصيانات المجدولة بنجاح');
+            forceRefreshData();
+        }, 2000);
+    }
+}
+
+function deleteAllInventory() {
+    if (!hasPermission('all')) {
+        showToast('غير مصرح - هذه الخاصية للمدير فقط');
+        return;
+    }
+    if (inventoryItems.length === 0) {
+        showToast('لا توجد أصناف في المخزون للحذف');
+        return;
+    }
+    if (confirm('⚠️ تحذير: سيتم حذف جميع أصناف المخزون (' + inventoryItems.length + ' صنف) بشكل نهائي!\n\nهل أنت متأكد؟')) {
+        let deletedCount = 0;
+        inventoryItems.forEach(function(item) {
+            deleteFromFirebase('inventoryItems', item.id);
+            deletedCount++;
+        });
+        showToast('🗑️ جاري حذف ' + deletedCount + ' صنف...');
+        setTimeout(function() {
+            showToast('✅ تم حذف جميع أصناف المخزون بنجاح');
             forceRefreshData();
         }, 2000);
     }
@@ -763,7 +835,7 @@ function proceedToApp() {
         var importTab = document.querySelector('.tab-btn[data-view="import"]');
         if (importTab) importTab.style.display = 'none';
         
-        var adminButtons = ['add-fuel-btn', 'add-maintenance-btn', 'add-inventory-btn', 'order-report-btn', 'meter-update-btn', 'whatsapp-maint-btn', 'delete-all-equipment-btn'];
+        var adminButtons = ['add-fuel-btn', 'add-maintenance-btn', 'add-inventory-btn', 'order-report-btn', 'meter-update-btn', 'whatsapp-maint-btn', 'delete-all-equipment-btn', 'delete-all-fuel-btn', 'delete-all-maintenance-btn', 'delete-all-inventory-btn', 'delete-all-equipment-global-btn'];
         adminButtons.forEach(function(id) {
             var btn = document.getElementById(id);
             if (btn) btn.style.display = 'none';
@@ -2830,7 +2902,6 @@ function handleEquipmentFileUpload(inputElement) {
     reader.readAsArrayBuffer(file);
 }
 
-// [START] دالة استيراد المعدات المحسنة - تقرأ جميع الأعمدة
 function importEquipmentData() {
     console.log('بدء استيراد بيانات المعدات - قراءة جميع الأعمدة');
     var sheet = pendingImportData['معدات الموقع'];
@@ -2843,57 +2914,37 @@ function importEquipmentData() {
     var headers = sheet[0];
     var startRow = 1;
     
-    // تحديد جميع الأعمدة المهمة
     var colIndex = {
-        // الأعمدة الأساسية
-        code: -1,           // الرقم التعريفي للمعدة
-        sapCode: -1,        // SAP CODE
-        name: -1,           // اسم المعدة (إن وجد)
-        type: -1,           // النوع
-        chassis: -1,        // رقم الشاسيه S/N
-        location: -1,       // الموقع
-        engineModel: -1,    // Engine Model
-        engineSN: -1,       // Engine S/N
-        arrivalDate: -1,    // تاريخ الوصول
-        arrivalHours: -1,   // عداد الساعة عند الوصول
-        lastMaintenanceDate: -1,  // تاريخ الصيانة السابقة
-        lastMaintenanceHours: -1, // عداد الصيانة السابقة
-        currentHours: -1,   // العداد الحالي
-        nextHours: -1,      // ميعاد الصيانة القادمة
-        interval: -1,       // دورة الصيانة
-        status: -1,         // الحالة
-        notes: -1           // ملاحظات
+        code: -1, sapCode: -1, name: -1, type: -1, chassis: -1, location: -1,
+        engineModel: -1, engineSN: -1, arrivalDate: -1, arrivalHours: -1,
+        lastMaintenanceDate: -1, lastMaintenanceHours: -1, currentHours: -1,
+        nextHours: -1, interval: -1, status: -1, notes: -1
     };
     
-    // البحث عن الأعمدة حسب الترويسات المتوقعة
     for (var i = 0; i < headers.length; i++) {
         var header = headers[i] ? headers[i].toString().trim() : '';
-        var headerLower = header.toLowerCase();
-        
-        if (header === 'SAP CODE' || headerLower.includes('sap')) colIndex.sapCode = i;
-        if (header === 'الرقم التعريفي للمعدة' || headerLower.includes('تعريفي') || (headerLower.includes('code') && !headerLower.includes('sap'))) colIndex.code = i;
-        if (header === 'اسم المعدة' || headerLower.includes('اسم') || headerLower.includes('name')) colIndex.name = i;
-        if (header === 'النوع' || headerLower.includes('type')) colIndex.type = i;
-        if (header === 'رقم مسلسل S/N' || headerLower.includes('مسلسل') || headerLower.includes('serial')) colIndex.chassis = i;
-        if (header === 'الموقع' || headerLower.includes('موقع') || headerLower.includes('location')) colIndex.location = i;
-        if (header === 'Engine Model' || headerLower.includes('engine model')) colIndex.engineModel = i;
-        if (header === 'Engine S/N' || headerLower.includes('engine sn')) colIndex.engineSN = i;
-        if (header === 'تاريخ الوصول' || headerLower.includes('تاريخ الوصول')) colIndex.arrivalDate = i;
-        if (header === 'عداد الساعة / الساعات عند الوصول' || headerLower.includes('عداد عند الوصول') || headerLower.includes('arrival hours')) colIndex.arrivalHours = i;
-        if (header === 'تاريخ الصيانه السابقه' || headerLower.includes('تاريخ الصيانة') || headerLower.includes('last maintenance date')) colIndex.lastMaintenanceDate = i;
-        if (header === 'عداد الصيانه الاخيره' || headerLower.includes('عداد الصيانة') || headerLower.includes('last maintenance hours')) colIndex.lastMaintenanceHours = i;
-        if (header === 'العداد الحالي' || headerLower.includes('current') || headerLower.includes('عداد حالي')) colIndex.currentHours = i;
-        if (header === 'ميعاد الصيانة القادمة' || headerLower.includes('next') || headerLower.includes('قادمة')) colIndex.nextHours = i;
-        if (header === 'دورة الصيانة' || headerLower.includes('دورة') || headerLower.includes('interval')) colIndex.interval = i;
-        if (header === 'الحالة' || headerLower.includes('status')) colIndex.status = i;
-        if (header === 'ملاحظات' || headerLower.includes('note')) colIndex.notes = i;
+        var hl = header.toLowerCase();
+        if (header === 'SAP CODE' || hl.includes('sap')) colIndex.sapCode = i;
+        if (header === 'الرقم التعريفي للمعدة' || hl.includes('تعريفي') || (hl.includes('code') && !hl.includes('sap'))) colIndex.code = i;
+        if (header === 'اسم المعدة' || hl.includes('اسم') || hl.includes('name')) colIndex.name = i;
+        if (header === 'النوع' || hl.includes('type')) colIndex.type = i;
+        if (header === 'رقم مسلسل S/N' || hl.includes('مسلسل') || hl.includes('serial')) colIndex.chassis = i;
+        if (header === 'الموقع' || hl.includes('موقع') || hl.includes('location')) colIndex.location = i;
+        if (header === 'Engine Model' || hl.includes('engine model')) colIndex.engineModel = i;
+        if (header === 'Engine S/N' || hl.includes('engine sn')) colIndex.engineSN = i;
+        if (header === 'تاريخ الوصول' || hl.includes('تاريخ الوصول')) colIndex.arrivalDate = i;
+        if (header === 'عداد الساعة / الساعات عند الوصول' || hl.includes('عداد عند الوصول')) colIndex.arrivalHours = i;
+        if (header === 'تاريخ الصيانه السابقه' || hl.includes('تاريخ الصيانة')) colIndex.lastMaintenanceDate = i;
+        if (header === 'عداد الصيانه الاخيره' || hl.includes('عداد الصيانة')) colIndex.lastMaintenanceHours = i;
+        if (header === 'العداد الحالي' || hl.includes('current') || hl.includes('عداد حالي')) colIndex.currentHours = i;
+        if (header === 'ميعاد الصيانة القادمة' || hl.includes('next') || hl.includes('قادمة')) colIndex.nextHours = i;
+        if (header === 'دورة الصيانة' || hl.includes('دورة') || hl.includes('interval')) colIndex.interval = i;
+        if (header === 'الحالة' || hl.includes('status')) colIndex.status = i;
+        if (header === 'ملاحظات' || hl.includes('note')) colIndex.notes = i;
     }
     
-    // تعيين القيم الافتراضية للأعمدة المهمة
     if (colIndex.code === -1 && colIndex.sapCode !== -1) colIndex.code = colIndex.sapCode;
     if (colIndex.code === -1) colIndex.code = 0;
-    if (colIndex.sapCode === -1) colIndex.sapCode = colIndex.code;
-    if (colIndex.currentHours === -1 && colIndex.nextHours !== -1) colIndex.currentHours = colIndex.nextHours - 250;
     if (colIndex.currentHours === -1) colIndex.currentHours = 10;
     if (colIndex.nextHours === -1) colIndex.nextHours = 11;
     
@@ -2902,173 +2953,97 @@ function importEquipmentData() {
     var processed = 0;
     var totalRows = 0;
     
-    // حساب إجمالي الصفوف الصالحة
     for (var i = startRow; i < sheet.length; i++) {
         var row = sheet[i];
         if (!row || row.length < 2) continue;
         var code = row[colIndex.code] ? row[colIndex.code].toString().trim() : '';
-        var sapCode = row[colIndex.sapCode] ? row[colIndex.sapCode].toString().trim() : '';
-        if ((code && !code.includes('الاجمالي') && !code.toLowerCase().includes('total')) || 
-            (sapCode && !sapCode.includes('الاجمالي') && !sapCode.toLowerCase().includes('total'))) {
-            totalRows++;
-        }
+        if (code && !code.includes('الاجمالي') && !code.toLowerCase().includes('total')) totalRows++;
     }
     
-    // معالجة كل صف
     for (var i = startRow; i < sheet.length; i++) {
         var row = sheet[i];
         if (!row || row.length < 2) continue;
-        
         var internalCode = row[colIndex.code] ? row[colIndex.code].toString().trim() : '';
-        var sapCode = row[colIndex.sapCode] ? row[colIndex.sapCode].toString().trim() : '';
-        
-        if (!internalCode && !sapCode) continue;
-        if (internalCode && (internalCode.includes('الاجمالي') || internalCode.toLowerCase().includes('total'))) continue;
-        if (sapCode && (sapCode.includes('الاجمالي') || sapCode.toLowerCase().includes('total'))) continue;
+        if (!internalCode) continue;
+        if (internalCode.includes('الاجمالي') || internalCode.toLowerCase().includes('total')) continue;
         
         processed++;
         updateImportProgress(processed, totalRows, 'جارٍ معالجة الصف ' + processed + '/' + totalRows);
         
-        // قراءة جميع البيانات
         var currentHours = 0;
-        var currentHoursRaw = colIndex.currentHours !== -1 && row[colIndex.currentHours] ? row[colIndex.currentHours] : 0;
-        if (typeof currentHoursRaw === 'number') {
-            currentHours = currentHoursRaw;
-        } else if (currentHoursRaw && currentHoursRaw.toString().trim() !== '') {
-            currentHours = parseFloat(currentHoursRaw) || 0;
-        }
+        var currentRaw = row[colIndex.currentHours];
+        if (typeof currentRaw === 'number') currentHours = currentRaw;
+        else if (currentRaw && currentRaw.toString().trim() !== '') currentHours = parseFloat(currentRaw) || 0;
         
         var nextHours = 0;
-        var nextHoursRaw = colIndex.nextHours !== -1 && row[colIndex.nextHours] ? row[colIndex.nextHours] : 0;
-        if (typeof nextHoursRaw === 'number') {
-            nextHours = nextHoursRaw;
-        } else if (nextHoursRaw && nextHoursRaw.toString().trim() !== '') {
-            nextHours = parseFloat(nextHoursRaw) || 0;
-        }
+        var nextRaw = row[colIndex.nextHours];
+        if (typeof nextRaw === 'number') nextHours = nextRaw;
+        else if (nextRaw && nextRaw.toString().trim() !== '') nextHours = parseFloat(nextRaw) || 0;
         
-        // تحديد دورة الصيانة
         var interval = 250;
         if (colIndex.interval !== -1 && row[colIndex.interval]) {
-            var intervalRaw = row[colIndex.interval];
-            if (typeof intervalRaw === 'number') {
-                interval = intervalRaw;
-            } else if (intervalRaw.toString().trim() !== '') {
-                interval = parseFloat(intervalRaw) || 250;
-            }
+            var intRaw = row[colIndex.interval];
+            if (typeof intRaw === 'number') interval = intRaw;
+            else if (intRaw.toString().trim() !== '') interval = parseFloat(intRaw) || 250;
         }
         if (nextHours > 0 && currentHours > 0 && nextHours > currentHours) {
-            var computedInterval = nextHours - currentHours;
-            if (computedInterval > 0 && computedInterval <= 1000) interval = computedInterval;
+            var computed = nextHours - currentHours;
+            if (computed > 0 && computed <= 1000) interval = computed;
         }
-        if (interval <= 0 || interval > 1000) interval = 250;
         
-        // تحديد الحالة بناءً على الفرق
-        var status = '';
-        var statusRaw = colIndex.status !== -1 && row[colIndex.status] ? row[colIndex.status].toString().trim() : '';
         var remaining = nextHours - currentHours;
-        if (statusRaw) {
-            status = statusRaw;
-        } else if (remaining <= 0) {
-            status = 'متأخر';
-        } else if (remaining <= 10) {
-            status = 'عاجل';
-        } else if (remaining <= 50) {
-            status = 'قريب';
-        } else {
-            status = 'يعمل';
-        }
+        var status = '';
+        if (colIndex.status !== -1 && row[colIndex.status]) status = row[colIndex.status].toString().trim();
+        else if (remaining <= 0) status = 'متأخر';
+        else if (remaining <= 10) status = 'عاجل';
+        else if (remaining <= 50) status = 'قريب';
+        else status = 'يعمل';
         
-        // قراءة اسم المعدة
-        var name = '';
-        if (colIndex.name !== -1 && row[colIndex.name]) {
-            name = row[colIndex.name].toString().trim();
-        }
-        if (!name) name = internalCode || sapCode;
+        var name = internalCode;
+        if (colIndex.name !== -1 && row[colIndex.name]) name = row[colIndex.name].toString().trim();
         
-        // قراءة النوع
         var type = '';
-        if (colIndex.type !== -1 && row[colIndex.type]) {
-            type = row[colIndex.type].toString().trim();
-        }
-        if (!type) {
-            if (sapCode && sapCode.includes('ETGN')) type = 'حفارة';
-            else if (sapCode && sapCode.includes('EELD')) type = 'لودر';
-            else if (sapCode && sapCode.includes('ETLT')) type = 'رافعة شوكية';
-            else if (sapCode && sapCode.includes('EETC')) type = 'تكتك';
-            else if (sapCode && sapCode.includes('EFTE')) type = 'فرادة';
-            else type = 'معدة';
-        }
+        if (colIndex.type !== -1 && row[colIndex.type]) type = row[colIndex.type].toString().trim();
+        else type = 'معدة';
         
-        // قراءة باقي البيانات
-        var chassis = colIndex.chassis !== -1 && row[colIndex.chassis] ? row[colIndex.chassis].toString().trim() : '';
-        var location = colIndex.location !== -1 && row[colIndex.location] ? row[colIndex.location].toString().trim() : '';
-        var engineModel = colIndex.engineModel !== -1 && row[colIndex.engineModel] ? row[colIndex.engineModel].toString().trim() : '';
-        var engineSN = colIndex.engineSN !== -1 && row[colIndex.engineSN] ? row[colIndex.engineSN].toString().trim() : '';
-        var notes = colIndex.notes !== -1 && row[colIndex.notes] ? row[colIndex.notes].toString().trim() : '';
+        var chassis = (colIndex.chassis !== -1 && row[colIndex.chassis]) ? row[colIndex.chassis].toString().trim() : '';
+        var location = (colIndex.location !== -1 && row[colIndex.location]) ? row[colIndex.location].toString().trim() : '';
+        var engineModel = (colIndex.engineModel !== -1 && row[colIndex.engineModel]) ? row[colIndex.engineModel].toString().trim() : '';
+        var engineSN = (colIndex.engineSN !== -1 && row[colIndex.engineSN]) ? row[colIndex.engineSN].toString().trim() : '';
+        var notes = (colIndex.notes !== -1 && row[colIndex.notes]) ? row[colIndex.notes].toString().trim() : '';
         
         var arrivalDate = '';
-        if (colIndex.arrivalDate !== -1 && row[colIndex.arrivalDate]) {
-            arrivalDate = parseDateFromExcel(row[colIndex.arrivalDate]);
-        }
-        
+        if (colIndex.arrivalDate !== -1 && row[colIndex.arrivalDate]) arrivalDate = parseDateFromExcel(row[colIndex.arrivalDate]);
         var arrivalHours = 0;
         if (colIndex.arrivalHours !== -1 && row[colIndex.arrivalHours]) {
-            var arrivalRaw = row[colIndex.arrivalHours];
-            if (typeof arrivalRaw === 'number') {
-                arrivalHours = arrivalRaw;
-            } else if (arrivalRaw && arrivalRaw.toString().trim() !== '' && arrivalRaw !== 'بدون عداد') {
-                arrivalHours = parseFloat(arrivalRaw) || 0;
-            }
+            var ah = row[colIndex.arrivalHours];
+            if (typeof ah === 'number') arrivalHours = ah;
+            else if (ah && ah.toString().trim() !== '') arrivalHours = parseFloat(ah) || 0;
         }
         
         var lastMaintenanceDate = '';
-        if (colIndex.lastMaintenanceDate !== -1 && row[colIndex.lastMaintenanceDate]) {
-            lastMaintenanceDate = parseDateFromExcel(row[colIndex.lastMaintenanceDate]);
-        }
-        
+        if (colIndex.lastMaintenanceDate !== -1 && row[colIndex.lastMaintenanceDate]) lastMaintenanceDate = parseDateFromExcel(row[colIndex.lastMaintenanceDate]);
         var lastMaintenanceHours = 0;
         if (colIndex.lastMaintenanceHours !== -1 && row[colIndex.lastMaintenanceHours]) {
-            var lastRaw = row[colIndex.lastMaintenanceHours];
-            if (typeof lastRaw === 'number') {
-                lastMaintenanceHours = lastRaw;
-            } else if (lastRaw && lastRaw.toString().trim() !== '') {
-                lastMaintenanceHours = parseFloat(lastRaw) || 0;
-            }
+            var lh = row[colIndex.lastMaintenanceHours];
+            if (typeof lh === 'number') lastMaintenanceHours = lh;
+            else if (lh && lh.toString().trim() !== '') lastMaintenanceHours = parseFloat(lh) || 0;
         }
         
-        // البحث عن المعدة الموجودة
-        var existingEquipment = null;
-        for (var j = 0; j < equipmentData.length; j++) {
-            var eq = equipmentData[j];
-            if (eq.code === internalCode || eq.code === sapCode || eq.sapCode === sapCode || eq.name === name) {
-                existingEquipment = eq;
-                break;
-            }
-        }
-        
-        var equipmentId;
+        var existingEquipment = equipmentData.find(function(e) { return e.code === internalCode || e.sapCode === internalCode; });
         var equipmentDataToSave;
-        var updatePath;
         
         if (existingEquipment) {
-            equipmentId = existingEquipment.id;
-            updatePath = 'equipment/' + equipmentId;
-            
-            // الحفاظ على سجل التغييرات
             var existingLog = existingEquipment.hoursLog || [];
             var today = new Date().toISOString().split('T')[0];
             var alreadyLogged = existingLog.some(function(l) { return l.hours === currentHours && l.date === today; });
-            var newLog = alreadyLogged ? existingLog : existingLog.concat([{
-                date: today,
-                hours: currentHours,
-                updatedBy: 'استيراد ملف'
-            }]);
+            var newLog = alreadyLogged ? existingLog : existingLog.concat([{ date: today, hours: currentHours, updatedBy: 'استيراد ملف' }]);
             
             equipmentDataToSave = {
-                code: internalCode || existingEquipment.code,
-                sapCode: sapCode || existingEquipment.sapCode,
-                name: name || existingEquipment.name,
-                type: type || existingEquipment.type,
+                code: internalCode,
+                sapCode: internalCode,
+                name: name,
+                type: type,
                 chassis: chassis || existingEquipment.chassis,
                 location: location || existingEquipment.location,
                 assignedDriver: existingEquipment.assignedDriver || null,
@@ -3090,13 +3065,12 @@ function importEquipmentData() {
                 createdAt: existingEquipment.createdAt,
                 updatedAt: new Date().toISOString()
             };
+            equipmentUpdates['equipment/' + existingEquipment.id] = equipmentDataToSave;
         } else {
-            equipmentId = fbDb.ref('equipment').push().key;
-            updatePath = 'equipment/' + equipmentId;
-            
+            var newId = fbDb.ref('equipment').push().key;
             equipmentDataToSave = {
-                code: internalCode || sapCode,
-                sapCode: sapCode,
+                code: internalCode,
+                sapCode: internalCode,
                 name: name,
                 type: type,
                 chassis: chassis,
@@ -3120,169 +3094,117 @@ function importEquipmentData() {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
+            equipmentUpdates['equipment/' + newId] = equipmentDataToSave;
         }
-        
-        equipmentUpdates[updatePath] = equipmentDataToSave;
         equipmentCount++;
-        updateImportProgress(processed, totalRows, 'جارٍ تحديث المعدات... (' + processed + '/' + totalRows + ') - تم تحديث ' + equipmentCount + ' معدة');
+        updateImportProgress(processed, totalRows, 'جارٍ تحديث المعدات... - تم تحديث ' + equipmentCount + ' معدة');
     }
     
-    // حفظ جميع التحديثات في Firebase
     if (Object.keys(equipmentUpdates).length > 0) {
         fbDb.ref('/').update(equipmentUpdates).then(function() {
             importResults.equipment = equipmentCount;
-            updateImportProgress(processed, totalRows, '✅ تم تحديث ' + equipmentCount + ' معدة');
             setTimeout(function() { importFuelDataFromDailySheet(); }, 800);
         }).catch(function(error) {
             console.error('خطأ في حفظ المعدات:', error);
-            showToast('خطأ في حفظ المعدات: ' + error.message);
             importResults.equipment = 0;
             setTimeout(function() { importFuelDataFromDailySheet(); }, 500);
         });
     } else {
-        importResults.equipment = 0;
         setTimeout(function() { importFuelDataFromDailySheet(); }, 500);
     }
 }
-// [END] دالة استيراد المعدات المحسنة
 
-// [START] دالة استيراد الوقود المحسنة من ورقة الوقود اليومي
 function importFuelDataFromDailySheet() {
     var sheet = pendingImportData['ورقة1'];
     if (!sheet || sheet.length < 2) {
-        console.log('لا توجد ورقة وقود (ورقة1)');
         finalizeImport();
         return;
     }
     
     var headers = sheet[0];
-    var startRow = 1;
     var dateColIndex = -1;
     var equipmentCols = [];
     
-    // تحديد أعمدة التاريخ والمعدات
     for (var i = 0; i < headers.length; i++) {
         var header = headers[i] ? headers[i].toString().trim() : '';
-        var headerLower = header.toLowerCase();
-        if (header === 'التاريخ' || headerLower === 'date' || headerLower.includes('تاريخ')) {
+        if (header === 'التاريخ' || header.toLowerCase() === 'date') {
             dateColIndex = i;
         } else if (header && header !== 'م' && header !== 'اليوم' && header !== 'التاريخ' && 
-                   !headerLower.includes('ملاحظات') && !headerLower.includes('note')) {
+                   !header.toLowerCase().includes('ملاحظات')) {
             equipmentCols.push({ index: i, name: header });
         }
     }
     
     if (dateColIndex === -1 || equipmentCols.length === 0) {
-        console.log('لم يتم العثور على أعمدة التاريخ أو المعدات');
         finalizeImport();
         return;
     }
     
-    var fuelRecordsToAdd = [];
     var equipMap = {};
-    
-    // بناء خريطة للمعدات للبحث السريع
     equipmentData.forEach(function(eq) {
         equipMap[eq.code] = eq.id;
         equipMap[eq.name] = eq.id;
         if (eq.sapCode) equipMap[eq.sapCode] = eq.id;
     });
     
+    var fuelBatch = {};
     var fuelCount = 0;
-    var processedRows = 0;
-    var totalRows = sheet.length - startRow;
     
-    for (var i = startRow; i < sheet.length; i++) {
+    for (var i = 1; i < sheet.length; i++) {
         var row = sheet[i];
         if (!row || row.length <= dateColIndex) continue;
         
-        processedRows++;
-        updateImportProgress(processedRows, totalRows, 'جارٍ معالجة سجلات الوقود... (' + processedRows + '/' + totalRows + ')');
-        
-        var dateRaw = row[dateColIndex];
-        var date = parseDateFromExcel(dateRaw);
+        var date = parseDateFromExcel(row[dateColIndex]);
         if (!date) continue;
         
         for (var j = 0; j < equipmentCols.length; j++) {
             var col = equipmentCols[j];
-            var eqName = col.name;
             var amountRaw = row[col.index];
-            
             if (!amountRaw) continue;
             
             var amount = 0;
-            if (typeof amountRaw === 'number') {
-                amount = amountRaw;
-            } else if (amountRaw && amountRaw.toString().trim() !== '') {
-                amount = parseFloat(amountRaw) || 0;
-            }
-            
+            if (typeof amountRaw === 'number') amount = amountRaw;
+            else if (amountRaw.toString().trim() !== '') amount = parseFloat(amountRaw) || 0;
             if (amount <= 0) continue;
             
-            var eqId = equipMap[eqName];
+            var eqId = equipMap[col.name];
             if (!eqId) {
-                // محاولة مطابقة جزئية
                 for (var code in equipMap) {
-                    if (eqName.includes(code) || code.includes(eqName)) {
+                    if (col.name.includes(code) || code.includes(col.name)) {
                         eqId = equipMap[code];
                         break;
                     }
                 }
             }
-            
             if (!eqId) continue;
             
-            // التحقق من عدم التكرار
             var isDuplicate = fuelData.some(function(f) {
                 return f.equipmentId === eqId && f.date === date && Math.abs(f.amount - amount) < 0.1;
             });
             
             if (!isDuplicate) {
-                fuelRecordsToAdd.push({
+                var newKey = fbDb.ref('fuelRecords').push().key;
+                fuelBatch['fuelRecords/' + newKey] = {
                     equipmentId: eqId,
-                    date: date,
                     amount: amount,
+                    date: date,
                     notes: 'استيراد من الجدول اليومي',
                     createdAt: new Date().toISOString()
-                });
+                };
                 fuelCount++;
             }
         }
     }
     
-    // حفظ سجلات الوقود دفعة واحدة
-    var fuelBatch = {};
-    for (var i = 0; i < fuelRecordsToAdd.length; i++) {
-        var rec = fuelRecordsToAdd[i];
-        var newKey = fbDb.ref('fuelRecords').push().key;
-        fuelBatch['fuelRecords/' + newKey] = {
-            equipmentId: rec.equipmentId,
-            amount: rec.amount,
-            date: rec.date,
-            driverName: '',
-            notes: rec.notes,
-            createdAt: rec.createdAt
-        };
+    if (Object.keys(fuelBatch).length > 0) {
+        fbDb.ref('/').update(fuelBatch).catch(console.error);
     }
     
-    if (Object.keys(fuelBatch).length > 0) {
-        fbDb.ref('/').update(fuelBatch).then(function() {
-            importResults.fuel = fuelCount;
-            updateImportProgress(processedRows, totalRows, '✅ تم إضافة ' + fuelCount + ' سجل وقود');
-            setTimeout(function() { finalizeImport(); }, 500);
-        }).catch(function(error) {
-            console.error('خطأ في حفظ الوقود:', error);
-            importResults.fuel = 0;
-            setTimeout(function() { finalizeImport(); }, 500);
-        });
-    } else {
-        importResults.fuel = 0;
-        setTimeout(function() { finalizeImport(); }, 500);
-    }
+    importResults.fuel = fuelCount;
+    setTimeout(function() { finalizeImport(); }, 500);
 }
-// [END] دالة استيراد الوقود المحسنة
 
-// [START] دالة معالجة ملف المخزون المحسنة
+// [START] دالة معالجة ملف المخزون المحسنة - تقرأ 4 أعمدة فقط
 function handleInventoryFileUpload(inputElement) {
     var file = inputElement.files[0];
     if (!file) {
@@ -3309,66 +3231,60 @@ function handleInventoryFileUpload(inputElement) {
             }
             
             var cleanRows = [];
-            var headers = rows[0];
-            var colMaterial = -1, colDesc = -1, colUnit = -1, colQty = -1;
-            
-            // البحث عن الأعمدة في ملف SOH
-            for (var i = 0; i < headers.length; i++) {
-                var header = headers[i] ? headers[i].toString().toLowerCase() : '';
-                if (header === 'material' || header.includes('material')) colMaterial = i;
-                if (header === 'material description' || header.includes('description')) colDesc = i;
-                if (header === 'base unit of measure' || header.includes('unit')) colUnit = i;
-                if (header === 'unrestricted' || header.includes('unrestricted')) colQty = i;
-            }
-            
-            // تعيين القيم الافتراضية
-            if (colMaterial === -1) colMaterial = 0;
-            if (colDesc === -1) colDesc = 1;
-            if (colUnit === -1) colUnit = 2;
-            if (colQty === -1) colQty = 3;
-            
+            // الأعمدة المتوقعة: العمود الأول = كود الصنف، الثاني = اسم الصنف، الثالث = التصنيف، الرابع = الكمية
             for (var i = 1; i < rows.length; i++) {
                 var row = rows[i];
                 if (!row) continue;
                 
-                var materialCode = row[colMaterial] ? row[colMaterial].toString().trim() : '';
-                var description = row[colDesc] ? row[colDesc].toString().trim() : '';
-                var unit = row[colUnit] ? row[colUnit].toString().trim() : '';
+                // العمود الأول: كود الصنف
+                var materialCode = row[0] ? row[0].toString().trim() : '';
+                // العمود الثاني: اسم الصنف
+                var description = row[1] ? row[1].toString().trim() : '';
+                // العمود الثالث: التصنيف (يقرأ كما هو من الملف)
+                var categoryRaw = row[2] ? row[2].toString().trim() : '';
+                // العمود الرابع: الكمية
                 var quantity = 0;
-                
-                if (row[colQty] !== undefined && row[colQty] !== null) {
-                    if (typeof row[colQty] === 'number') {
-                        quantity = row[colQty];
+                if (row[3] !== undefined && row[3] !== null) {
+                    if (typeof row[3] === 'number') {
+                        quantity = row[3];
                     } else {
-                        var cleanNumber = String(row[colQty]).replace(/[^\d.-]/g, '');
+                        var cleanNumber = String(row[3]).replace(/[^\d.-]/g, '');
                         quantity = parseFloat(cleanNumber) || 0;
                     }
                 }
                 
                 if (!materialCode && !description) continue;
                 if (materialCode && (materialCode.includes('الاجمالي') || materialCode.toLowerCase().includes('total'))) continue;
+                if (quantity === 0) continue;
                 
-                // تحديد التصنيف بناءً على الوصف
+                // تحديد التصنيف بناءً على النص المقروء من الملف أو الكشف التلقائي
                 var category = 'spare';
-                var descLower = description.toLowerCase();
-                if (descLower.includes('فلتر') || descLower.includes('filter')) category = 'filter';
-                else if (descLower.includes('زيت') || descLower.includes('oil')) category = 'oil';
-                else if (descLower.includes('اطار') || descLower.includes('تاير') || descLower.includes('tire')) category = 'tire';
+                var categoryLower = categoryRaw.toLowerCase();
+                if (categoryLower.includes('فلتر') || categoryLower.includes('filter')) category = 'filter';
+                else if (categoryLower.includes('زيت') || categoryLower.includes('oil')) category = 'oil';
+                else if (categoryLower.includes('اطار') || categoryLower.includes('تاير') || categoryLower.includes('tire')) category = 'tire';
+                else if (categoryLower.includes('قطعة') || categoryLower.includes('spare')) category = 'spare';
+                else {
+                    // كشف تلقائي من الوصف
+                    var descLower = description.toLowerCase();
+                    if (descLower.includes('فلتر') || descLower.includes('filter')) category = 'filter';
+                    else if (descLower.includes('زيت') || descLower.includes('oil')) category = 'oil';
+                    else if (descLower.includes('اطار') || descLower.includes('تاير')) category = 'tire';
+                }
                 
-                var displayUnit = unit;
-                if (displayUnit === 'L' || displayUnit === 'لتر') displayUnit = 'لتر';
-                else if (displayUnit === 'KG' || displayUnit === 'كجم') displayUnit = 'كجم';
-                else if (displayUnit === 'EA' || displayUnit === 'قطعة') displayUnit = 'قطعة';
-                else if (!displayUnit) displayUnit = 'قطعة';
+                var displayUnit = 'قطعة';
+                if (category === 'oil') displayUnit = 'لتر';
+                else if (category === 'filter') displayUnit = 'قطعة';
                 
                 cleanRows.push({
                     fullMaterial: materialCode,
                     fullDescription: description,
-                    fullUnit: unit,
+                    fullUnit: categoryRaw,
                     quantity: quantity,
                     shortPartNo: materialCode.split('.').pop() || materialCode,
                     displayUnit: displayUnit,
-                    category: category
+                    category: category,
+                    originalCategory: categoryRaw
                 });
             }
             
@@ -3411,7 +3327,8 @@ function displayInventoryPreview(items) {
                 fullUnit: item.fullUnit,
                 oldQty: existing.qty || 0,
                 newQty: item.quantity,
-                displayUnit: item.displayUnit
+                displayUnit: item.displayUnit,
+                category: item.category
             });
         } else {
             newCount++;
@@ -3433,15 +3350,15 @@ function displayInventoryPreview(items) {
         '<div class="stat-card"><div class="stat-number">' + newCount + '</div><div class="stat-label">جديد</div></div>' +
         '<div class="stat-card"><div class="stat-number">' + formatNumber(totalQtySum) + '</div><div class="stat-label">إجمالي القطع</div></div></div>' +
         '<div style="max-height:300px;overflow:auto;border:1px solid #e2e8f0;border-radius:12px">' +
-        '<table style="width:100%"><thead><tr><th>#</th><th>كود</th><th>الاسم</th><th>الوحدة</th><th>الكمية</th><th>الحالة</th></tr></thead><tbody>' +
+        '<table style="width:100%"><thead><tr><th>#</th><th>كود</th><th>الاسم</th><th>التصنيف</th><th>الكمية</th><th>الحالة</th></tr></thead><tbody>' +
         itemsToUpdate.slice(0, 500).map(function(item, idx) {
             return '<tr><td style="text-align:center">' + (idx + 1) + '</td>' +
                 '<td style="text-align:center">' + escapeHtml(item.fullMaterial.substring(0, 30)) + '</td>' +
                 '<td style="text-align:center">' + escapeHtml(item.fullDescription.substring(0, 45)) + '</td>' +
-                '<td style="text-align:center">' + escapeHtml(item.fullUnit || item.displayUnit) + '</td>' +
+                '<td style="text-align:center">' + escapeHtml(item.fullUnit || item.category) + '</td>' +
                 '<td style="font-weight:bold;color:' + (!item.isNew && item.oldQty !== item.newQty ? '#f59e0b' : 'inherit') + '">' + (!item.isNew ? item.oldQty + ' ← ' + item.newQty : item.qty) + '</td>' +
                 '<td style="text-align:center"><span style="background:' + (item.isNew ? '#10b981' : (item.oldQty !== item.newQty ? '#f59e0b' : '#6b7a8d')) + ';color:white;padding:2px 8px;border-radius:20px">' + (item.isNew ? 'جديد' : (item.oldQty !== item.newQty ? 'تحديث' : 'مطابق')) + '</span></td>' +
-                '<tr>';
+                '</tr>';
         }).join('') + '</tbody></table></div>';
     document.getElementById('inventory-import-preview').style.display = 'block';
 }
@@ -3469,12 +3386,8 @@ function confirmInventoryImport() {
             var existing = snapshot.find(function(ex) { return ex.fullMaterial && ex.fullMaterial === item.fullMaterial; });
             if (!existing) existing = snapshot.find(function(ex) { return ex.partNo === item.shortPartNo && item.shortPartNo.length > 5; });
             if (existing) {
-                var rest = {};
-                for (var key in existing) {
-                    if (key !== 'id') rest[key] = existing[key];
-                }
                 allUpdates['inventoryItems/' + existing.id] = {
-                    category: existing.category || item.category,
+                    category: item.category,
                     name: item.fullDescription.substring(0, 100),
                     partNo: item.shortPartNo,
                     fullMaterial: item.fullMaterial,
@@ -4063,7 +3976,8 @@ function generateFuelReport() {
     html += '<tr style="background:#fef9ec;font-weight:700">' +
         '<td style="padding:7px">الإجمالي</td><td style="padding:7px;text-align:center">' + filtered.length + '</td>' +
         '<td style="padding:7px;text-align:center;color:var(--info)">' + grandTotal.toLocaleString() + '</td>' +
-        '<td style="padding:7px;text-align:center">' + (grandCost > 0 ? grandCost.toLocaleString() + ' ج.م' : '—') + '</td></tr>' +
+        '<td style="padding:7px;text-align:center">' + (grandCost > 0 ? grandCost.toLocaleString() + ' ج.م' : '—') + '</td>' +
+        '</tr>' +
         '</tbody></table></div>';
     resEl.innerHTML = html;
 }
@@ -4182,14 +4096,22 @@ document.addEventListener('DOMContentLoaded', function() {
     var secureLoginSubmit = document.getElementById('secure-login-submit');
     var rememberMode = document.getElementById('remember-mode');
     var logoutBtn = document.getElementById('logout-btn');
+    var deleteAllEquipmentGlobalBtn = document.getElementById('delete-all-equipment-global-btn');
     var deleteAllEquipmentBtn = document.getElementById('delete-all-equipment-btn');
+    var deleteAllFuelBtn = document.getElementById('delete-all-fuel-btn');
+    var deleteAllMaintenanceBtn = document.getElementById('delete-all-maintenance-btn');
+    var deleteAllInventoryBtn = document.getElementById('delete-all-inventory-btn');
     
     if (directLoginBtn) directLoginBtn.onclick = function() { setLoginMode('direct'); };
     if (secureLoginBtn) secureLoginBtn.onclick = function() { setLoginMode('secure'); };
     if (directLoginSubmit) directLoginSubmit.onclick = function() { directLogin(); };
     if (secureLoginSubmit) secureLoginSubmit.onclick = function() { secureLogin(); };
     if (rememberMode) rememberMode.onchange = function() { saveLoginMode(); };
+    if (deleteAllEquipmentGlobalBtn) deleteAllEquipmentGlobalBtn.onclick = function() { deleteAllEquipment(); };
     if (deleteAllEquipmentBtn) deleteAllEquipmentBtn.onclick = function() { deleteAllEquipment(); };
+    if (deleteAllFuelBtn) deleteAllFuelBtn.onclick = function() { deleteAllFuelRecords(); };
+    if (deleteAllMaintenanceBtn) deleteAllMaintenanceBtn.onclick = function() { deleteAllMaintenance(); };
+    if (deleteAllInventoryBtn) deleteAllInventoryBtn.onclick = function() { deleteAllInventory(); };
     
     var savedMode = localStorage.getItem('loginMode');
     if (savedMode === 'secure') setLoginMode('secure'); else setLoginMode('direct');
@@ -4220,7 +4142,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var equipmentExcelInput = document.getElementById('equipment-excel-input');
     var uploadInventoryBtn = document.getElementById('upload-inventory-soh-btn');
     var inventoryExcelInput = document.getElementById('inventory-excel-input');
-    var cleanFuelBtn = document.getElementById('clean-fuel-btn');
     var confirmImportBtn = document.getElementById('confirm-import-btn');
     var cancelImportBtn = document.getElementById('cancel-import-btn');
     var confirmInventoryBtn = document.getElementById('confirm-inventory-import-btn');
@@ -4256,7 +4177,6 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadInventoryBtn.onclick = function() { inventoryExcelInput.click(); };
         inventoryExcelInput.onchange = function(e) { handleInventoryFileUpload(e.target); };
     }
-    if (cleanFuelBtn) cleanFuelBtn.onclick = function() { cleanMockFuelData(); };
     if (confirmImportBtn) confirmImportBtn.onclick = function() { confirmImport(); };
     if (cancelImportBtn) cancelImportBtn.onclick = function() { cancelImport(); };
     if (confirmInventoryBtn) confirmInventoryBtn.onclick = function() { confirmInventoryImport(); };
@@ -4298,6 +4218,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.loadDarkMode = loadDarkMode;
     window.initSessionTimeout = initSessionTimeout;
     window.deleteAllEquipment = deleteAllEquipment;
+    window.deleteAllFuelRecords = deleteAllFuelRecords;
+    window.deleteAllMaintenance = deleteAllMaintenance;
+    window.deleteAllInventory = deleteAllInventory;
     
     console.log('✅ تم تهيئة جميع الأزرار والدوال بنجاح');
 });
