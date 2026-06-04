@@ -3711,35 +3711,41 @@ function updateHomeStatsAndList() {
         
         var driver = driversData.find(function(d) { return d && String(d.id) === String(eq.assignedDriver); });
         
-        // كارت مضغوط - ارتفاع أقل مع الحفاظ على جميع المعلومات
-        equipmentListHtml += '<div class="equipment-card" data-eqid="' + eq.id + '" style="padding:8px 10px;cursor:pointer;margin-bottom:8px">' +
-            '<div class="card-header" style="margin-bottom:4px">' +
-            '<div style="flex:1">' +
-            '<div class="card-title" style="font-size:13px;font-weight:700">' + escapeHtml(eq.name) + '</div>' +
-            '<div class="card-code" style="font-size:9px;color:var(--gray)">' + escapeHtml(eq.code) + ' | ' + escapeHtml(eq.type) + '</div>' +
+        // حساب عرض الشريط بناءً على الساعات المتبقية (وليس النسبة)
+        var interval = eq.interval || 250;
+        var remainingClamped = Math.max(0, Math.min(remaining, interval));
+        var hoursBarWidth = (remainingClamped / interval) * 100;
+
+        // كارت مضغوط جداً - ارتفاع أقل بنسبة 50%
+        equipmentListHtml += '<div class="equipment-card" data-eqid="' + eq.id + '" style="padding:5px 8px;cursor:pointer;margin-bottom:6px">' +
+            // سطر العنوان + الحالة
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">' +
+            '<div style="flex:1;min-width:0">' +
+            '<div class="card-title" style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(eq.name) + '</div>' +
+            '<div class="card-code" style="font-size:9px;color:var(--gray)">' + escapeHtml(eq.code) + '</div>' +
             '</div>' +
             statusBadge +
             '</div>' +
-            // صف العداد والصيانة في سطر واحد مضغوط
-            '<div style="display:flex;justify-content:space-between;margin:3px 0;font-size:10px">' +
-            '<span>⏱️ ' + formatNumber(eq.hours) + ' س</span>' +
-            '<span>🔧 ' + formatNumber(eq.nextHours) + ' س</span>' +
-            '<span style="color:' + statusText.color + ';font-weight:600">' + statusText.text + '</span>' +
+            // سطر العداد + المتبقي
+            '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">' +
+            '<span style="color:var(--gray)">⏱️ ' + formatNumber(eq.hours) + ' س</span>' +
+            '<span style="color:' + barBgColor + ';font-weight:700">' + statusText.text + '</span>' +
+            '<span style="color:var(--gray)">🔧 ' + formatNumber(eq.nextHours) + ' س</span>' +
             '</div>' +
-            // شريط التقدم الملون
-            '<div class="progress-bar" style="height:4px;margin:2px 0">' +
-            '<div class="progress-fill" style="width:' + Math.min(100, percent) + '%;background:' + barBgColor + '"></div>' +
+            // شريط الحالة بالساعات المتبقية - أعرض وأوضح
+            '<div style="position:relative;height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;margin-bottom:1px">' +
+            '<div style="height:100%;width:' + hoursBarWidth + '%;background:' + barBgColor + ';border-radius:5px;transition:width 0.5s ease"></div>' +
             '</div>' +
-            // نسبة الساعات المتبقية بشكل نصي مختصر
-            '<div style="display:flex;justify-content:space-between;margin:1px 0;font-size:8px;color:var(--gray)">' +
-            '<span>0 س</span>' +
-            '<span style="font-weight:600;color:' + barBgColor + '">' + Math.round(percent) + '%</span>' +
-            '<span>' + formatNumber(eq.nextHours) + ' س</span>' +
+            // تسميات الشريط
+            '<div style="display:flex;justify-content:space-between;font-size:8px;color:var(--gray);margin-bottom:2px">' +
+            '<span>0</span>' +
+            '<span style="font-weight:600;color:' + barBgColor + '">' + Math.max(0, remaining) + ' س متبقي</span>' +
+            '<span>' + interval + '</span>' +
             '</div>' +
-            // السائق في سطر واحد
-            (driver ? '<div style="margin-top:3px;font-size:9px;color:var(--gray);border-top:1px solid #eef2f6;padding-top:3px">👨‍✈️ ' + escapeHtml(driver.name) + '</div>' : '') +
-            '<div style="margin-top:4px;display:flex;gap:6px;justify-content:flex-end">' +
-            (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:10px">✏️ تعديل</button>' : '') +
+            // السائق + زر التعديل في نفس السطر
+            '<div style="display:flex;justify-content:space-between;align-items:center">' +
+            (driver ? '<div style="font-size:9px;color:var(--gray)">👨‍✈️ ' + escapeHtml(driver.name) + '</div>' : '<div></div>') +
+            (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:2px 7px;border-radius:5px;cursor:pointer;font-size:9px">✏️</button>' : '') +
             '</div>' +
             '</div>';
     });
