@@ -483,8 +483,9 @@ function saveToFirebase(path, data) {
         ref.update(rest).catch(function(err) { showToast('خطأ في الحفظ: ' + err.message, true); });
     } else {
         ref = fbDb.ref(path).push();
+        var pushKey = ref.key;
         var newData = Object.assign({}, data);
-        newData.id = Date.now().toString();
+        newData.id = pushKey;
         ref.set(newData).catch(function(err) { showToast('خطأ في الحفظ: ' + err.message, true); });
     }
     return true;
@@ -722,7 +723,7 @@ function attachFirebaseListeners() {
     
     listen('equipment', function(snapshot) {
         equipmentData = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            return Object.assign({ id: entry[0] }, entry[1]);
+            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
         }) : [];
         debouncedRefresh();
         setTimeout(function() { checkMaintenanceAlerts(); }, 500);
@@ -730,7 +731,7 @@ function attachFirebaseListeners() {
     
     listen('drivers', function(snapshot) {
         driversData = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            return Object.assign({ id: entry[0] }, entry[1]);
+            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
         }) : [];
         debouncedRefresh();
         updateDriverSelects();
@@ -739,42 +740,42 @@ function attachFirebaseListeners() {
     
     listen('fuelRecords', function(snapshot) {
         fuelData = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            return Object.assign({ id: entry[0] }, entry[1]);
+            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
         }) : [];
         debouncedRefresh();
     });
     
     listen('maintenanceSchedules', function(snapshot) {
         maintenanceSchedules = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            return Object.assign({ id: entry[0] }, entry[1]);
+            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
         }) : [];
         debouncedRefresh();
     });
     
     listen('inventoryItems', function(snapshot) {
         inventoryItems = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            return Object.assign({ id: entry[0] }, entry[1]);
+            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
         }) : [];
         debouncedRefresh();
     });
     
     listen('equipmentFilterLinks', function(snapshot) {
         equipmentFilterLinks = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            return Object.assign({ id: entry[0] }, entry[1]);
+            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
         }) : [];
         debouncedRefresh();
     });
     
     listen('equipmentOilLinks', function(snapshot) {
         equipmentOilLinks = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            return Object.assign({ id: entry[0] }, entry[1]);
+            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
         }) : [];
         debouncedRefresh();
     });
     
     listen('filterAlternatives', function(snapshot) {
         filterAlternatives = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            return Object.assign({ id: entry[0] }, entry[1]);
+            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
         }) : [];
         debouncedRefresh();
     });
@@ -3701,14 +3702,14 @@ function forceRefreshData() {
         fbDb.ref('filterAlternatives').once('value')
     ]).then(function(results) {
         var eqSn = results[0], invSn = results[1], drSn = results[2], fuelSn = results[3], maintSn = results[4], flSn = results[5], oilSn = results[6], altSn = results[7];
-        equipmentData = eqSn.val() ? Object.entries(eqSn.val()).map(function(entry) { return Object.assign({ id: entry[0] }, entry[1]); }) : [];
-        inventoryItems = invSn.val() ? Object.entries(invSn.val()).map(function(entry) { return Object.assign({ id: entry[0] }, entry[1]); }) : [];
-        driversData = drSn.val() ? Object.entries(drSn.val()).map(function(entry) { return Object.assign({ id: entry[0] }, entry[1]); }) : [];
-        fuelData = fuelSn.val() ? Object.entries(fuelSn.val()).map(function(entry) { return Object.assign({ id: entry[0] }, entry[1]); }) : [];
-        maintenanceSchedules = maintSn.val() ? Object.entries(maintSn.val()).map(function(entry) { return Object.assign({ id: entry[0] }, entry[1]); }) : [];
-        equipmentFilterLinks = flSn.val() ? Object.entries(flSn.val()).map(function(entry) { return Object.assign({ id: entry[0] }, entry[1]); }) : [];
-        equipmentOilLinks = oilSn.val() ? Object.entries(oilSn.val()).map(function(entry) { return Object.assign({ id: entry[0] }, entry[1]); }) : [];
-        filterAlternatives = altSn.val() ? Object.entries(altSn.val()).map(function(entry) { return Object.assign({ id: entry[0] }, entry[1]); }) : [];
+        equipmentData = eqSn.val() ? Object.entries(eqSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
+        inventoryItems = invSn.val() ? Object.entries(invSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
+        driversData = drSn.val() ? Object.entries(drSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
+        fuelData = fuelSn.val() ? Object.entries(fuelSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
+        maintenanceSchedules = maintSn.val() ? Object.entries(maintSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
+        equipmentFilterLinks = flSn.val() ? Object.entries(flSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
+        equipmentOilLinks = oilSn.val() ? Object.entries(oilSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
+        filterAlternatives = altSn.val() ? Object.entries(altSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
         debouncedRefresh();
         updateBellCounter();
         showToast('✅ تم التحديث: ' + equipmentData.length + ' معدة، ' + inventoryItems.length + ' صنف');
