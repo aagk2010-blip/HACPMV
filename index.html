@@ -44,33 +44,71 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 <div class="toast" id="toast"></div>
 
 <!-- شاشة الدخول -->
-<div id="login-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #0a1622, #1a2a3a); z-index:2000; display:flex; align-items:center; justify-content:center; padding:20px;">
-  <div style="text-align:center; width:100%; max-width:360px">
-    <div style="margin-bottom:25px"><div style="font-size:22px; font-weight:800; letter-spacing:1.5px; color:white">HASSAN ALLAM</div><div style="font-size:13px; color:#e8a020; letter-spacing:3px; margin-top:3px; font-weight:600">HOLDING</div></div>
-    <div style="font-size:24px; font-weight:800; margin-bottom:6px; color:white">Equipment Maintenance Service</div>
-    <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:30px">Fleet & Maintenance Management</div>
-    <div style="display:flex; gap:10px; margin-bottom:20px; background:rgba(255,255,255,0.05); border-radius:40px; padding:4px">
-      <button id="direct-login-btn" style="flex:1; padding:10px; border-radius:30px; border:none; background:#e8a020; color:#0d1b2a; font-weight:700; cursor:pointer">🚪 دخول مباشر</button>
-      <button id="secure-login-btn" style="flex:1; padding:10px; border-radius:30px; border:none; background:rgba(255,255,255,0.1); color:white; font-weight:700; cursor:pointer">🔐 دخول آمن</button>
+<div id="login-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0a1622,#1a2a3a);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
+  <div style="text-align:center;width:100%;max-width:360px">
+
+    <!-- شعار الشركة -->
+    <div style="margin-bottom:20px">
+      <div style="background:white;border-radius:18px;padding:14px 24px;display:inline-block;box-shadow:0 4px 20px rgba(0,0,0,0.4)">
+        <img src="data:image/png;base64,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" alt="Hassan Allam Holding" style="width:150px;height:auto;display:block">
+      </div>
     </div>
+
+    <div style="font-size:22px;font-weight:800;margin-bottom:5px;color:white">Equipment Maintenance Service</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:24px">Fleet & Maintenance Management</div>
+
+    <!-- أزرار نوع الدخول -->
+    <div style="display:flex;gap:10px;margin-bottom:18px;background:rgba(255,255,255,0.05);border-radius:40px;padding:4px">
+      <button id="direct-login-btn" style="flex:1;padding:10px;border-radius:30px;border:none;background:#e8a020;color:#0d1b2a;font-weight:700;cursor:pointer;font-family:inherit">🚪 دخول مباشر</button>
+      <button id="secure-login-btn" style="flex:1;padding:10px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit">🔐 دخول آمن</button>
+    </div>
+
+    <!-- لوحة الدخول المباشر -->
     <div id="direct-login-panel" style="display:block">
-      <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:20px"><div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border-radius:15px; padding:4px 18px"><span style="color:#e8a020; font-size:18px">👤</span><select id="direct-username" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px"><option value="viewer" style="background:#1a2a3a">👁️ مشاهد (صلاحيات مشاهدة فقط)</option></select></div></div>
-      <button id="direct-login-submit" style="width:100%; background:linear-gradient(135deg,#e8a020,#c88a18); color:#0d1b2a; border:none; padding:15px; border-radius:30px; font-weight:800; font-size:16px; cursor:pointer">🚀 دخول مباشر (مشاهدة فقط)</button>
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">👤</span>
+          <select id="direct-username" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
+            <option value="viewer" style="background:#1a2a3a">👁️ مشاهد (صلاحيات مشاهدة فقط)</option>
+          </select>
+        </div>
+      </div>
+      <button id="direct-login-submit" style="width:100%;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">🚀 دخول مباشر (مشاهدة فقط)</button>
     </div>
+
+    <!-- لوحة الدخول الآمن -->
     <div id="secure-login-panel" style="display:none">
-      <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:12px"><div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border-radius:15px; padding:4px 18px"><span style="color:#e8a020; font-size:18px">👤</span><input type="text" id="secure-username" placeholder="اسم المستخدم" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px"></div></div>
-      <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:5px; margin-bottom:20px"><div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); border-radius:15px; padding:4px 18px"><span style="color:#e8a020; font-size:18px">🔒</span><input type="password" id="secure-password" placeholder="كلمة المرور" style="flex:1; background:transparent; border:none; outline:none; padding:14px 0; color:white; font-size:14px"></div></div>
-      <button id="secure-login-submit" style="width:100%; background:linear-gradient(135deg,#e8a020,#c88a18); color:#0d1b2a; border:none; padding:15px; border-radius:30px; font-weight:800; font-size:16px; cursor:pointer">🔐 دخول آمن (صلاحيات كاملة)</button>
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">👤</span>
+          <input type="text" id="secure-username" placeholder="اسم المستخدم" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">🔒</span>
+          <input type="password" id="secure-password" placeholder="كلمة المرور" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
+        </div>
+      </div>
+      <button id="secure-login-submit" style="width:100%;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">🔐 دخول آمن (صلاحيات كاملة)</button>
     </div>
-    <div style="margin-top:20px; padding:10px; background:rgba(255,255,255,0.03); border-radius:16px"><div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:5px">⚙️ إعدادات النظام</div><label style="display:flex; align-items:center; gap:5px; font-size:11px; color:rgba(255,255,255,0.5); cursor:pointer"><input type="checkbox" id="remember-mode"> تذكر اختياري</label></div>
-    <div style="margin-top:20px"><div style="font-size:9px; color:rgba(255,255,255,0.25)">© 2024 حسن علام القابضة</div></div>
+
+    <!-- إعدادات -->
+    <div style="margin-top:18px;padding:10px;background:rgba(255,255,255,0.03);border-radius:16px">
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:5px">⚙️ إعدادات النظام</div>
+      <label style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer">
+        <input type="checkbox" id="remember-mode"> تذكر اختياري
+      </label>
+    </div>
+    <div style="margin-top:14px"><div style="font-size:9px;color:rgba(255,255,255,0.25)">© 2025 حسن علام القابضة</div></div>
+
   </div>
 </div>
 
 <!-- حاوية التطبيق -->
 <div id="app-container" style="display:none">
   <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="delete-all-equipment-global-btn" class="danger-btn" style="background:#7f1d1d;border:none;color:white;border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer;margin-right:5px;font-weight:700">🗑️ مسح كل البيانات</button></div></div>
-  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
+  <div class="header"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><img src="data:image/png;base64,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" alt="Hassan Allam" style="height:32px;width:auto;flex-shrink:0;filter:brightness(0) invert(1);opacity:0.9"><div class="header-title" id="header-title" style="margin-bottom:0">📊 لوحة القيادة</div></div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
   <div id="view-home"><div class="stats-row" id="stats-summary"></div><button id="meter-update-btn" class="big-btn">⏱️ تحديث العدادات اليومي</button><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info)); margin-top:5px">🔄 تحديث البيانات يدوياً</button><div class="section"><div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div><div id="equipment-list-home"></div></div></div>
@@ -127,7 +165,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 </div>
 
 <!-- النوافذ المنبثقة (نفسها كما كانت) -->
-<div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">دورة الصيانة</label><input class="form-input" type="number" id="eq-interval" value="250"></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
+<div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">🔄 دورة الصيانة</label><select class="form-select" id="eq-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="1000">كل 1000 ساعة</option></select></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الاسم الكامل *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label">رقم الهاتف</label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label">رقم رخصة القيادة</label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label">تاريخ انتهاء الرخصة</label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
 
@@ -511,14 +549,12 @@ function deleteAllEquipment() {
         return;
     }
     if (confirm('⚠️ تحذير: سيتم حذف جميع المعدات (' + equipmentData.length + ' معدة) بشكل نهائي!\n\nهل أنت متأكد من رغبتك في حذف جميع المعدات؟')) {
-        showToast('🗑️ جاري حذف ' + equipmentData.length + ' معدة...');
-        equipmentData.forEach(function(equipment) {
-            deleteFromFirebase('equipment', equipment.id);
-        });
-        setTimeout(function() {
+        showToast('🗑️ جاري حذف جميع المعدات...');
+        fbDb.ref('equipment').remove().then(function() {
+            equipmentData = [];
             showToast('✅ تم حذف جميع المعدات بنجاح');
-            forceRefreshData();
-        }, 2000);
+            debouncedRefresh();
+        }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
     }
 }
 
@@ -532,14 +568,12 @@ function deleteAllFuelRecords() {
         return;
     }
     if (confirm('⚠️ تحذير: سيتم حذف جميع سجلات الوقود (' + fuelData.length + ' سجل) بشكل نهائي!\n\nهل أنت متأكد؟')) {
-        showToast('🗑️ جاري حذف ' + fuelData.length + ' سجل وقود...');
-        fuelData.forEach(function(record) {
-            deleteFromFirebase('fuelRecords', record.id);
-        });
-        setTimeout(function() {
+        showToast('🗑️ جاري حذف جميع سجلات الوقود...');
+        fbDb.ref('fuelRecords').remove().then(function() {
+            fuelData = [];
             showToast('✅ تم حذف جميع سجلات الوقود بنجاح');
-            forceRefreshData();
-        }, 2000);
+            debouncedRefresh();
+        }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
     }
 }
 
@@ -575,14 +609,12 @@ function deleteAllInventory() {
         return;
     }
     if (confirm('⚠️ تحذير: سيتم حذف جميع أصناف المخزون (' + inventoryItems.length + ' صنف) بشكل نهائي!\n\nهل أنت متأكد؟')) {
-        showToast('🗑️ جاري حذف ' + inventoryItems.length + ' صنف...');
-        inventoryItems.forEach(function(item) {
-            deleteFromFirebase('inventoryItems', item.id);
-        });
-        setTimeout(function() {
+        showToast('🗑️ جاري حذف جميع أصناف المخزون...');
+        fbDb.ref('inventoryItems').remove().then(function() {
+            inventoryItems = [];
             showToast('✅ تم حذف جميع أصناف المخزون بنجاح');
-            forceRefreshData();
-        }, 2000);
+            debouncedRefresh();
+        }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
     }
 }
 
@@ -953,12 +985,13 @@ function openAddEquipmentModal() {
     editingEquipmentId = null;
     document.getElementById('modal-title-equipment').innerHTML = 'إضافة معدة جديدة';
     
-    var fields = ['eq-code', 'eq-name', 'eq-chassis', 'eq-location', 'eq-hours', 'eq-next-hours', 'eq-interval', 'eq-engine-model', 'eq-engine-sn', 'eq-arrival-date', 'eq-arrival-hours', 'eq-last-maintenance-date', 'eq-last-maintenance-hours', 'eq-notes'];
+    var fields = ['eq-code', 'eq-name', 'eq-chassis', 'eq-location', 'eq-hours', 'eq-next-hours', 'eq-engine-model', 'eq-engine-sn', 'eq-arrival-date', 'eq-arrival-hours', 'eq-last-maintenance-date', 'eq-last-maintenance-hours', 'eq-notes'];
     fields.forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.value = '';
     });
     
+    document.getElementById('eq-interval').value = '250';
     document.getElementById('eq-type').value = 'حفارة';
     document.getElementById('eq-status').value = 'يعمل';
     updateDriverSelects();
@@ -1030,7 +1063,13 @@ function editEquipment(id) {
     document.getElementById('eq-location').value = equipment.location || '';
     document.getElementById('eq-hours').value = equipment.hours || 0;
     document.getElementById('eq-next-hours').value = equipment.nextHours || 250;
-    document.getElementById('eq-interval').value = equipment.interval || 250;
+    var eqIntervalSel = document.getElementById('eq-interval');
+    var eqIntervalVal = equipment.interval || 250;
+    // Round to nearest valid option
+    if (eqIntervalVal <= 300) eqIntervalVal = 250;
+    else if (eqIntervalVal <= 750) eqIntervalVal = 500;
+    else eqIntervalVal = 1000;
+    eqIntervalSel.value = eqIntervalVal;
     document.getElementById('eq-engine-model').value = equipment.engineModel || '';
     document.getElementById('eq-engine-sn').value = equipment.engineSN || '';
     document.getElementById('eq-arrival-date').value = equipment.arrivalDate || '';
@@ -2118,7 +2157,11 @@ function editInventoryItem(id) {
     document.getElementById('inv-min-qty').value = item.minQty || 5;
     document.getElementById('inv-price').value = item.price || 0;
     document.getElementById('inv-unit').value = item.unit || 'قطعة';
-    document.getElementById('inv-interval').value = item.interval || 250;
+    var invIntervalVal = item.interval || 250;
+    if (invIntervalVal <= 300) invIntervalVal = 250;
+    else if (invIntervalVal <= 750) invIntervalVal = 500;
+    else invIntervalVal = 1000;
+    document.getElementById('inv-interval').value = invIntervalVal;
     document.getElementById('inv-notes').value = item.notes || '';
     var altContainer = document.getElementById('inv-alt-list');
     if (altContainer) altContainer.innerHTML = '';
@@ -3749,7 +3792,7 @@ function refreshUI() {
     }
     if (activeView === 'drivers') {
         var search = document.getElementById('search-driver') ? document.getElementById('search-driver').value : '';
-        document.getElementById('drivers-list').innerHTML = driversData.filter(function(d) { return d.name.includes(search); }).map(function(d) {
+        document.getElementById('drivers-list').innerHTML = driversData.filter(function(d) { return !search || (d.name && d.name.includes(search)); }).map(function(d) {
             var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
             var expired = d.licenseExpiry && new Date(d.licenseExpiry) < new Date();
             return '<div class="driver-card" onclick="openDriverDetail(\'' + d.id + '\')">' +
