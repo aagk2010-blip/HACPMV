@@ -3711,10 +3711,11 @@ function updateHomeStatsAndList() {
         
         var driver = driversData.find(function(d) { return d && String(d.id) === String(eq.assignedDriver); });
         
-        // حساب شريط العداد - يعمل مثل عداد السيارة بالساعات المتبقية الفعلية
+        // شريط العداد ثابت من 0 إلى 250 ساعة دائماً
         var interval = eq.interval || 250;
-        var remainingClamped = Math.max(0, Math.min(remaining, interval));
-        var gaugeWidth = (remainingClamped / interval) * 100; // 0% = فارغ، 100% = ممتلئ
+        var GAUGE_MAX = 250;
+        var remainingClamped = Math.max(0, Math.min(remaining, GAUGE_MAX));
+        var gaugeWidth = (remainingClamped / GAUGE_MAX) * 100;
 
         // ألوان الشريط حسب الساعات المتبقية بالضبط
         var gaugeColor, gaugeBg;
@@ -3761,20 +3762,21 @@ function updateHomeStatsAndList() {
 
             // الشريط نفسه - سميك وواضح مع حركة سلسة
             '<div style="position:relative;height:12px;background:rgba(0,0,0,0.08);border-radius:6px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.15)">' +
-            // طبقة الخلفية مقسمة: أحمر 0-50، أصفر 50-100، أخضر 100+
-            '<div style="position:absolute;top:0;right:0;width:' + Math.min(100,(50/interval)*100) + '%;height:100%;background:rgba(239,68,68,0.15)"></div>' +
-            '<div style="position:absolute;top:0;right:' + Math.min(100,(50/interval)*100) + '%;width:' + Math.min(100,(50/interval)*100) + '%;height:100%;background:rgba(245,158,11,0.15)"></div>' +
+            // خطوط المناطق على أساس 0-250: أحمر 0-50 (20%)، أصفر 50-100 (20%)، أخضر 100-250 (60%)
+            '<div style="position:absolute;top:0;right:0;width:20%;height:100%;background:rgba(239,68,68,0.12);border-left:1px dashed rgba(239,68,68,0.3)"></div>' +
+            '<div style="position:absolute;top:0;right:20%;width:20%;height:100%;background:rgba(245,158,11,0.12);border-left:1px dashed rgba(245,158,11,0.3)"></div>' +
             // شريط القيمة الفعلية
             '<div style="height:100%;width:' + gaugeWidth + '%;background:linear-gradient(90deg,' + gaugeColor + 'cc,' + gaugeColor + ');border-radius:6px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);position:relative">' +
             '<div style="position:absolute;left:2px;top:50%;transform:translateY(-50%);width:4px;height:8px;background:rgba(255,255,255,0.7);border-radius:2px"></div>' +
             '</div>' +
             '</div>' +
 
-            // تسميات أسفل الشريط
+            // تسميات أسفل الشريط: 0 - 50 - 100 - 250
             '<div style="display:flex;justify-content:space-between;font-size:8px;color:#9ca3af;margin-top:2px">' +
-            '<span>0 س</span>' +
-            '<span>' + Math.round(gaugeWidth) + '%</span>' +
-            '<span>' + interval + ' س</span>' +
+            '<span>0</span>' +
+            '<span style="position:relative;right:calc(20% - 6px)">50</span>' +
+            '<span style="position:relative;right:calc(40% - 6px)">100</span>' +
+            '<span>250 س</span>' +
             '</div>' +
             '</div>' +
 
