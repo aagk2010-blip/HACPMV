@@ -70,7 +70,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 <!-- حاوية التطبيق -->
 <div id="app-container" style="display:none">
   <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="delete-all-equipment-global-btn" class="danger-btn" style="background:#7f1d1d;border:none;color:white;border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer;margin-right:5px;font-weight:700">🗑️ مسح كل البيانات</button></div></div>
-  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
+  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
   <div id="view-home"><div class="stats-row" id="stats-summary"></div><button id="meter-update-btn" class="big-btn">⏱️ تحديث العدادات اليومي</button><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info)); margin-top:5px">🔄 تحديث البيانات يدوياً</button><div class="section"><div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div><div id="equipment-list-home"></div></div></div>
@@ -548,19 +548,20 @@ function deleteAllMaintenance() {
         showToast('غير مصرح - هذه الخاصية للمدير فقط', true);
         return;
     }
+    if (!fbDb) { showToast('غير متصل', true); return; }
     if (maintenanceSchedules.length === 0) {
         showToast('لا توجد صيانات للحذف');
         return;
     }
     if (confirm('⚠️ تحذير: سيتم حذف جميع الصيانات (' + maintenanceSchedules.length + ' صيانة) بشكل نهائي!\n\nهل أنت متأكد؟')) {
-        showToast('🗑️ جاري حذف ' + maintenanceSchedules.length + ' صيانة...');
-        maintenanceSchedules.forEach(function(maint) {
-            deleteFromFirebase('maintenanceSchedules', maint.id);
-        });
-        setTimeout(function() {
+        showToast('🗑️ جاري حذف جميع الصيانات...');
+        fbDb.ref('maintenanceSchedules').remove().then(function() {
+            maintenanceSchedules = [];
             showToast('✅ تم حذف جميع الصيانات بنجاح');
-            forceRefreshData();
-        }, 2000);
+            debouncedRefresh();
+        }).catch(function(e) {
+            showToast('خطأ في الحذف: ' + e.message, true);
+        });
     }
 }
 
@@ -659,12 +660,14 @@ function processPendingOperations() {
 
 function checkOnlineAndWarn() {
     var syncEl = document.getElementById('sync-status');
+    var indicator = document.getElementById('conn-indicator');
     if (navigator.onLine) {
         isOnline = true;
         if (syncEl) {
             syncEl.innerHTML = '🟢 متصل - مزامنة فورية';
             syncEl.style.color = 'rgba(255,255,255,0.7)';
         }
+        if (indicator) indicator.textContent = '🟢';
         processPendingOperations();
     } else {
         isOnline = false;
@@ -672,6 +675,7 @@ function checkOnlineAndWarn() {
             syncEl.innerHTML = '🔴 غير متصل - سيتم حفظ التغييرات محلياً مؤقتاً';
             syncEl.style.color = '#fca5a5';
         }
+        if (indicator) indicator.textContent = '🔴';
     }
 }
 
@@ -3714,7 +3718,7 @@ function refreshUI() {
                 '<div style="position:absolute;top:0;right:20%;width:20%;height:100%;background:rgba(245,158,11,0.12);border-left:1px dashed rgba(245,158,11,0.3)"></div>' +
                 '<div style="height:100%;width:' + gaugeWidth + '%;background:linear-gradient(90deg,' + gaugeColor + 'cc,' + gaugeColor + ');border-radius:6px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);position:relative">' +
                 '<div style="position:absolute;left:2px;top:50%;transform:translateY(-50%);width:4px;height:8px;background:rgba(255,255,255,0.7);border-radius:2px"></div></div></div>' +
-                '<div style="display:flex;justify-content:space-between;font-size:8px;color:#9ca3af;margin-top:2px"><span>0</span><span>' + Math.round(interval * 0.2) + '</span><span>' + Math.round(interval * 0.4) + '</span><span>' + interval + ' س</span></div></div>' +
+                '<div style="display:flex;justify-content:space-between;font-size:8px;color:#9ca3af;margin-top:2px"><span>0</span><span>50</span><span>100</span><span>250 س</span></div></div>' +
                 '<div style="display:flex;justify-content:flex-end">' +
                 (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:2px 7px;border-radius:5px;cursor:pointer;font-size:9px">✏️ تعديل</button>' : '') +
                 '</div></div>';
@@ -3871,7 +3875,7 @@ function updateHomeStatsAndList() {
             '<div style="height:100%;width:' + gaugeWidth + '%;background:linear-gradient(90deg,' + gaugeColor + 'cc,' + gaugeColor + ');border-radius:4px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);position:relative">' +
             '<div style="position:absolute;left:1px;top:50%;transform:translateY(-50%);width:2px;height:5px;background:rgba(255,255,255,0.7);border-radius:1px"></div>' +
             '</div></div>' +
-            '<div style="display:flex;justify-content:space-between;font-size:6.5px;color:#9ca3af;margin-top:0px"><span>0</span><span>' + Math.round(interval * 0.2) + '</span><span>' + Math.round(interval * 0.4) + '</span><span>' + interval + ' س</span></div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:6.5px;color:#9ca3af;margin-top:0px"><span>0</span><span>50</span><span>100</span><span>250 س</span></div>' +
             '</div>' +
             '</div>';
     });
@@ -4192,13 +4196,13 @@ function checkMeterWarning(equipment, prevHours, newHours) {
 function initOfflineDetector() {
     function updateOnlineStatus() {
         var syncEl = document.getElementById('sync-status');
-        if (!syncEl) return;
+        var indicator = document.getElementById('conn-indicator');
         if (navigator.onLine) {
-            syncEl.innerHTML = '🟢 متصل';
-            syncEl.style.color = 'rgba(255,255,255,0.7)';
+            if (syncEl) { syncEl.innerHTML = '🟢 متصل'; syncEl.style.color = 'rgba(255,255,255,0.7)'; }
+            if (indicator) indicator.textContent = '🟢';
         } else {
-            syncEl.innerHTML = '🔴 غير متصل - البيانات لن تُحفظ!';
-            syncEl.style.color = '#fca5a5';
+            if (syncEl) { syncEl.innerHTML = '🔴 غير متصل - البيانات لن تُحفظ!'; syncEl.style.color = '#fca5a5'; }
+            if (indicator) indicator.textContent = '🔴';
             showToast('⚠️ انقطع الإنترنت', true);
         }
     }
