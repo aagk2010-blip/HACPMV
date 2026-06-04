@@ -828,51 +828,31 @@ function proceedToApp() {
         var importTab = document.querySelector('.tab-btn[data-view="import"]');
         if (importTab) importTab.style.display = 'none';
 
-        // إخفاء جميع أزرار العمليات الإدارية
-        var adminButtons = [
+        // إخفاء أزرار العمليات الإدارية بالـ ID فقط (لا تأثير على عرض البيانات)
+        var adminBtnIds = [
             'add-fuel-btn','add-maintenance-btn','add-inventory-btn',
             'order-report-btn','meter-update-btn','whatsapp-maint-btn',
             'delete-all-equipment-btn','delete-all-fuel-btn',
             'delete-all-maintenance-btn','delete-all-inventory-btn',
             'delete-all-equipment-global-btn','force-refresh-btn',
             'upload-equipment-excel-btn','upload-inventory-soh-btn',
-            'export-hours-excel-btn'
+            'export-hours-excel-btn','confirm-import-btn','cancel-import-btn',
+            'confirm-inventory-import-btn','cancel-inventory-import-btn'
         ];
-        adminButtons.forEach(function(id) {
+        adminBtnIds.forEach(function(id) {
             var btn = document.getElementById(id);
             if (btn) btn.style.display = 'none';
         });
 
-        // CSS شامل لإخفاء كل أدوات التعديل والحذف والحفظ
+        // إخفاء أزرار التعديل فقط بدون المساس بعرض البيانات
         var style = document.createElement('style');
-        style.textContent = [
-            '.save-btn,',
-            '.danger-btn,',
-            '.fab,',
-            '.qty-btn,',
-            '.edit-equipment-btn,',
-            'button[onclick*="delete"],',
-            'button[onclick*="edit"],',
-            'button[onclick*="save"],',
-            'button[onclick*="add"],',
-            'button[onclick*="confirm"],',
-            'button[onclick*="approve"],',
-            'button[onclick*="complete"],',
-            'button[onclick*="openAdd"],',
-            'button[onclick*="openEdit"],',
-            'button[onclick*="adjustInventory"],',
-            'button[onclick*="deleteFromFirebase"],',
-            'button[onclick*="editEquipment"],',
-            'button[onclick*="editDriver"],',
-            'button[onclick*="editInventoryItem"],',
-            'button[onclick*="updateFuel"],',
-            'button[onclick*="updateMaintenance"],',
-            'button[onclick*="openFuelEdit"],',
-            'button[onclick*="openEditFuel"],',
-            'button[onclick*="deleteFuel"],',
-            '#fab-btn',
-            '{display:none!important}'
-        ].join('');
+        style.textContent =
+            '.edit-equipment-btn,' +
+            '.fuel-edit-btn,' +
+            '.qty-btn,' +
+            '#fab-btn,' +
+            'button.viewer-hidden' +
+            '{display:none!important}';
         document.head.appendChild(style);
     }
     
@@ -1851,6 +1831,7 @@ function deductItemsFromInventory(maintenanceId, equipmentId, approvedItems) {
 }
 
 function completeMaintenance(id) {
+    if (!hasPermission("all")) { showToast("⛔ غير مصرح"); return; }
     var maintenance = maintenanceSchedules.find(function(m) { return m.id === id; });
     if (!maintenance) return;
     var equipment = equipmentData.find(function(e) { return e.id === maintenance.equipmentId; });
