@@ -73,7 +73,6 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
   <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
-  <!-- الصفحة الرئيسية -->
   <div id="view-home"><div class="stats-row" id="stats-summary"></div><button id="meter-update-btn" class="big-btn">⏱️ تحديث العدادات اليومي</button><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info)); margin-top:5px">🔄 تحديث البيانات يدوياً</button><div class="section"><div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div><div id="equipment-list-home"></div></div></div>
   
   <div id="view-equipment" style="display:none"><div style="padding:14px"><div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div><div style="display:flex;gap:10px;margin-bottom:10px"><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات</button><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ حذف الكل</button></div><div id="equipment-list"></div></div></div>
@@ -127,7 +126,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
   <button class="fab" id="fab-btn">+</button>
 </div>
 
-<!-- النوافذ المنبثقة (تم اختصارها للحفاظ على الطول ولكنها موجودة كاملة في الأصل) -->
+<!-- النوافذ المنبثقة (نفسها كما كانت) -->
 <div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">دورة الصيانة</label><input class="form-input" type="number" id="eq-interval" value="250"></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الاسم الكامل *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label">رقم الهاتف</label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label">رقم رخصة القيادة</label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label">تاريخ انتهاء الرخصة</label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
@@ -474,10 +473,8 @@ function deleteAllEquipment() {
     }
     if (confirm('⚠️ تحذير: سيتم حذف جميع المعدات (' + equipmentData.length + ' معدة) بشكل نهائي!\n\nهل أنت متأكد من رغبتك في حذف جميع المعدات؟')) {
         showToast('🗑️ جاري حذف ' + equipmentData.length + ' معدة...');
-        let deletedCount = 0;
         equipmentData.forEach(function(equipment) {
             deleteFromFirebase('equipment', equipment.id);
-            deletedCount++;
         });
         setTimeout(function() {
             showToast('✅ تم حذف جميع المعدات بنجاح');
@@ -497,10 +494,8 @@ function deleteAllFuelRecords() {
     }
     if (confirm('⚠️ تحذير: سيتم حذف جميع سجلات الوقود (' + fuelData.length + ' سجل) بشكل نهائي!\n\nهل أنت متأكد؟')) {
         showToast('🗑️ جاري حذف ' + fuelData.length + ' سجل وقود...');
-        let deletedCount = 0;
         fuelData.forEach(function(record) {
             deleteFromFirebase('fuelRecords', record.id);
-            deletedCount++;
         });
         setTimeout(function() {
             showToast('✅ تم حذف جميع سجلات الوقود بنجاح');
@@ -521,10 +516,8 @@ function deleteAllMaintenance() {
     }
     if (confirm('⚠️ تحذير: سيتم حذف جميع الصيانات المجدولة (' + scheduled.length + ' صيانة) بشكل نهائي!\n\nهل أنت متأكد؟')) {
         showToast('🗑️ جاري حذف ' + scheduled.length + ' صيانة...');
-        let deletedCount = 0;
         scheduled.forEach(function(maint) {
             deleteFromFirebase('maintenanceSchedules', maint.id);
-            deletedCount++;
         });
         setTimeout(function() {
             showToast('✅ تم حذف جميع الصيانات المجدولة بنجاح');
@@ -544,10 +537,8 @@ function deleteAllInventory() {
     }
     if (confirm('⚠️ تحذير: سيتم حذف جميع أصناف المخزون (' + inventoryItems.length + ' صنف) بشكل نهائي!\n\nهل أنت متأكد؟')) {
         showToast('🗑️ جاري حذف ' + inventoryItems.length + ' صنف...');
-        let deletedCount = 0;
         inventoryItems.forEach(function(item) {
             deleteFromFirebase('inventoryItems', item.id);
-            deletedCount++;
         });
         setTimeout(function() {
             showToast('✅ تم حذف جميع أصناف المخزون بنجاح');
@@ -1147,7 +1138,6 @@ function generateEquipmentMaintenanceOrder(eqId) {
         '<div style="margin-top:30px"><p>التوقيع: ______________</p><p>مهندس الصيانة: ______________</p></div>' +
         '</body></html>';
     
-    // تحسين: استخدام Blob لتجنب مشكلة حظر النوافذ المنبثقة
     var blob = new Blob([html], { type: 'text/html' });
     var url = URL.createObjectURL(blob);
     var win = window.open(url, '_blank');
@@ -2872,7 +2862,7 @@ function exportInventoryExcel() {
 }
 
 // ==================== دوال الاستيراد ====================
-// [IMPROVED] دالة معالجة ملف المعدات مع معالجة محسنة للأخطاء
+// دالة معالجة ملف المعدات
 function handleEquipmentFileUpload(inputElement) {
     var file = inputElement.files[0];
     if (!file) {
@@ -2896,7 +2886,6 @@ function handleEquipmentFileUpload(inputElement) {
             var data = new Uint8Array(e.target.result);
             var workbook = XLSX.read(data, { type: 'array' });
             
-            // البحث عن الأوراق المتوقعة
             var equipmentSheet = workbook.Sheets['معدات الموقع'] || workbook.Sheets[workbook.SheetNames[0]];
             var dailySheet = workbook.Sheets['ورقة1'] || (workbook.SheetNames.length > 1 ? workbook.Sheets[workbook.SheetNames[1]] : null);
             
@@ -2985,7 +2974,6 @@ function importEquipmentData() {
     var headers = sheet[0];
     var startRow = 1;
     
-    // التعرف على الأعمدة - مرن للتعامل مع تنسيقات مختلفة
     var colIndex = {
         code: -1, sapCode: -1, name: -1, type: -1, chassis: -1, location: -1,
         engineModel: -1, engineSN: -1, arrivalDate: -1, arrivalHours: -1,
@@ -3025,7 +3013,6 @@ function importEquipmentData() {
     var processed = 0;
     var totalRows = 0;
     
-    // حساب عدد الصفوف الصالحة
     for (var i = startRow; i < sheet.length; i++) {
         var row = sheet[i];
         if (!row || row.length < 2) continue;
@@ -3071,11 +3058,23 @@ function importEquipmentData() {
         
         var remaining = nextHours - currentHours;
         var status = '';
-        if (colIndex.status !== -1 && row[colIndex.status]) status = row[colIndex.status].toString().trim();
-        else if (remaining <= 0) status = 'متأخر';
-        else if (remaining <= 10) status = 'عاجل';
-        else if (remaining <= 50) status = 'قريب';
-        else status = 'يعمل';
+        if (colIndex.status !== -1 && row[colIndex.status]) {
+            status = row[colIndex.status].toString().trim();
+        } else {
+            // الحفاظ على الحالة الحالية إذا كانت موجودة، وإلا تعيين حالة افتراضية
+            var existingEq = equipmentData.find(function(e) { return e.code === internalCode || e.sapCode === internalCode; });
+            if (existingEq && existingEq.status) {
+                status = existingEq.status;
+            } else if (remaining <= 0) {
+                status = 'متأخر';
+            } else if (remaining <= 10) {
+                status = 'عاجل';
+            } else if (remaining <= 50) {
+                status = 'قريب';
+            } else {
+                status = 'يعمل';
+            }
+        }
         
         var name = internalCode;
         if (colIndex.name !== -1 && row[colIndex.name]) name = row[colIndex.name].toString().trim();
@@ -3134,7 +3133,7 @@ function importEquipmentData() {
                 arrivalHours: arrivalHours,
                 lastMaintenanceDate: lastMaintenanceDate || existingEquipment.lastMaintenanceDate,
                 lastMaintenanceHours: lastMaintenanceHours,
-                status: status,
+                status: status, // الحفاظ على الحالة الأصلية إذا كانت موجودة
                 notes: notes || existingEquipment.notes,
                 filters: existingEquipment.filters || {},
                 maintenanceLogs: existingEquipment.maintenanceLogs || [],
@@ -3330,7 +3329,7 @@ function finalizeImport() {
     }, 1500);
 }
 
-// [IMPROVED] دالة معالجة ملف المخزون مع معالجة محسنة للأخطاء
+// دالة معالجة ملف المخزون SOH - الأعمدة: 1=رقم القطعة, 2=اسم القطعة, 3=نوع القطعة, 4=الكمية
 function handleInventoryFileUpload(inputElement) {
     var file = inputElement.files[0];
     if (!file) {
@@ -3358,23 +3357,11 @@ function handleInventoryFileUpload(inputElement) {
             }
             
             var cleanRows = [];
-            var headers = rows[0];
-            
-            // التعرف على الأعمدة المتوقعة
-            var materialCol = -1, descCol = -1, categoryCol = -1, qtyCol = -1;
-            for (var i = 0; i < headers.length; i++) {
-                var header = headers[i] ? headers[i].toString().trim().toLowerCase() : '';
-                if (header.includes('كود') || header.includes('رقم') || header.includes('material') || header.includes('part')) materialCol = i;
-                if (header.includes('اسم') || header.includes('وصف') || header.includes('description') || header.includes('name')) descCol = i;
-                if (header.includes('تصنيف') || header.includes('category') || header.includes('نوع')) categoryCol = i;
-                if (header.includes('كمية') || header.includes('qty') || header.includes('quantity') || header.includes('stock')) qtyCol = i;
-            }
-            
-            // إذا لم يتم العثور على أعمدة، نفترض التنسيق القياسي (عمود 0: كود، 1: اسم، 2: تصنيف، 3: كمية)
-            if (materialCol === -1) materialCol = 0;
-            if (descCol === -1) descCol = 1;
-            if (categoryCol === -1) categoryCol = 2;
-            if (qtyCol === -1) qtyCol = 3;
+            // الأعمدة الثابتة: العمود 0 = رقم القطعة، العمود 1 = اسم القطعة، العمود 2 = نوع القطعة، العمود 3 = الكمية
+            var materialCol = 0;
+            var descCol = 1;
+            var categoryCol = 2;
+            var qtyCol = 3;
             
             for (var i = 1; i < rows.length; i++) {
                 var row = rows[i];
@@ -3518,7 +3505,6 @@ function confirmInventoryImport() {
     var allUpdates = {};
     var updated = 0, created = 0;
     
-    // معالجة على دفعات صغيرة لمنع تجاوز الحد
     var batchSize = 300;
     var itemsToProcess = pendingInventoryData.slice();
     
@@ -3659,11 +3645,23 @@ function refreshUI() {
         var equipmentListHtml = '';
         equipmentData.filter(function(e) { return e.name.includes(search) || e.code.includes(search); }).forEach(function(eq) {
             var rem = hoursRemaining(eq);
-            var remClamped = Math.max(0, Math.min(rem, 250));
-            var gWidth = (remClamped / 250) * 100;
-            var gColor = rem <= 50 ? '#ef4444' : rem <= 100 ? '#f59e0b' : '#10b981';
-            var remLabel = rem <= 0 ? '⚠️ تجاوز ' + Math.abs(rem) + ' س' : rem <= 50 ? '🔴 ' + rem + ' س' : rem <= 100 ? '🟡 ' + rem + ' س' : '🟢 ' + rem + ' س';
+            var interval = eq.interval || 250;
+            var GAUGE_MAX = interval;
+            var remainingClamped = Math.max(0, Math.min(rem, GAUGE_MAX));
+            var gaugeWidth = (remainingClamped / GAUGE_MAX) * 100;
+            
+            var gaugeColor;
+            if (rem <= 0) gaugeColor = '#ef4444';
+            else if (rem <= 50) gaugeColor = '#ef4444';
+            else if (rem <= 100) gaugeColor = '#f59e0b';
+            else gaugeColor = '#10b981';
+            
+            var remLabel = rem <= 0 ? '⚠️ تجاوز ' + Math.abs(rem) + ' س' : 
+                           rem <= 50 ? '🔴 ' + rem + ' س' : 
+                           rem <= 100 ? '🟡 ' + rem + ' س' : '🟢 ' + rem + ' س';
+            
             var sBadge = '<span class="badge ' + (eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped') + '" style="font-size:10px;padding:2px 6px">' + eq.status + '</span>';
+            
             equipmentListHtml += '<div class="equipment-card" data-eqid="' + eq.id + '" style="padding:5px 8px;cursor:pointer;margin-bottom:6px">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">' +
                 '<div style="flex:1;min-width:0"><div class="card-title" style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(eq.name) + '</div>' +
@@ -3672,14 +3670,14 @@ function refreshUI() {
                 '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:4px 6px;margin-bottom:3px">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;font-size:9px">' +
                 '<span style="color:#6b7a8d">⏱️ ' + formatNumber(eq.hours) + ' س</span>' +
-                '<span style="color:' + gColor + ';font-weight:800;font-size:10px">' + remLabel + '</span>' +
+                '<span style="color:' + gaugeColor + ';font-weight:800;font-size:10px">' + remLabel + '</span>' +
                 '<span style="color:#6b7a8d">🔧 ' + formatNumber(eq.nextHours) + ' س</span></div>' +
                 '<div style="position:relative;height:12px;background:rgba(0,0,0,0.08);border-radius:6px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.15)">' +
                 '<div style="position:absolute;top:0;right:0;width:20%;height:100%;background:rgba(239,68,68,0.12);border-left:1px dashed rgba(239,68,68,0.3)"></div>' +
                 '<div style="position:absolute;top:0;right:20%;width:20%;height:100%;background:rgba(245,158,11,0.12);border-left:1px dashed rgba(245,158,11,0.3)"></div>' +
-                '<div style="height:100%;width:' + gWidth + '%;background:linear-gradient(90deg,' + gColor + 'cc,' + gColor + ');border-radius:6px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);position:relative">' +
+                '<div style="height:100%;width:' + gaugeWidth + '%;background:linear-gradient(90deg,' + gaugeColor + 'cc,' + gaugeColor + ');border-radius:6px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);position:relative">' +
                 '<div style="position:absolute;left:2px;top:50%;transform:translateY(-50%);width:4px;height:8px;background:rgba(255,255,255,0.7);border-radius:2px"></div></div></div>' +
-                '<div style="display:flex;justify-content:space-between;font-size:8px;color:#9ca3af;margin-top:2px"><span>0</span><span>50</span><span>100</span><span>250 س</span></div></div>' +
+                '<div style="display:flex;justify-content:space-between;font-size:8px;color:#9ca3af;margin-top:2px"><span>0</span><span>' + Math.round(interval * 0.2) + '</span><span>' + Math.round(interval * 0.4) + '</span><span>' + interval + ' س</span></div></div>' +
                 '<div style="display:flex;justify-content:flex-end">' +
                 (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:2px 7px;border-radius:5px;cursor:pointer;font-size:9px">✏️ تعديل</button>' : '') +
                 '</div></div>';
@@ -3799,29 +3797,20 @@ function updateHomeStatsAndList() {
     sorted.forEach(function(eq) {
         var remaining = hoursRemaining(eq);
         var interval = eq.interval || 250;
-        var GAUGE_MAX = interval; // استخدام دورة الصيانة الفعلية
+        var GAUGE_MAX = interval;
         var remainingClamped = Math.max(0, Math.min(remaining, GAUGE_MAX));
         var gaugeWidth = (remainingClamped / GAUGE_MAX) * 100;
-
-        var gaugeColor, gaugeBg;
-        if (remaining <= 0) {
-            gaugeColor = '#ef4444';
-        } else if (remaining <= 50) {
-            gaugeColor = '#ef4444';
-        } else if (remaining <= 100) {
-            gaugeColor = '#f59e0b';
-        } else {
-            gaugeColor = '#10b981';
-        }
-
-        var remainingLabel = remaining <= 0
-            ? '⚠️ تجاوز ' + Math.abs(remaining) + ' س'
-            : remaining <= 50
-                ? '🔴 ' + remaining + ' س'
-                : remaining <= 100
-                    ? '🟡 ' + remaining + ' س'
-                    : '🟢 ' + remaining + ' س';
-
+        
+        var gaugeColor;
+        if (remaining <= 0) gaugeColor = '#ef4444';
+        else if (remaining <= 50) gaugeColor = '#ef4444';
+        else if (remaining <= 100) gaugeColor = '#f59e0b';
+        else gaugeColor = '#10b981';
+        
+        var remainingLabel = remaining <= 0 ? '⚠️ تجاوز ' + Math.abs(remaining) + ' س' : 
+                             remaining <= 50 ? '🔴 ' + remaining + ' س' : 
+                             remaining <= 100 ? '🟡 ' + remaining + ' س' : '🟢 ' + remaining + ' س';
+        
         var statusBadge = '';
         if (eq.status === 'يعمل') statusBadge = '<span class="badge badge-working" style="font-size:9px;padding:2px 5px">يعمل</span>';
         else if (eq.status === 'صيانة') statusBadge = '<span class="badge badge-maintenance" style="font-size:9px;padding:2px 5px">صيانة</span>';
@@ -3878,7 +3867,6 @@ function updateHomeStatsAndList() {
     }, 100);
 }
 
-// [IMPROVED] دالة البحث العالمي
 function toggleGlobalSearch() {
     var bar = document.getElementById('global-search-bar');
     if (!bar) {
@@ -4288,7 +4276,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSavedSettings();
     
     // ربط الدوال بـ window لضمان الوصول من HTML
-    window.safeOpenEquipmentDetail = openEquipmentDetail;
     window.openEquipmentDetail = openEquipmentDetail;
     window.editEquipment = editEquipment;
     window.openFuelReportModal = openFuelReportModal;
@@ -4336,6 +4323,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.updateSingleMeterFromHome = updateSingleMeterFromHome;
     window.exportFuelReportByDateRange = exportFuelReportByDateRange;
     window.showFuelReportByDateRange = showFuelReportByDateRange;
+    window.showToast = showToast;
     
     console.log('✅ تم تهيئة جميع الأزرار والدوال بنجاح');
 });
