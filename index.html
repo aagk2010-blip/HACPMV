@@ -817,7 +817,7 @@ function initFirebase() {
 
 function debouncedRefresh() {
     if (refreshTimeout) clearTimeout(refreshTimeout);
-    refreshTimeout = setTimeout(function() { refreshUI(); }, 100);
+    refreshTimeout = setTimeout(function() { refreshUI(); }, 150);
 }
 
 function updateDriverSelects() {
@@ -940,8 +940,7 @@ function proceedToApp() {
     setTimeout(function() {
         checkOnlineAndWarn();
         checkDriverLicenses();
-        debouncedRefresh();
-    }, 2000);
+    }, 1500);
     
     setInterval(function() {
         lastAlertCheck = 0;
@@ -4386,8 +4385,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.completeMaintenance = completeMaintenance;
     window.confirmDelete = confirmDelete;
     window.closeModal = closeModal;
-    window.addExtraItemToApprove = function() {};
-    window.closeApproveModal = function() {};
+    // addExtraItemToApprove and closeApproveModal are set dynamically in completeMaintenance
     window.addInvAltField = addInvAltField;
     window.adjustInventoryQty = adjustInventoryQty;
     window.openLinkFilterModal = openLinkFilterModal;
