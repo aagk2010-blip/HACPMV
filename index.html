@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
-:root{--primary:#0d1b2a;--secondary:#1b2838;--accent:#e8a020;--accent-dark:#c88a18;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#0e7490;--purple:#8b5cf6;--pink:#ec4899;--light:#f0f4f8;--white:#ffffff;--gray:#6b7a8d;--shadow:0 4px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 3px rgba(0,0,0,0.05)}
+:root{color-scheme:light only;--primary:#0d1b2a;--secondary:#1b2838;--accent:#e8a020;--accent-dark:#c88a18;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#0e7490;--purple:#8b5cf6;--pink:#ec4899;--light:#f0f4f8;--white:#ffffff;--gray:#6b7a8d;--shadow:0 4px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 3px rgba(0,0,0,0.05)}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction:rtl;max-width:500px;margin:0 auto;min-height:100vh;padding-bottom:80px}
 .header{background:linear-gradient(135deg,var(--primary),var(--secondary));padding:20px 18px;color:white;position:relative;overflow:hidden}.header::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;background:rgba(232,160,32,0.08);border-radius:50%}.header-title{font-size:24px;font-weight:800}.header-sub{font-size:11px;opacity:0.7;margin-top:4px}
@@ -36,19 +36,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .status-badge{padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600}.status-success{background:#d1fae5;color:#065f46}.status-warning{background:#fef3c7;color:#b45309}.status-danger{background:#fee2e2;color:#dc2626}
 .smart-alert-bar{background:#fee2e2;border-right:4px solid var(--danger);margin:8px 14px;padding:10px;border-radius:12px;font-size:12px;display:flex;justify-content:space-between;align-items:center}
 .close-alert{cursor:pointer;font-weight:bold;background:none;border:none;font-size:16px}
-body.dark-mode{background:#0f172a}
-body.dark-mode .equipment-card,body.dark-mode .driver-card,body.dark-mode .fuel-card,
-body.dark-mode .maintenance-card,body.dark-mode .inventory-item-card,
-body.dark-mode .stat-card,body.dark-mode .detail-section,
-body.dark-mode .form-group,body.dark-mode .search-box,
-body.dark-mode .modal-overlay{background:#1e293b;color:#e2e8f0}
-body.dark-mode .card-title,body.dark-mode .detail-value{color:#f1f5f9}
-body.dark-mode .card-code,body.dark-mode .detail-label,body.dark-mode .stat-label{color:#94a3b8}
-body.dark-mode .form-input,body.dark-mode .form-select,body.dark-mode .form-textarea{color:#f1f5f9;background:#1e293b}
-body.dark-mode .progress-bar{background:#334155}
-body.dark-mode .tab-bar{background:rgba(15,23,42,0.97);border-top:1px solid #334155}
-body.dark-mode .tab-btn{color:#94a3b8}
-body.dark-mode .tab-btn.active{color:#e8a020}
+/* dark mode removed - light mode only */
 </style>
 </head>
 <body>
@@ -81,7 +69,7 @@ body.dark-mode .tab-btn.active{color:#e8a020}
 <!-- حاوية التطبيق -->
 <div id="app-container" style="display:none">
   <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="delete-all-equipment-global-btn" class="danger-btn" style="background:#dc2626;border:none;color:white;border-radius:20px;padding:6px 10px;font-size:11px;cursor:pointer;margin-right:5px">🗑️ حذف الكل</button></div></div>
-  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><button id="dark-mode-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer">🌙</button><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
+  <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
   <!-- الصفحة الرئيسية -->
@@ -3751,7 +3739,7 @@ function updateHomeStatsAndList() {
             '</div>' +
 
             // شريط العداد - مثل عداد السيارة
-            '<div style="background:' + gaugeBg + ';border-radius:8px;padding:4px 6px;margin-bottom:3px">' +
+            '<div style="background:#ffffff;border-radius:8px;padding:4px 6px;margin-bottom:3px;border:1px solid #e2e8f0">' +
 
             // تسمية فوق الشريط
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;font-size:9px">' +
@@ -4251,14 +4239,14 @@ document.addEventListener('DOMContentLoaded', function() {
     window.exportAllHoursExcel = exportAllHoursExcel;
     window.showHoursHistory = showHoursHistory;
     window.exportHoursHistoryToExcel = exportHoursHistoryToExcel;
-    window.toggleDarkMode = toggleDarkMode;
+    window.toggleDarkMode = function(){};
     window.toggleGlobalSearch = toggleGlobalSearch;
     window.globalSearch = globalSearch;
     window.updateBellCounter = updateBellCounter;
     window.checkMaintenanceAlerts = checkMaintenanceAlerts;
     window.checkDriverLicenses = checkDriverLicenses;
     window.sendWhatsAppMaintenanceAlert = sendWhatsAppMaintenanceAlert;
-    window.loadDarkMode = loadDarkMode;
+    window.loadDarkMode = function(){};
     window.initSessionTimeout = initSessionTimeout;
     window.deleteAllEquipment = deleteAllEquipment;
     window.deleteAllFuelRecords = deleteAllFuelRecords;
