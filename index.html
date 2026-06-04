@@ -3711,38 +3711,74 @@ function updateHomeStatsAndList() {
         
         var driver = driversData.find(function(d) { return d && String(d.id) === String(eq.assignedDriver); });
         
-        // حساب عرض الشريط بناءً على الساعات المتبقية (وليس النسبة)
+        // حساب شريط العداد - يعمل مثل عداد السيارة بالساعات المتبقية الفعلية
         var interval = eq.interval || 250;
         var remainingClamped = Math.max(0, Math.min(remaining, interval));
-        var hoursBarWidth = (remainingClamped / interval) * 100;
+        var gaugeWidth = (remainingClamped / interval) * 100; // 0% = فارغ، 100% = ممتلئ
 
-        // كارت مضغوط جداً - ارتفاع أقل بنسبة 50%
+        // ألوان الشريط حسب الساعات المتبقية بالضبط
+        var gaugeColor, gaugeBg;
+        if (remaining <= 0) {
+            gaugeColor = '#ef4444'; gaugeBg = '#fee2e2'; // أحمر داكن - تجاوز
+        } else if (remaining <= 50) {
+            gaugeColor = '#ef4444'; gaugeBg = '#fee2e2'; // أحمر - خطر
+        } else if (remaining <= 100) {
+            gaugeColor = '#f59e0b'; gaugeBg = '#fef3c7'; // أصفر - تحذير
+        } else {
+            gaugeColor = '#10b981'; gaugeBg = '#d1fae5'; // أخضر - آمن
+        }
+
+        // نص المتبقي
+        var remainingLabel = remaining <= 0
+            ? '⚠️ تجاوز ' + Math.abs(remaining) + ' س'
+            : remaining <= 50
+                ? '🔴 ' + remaining + ' س'
+                : remaining <= 100
+                    ? '🟡 ' + remaining + ' س'
+                    : '🟢 ' + remaining + ' س';
+
+        // كارت مضغوط جداً
         equipmentListHtml += '<div class="equipment-card" data-eqid="' + eq.id + '" style="padding:5px 8px;cursor:pointer;margin-bottom:6px">' +
+
             // سطر العنوان + الحالة
-            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">' +
             '<div style="flex:1;min-width:0">' +
             '<div class="card-title" style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(eq.name) + '</div>' +
             '<div class="card-code" style="font-size:9px;color:var(--gray)">' + escapeHtml(eq.code) + '</div>' +
             '</div>' +
             statusBadge +
             '</div>' +
-            // سطر العداد + المتبقي
-            '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">' +
-            '<span style="color:var(--gray)">⏱️ ' + formatNumber(eq.hours) + ' س</span>' +
-            '<span style="color:' + barBgColor + ';font-weight:700">' + statusText.text + '</span>' +
-            '<span style="color:var(--gray)">🔧 ' + formatNumber(eq.nextHours) + ' س</span>' +
+
+            // شريط العداد - مثل عداد السيارة
+            '<div style="background:' + gaugeBg + ';border-radius:8px;padding:4px 6px;margin-bottom:3px">' +
+
+            // تسمية فوق الشريط
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;font-size:9px">' +
+            '<span style="color:#6b7a8d">⏱️ ' + formatNumber(eq.hours) + ' س</span>' +
+            '<span style="color:' + gaugeColor + ';font-weight:800;font-size:10px">' + remainingLabel + '</span>' +
+            '<span style="color:#6b7a8d">🔧 ' + formatNumber(eq.nextHours) + ' س</span>' +
             '</div>' +
-            // شريط الحالة بالساعات المتبقية - أعرض وأوضح
-            '<div style="position:relative;height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;margin-bottom:1px">' +
-            '<div style="height:100%;width:' + hoursBarWidth + '%;background:' + barBgColor + ';border-radius:5px;transition:width 0.5s ease"></div>' +
+
+            // الشريط نفسه - سميك وواضح مع حركة سلسة
+            '<div style="position:relative;height:12px;background:rgba(0,0,0,0.08);border-radius:6px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.15)">' +
+            // طبقة الخلفية مقسمة: أحمر 0-50، أصفر 50-100، أخضر 100+
+            '<div style="position:absolute;top:0;right:0;width:' + Math.min(100,(50/interval)*100) + '%;height:100%;background:rgba(239,68,68,0.15)"></div>' +
+            '<div style="position:absolute;top:0;right:' + Math.min(100,(50/interval)*100) + '%;width:' + Math.min(100,(50/interval)*100) + '%;height:100%;background:rgba(245,158,11,0.15)"></div>' +
+            // شريط القيمة الفعلية
+            '<div style="height:100%;width:' + gaugeWidth + '%;background:linear-gradient(90deg,' + gaugeColor + 'cc,' + gaugeColor + ');border-radius:6px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);position:relative">' +
+            '<div style="position:absolute;left:2px;top:50%;transform:translateY(-50%);width:4px;height:8px;background:rgba(255,255,255,0.7);border-radius:2px"></div>' +
             '</div>' +
-            // تسميات الشريط
-            '<div style="display:flex;justify-content:space-between;font-size:8px;color:var(--gray);margin-bottom:2px">' +
-            '<span>0</span>' +
-            '<span style="font-weight:600;color:' + barBgColor + '">' + Math.max(0, remaining) + ' س متبقي</span>' +
-            '<span>' + interval + '</span>' +
             '</div>' +
-            // السائق + زر التعديل في نفس السطر
+
+            // تسميات أسفل الشريط
+            '<div style="display:flex;justify-content:space-between;font-size:8px;color:#9ca3af;margin-top:2px">' +
+            '<span>0 س</span>' +
+            '<span>' + Math.round(gaugeWidth) + '%</span>' +
+            '<span>' + interval + ' س</span>' +
+            '</div>' +
+            '</div>' +
+
+            // السائق + زر التعديل
             '<div style="display:flex;justify-content:space-between;align-items:center">' +
             (driver ? '<div style="font-size:9px;color:var(--gray)">👨‍✈️ ' + escapeHtml(driver.name) + '</div>' : '<div></div>') +
             (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:2px 7px;border-radius:5px;cursor:pointer;font-size:9px">✏️</button>' : '') +
