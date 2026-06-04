@@ -69,7 +69,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 
 <!-- حاوية التطبيق -->
 <div id="app-container" style="display:none">
-  <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="delete-all-equipment-global-btn" class="danger-btn" style="background:#dc2626;border:none;color:white;border-radius:20px;padding:6px 10px;font-size:11px;cursor:pointer;margin-right:5px">🗑️ حذف الكل</button></div></div>
+  <div class="status-bar"><span>🏗️ نظام صيانة الأسطول</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="delete-all-equipment-global-btn" class="danger-btn" style="background:#7f1d1d;border:none;color:white;border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer;margin-right:5px;font-weight:700">🗑️ مسح كل البيانات</button></div></div>
   <div class="header"><div class="header-title" id="header-title">📊 لوحة القيادة</div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
@@ -256,11 +256,10 @@ function hoursRemaining(equipment) {
 }
 
 function getRemainingPercent(equipment) {
-    if (!equipment.nextHours || equipment.nextHours <= 0) return 0;
     const remaining = hoursRemaining(equipment);
-    const total = equipment.interval || 250;
+    const GAUGE_MAX = 250;
     if (remaining <= 0) return 0;
-    let percent = (remaining / total) * 100;
+    let percent = (remaining / GAUGE_MAX) * 100;
     return Math.min(100, Math.max(0, percent));
 }
 
@@ -460,6 +459,46 @@ function deleteFromFirebase(path, id) {
     }).catch(function(e) {
         showToast('خطأ في الحذف: ' + e.message, true);
     });
+}
+
+function deleteAllData() {
+    if (!hasPermission('all')) {
+        showToast('غير مصرح - هذه الخاصية للمدير فقط', true);
+        return;
+    }
+    var totalItems = equipmentData.length + fuelData.length + maintenanceSchedules.length + inventoryItems.length + driversData.length;
+    if (totalItems === 0) {
+        showToast('لا توجد بيانات للحذف');
+        return;
+    }
+    // تأكيد أول
+    if (!confirm('⚠️ تحذير شديد الخطورة!\n\nسيتم حذف جميع البيانات المسجلة نهائياً:\n• ' + equipmentData.length + ' معدة\n• ' + driversData.length + ' سائق\n• ' + fuelData.length + ' سجل وقود\n• ' + maintenanceSchedules.length + ' صيانة\n• ' + inventoryItems.length + ' صنف مخزون\n\nهل أنت متأكد من رغبتك في حذف جميع البيانات؟')) {
+        return;
+    }
+    // تأكيد ثانٍ
+    if (!confirm('⛔ تأكيد نهائي!\n\nلا يمكن التراجع عن هذه العملية.\nسيتم حذف ' + totalItems + ' عنصر بشكل دائم.\n\nاضغط موافق للتأكيد النهائي وحذف كل البيانات.')) {
+        return;
+    }
+    showToast('🗑️ جاري حذف جميع البيانات...');
+    var paths = [
+        { data: equipmentData, path: 'equipment' },
+        { data: driversData, path: 'drivers' },
+        { data: fuelData, path: 'fuelRecords' },
+        { data: maintenanceSchedules, path: 'maintenanceSchedules' },
+        { data: inventoryItems, path: 'inventoryItems' },
+        { data: equipmentFilterLinks, path: 'equipmentFilterLinks' },
+        { data: equipmentOilLinks, path: 'equipmentOilLinks' },
+        { data: filterAlternatives, path: 'filterAlternatives' }
+    ];
+    paths.forEach(function(p) {
+        p.data.forEach(function(item) {
+            if (fbDb && item.id) fbDb.ref(p.path + '/' + item.id).remove().catch(function(e) { console.error(e); });
+        });
+    });
+    setTimeout(function() {
+        showToast('✅ تم حذف جميع البيانات بنجاح');
+        forceRefreshData();
+    }, 2500);
 }
 
 function deleteAllEquipment() {
@@ -3645,8 +3684,7 @@ function refreshUI() {
         var equipmentListHtml = '';
         equipmentData.filter(function(e) { return e.name.includes(search) || e.code.includes(search); }).forEach(function(eq) {
             var rem = hoursRemaining(eq);
-            var interval = eq.interval || 250;
-            var GAUGE_MAX = interval;
+            var GAUGE_MAX = 250;
             var remainingClamped = Math.max(0, Math.min(rem, GAUGE_MAX));
             var gaugeWidth = (remainingClamped / GAUGE_MAX) * 100;
             
@@ -3797,7 +3835,7 @@ function updateHomeStatsAndList() {
     sorted.forEach(function(eq) {
         var remaining = hoursRemaining(eq);
         var interval = eq.interval || 250;
-        var GAUGE_MAX = interval;
+        var GAUGE_MAX = 250;
         var remainingClamped = Math.max(0, Math.min(remaining, GAUGE_MAX));
         var gaugeWidth = (remainingClamped / GAUGE_MAX) * 100;
         
@@ -4192,7 +4230,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (directLoginSubmit) directLoginSubmit.onclick = function() { directLogin(); };
     if (secureLoginSubmit) secureLoginSubmit.onclick = function() { secureLogin(); };
     if (rememberMode) rememberMode.onchange = function() { saveLoginMode(); };
-    if (deleteAllEquipmentGlobalBtn) deleteAllEquipmentGlobalBtn.onclick = function() { deleteAllEquipment(); };
+    if (deleteAllEquipmentGlobalBtn) deleteAllEquipmentGlobalBtn.onclick = function() { deleteAllData(); };
     if (deleteAllEquipmentBtn) deleteAllEquipmentBtn.onclick = function() { deleteAllEquipment(); };
     if (deleteAllFuelBtn) deleteAllFuelBtn.onclick = function() { deleteAllFuelRecords(); };
     if (deleteAllMaintenanceBtn) deleteAllMaintenanceBtn.onclick = function() { deleteAllMaintenance(); };
