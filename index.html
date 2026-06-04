@@ -903,16 +903,15 @@ function proceedToApp() {
     if (!hasPermission('all')) {
         var fabButton = document.getElementById('fab-btn');
         if (fabButton) fabButton.style.display = 'none';
-        var importTab = document.querySelector('.tab-btn[data-view="import"]');
-        if (importTab) importTab.style.display = 'none';
+        // المشاهد يرى جميع الصفحات - نخفي أزرار التعديل والحذف فقط
         var adminBtnIds = [
             'add-fuel-btn','add-maintenance-btn','add-inventory-btn',
             'order-report-btn','meter-update-btn','whatsapp-maint-btn',
             'delete-all-equipment-btn','delete-all-fuel-btn',
             'delete-all-maintenance-btn','delete-all-inventory-btn',
-            'delete-all-equipment-global-btn','force-refresh-btn',
+            'delete-all-equipment-global-btn',
             'upload-equipment-excel-btn','upload-inventory-soh-btn',
-            'export-hours-excel-btn','confirm-import-btn','cancel-import-btn',
+            'confirm-import-btn','cancel-import-btn',
             'confirm-inventory-import-btn','cancel-inventory-import-btn'
         ];
         adminBtnIds.forEach(function(id) {
@@ -4017,10 +4016,6 @@ function switchView(view) {
     document.getElementById('view-fuel').style.display = view === 'fuel' ? 'block' : 'none';
     document.getElementById('view-maintenance').style.display = view === 'maintenance' ? 'block' : 'none';
     document.getElementById('view-inventory').style.display = view === 'inventory' ? 'block' : 'none';
-    if (view === 'import' && !hasPermission('all')) {
-        showToast('⛔ غير مصرح - هذه الصفحة للمدير فقط', true);
-        return;
-    }
     document.getElementById('view-import').style.display = view === 'import' ? 'block' : 'none';
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
         if (btn.dataset.view === view) btn.classList.add('active');
