@@ -861,10 +861,15 @@ function proceedToApp() {
     initFirebase();
     initIndexedDB();
     initSessionTimeout();
-    
+
+    // تعيين التبويب الرئيسي كـ active وعرض الصفحة الرئيسية
+    setTimeout(function() { switchView('home'); }, 100);
+
     setTimeout(function() {
         checkOnlineAndWarn();
         checkDriverLicenses();
+        // تأكيد عرض البيانات بعد تحميل Firebase
+        debouncedRefresh();
     }, 2000);
     
     setInterval(function() {
