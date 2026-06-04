@@ -816,24 +816,63 @@ function proceedToApp() {
     appContainer.style.display = 'block';
     
     if (userNameDisplay) {
-        userNameDisplay.innerHTML = escapeHtml(currentUser.name) + ' (' + (currentUser.role === 'admin' ? 'مدير' : 'مشاهد') + ')';
+        userNameDisplay.innerHTML = escapeHtml(currentUser.name) + ' <span style="font-size:9px;padding:2px 7px;border-radius:10px;background:' + (currentUser.role === 'admin' ? 'rgba(232,160,32,0.3)' : 'rgba(255,255,255,0.15)') + ';margin-right:4px">' + (currentUser.role === 'admin' ? '👑 مدير' : '👁️ مشاهد') + '</span>';
     }
     
     if (!hasPermission('all')) {
+        // إخفاء زر الإضافة العائم
         var fabButton = document.getElementById('fab-btn');
         if (fabButton) fabButton.style.display = 'none';
-        
+
+        // إخفاء تبويب الاستيراد بالكامل
         var importTab = document.querySelector('.tab-btn[data-view="import"]');
         if (importTab) importTab.style.display = 'none';
-        
-        var adminButtons = ['add-fuel-btn', 'add-maintenance-btn', 'add-inventory-btn', 'order-report-btn', 'meter-update-btn', 'whatsapp-maint-btn', 'delete-all-equipment-btn', 'delete-all-fuel-btn', 'delete-all-maintenance-btn', 'delete-all-inventory-btn', 'delete-all-equipment-global-btn'];
+
+        // إخفاء جميع أزرار العمليات الإدارية
+        var adminButtons = [
+            'add-fuel-btn','add-maintenance-btn','add-inventory-btn',
+            'order-report-btn','meter-update-btn','whatsapp-maint-btn',
+            'delete-all-equipment-btn','delete-all-fuel-btn',
+            'delete-all-maintenance-btn','delete-all-inventory-btn',
+            'delete-all-equipment-global-btn','force-refresh-btn',
+            'upload-equipment-excel-btn','upload-inventory-soh-btn',
+            'export-hours-excel-btn'
+        ];
         adminButtons.forEach(function(id) {
             var btn = document.getElementById(id);
             if (btn) btn.style.display = 'none';
         });
-        
+
+        // CSS شامل لإخفاء كل أدوات التعديل والحذف والحفظ
         var style = document.createElement('style');
-        style.textContent = '.save-btn.danger-btn,button[onclick*="deleteFromFirebase"],button[onclick*="editEquipment"],button[onclick*="editDriver"],button[onclick*="editInventoryItem"],.qty-btn,.fab{display:none!important}';
+        style.textContent = [
+            '.save-btn,',
+            '.danger-btn,',
+            '.fab,',
+            '.qty-btn,',
+            '.edit-equipment-btn,',
+            'button[onclick*="delete"],',
+            'button[onclick*="edit"],',
+            'button[onclick*="save"],',
+            'button[onclick*="add"],',
+            'button[onclick*="confirm"],',
+            'button[onclick*="approve"],',
+            'button[onclick*="complete"],',
+            'button[onclick*="openAdd"],',
+            'button[onclick*="openEdit"],',
+            'button[onclick*="adjustInventory"],',
+            'button[onclick*="deleteFromFirebase"],',
+            'button[onclick*="editEquipment"],',
+            'button[onclick*="editDriver"],',
+            'button[onclick*="editInventoryItem"],',
+            'button[onclick*="updateFuel"],',
+            'button[onclick*="updateMaintenance"],',
+            'button[onclick*="openFuelEdit"],',
+            'button[onclick*="openEditFuel"],',
+            'button[onclick*="deleteFuel"],',
+            '#fab-btn',
+            '{display:none!important}'
+        ].join('');
         document.head.appendChild(style);
     }
     
@@ -903,6 +942,7 @@ function openAddEquipmentModal() {
 }
 
 function saveEquipment() {
+    if (!hasPermission("all")) { showToast("⛔ غير مصرح"); return; }
     var equipment = {
         code: document.getElementById('eq-code').value.trim(),
         name: document.getElementById('eq-name').value.trim(),
@@ -1197,6 +1237,7 @@ function openAddDriverModal() {
 }
 
 function saveDriver() {
+    if (!hasPermission("all")) { showToast("⛔ غير مصرح"); return; }
     var driver = {
         name: document.getElementById('driver-name').value.trim(),
         phone: document.getElementById('driver-phone').value,
@@ -1306,6 +1347,7 @@ function openAddFuelModal() {
 }
 
 function saveFuelRecord() {
+    if (!hasPermission("all")) { showToast("⛔ غير مصرح"); return; }
     var equipmentId = document.getElementById('fuel-equipment').value;
     if (!equipmentId) {
         showToast('اختر المعدة');
@@ -1347,6 +1389,7 @@ function openEditFuelModal(id) {
 }
 
 function updateFuelRecord() {
+    if (!hasPermission("all")) { showToast("⛔ غير مصرح"); return; }
     if (!currentEditingFuelId) {
         showToast('خطأ في التعديل');
         return;
@@ -1367,6 +1410,7 @@ function updateFuelRecord() {
 }
 
 function deleteFuelRecord() {
+    if (!hasPermission("all")) { showToast("⛔ غير مصرح"); return; }
     if (!currentEditingFuelId) return;
     if (confirm('هل أنت متأكد من حذف هذا السجل؟')) {
         deleteFromFirebase('fuelRecords', currentEditingFuelId);
@@ -1668,6 +1712,7 @@ function openAddMaintenanceModal() {
 }
 
 function saveMaintenanceSchedule() {
+    if (!hasPermission("all")) { showToast("⛔ غير مصرح"); return; }
     var equipmentId = document.getElementById('maint-equipment').value;
     if (!equipmentId) {
         showToast('اختر المعدة');
@@ -1991,6 +2036,7 @@ function openAddInventoryItemModal() {
 }
 
 function saveInventoryItem() {
+    if (!hasPermission("all")) { showToast("⛔ غير مصرح"); return; }
     var alts = [];
     var altContainer = document.getElementById('inv-alt-list');
     if (altContainer) {
@@ -2066,6 +2112,7 @@ function editInventoryItem(id) {
 }
 
 function adjustInventoryQty(id, delta) {
+    if (!hasPermission("all")) { showToast("⛔ غير مصرح"); return; }
     var item = inventoryItems.find(function(i) { return i.id === id; });
     if (item) {
         item.qty = Math.max(0, (item.qty || 0) + delta);
