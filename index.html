@@ -548,18 +548,17 @@ function deleteAllMaintenance() {
         showToast('غير مصرح - هذه الخاصية للمدير فقط', true);
         return;
     }
-    const scheduled = maintenanceSchedules.filter(function(m) { return m.status === 'مجدول'; });
-    if (scheduled.length === 0) {
-        showToast('لا توجد صيانات مجدولة للحذف');
+    if (maintenanceSchedules.length === 0) {
+        showToast('لا توجد صيانات للحذف');
         return;
     }
-    if (confirm('⚠️ تحذير: سيتم حذف جميع الصيانات المجدولة (' + scheduled.length + ' صيانة) بشكل نهائي!\n\nهل أنت متأكد؟')) {
-        showToast('🗑️ جاري حذف ' + scheduled.length + ' صيانة...');
-        scheduled.forEach(function(maint) {
+    if (confirm('⚠️ تحذير: سيتم حذف جميع الصيانات (' + maintenanceSchedules.length + ' صيانة) بشكل نهائي!\n\nهل أنت متأكد؟')) {
+        showToast('🗑️ جاري حذف ' + maintenanceSchedules.length + ' صيانة...');
+        maintenanceSchedules.forEach(function(maint) {
             deleteFromFirebase('maintenanceSchedules', maint.id);
         });
         setTimeout(function() {
-            showToast('✅ تم حذف جميع الصيانات المجدولة بنجاح');
+            showToast('✅ تم حذف جميع الصيانات بنجاح');
             forceRefreshData();
         }, 2000);
     }
@@ -3682,7 +3681,7 @@ function refreshUI() {
     if (activeView === 'equipment') {
         var search = document.getElementById('search-equipment') ? document.getElementById('search-equipment').value : '';
         var equipmentListHtml = '';
-        equipmentData.filter(function(e) { return e.name.includes(search) || e.code.includes(search); }).forEach(function(eq) {
+        equipmentData.filter(function(e) { return !search || (e.name && e.name.includes(search)) || (e.code && e.code.includes(search)); }).forEach(function(eq) {
             var rem = hoursRemaining(eq);
             var GAUGE_MAX = 250;
             var remainingClamped = Math.max(0, Math.min(rem, GAUGE_MAX));
