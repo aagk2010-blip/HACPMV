@@ -2454,7 +2454,7 @@ function renderInventory() {
             '<div class="grid-3" style="margin-top:10px">' +
             '<div><div class="detail-label">الأصلي</div><div class="detail-value">' + item.qty + '</div></div>' +
             '<div><div class="detail-label">البدائل</div><div class="detail-value">' + linkedAltsQty + '</div></div>' +
-            '<div><div class="detail-label">الإجمالي</div><div class="detail-value">' + total + '</div></div>' +
+            '<div><div class="detail-label">الإجمالي</div><div class="detail-value" style="color:var(--primary);font-weight:700">' + (total + linkedAltsQty) + '</div></div>' +
             '</div>' +
             (item.fullDescription && item.fullDescription !== item.name ? '<div style="font-size:10px;color:var(--gray);margin-top:5px;border-top:1px solid #eef2f6;padding-top:5px">📝 ' + escapeHtml(item.fullDescription.substring(0, 80)) + (item.fullDescription.length > 80 ? '...' : '') + '</div>' : '') +
             '<div class="grid-3" style="margin-top:6px;background:' + (enhancedShortage > 0 ? '#fee2e2' : '#d1fae5') + ';padding:6px;border-radius:8px">' +
