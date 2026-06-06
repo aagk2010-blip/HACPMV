@@ -2397,8 +2397,9 @@ function renderInventory() {
         }).filter(Boolean).join(', ');
         var alternatives = filterAlternatives.filter(function(alt) { return alt.mainFilterId === item.id; }).map(function(alt) {
             var altItem = inventoryItems.find(function(i) { return i.id === alt.alternativeFilterId; });
-            return altItem ? { name: altItem.name, partNo: altItem.partNo } : null;
+            return altItem ? { name: altItem.name, partNo: altItem.partNo, qty: altItem.qty || 0 } : null;
         }).filter(Boolean);
+        var linkedAltsQty = alternatives.reduce(function(s, a) { return s + a.qty; }, 0);
         var enhancedAvailable = enhancedNeeds[item.id] ? enhancedNeeds[item.id].available : total;
         var enhancedShortage = enhancedNeeds[item.id] ? enhancedNeeds[item.id].shortage : Math.max(0, needed - total);
         return '<div class="inventory-item-card" onclick="showInventoryItemDetail(\'' + item.id + '\')">' +
@@ -2413,7 +2414,7 @@ function renderInventory() {
             '</div>' +
             '<div class="grid-3" style="margin-top:10px">' +
             '<div><div class="detail-label">الأصلي</div><div class="detail-value">' + item.qty + '</div></div>' +
-            '<div><div class="detail-label">البدائل</div><div class="detail-value">' + (item.alts || []).reduce(function(s, a) { return s + a.qty; }, 0) + '</div></div>' +
+            '<div><div class="detail-label">البدائل</div><div class="detail-value">' + linkedAltsQty + '</div></div>' +
             '<div><div class="detail-label">الإجمالي</div><div class="detail-value">' + total + '</div></div>' +
             '</div>' +
             (item.fullDescription && item.fullDescription !== item.name ? '<div style="font-size:10px;color:var(--gray);margin-top:5px;border-top:1px solid #eef2f6;padding-top:5px">📝 ' + escapeHtml(item.fullDescription.substring(0, 80)) + (item.fullDescription.length > 80 ? '...' : '') + '</div>' : '') +
@@ -2465,7 +2466,7 @@ function showInventoryItemDetail(id) {
         '<div><div class="detail-label">التصنيف</div><div class="detail-value">' + getCategoryBadge(item.category) + '</div></div>' +
         '<div><div class="detail-label">رقم القطعة</div><div class="detail-value">' + escapeHtml(item.partNo) + '</div></div>' +
         '<div><div class="detail-label">الكمية الأصلية</div><div class="detail-value">' + item.qty + ' ' + item.unit + '</div></div>' +
-        '<div><div class="detail-label">البدائل الداخلية</div><div class="detail-value">' + (item.alts || []).reduce(function(s, a) { return s + a.qty; }, 0) + ' ' + item.unit + '</div></div>' +
+        '<div><div class="detail-label">البدائل المرتبطة</div><div class="detail-value">' + alternatives.reduce(function(s, a) { return s + (a.qty || 0); }, 0) + ' ' + item.unit + '</div></div>' +
         '<div><div class="detail-label">الإجمالي</div><div class="detail-value" style="color:' + (enhancedShortage > 0 ? 'var(--danger)' : 'var(--success)') + '">' + enhancedAvailable + ' ' + item.unit + '</div></div>' +
         '<div><div class="detail-label">الحد الأدنى</div><div class="detail-value">' + item.minQty + ' ' + item.unit + '</div></div>' +
         '<div><div class="detail-label">دورة التغيير</div><div class="detail-value">كل ' + (item.interval || 250) + ' س</div></div>' +
