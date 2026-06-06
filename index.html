@@ -166,7 +166,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 </div>
 
 <!-- النوافذ المنبثقة (نفسها كما كانت) -->
-<div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">🔄 دورة الصيانة</label><select class="form-select" id="eq-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="1000">كل 1000 ساعة</option></select></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
+<div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">🔄 دورة الصيانة</label><select class="form-select" id="eq-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="750">كل 750 ساعة</option><option value="1000">كل 1000 ساعة</option><option value="1250">كل 1250 ساعة</option><option value="1500">كل 1500 ساعة</option><option value="1750">كل 1750 ساعة</option><option value="2000">كل 2000 ساعة</option></select></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الاسم الكامل *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label">رقم الهاتف</label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label">رقم رخصة القيادة</label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label">تاريخ انتهاء الرخصة</label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
 
@@ -1030,7 +1030,6 @@ function saveEquipment() {
     
     if (editingEquipmentId) {
         var existing = equipmentData.find(function(e) { return e.id === editingEquipmentId; });
-        equipment.type = existing ? existing.type : equipment.type; // حفظ النوع الأصلي بدون تغيير
         equipment.filters = existing ? existing.filters || {} : {};
         equipment.maintenanceLogs = existing ? existing.maintenanceLogs || [] : [];
         equipment.hoursLog = existing ? existing.hoursLog || [] : [];
@@ -1062,20 +1061,19 @@ function editEquipment(id) {
     document.getElementById('eq-code').value = equipment.code || '';
     document.getElementById('eq-name').value = equipment.name || '';
     document.getElementById('eq-type').value = equipment.type || 'حفارة';
-    // قفل حقل النوع في وضع التعديل
-    document.getElementById('eq-type').disabled = true;
-    document.getElementById('eq-type-lock-msg').style.display = 'block';
+    document.getElementById('eq-type').disabled = false;
+    document.getElementById('eq-type-lock-msg').style.display = 'none';
     document.getElementById('eq-chassis').value = equipment.chassis || '';
     document.getElementById('eq-location').value = equipment.location || '';
     document.getElementById('eq-hours').value = equipment.hours || 0;
     document.getElementById('eq-next-hours').value = equipment.nextHours || 250;
     var eqIntervalSel = document.getElementById('eq-interval');
     var eqIntervalVal = equipment.interval || 250;
-    // Round to nearest valid option
-    if (eqIntervalVal <= 300) eqIntervalVal = 250;
-    else if (eqIntervalVal <= 750) eqIntervalVal = 500;
-    else eqIntervalVal = 1000;
-    eqIntervalSel.value = eqIntervalVal;
+    var validIntervals = [250, 500, 750, 1000, 1250, 1500, 1750, 2000];
+    var closest = validIntervals.reduce(function(prev, curr) {
+        return Math.abs(curr - eqIntervalVal) < Math.abs(prev - eqIntervalVal) ? curr : prev;
+    });
+    eqIntervalSel.value = closest;
     document.getElementById('eq-engine-model').value = equipment.engineModel || '';
     document.getElementById('eq-engine-sn').value = equipment.engineSN || '';
     document.getElementById('eq-arrival-date').value = equipment.arrivalDate || '';
@@ -3236,20 +3234,20 @@ function importEquipmentData() {
                 code: internalCode,
                 sapCode: internalCode,
                 name: name,
-                type: type,
+                type: existingEquipment.type || type,
                 chassis: chassis || existingEquipment.chassis,
                 location: location || existingEquipment.location,
                 assignedDriver: existingEquipment.assignedDriver || null,
                 hours: currentHours,
                 nextHours: nextHours,
-                interval: interval,
+                interval: existingEquipment.interval || interval,
                 engineModel: engineModel || existingEquipment.engineModel,
                 engineSN: engineSN || existingEquipment.engineSN,
                 arrivalDate: arrivalDate || existingEquipment.arrivalDate,
                 arrivalHours: arrivalHours,
                 lastMaintenanceDate: lastMaintenanceDate || existingEquipment.lastMaintenanceDate,
                 lastMaintenanceHours: lastMaintenanceHours,
-                status: status, // الحفاظ على الحالة الأصلية إذا كانت موجودة
+                status: status,
                 notes: notes || existingEquipment.notes,
                 filters: existingEquipment.filters || {},
                 maintenanceLogs: existingEquipment.maintenanceLogs || [],
