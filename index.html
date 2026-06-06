@@ -329,6 +329,17 @@ function getCategoryBadge(category) {
     return badges[category] || badges.other;
 }
 
+function getItemBadgeWithAltStatus(item) {
+    var altLink = filterAlternatives.find(function(alt) { return alt.alternativeFilterId === item.id; });
+    if (altLink) {
+        var mainItem = inventoryItems.find(function(i) { return i.id === altLink.mainFilterId; });
+        var mainName = mainItem ? escapeHtml(mainItem.name) : 'صنف آخر';
+        return '<span class="category-badge" style="background:#f3e8ff;color:#7c3aed">🔄 فلتر بديل</span>' +
+               '<span class="category-badge" style="background:#fef9c3;color:#92400e;font-size:9px" title="مرتبط بـ: ' + mainName + '">🔗 مرتبط بـ: ' + mainName + '</span>';
+    }
+    return getCategoryBadge(item.category);
+}
+
 function hasPermission(permission) {
     if (!currentUser) return false;
     if (currentUser.permissions && currentUser.permissions.includes('all')) return true;
@@ -2433,8 +2444,8 @@ function renderInventory() {
         return '<div class="inventory-item-card" onclick="showInventoryItemDetail(\'' + item.id + '\')">' +
             '<div class="card-header">' +
             '<div>' +
-            '<div class="card-title">' + (item.category === 'oil' ? '🛢️ ' : item.category === 'filter' ? '🔧 ' : '📦 ') + escapeHtml(item.name) + '</div>' +
-            '<div class="card-code">' + escapeHtml(item.partNo) + ' ' + getCategoryBadge(item.category) + '</div>' +
+            '<div class="card-title">' + (item.category === 'oil' ? '🛢️ ' : filterAlternatives.find(function(a){return a.alternativeFilterId===item.id;}) ? '🔄 ' : item.category === 'filter' ? '🔧 ' : '📦 ') + escapeHtml(item.name) + '</div>' +
+            '<div class="card-code">' + escapeHtml(item.partNo) + ' ' + getItemBadgeWithAltStatus(item) + '</div>' +
             (item.fullMaterial ? '<div class="card-code" style="font-size:9px;color:var(--info);margin-top:3px">📋 ' + escapeHtml(item.fullMaterial.substring(0, 50)) + (item.fullMaterial.length > 50 ? '...' : '') + '</div>' : '') +
             '<div style="font-size:10px;color:var(--info)">🔄 دورة ' + (item.interval || 250) + ' س</div>' +
             '</div>' +
@@ -2491,7 +2502,7 @@ function showInventoryItemDetail(id) {
     var enhancedAvailable = getTotalAvailableWithAlternatives(item.id);
     var enhancedShortage = Math.max(0, needed - enhancedAvailable);
     var contentHtml = '<div class="detail-section"><div class="grid-2">' +
-        '<div><div class="detail-label">التصنيف</div><div class="detail-value">' + getCategoryBadge(item.category) + '</div></div>' +
+        '<div><div class="detail-label">التصنيف</div><div class="detail-value">' + getItemBadgeWithAltStatus(item) + '</div></div>' +
         '<div><div class="detail-label">رقم القطعة</div><div class="detail-value">' + escapeHtml(item.partNo) + '</div></div>' +
         '<div><div class="detail-label">الكمية الأصلية</div><div class="detail-value">' + item.qty + ' ' + item.unit + '</div></div>' +
         '<div><div class="detail-label">البدائل المرتبطة</div><div class="detail-value">' + alternatives.reduce(function(s, a) { return s + (a.qty || 0); }, 0) + ' ' + item.unit + '</div></div>' +
