@@ -1221,8 +1221,8 @@ function importPMHistory(file) {
 
             workbook.SheetNames.forEach(function(sheetName) {
                 var ws = workbook.Sheets[sheetName];
-                // نقرأ مرتين: raw:true للأرقام، raw:false للنصوص
-                var rowsRaw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+                // raw:true للأرقام، defval:null لتمييز الفراغ عن القيمة
+                var rowsRaw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
                 var rowsStr = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
                 if (!rowsRaw || rowsRaw.length < 8) return;
 
@@ -1240,84 +1240,110 @@ function importPMHistory(file) {
                 }
                 if (!code) code = sheetName;
 
-                // ---- البحث عن صف الساعات (الاستراتيجية الجديدة) ----
-                // نبحث عن أول صف يحتوي 2+ أرقام بين 100 و999999
-                // هذا أكثر موثوقية من البحث عن 'Service Planed Hour'
+                // ---- إيجاد صف الساعات ----
+                // نبحث عن أول صف يحتوي 2+ أرقام صحيحة بين 100 و999999
                 var hoursRowIdx = -1;
-                var hoursRowArr = [];
+                var hoursRowRaw = [];
+                var startCol = -1;
 
-                for (var ri2 = 0; ri2 < Math.min(20, rowsRaw.length); ri2++) {
-                    var row = rowsRaw[ri2];
-                    var bigNums = [];
+                for (var ri2 = 0; ri2 < Math.min(25, rowsRaw.length); ri2++) {
+                    var row = rowsRaw[ri2] || [];
+                    var firstNumCol = -1;
+                    var numCount = 0;
                     for (var ci2 = 0; ci2 < row.length; ci2++) {
                         var v = row[ci2];
-                        // رقم كبير بين 100 و999999 (ساعات منطقية)
                         if (typeof v === 'number' && v > 100 && v < 999999 && v === Math.floor(v)) {
-                            bigNums.push(ci2);
+                            numCount++;
+                            if (firstNumCol < 0) firstNumCol = ci2;
                         }
                     }
-                    if (bigNums.length >= 2) {
+                    if (numCount >= 2) {
                         hoursRowIdx = ri2;
-                        hoursRowArr = row;
+                        hoursRowRaw = row;
+                        startCol = firstNumCol;
                         break;
                     }
                 }
-                if (hoursRowIdx < 0) {
-                    debugInfo.push(sheetName + ': لا توجد ساعات');
+                if (hoursRowIdx < 0 || startCol < 0) {
+                    debugInfo.push('⚠ ' + code + ': لا توجد ساعات');
                     return;
                 }
 
-                // ---- صف التواريخ (الصف التالي) ----
-                var datesRowArr = rowsStr[hoursRowIdx + 1] || [];
-
-                // ---- تحديد startCol ----
-                var startCol = -1;
-                for (var ci3 = 0; ci3 < hoursRowArr.length; ci3++) {
-                    var v2 = hoursRowArr[ci3];
-                    if (typeof v2 === 'number' && v2 > 100 && v2 < 999999) {
-                        startCol = ci3; break;
-                    }
-                }
-                if (startCol < 0) return;
+                // ---- صف التواريخ ----
+                var datesRowStr = rowsStr[hoursRowIdx + 1] || [];
 
                 // ---- بناء الجلسات ----
                 var sessions = [];
-                for (var c = startCol; c < hoursRowArr.length; c++) {
-                    var hv = hoursRowArr[c];
+                for (var c = startCol; c < hoursRowRaw.length; c++) {
+                    var hv = hoursRowRaw[c];
                     if (typeof hv !== 'number' || hv <= 100 || hv >= 999999) continue;
                     var hn = Math.floor(hv);
-                    var dtRaw = datesRowArr[c];
-                    var dt = '';
-                    if (dtRaw) {
-                        var dtStr = String(dtRaw).trim();
-                        // إذا كان serial date (رقم خماسي)
-                        if (/^\d{5}$/.test(dtStr)) {
-                            var d = new Date(Math.round((parseInt(dtStr) - 25569) * 86400000));
-                            dt = d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
-                        } else {
-                            dt = dtStr;
-                        }
+                    var dt = String(datesRowStr[c] || '').trim();
+                    if (/^\d{5}$/.test(dt)) {
+                        var d = new Date(Math.round((parseInt(dt) - 25569) * 86400000));
+                        dt = d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear();
                     }
                     sessions.push({ hours: hn, date: dt, colIndex: c, items: [] });
                 }
                 if (!sessions.length) return;
 
-                // ---- الأصناف: ابحث بعد صف الساعات ----
+                // ---- تحديد offset الأعمدة ----
+                // SheetJS يحذف الأعمدة الفارغة من البداية
+                // نحدد أين يقع S/No بالبحث عن أول خلية تساوي '1' أو رقم صحيح صغير
+                // في صف الأصناف الأول بعد صف الساعات
+                // الطريقة: نبحث عن 'Signed' أو 'Part no.' في صفوف الأصناف
+                // ونحدد colIndex الحقيقي لـ Signed بناءً على موضعه
+
+                // نبحث في أول 5 صفوف بعد الساعات عن 'Signed'
+                var signedCol = -1;  // عمود Signed الحقيقي في array
+                var snoCol = -1;     // عمود S/No
+                var itemCol = -1;    // عمود ITEM
+                var qtyCol = -1;     // عمود QTY
+
+                for (var ri3 = hoursRowIdx + 2; ri3 < Math.min(hoursRowIdx + 15, rowsStr.length); ri3++) {
+                    var r3 = rowsStr[ri3];
+                    for (var ci3 = 0; ci3 < r3.length; ci3++) {
+                        if (String(r3[ci3]).trim() === 'Signed' && signedCol < 0) {
+                            signedCol = ci3;
+                            // S/No عادةً قبل Signed بـ 3 أعمدة
+                            snoCol  = ci3 - 3;
+                            itemCol = ci3 - 2;
+                            qtyCol  = ci3 - 1;
+                            break;
+                        }
+                    }
+                    if (signedCol >= 0) break;
+                }
+
+                // إذا لم نجد Signed، نستخدم الـ default
+                if (signedCol < 0) {
+                    // افتراضي: إذا startCol=4 يعني أعمدة A,B محذوفة فـ Signed=3
+                    // إذا startCol=6 يعني أعمدة A,B موجودة فـ Signed=5
+                    signedCol = startCol - 1;
+                    snoCol    = startCol - 4;
+                    itemCol   = startCol - 3;
+                    qtyCol    = startCol - 2;
+                }
+
+                // ---- الأصناف ----
                 var currentItemName = '';
                 var currentItemQty  = '';
 
-                for (var ri3 = hoursRowIdx + 2; ri3 < rowsStr.length; ri3++) {
-                    var r     = rowsStr[ri3];
-                    var rRaw  = rowsRaw[ri3] || [];
-                    var sno   = String(r[2] || '').trim();
-                    var itm   = String(r[3] || '').trim();
-                    var qty   = String(r[4] || '').trim();
-                    var tag5  = String(r[5] || '').trim();
-                    var tag6  = String(r[6] || '').trim();
+                for (var ri4 = hoursRowIdx + 2; ri4 < rowsStr.length; ri4++) {
+                    var r     = rowsStr[ri4];
+                    var rRaw  = rowsRaw[ri4] || [];
 
-                    var isSigned = tag5 === 'Signed'   || tag6 === 'Signed';
-                    var isPartNo = tag5 === 'Part no.' || tag6 === 'Part no.';
+                    var sno   = snoCol  >= 0 ? String(r[snoCol]  || '').trim() : '';
+                    var itm   = itemCol >= 0 ? String(r[itemCol] || '').trim() : '';
+                    var qty   = qtyCol  >= 0 ? String(r[qtyCol]  || '').trim() : '';
+                    var tagS  = String(r[signedCol]     || '').trim();
+                    var tagP  = String(r[signedCol - 1] || '').trim(); // Part no. أحياناً قبل Signed
 
+                    // Part no. في صف منفصل: Signed/Part no. في نفس العمود
+                    var isSigned = tagS === 'Signed';
+                    var isPartNo = tagS === 'Part no.' || tagP === 'Part no.';
+
+                    // صنف جديد: S/No رقم + ITEM نص
                     if (/^\d+$/.test(sno) && itm) {
                         currentItemName = itm;
                         currentItemQty  = qty || '';
@@ -1352,9 +1378,9 @@ function importPMHistory(file) {
                         return { hours: s.hours, date: s.date, items: s.items };
                     });
                     totalSessions += validSessions.length;
-                    debugInfo.push('✓ ' + code + ': ' + validSessions.length + ' صيانة');
+                    debugInfo.push('✓ ' + code + ': ' + validSessions.length);
                 } else {
-                    debugInfo.push('⚠ ' + code + ': وجدت ' + sessions.length + ' جلسة بدون أصناف');
+                    debugInfo.push('⚠ ' + code + '(' + sessions.length + ' جلسة-بدون أصناف,signedCol=' + signedCol + ',startCol=' + startCol + ')');
                 }
             });
 
@@ -1364,7 +1390,7 @@ function importPMHistory(file) {
             if (eqCount === 0) {
                 statusDiv.style.background = '#fee2e2';
                 statusDiv.style.color = '#991b1b';
-                statusDiv.innerHTML = '⚠️ لم يتم قراءة أي بيانات<br><small>' + debugInfo.slice(0,5).join(' | ') + '</small>';
+                statusDiv.innerHTML = '⚠️ لم يتم قراءة أي بيانات<br><small style="font-size:10px">' + debugInfo.slice(0,6).join(' | ') + '</small>';
                 return;
             }
 
