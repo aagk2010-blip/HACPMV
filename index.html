@@ -161,7 +161,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
         <button id="upload-pm-history-btn" class="save-btn" style="margin:0; background:linear-gradient(135deg,#d97706,#b45309); width:100%">📂 رفع ملف PM</button>
         <div id="pm-import-status" style="display:none;margin-top:12px;padding:10px;border-radius:10px;font-size:13px"></div>
       </div>
-<div class="section-title" style="margin-bottom:12px">📋 معاينة البيانات</div><div id="preview-content" class="import-preview"></div><div class="grid-2" style="margin-top:16px; gap:10px"><button id="confirm-import-btn" class="save-btn" style="margin:0; background:var(--success)">✅ تأكيد الاستيراد</button><button id="cancel-import-btn" class="save-btn" style="margin:0; background:var(--gray)">❌ إلغاء</button></div></div>
+<div id="import-preview" style="display:none; background:white; border-radius:18px; padding:16px; margin-bottom:16px"><div class="section-title" style="margin-bottom:12px">📋 معاينة البيانات</div><div id="preview-content" class="import-preview"></div><div class="grid-2" style="margin-top:16px; gap:10px"><button id="confirm-import-btn" class="save-btn" style="margin:0; background:var(--success)">✅ تأكيد الاستيراد</button><button id="cancel-import-btn" class="save-btn" style="margin:0; background:var(--gray)">❌ إلغاء</button></div></div>
       
       <div id="inventory-import-preview" style="display:none; background:white; border-radius:18px; padding:16px; margin-bottom:16px"><div class="section-title" style="margin-bottom:12px">📋 معاينة بيانات المخزون (SOH)</div><div id="inventory-preview-content" class="import-preview"></div><div class="grid-2" style="margin-top:16px; gap:10px"><button id="confirm-inventory-import-btn" class="save-btn" style="margin:0; background:var(--success)">✅ تأكيد استيراد المخزون</button><button id="cancel-inventory-import-btn" class="save-btn" style="margin:0; background:var(--gray)">❌ إلغاء</button></div></div>
       
@@ -1257,7 +1257,7 @@ function importPMHistory(file) {
                             if (firstNumCol < 0) firstNumCol = ci2;
                         }
                     }
-                    if (numCount >= 2) {
+                    if (numCount >= 1) {
                         hoursRowIdx = ri2;
                         hoursRowRaw = row;
                         startCol = firstNumCol;
@@ -3357,7 +3357,7 @@ function handleEquipmentFileUpload(inputElement) {
             if (totalFuelRecords > 0) html += '<div class="status-badge status-success" style="margin:5px">⛽ سيتم إضافة ' + totalFuelRecords + ' سجل تزويد وقود</div>';
             
             document.getElementById('preview-content').innerHTML = html;
-            document.getElementById('import-preview').style.display = 'block';
+            var _ip=document.getElementById('import-preview'); if(_ip) _ip.style.display='block';
             showToast('تم قراءة الملف - ' + totalEquipment + ' معدة، ' + totalFuelRecords + ' سجل وقود');
             isImporting = false;
         } catch (err) {
@@ -3387,7 +3387,7 @@ function confirmImport() {
 
 function cancelImport() {
     pendingImportData = null;
-    document.getElementById('import-preview').style.display = 'none';
+    var _ip=document.getElementById('import-preview'); if(_ip) _ip.style.display='none';
     document.getElementById('equipment-excel-input').value = '';
     showToast('تم إلغاء الاستيراد');
     isImporting = false;
@@ -3762,7 +3762,7 @@ function finalizeImport() {
         refreshUI();
         forceRefreshData();
         pendingImportData = null;
-        document.getElementById('import-preview').style.display = 'none';
+        var _ip=document.getElementById('import-preview'); if(_ip) _ip.style.display='none';
         document.getElementById('equipment-excel-input').value = '';
         var historyList = document.getElementById('import-history-list');
         var now = new Date().toLocaleString('ar-EG');
