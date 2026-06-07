@@ -1374,9 +1374,14 @@ function importPMHistory(file) {
 
                 var validSessions = sessions.filter(function(s) { return s.items.length > 0; });
                 if (validSessions.length > 0) {
-                    result[code] = validSessions.map(function(s) {
-                        return { hours: s.hours, date: s.date, items: s.items };
-                    });
+                    // Firebase لا يقبل . # $ / [ ] في الـ keys
+                    var safeCode = code.replace(/[.#$\/\[\]]/g, '_');
+                    result[safeCode] = {
+                        originalCode: code,
+                        sessions: validSessions.map(function(s) {
+                            return { hours: s.hours, date: s.date, items: s.items };
+                        })
+                    };
                     totalSessions += validSessions.length;
                     debugInfo.push('✓ ' + code + ': ' + validSessions.length);
                 } else {
@@ -1429,8 +1434,12 @@ function showPMHistory(equipmentId) {
     var code = (equipment.code || '').replace(/\s+/g,'');
     var sessions = null;
     for (var k in pmHistory) {
-        if (k.replace(/\s+/g,'').toUpperCase() === code.toUpperCase()) {
-            sessions = pmHistory[k];
+        var entry = pmHistory[k];
+        var entryCode = (entry.originalCode || k).replace(/\s+/g,'');
+        var safeK = k.replace(/[.#$\/\[\]]/g, '_');
+        var safeCode = code.replace(/[.#$\/\[\]]/g, '_');
+        if (entryCode.toUpperCase() === code.toUpperCase() || safeK.toUpperCase() === safeCode.toUpperCase()) {
+            sessions = entry.sessions || entry; // يدعم الهيكل القديم والجديد
             break;
         }
     }
