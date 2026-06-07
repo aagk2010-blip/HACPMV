@@ -1214,22 +1214,23 @@ function importPMHistory(file) {
     reader.onload = function(e) {
         try {
             var data = new Uint8Array(e.target.result);
-            // raw:true للحفاظ على الأرقام كـ numbers وليس strings
             var workbook = XLSX.read(data, { type: 'array', cellDates: false, raw: true });
             var result = {};
             var totalSessions = 0;
+            var debugInfo = [];
 
             workbook.SheetNames.forEach(function(sheetName) {
                 var ws = workbook.Sheets[sheetName];
-                // raw:true مهم جداً هنا لقراءة الأرقام صحيحة من XLS القديم
-                var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
-                if (!rows || rows.length < 10) return;
+                // نقرأ مرتين: raw:true للأرقام، raw:false للنصوص
+                var rowsRaw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+                var rowsStr = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
+                if (!rowsRaw || rowsRaw.length < 8) return;
 
-                // ---- كود المعدة: ابحث في أول 10 صفوف ----
+                // ---- كود المعدة ----
                 var code = '';
-                for (var ri = 0; ri < Math.min(10, rows.length); ri++) {
-                    for (var ci = 0; ci < rows[ri].length; ci++) {
-                        var cell = String(rows[ri][ci] || '').trim();
+                for (var ri = 0; ri < Math.min(12, rowsStr.length); ri++) {
+                    for (var ci = 0; ci < rowsStr[ri].length; ci++) {
+                        var cell = String(rowsStr[ri][ci] || '').trim();
                         if (cell.indexOf('Code') !== -1) {
                             var m = cell.match(/Code[:\-\s]+([A-Za-z0-9\/\-]+)/i);
                             if (m && m[1]) { code = m[1].trim(); break; }
@@ -1239,44 +1240,43 @@ function importPMHistory(file) {
                 }
                 if (!code) code = sheetName;
 
-                // ---- إيجاد headerRow (صف "Service Planed Hour") ----
-                var headerRow = -1;
-                for (var ri2 = 0; ri2 < rows.length; ri2++) {
-                    var rowStr = rows[ri2].map(function(c){ return String(c||''); }).join(' ');
-                    if (rowStr.indexOf('Service Planed Hour') !== -1) {
-                        headerRow = ri2; break;
-                    }
-                }
-                if (headerRow < 0) return;
-
-                // ---- البحث عن صف الساعات والتواريخ بمرونة ----
-                // الساعات قد تكون في headerRow نفسه أو في headerRow+1
-                // نبحث في الـ 3 صفوف التالية عن صف يحتوي أرقام > 100 (ساعات)
-                var hoursRowArr = [];
-                var datesRowArr = [];
+                // ---- البحث عن صف الساعات (الاستراتيجية الجديدة) ----
+                // نبحث عن أول صف يحتوي 2+ أرقام بين 100 و999999
+                // هذا أكثر موثوقية من البحث عن 'Service Planed Hour'
                 var hoursRowIdx = -1;
+                var hoursRowArr = [];
 
-                for (var off = 0; off <= 3; off++) {
-                    var candidate = rows[headerRow + off] || [];
-                    var numCount = 0;
-                    for (var ci3 = 0; ci3 < candidate.length; ci3++) {
-                        var v = candidate[ci3];
-                        if (typeof v === 'number' && v > 100 && v < 500000) numCount++;
-                        else if (typeof v === 'string' && /^\d{3,6}$/.test(v.trim()) && parseInt(v) > 100) numCount++;
+                for (var ri2 = 0; ri2 < Math.min(20, rowsRaw.length); ri2++) {
+                    var row = rowsRaw[ri2];
+                    var bigNums = [];
+                    for (var ci2 = 0; ci2 < row.length; ci2++) {
+                        var v = row[ci2];
+                        // رقم كبير بين 100 و999999 (ساعات منطقية)
+                        if (typeof v === 'number' && v > 100 && v < 999999 && v === Math.floor(v)) {
+                            bigNums.push(ci2);
+                        }
                     }
-                    if (numCount >= 2) { hoursRowArr = candidate; hoursRowIdx = headerRow + off; break; }
+                    if (bigNums.length >= 2) {
+                        hoursRowIdx = ri2;
+                        hoursRowArr = row;
+                        break;
+                    }
                 }
-                if (!hoursRowArr.length) return;
+                if (hoursRowIdx < 0) {
+                    debugInfo.push(sheetName + ': لا توجد ساعات');
+                    return;
+                }
 
-                // التواريخ في الصف التالي بعد الساعات
-                datesRowArr = rows[hoursRowIdx + 1] || [];
+                // ---- صف التواريخ (الصف التالي) ----
+                var datesRowArr = rowsStr[hoursRowIdx + 1] || [];
 
-                // ---- تحديد startCol: أول عمود يحتوي ساعة > 100 ----
+                // ---- تحديد startCol ----
                 var startCol = -1;
-                for (var ci4 = 0; ci4 < hoursRowArr.length; ci4++) {
-                    var v2 = hoursRowArr[ci4];
-                    var n = (typeof v2 === 'number') ? v2 : parseInt(String(v2||'').trim());
-                    if (!isNaN(n) && n > 100 && n < 500000) { startCol = ci4; break; }
+                for (var ci3 = 0; ci3 < hoursRowArr.length; ci3++) {
+                    var v2 = hoursRowArr[ci3];
+                    if (typeof v2 === 'number' && v2 > 100 && v2 < 999999) {
+                        startCol = ci3; break;
+                    }
                 }
                 if (startCol < 0) return;
 
@@ -1284,36 +1284,40 @@ function importPMHistory(file) {
                 var sessions = [];
                 for (var c = startCol; c < hoursRowArr.length; c++) {
                     var hv = hoursRowArr[c];
-                    var hn = (typeof hv === 'number') ? hv : parseInt(String(hv||'').trim());
-                    if (isNaN(hn) || hn <= 100 || hn > 500000) continue;
-                    var dt = String(datesRowArr[c] || '').trim();
-                    // تنظيف التاريخ إذا كان serial number لـ Excel
-                    if (dt && /^\d{5}$/.test(dt)) {
-                        var d = new Date(Math.round((parseInt(dt) - 25569) * 86400 * 1000));
-                        dt = d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
+                    if (typeof hv !== 'number' || hv <= 100 || hv >= 999999) continue;
+                    var hn = Math.floor(hv);
+                    var dtRaw = datesRowArr[c];
+                    var dt = '';
+                    if (dtRaw) {
+                        var dtStr = String(dtRaw).trim();
+                        // إذا كان serial date (رقم خماسي)
+                        if (/^\d{5}$/.test(dtStr)) {
+                            var d = new Date(Math.round((parseInt(dtStr) - 25569) * 86400000));
+                            dt = d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
+                        } else {
+                            dt = dtStr;
+                        }
                     }
                     sessions.push({ hours: hn, date: dt, colIndex: c, items: [] });
                 }
                 if (!sessions.length) return;
 
-                // ---- الأصناف: ابحث من بعد صف الهيدر ----
-                var itemsStart = hoursRowIdx + 2;
+                // ---- الأصناف: ابحث بعد صف الساعات ----
                 var currentItemName = '';
-                var currentItemQty = '';
+                var currentItemQty  = '';
 
-                for (var ri3 = itemsStart; ri3 < rows.length; ri3++) {
-                    var r = rows[ri3];
-                    // S/No في عمود 2، ITEM في 3، QTY في 4
-                    var sno  = String(r[2] || '').trim();
-                    var itm  = String(r[3] || '').trim();
-                    var qty  = String(r[4] || '').trim();
-                    var tag5 = String(r[5] || '').trim();
-                    var tag6 = String(r[6] || '').trim();
+                for (var ri3 = hoursRowIdx + 2; ri3 < rowsStr.length; ri3++) {
+                    var r     = rowsStr[ri3];
+                    var rRaw  = rowsRaw[ri3] || [];
+                    var sno   = String(r[2] || '').trim();
+                    var itm   = String(r[3] || '').trim();
+                    var qty   = String(r[4] || '').trim();
+                    var tag5  = String(r[5] || '').trim();
+                    var tag6  = String(r[6] || '').trim();
 
                     var isSigned = tag5 === 'Signed'   || tag6 === 'Signed';
                     var isPartNo = tag5 === 'Part no.' || tag6 === 'Part no.';
 
-                    // صنف جديد
                     if (/^\d+$/.test(sno) && itm) {
                         currentItemName = itm;
                         currentItemQty  = qty || '';
@@ -1348,20 +1352,23 @@ function importPMHistory(file) {
                         return { hours: s.hours, date: s.date, items: s.items };
                     });
                     totalSessions += validSessions.length;
+                    debugInfo.push('✓ ' + code + ': ' + validSessions.length + ' صيانة');
+                } else {
+                    debugInfo.push('⚠ ' + code + ': وجدت ' + sessions.length + ' جلسة بدون أصناف');
                 }
             });
 
             pmHistory = result;
             var eqCount = Object.keys(result).length;
-            var summary = '✅ تم استيراد <strong>' + eqCount + '</strong> معدة | <strong>' + totalSessions + '</strong> صيانة';
 
             if (eqCount === 0) {
                 statusDiv.style.background = '#fee2e2';
                 statusDiv.style.color = '#991b1b';
-                statusDiv.innerHTML = '⚠️ لم يتم قراءة أي بيانات — تأكد من أن الملف يحتوي عمود "Service Planed Hour"';
+                statusDiv.innerHTML = '⚠️ لم يتم قراءة أي بيانات<br><small>' + debugInfo.slice(0,5).join(' | ') + '</small>';
                 return;
             }
 
+            var summary = '✅ تم استيراد <strong>' + eqCount + '</strong> معدة | <strong>' + totalSessions + '</strong> صيانة';
             if (fbDb) {
                 fbDb.ref('pmHistory').set(result)
                     .then(function() {
