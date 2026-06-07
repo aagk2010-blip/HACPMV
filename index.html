@@ -153,7 +153,15 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
         <button id="upload-inventory-soh-btn" class="save-btn" style="margin:0; background:#8b5cf6; color:white; font-weight:bold; width:100%">📂 رفع ملف SOH</button>
       </div>
       
-      <div id="import-preview" style="display:none; background:white; border-radius:18px; padding:16px; margin-bottom:16px"><div class="section-title" style="margin-bottom:12px">📋 معاينة البيانات</div><div id="preview-content" class="import-preview"></div><div class="grid-2" style="margin-top:16px; gap:10px"><button id="confirm-import-btn" class="save-btn" style="margin:0; background:var(--success)">✅ تأكيد الاستيراد</button><button id="cancel-import-btn" class="save-btn" style="margin:0; background:var(--gray)">❌ إلغاء</button></div></div>
+      <div style="background:white; border-radius:18px; padding:20px; margin-bottom:16px; text-align:center">
+        <div style="font-size:32px; margin-bottom:10px">🔧</div>
+        <div style="font-weight:700; margin-bottom:8px">رفع ملف سجل الصيانات (PM)</div>
+        <div style="font-size:12px; color:var(--gray); margin-bottom:16px">استيراد تاريخ الصيانات الدورية والفلاتر والزيوت المستخدمة لكل معدة</div>
+        <input type="file" id="pm-history-excel-input" accept=".xlsx, .xls" style="display:none">
+        <button id="upload-pm-history-btn" class="save-btn" style="margin:0; background:linear-gradient(135deg,#d97706,#b45309); width:100%">📂 رفع ملف PM</button>
+        <div id="pm-import-status" style="display:none;margin-top:12px;padding:10px;border-radius:10px;font-size:13px"></div>
+      </div>
+<div class="section-title" style="margin-bottom:12px">📋 معاينة البيانات</div><div id="preview-content" class="import-preview"></div><div class="grid-2" style="margin-top:16px; gap:10px"><button id="confirm-import-btn" class="save-btn" style="margin:0; background:var(--success)">✅ تأكيد الاستيراد</button><button id="cancel-import-btn" class="save-btn" style="margin:0; background:var(--gray)">❌ إلغاء</button></div></div>
       
       <div id="inventory-import-preview" style="display:none; background:white; border-radius:18px; padding:16px; margin-bottom:16px"><div class="section-title" style="margin-bottom:12px">📋 معاينة بيانات المخزون (SOH)</div><div id="inventory-preview-content" class="import-preview"></div><div class="grid-2" style="margin-top:16px; gap:10px"><button id="confirm-inventory-import-btn" class="save-btn" style="margin:0; background:var(--success)">✅ تأكيد استيراد المخزون</button><button id="cancel-inventory-import-btn" class="save-btn" style="margin:0; background:var(--gray)">❌ إلغاء</button></div></div>
       
@@ -236,6 +244,7 @@ let inventoryItems = [];
 let equipmentFilterLinks = [];
 let equipmentOilLinks = [];
 let filterAlternatives = [];
+let pmHistory = {}; // سجل الصيانات التاريخية { equipmentCode: [sessions] }
 let currentUser = null;
 let editingEquipmentId = null;
 let editingDriverId = null;
@@ -791,7 +800,11 @@ function attachFirebaseListeners() {
         }) : [];
         debouncedRefresh();
     });
-    
+
+    listen('pmHistory', function(snapshot) {
+        pmHistory = snapshot.val() || {};
+    });
+
     isListeningAttached = true;
 }
 
@@ -923,7 +936,7 @@ function proceedToApp() {
             'delete-all-equipment-btn','delete-all-fuel-btn',
             'delete-all-maintenance-btn','delete-all-inventory-btn',
             'delete-all-equipment-global-btn',
-            'upload-equipment-excel-btn','upload-inventory-soh-btn',
+            'upload-equipment-excel-btn','upload-inventory-soh-btn','upload-pm-history-btn',
             'confirm-import-btn','cancel-import-btn',
             'confirm-inventory-import-btn','cancel-inventory-import-btn'
         ];
@@ -1180,11 +1193,221 @@ function openEquipmentDetail(id) {
             '<button class="save-btn" style="margin:0;background:var(--danger)" onclick="confirmDelete(\'equipment\',\'' + equipment.id + '\')">🗑️ حذف</button>';
     }
     contentHtml += '<button class="save-btn" style="margin:0;background:var(--info)" onclick="showHoursHistory(\'' + equipment.id + '\')">📈 سجل العداد</button>' +
+        '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#d97706,#b45309)" onclick="closeModal(\'detail-modal\');setTimeout(function(){showPMHistory(\'' + equipment.id + '\')},100)">📋 سجل الصيانات</button>' +
         '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,var(--success),var(--info))" onclick="generateEquipmentMaintenanceOrder(\'' + equipment.id + '\')">📄 أمر صيانة PDF</button>' +
         '</div>';
     
     document.getElementById('detail-title').innerHTML = '🏗️ ' + escapeHtml(equipment.name);
     document.getElementById('detail-content').innerHTML = contentHtml;
+    document.getElementById('detail-modal').classList.add('active');
+}
+
+// ===== استيراد سجل الصيانات PM =====
+function importPMHistory(file) {
+    var statusDiv = document.getElementById('pm-import-status');
+    statusDiv.style.display = 'block';
+    statusDiv.style.background = '#fef3c7';
+    statusDiv.style.color = '#92400e';
+    statusDiv.innerHTML = '⏳ جاري قراءة الملف...';
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            var data = new Uint8Array(e.target.result);
+            var workbook = XLSX.read(data, { type: 'array', cellDates: true });
+            var result = {};
+            var totalSessions = 0;
+
+            workbook.SheetNames.forEach(function(sheetName) {
+                var ws = workbook.Sheets[sheetName];
+                var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+                // استخراج معلومات المعدة
+                var code = '';
+                for (var ri = 0; ri < Math.min(8, rows.length); ri++) {
+                    var line = rows[ri].join(' ');
+                    if (line.indexOf('Code') !== -1) {
+                        var m = line.match(/Code[:\-\s]+([A-Za-z0-9\/\-]+)/);
+                        if (m) code = m[1].replace(/\s+/g,'').replace('Code:-','').trim();
+                    }
+                }
+                if (!code) code = sheetName;
+
+                // إيجاد صف الساعات والتواريخ
+                var headerRow = -1, hoursRow = -1, datesRow = -1;
+                for (var ri2 = 0; ri2 < rows.length; ri2++) {
+                    var line2 = rows[ri2].join(' ');
+                    if (line2.indexOf('Service Planed Hour') !== -1) { headerRow = ri2; }
+                    if (headerRow >= 0 && ri2 === headerRow + 1) hoursRow = ri2;
+                    if (headerRow >= 0 && ri2 === headerRow + 2) datesRow = ri2;
+                }
+                if (hoursRow < 0 || datesRow < 0) return;
+
+                // استخراج جلسات الصيانة
+                var sessions = [];
+                var startCol = 7;
+                for (var c = startCol; c < rows[hoursRow].length; c++) {
+                    var hrs = String(rows[hoursRow][c]).trim();
+                    var dt = rows[datesRow][c];
+                    if (hrs && hrs !== '' && !isNaN(hrs)) {
+                        var dateStr = '';
+                        if (dt instanceof Date) {
+                            dateStr = dt.toLocaleDateString('ar-EG');
+                        } else if (dt) {
+                            dateStr = String(dt).trim();
+                        }
+                        sessions.push({ hours: parseInt(hrs), date: dateStr, colIndex: c, items: [] });
+                    }
+                }
+                if (!sessions.length) return;
+
+                // استخراج الأصناف
+                var currentItem = null;
+                for (var ri3 = headerRow + 3; ri3 < rows.length; ri3++) {
+                    var r = rows[ri3];
+                    var col2 = String(r[2] || '').trim();
+                    var col3 = String(r[3] || '').trim();
+                    var col4 = String(r[4] || '').trim();
+                    var col5 = String(r[5] || '').trim();
+                    var col6 = String(r[6] || '').trim();
+
+                    var isSigned = col5 === 'Signed' || col6 === 'Signed';
+                    var isPartNo = col5 === 'Part no.' || col6 === 'Part no.';
+
+                    if (/^\d+$/.test(col2) && col3) {
+                        currentItem = { name: col3, qty: col4 || col5 || '' };
+                    }
+
+                    if (currentItem && isSigned) {
+                        sessions.forEach(function(s) {
+                            var sv = String(r[s.colIndex] || '').trim();
+                            if (sv.toLowerCase() === 'ok' || sv === '✓' || sv === 'done') {
+                                s.items.push({ name: currentItem.name, qty: currentItem.qty, partNo: '' });
+                            }
+                        });
+                    }
+
+                    if (currentItem && isPartNo) {
+                        sessions.forEach(function(s) {
+                            var pv = String(r[s.colIndex] || '').trim();
+                            if (pv && pv !== '' && pv !== 'nan') {
+                                for (var k = s.items.length - 1; k >= 0; k--) {
+                                    if (s.items[k].name === currentItem.name && !s.items[k].partNo) {
+                                        s.items[k].partNo = pv;
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // حفظ الجلسات التي تحتوي بيانات فقط
+                var validSessions = sessions.filter(function(s) { return s.items.length > 0; });
+                if (validSessions.length > 0) {
+                    result[code] = validSessions;
+                    totalSessions += validSessions.length;
+                }
+            });
+
+            // حفظ في Firebase
+            pmHistory = result;
+            if (fbDb) {
+                fbDb.ref('pmHistory').set(result).then(function() {
+                    statusDiv.style.background = '#d1fae5';
+                    statusDiv.style.color = '#065f46';
+                    statusDiv.innerHTML = '✅ تم استيراد ' + Object.keys(result).length + ' معدة | ' + totalSessions + ' صيانة بنجاح';
+                }).catch(function(err) {
+                    statusDiv.style.background = '#fee2e2';
+                    statusDiv.style.color = '#991b1b';
+                    statusDiv.innerHTML = '❌ خطأ في الحفظ: ' + err.message;
+                });
+            } else {
+                statusDiv.style.background = '#d1fae5';
+                statusDiv.style.color = '#065f46';
+                statusDiv.innerHTML = '✅ تم قراءة ' + Object.keys(result).length + ' معدة | ' + totalSessions + ' صيانة';
+            }
+        } catch(err) {
+            statusDiv.style.background = '#fee2e2';
+            statusDiv.style.color = '#991b1b';
+            statusDiv.innerHTML = '❌ خطأ في قراءة الملف: ' + err.message;
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function showPMHistory(equipmentId) {
+    var equipment = equipmentData.find(function(e) { return e.id === equipmentId; });
+    if (!equipment) return;
+
+    // البحث بالكود في pmHistory
+    var code = (equipment.code || '').replace(/\s+/g,'');
+    var sessions = null;
+    for (var k in pmHistory) {
+        if (k.replace(/\s+/g,'').toUpperCase() === code.toUpperCase()) {
+            sessions = pmHistory[k];
+            break;
+        }
+    }
+
+    var html = '<div style="padding:0 14px 14px">';
+
+    if (!sessions || sessions.length === 0) {
+        html += '<div style="text-align:center;padding:30px;color:var(--gray)">📋 لا يوجد سجل صيانات لهذه المعدة<br><small>قم برفع ملف PM من صفحة الاستيراد</small></div>';
+    } else {
+        html += '<div style="margin-bottom:12px;padding:10px;background:var(--light);border-radius:10px;font-size:13px">' +
+                '📊 إجمالي الصيانات: <strong>' + sessions.length + '</strong> صيانة</div>';
+
+        sessions.slice().reverse().forEach(function(s, idx) {
+            var oils = s.items.filter(function(i) { return i.name.toLowerCase().indexOf('oil') !== -1; });
+            var filters = s.items.filter(function(i) { return i.name.toLowerCase().indexOf('filter') !== -1; });
+            var others = s.items.filter(function(i) { return oils.indexOf(i) < 0 && filters.indexOf(i) < 0; });
+
+            html += '<div style="background:white;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:10px;overflow:hidden">' +
+                    '<div style="background:linear-gradient(135deg,var(--warning),#b45309);padding:10px 14px;color:white;display:flex;justify-content:space-between;align-items:center">' +
+                    '<div style="font-weight:700">🔧 صيانة عند ' + s.hours.toLocaleString() + ' ساعة</div>' +
+                    '<div style="font-size:12px;opacity:.9">📅 ' + (s.date || '—') + '</div></div>' +
+                    '<div style="padding:10px 14px">';
+
+            if (oils.length) {
+                html += '<div style="font-weight:600;font-size:12px;color:var(--gray);margin-bottom:4px">🛢️ الزيوت</div>';
+                oils.forEach(function(it) {
+                    html += '<div style="padding:4px 0;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;font-size:13px">' +
+                            '<span>' + escapeHtml(it.name) + (it.qty ? ' <span style="color:var(--gray);font-size:11px">(' + it.qty + ')</span>' : '') + '</span>' +
+                            (it.partNo ? '<span style="background:#e0e7ff;color:#4338ca;padding:1px 7px;border-radius:99px;font-size:11px">' + escapeHtml(it.partNo) + '</span>' : '') +
+                            '</div>';
+                });
+            }
+
+            if (filters.length) {
+                html += '<div style="font-weight:600;font-size:12px;color:var(--gray);margin:8px 0 4px">🔧 الفلاتر</div>';
+                filters.forEach(function(it) {
+                    html += '<div style="padding:4px 0;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;font-size:13px">' +
+                            '<span>' + escapeHtml(it.name) + (it.qty ? ' <span style="color:var(--gray);font-size:11px">(' + it.qty + ')</span>' : '') + '</span>' +
+                            (it.partNo ? '<span style="background:#d1fae5;color:#065f46;padding:1px 7px;border-radius:99px;font-size:11px">' + escapeHtml(it.partNo) + '</span>' : '') +
+                            '</div>';
+                });
+            }
+
+            if (others.length) {
+                html += '<div style="font-weight:600;font-size:12px;color:var(--gray);margin:8px 0 4px">📋 أخرى</div>';
+                others.forEach(function(it) {
+                    html += '<div style="padding:4px 0;border-bottom:1px solid #f1f5f9;font-size:13px">' + escapeHtml(it.name) + '</div>';
+                });
+            }
+
+            if (!s.items.length) {
+                html += '<div style="color:var(--gray);font-size:12px">لا توجد تفاصيل</div>';
+            }
+
+            html += '</div></div>';
+        });
+    }
+
+    html += '</div>';
+
+    document.getElementById('detail-title').innerHTML = '📋 سجل صيانات: ' + escapeHtml(equipment.name);
+    document.getElementById('detail-content').innerHTML = html;
     document.getElementById('detail-modal').classList.add('active');
 }
 
@@ -4381,6 +4604,12 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadInventoryBtn.onclick = function() { inventoryExcelInput.click(); };
         inventoryExcelInput.onchange = function(e) { handleInventoryFileUpload(e.target); };
     }
+    var pmHistoryInput = document.getElementById('pm-history-excel-input');
+    var uploadPMBtn = document.getElementById('upload-pm-history-btn');
+    if (uploadPMBtn && pmHistoryInput) {
+        uploadPMBtn.onclick = function() { pmHistoryInput.click(); };
+        pmHistoryInput.onchange = function(e) { if (e.target.files[0]) importPMHistory(e.target.files[0]); };
+    }
     if (confirmImportBtn) confirmImportBtn.onclick = function() { confirmImport(); };
     if (cancelImportBtn) cancelImportBtn.onclick = function() { cancelImport(); };
     if (confirmInventoryBtn) confirmInventoryBtn.onclick = function() { confirmInventoryImport(); };
@@ -4412,6 +4641,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.exportInventoryExcel = exportInventoryExcel;
     window.exportAllHoursExcel = exportAllHoursExcel;
     window.showHoursHistory = showHoursHistory;
+    window.showPMHistory = showPMHistory;
     window.exportHoursHistoryToExcel = exportHoursHistoryToExcel;
     window.toggleGlobalSearch = toggleGlobalSearch;
     window.globalSearch = globalSearch;
