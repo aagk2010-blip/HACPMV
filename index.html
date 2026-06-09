@@ -196,7 +196,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 
 <div class="modal-overlay" id="filter-alternatives-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--purple),var(--pink))"><div class="modal-title">🔄 ربط فلاتر بديلة</div><button class="modal-close" onclick="closeModal('filter-alternatives-modal')">✕</button></div><div id="filter-alt-content" style="padding:14px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveFilterAlternatives()">✅ حفظ البدائل</button></div></div>
 
-<div class="modal-overlay" id="order-report-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--danger),var(--warning))"><div class="modal-title">📋 تقرير الطلبية</div><button class="modal-close" onclick="closeModal('order-report-modal')">✕</button></div><div id="order-report-content" style="padding:14px; padding-bottom:100px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="exportOrderToExcel()">📊 Excel</button><button class="save-btn" style="background:var(--success); margin-top:10px" onclick="sendOrderViaWhatsApp()">📱 واتساب</button></div></div>
+<div class="modal-overlay" id="order-report-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--danger),var(--warning))"><div class="modal-title">📋 تقرير الطلبية</div><button class="modal-close" onclick="closeModal('order-report-modal')">✕</button></div><div id="order-report-content" style="padding:14px; padding-bottom:100px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="exportOrderToExcel()">📊 Excel</button><button id="order-whatsapp-btn" class="save-btn" style="background:var(--success); margin-top:10px" onclick="sendOrderViaWhatsApp()">📱 واتساب</button></div></div>
 
 <div class="modal-overlay" id="import-progress-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--success),var(--info))"><div class="modal-title">📊 جاري استيراد البيانات...</div><button class="modal-close" onclick="closeModal('import-progress-modal')">✕</button></div><div style="padding:20px; text-align:center"><div style="font-size:40px; margin-bottom:15px">⏳</div><div id="import-progress-text" style="margin-bottom:10px">جارٍ قراءة الملف...</div><div class="progress-bar" style="height:10px"><div id="import-progress-bar" class="progress-fill" style="width:0%"></div></div><div id="import-status-list" style="margin-top:15px; font-size:12px; text-align:right; max-height:200px; overflow:auto"></div></div></div>
 
@@ -932,7 +932,7 @@ function proceedToApp() {
         // المشاهد يرى جميع الصفحات - نخفي أزرار التعديل والحذف فقط
         var adminBtnIds = [
             'add-fuel-btn','add-maintenance-btn','add-inventory-btn',
-            'order-report-btn','meter-update-btn','whatsapp-maint-btn',
+            'order-report-btn','meter-update-btn','whatsapp-maint-btn','send-wa-report-btn','order-whatsapp-btn','notif-settings-btn',
             'delete-all-equipment-btn','delete-all-fuel-btn',
             'delete-all-maintenance-btn','delete-all-inventory-btn',
             'delete-all-equipment-global-btn',
@@ -3927,7 +3927,7 @@ function displayInventoryPreview(items) {
                 '<td style="text-align:center"><span style="background:' + (item.isNew ? '#10b981' : (item.oldQty !== item.newQty ? '#f59e0b' : '#6b7a8d')) + ';color:white;padding:2px 8px;border-radius:20px">' + (item.isNew ? 'جديد' : (item.oldQty !== item.newQty ? 'تحديث' : 'مطابق')) + '</span></td>' +
                 '</tr>';
         }).join('') + '</tbody></table></div>';
-    document.getElementById('inventory-import-preview').style.display = 'block';
+    var _iip=document.getElementById('inventory-import-preview'); if(_iip) _iip.style.display='block';
 }
 
 function confirmInventoryImport() {
@@ -4010,7 +4010,7 @@ function confirmInventoryImport() {
                     processBatch(end);
                 } else {
                     showToast('✅ تم الاستيراد: تحديث ' + updated + ' صنف، إضافة ' + created + ' صنف');
-                    document.getElementById('inventory-import-preview').style.display = 'none';
+                    var _iip2=document.getElementById('inventory-import-preview'); if(_iip2) _iip2.style.display='none';
                     pendingInventoryData = null;
                     document.getElementById('inventory-excel-input').value = '';
                     setTimeout(function() { forceRefreshData(); }, 800);
@@ -4023,7 +4023,7 @@ function confirmInventoryImport() {
             processBatch(end);
         } else {
             showToast('لا توجد تغييرات لحفظها');
-            document.getElementById('inventory-import-preview').style.display = 'none';
+            var _iip2=document.getElementById('inventory-import-preview'); if(_iip2) _iip2.style.display='none';
             pendingInventoryData = null;
         }
     }
@@ -4037,7 +4037,7 @@ function confirmInventoryImport() {
 
 function cancelInventoryImport() {
     pendingInventoryData = null;
-    document.getElementById('inventory-import-preview').style.display = 'none';
+    var _iip2=document.getElementById('inventory-import-preview'); if(_iip2) _iip2.style.display='none';
     document.getElementById('inventory-excel-input').value = '';
     showToast('تم إلغاء استيراد المخزون');
 }
