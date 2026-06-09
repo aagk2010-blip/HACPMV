@@ -1514,7 +1514,7 @@ function generateEquipmentMaintenanceOrder(eqId) {
         return filterItem ? {
             name: filterItem.name,
             partNo: filterItem.partNo,
-            needed: calculateNeededFor1000Hours(equipment, filterItem),
+            needed: link.quantityPerChange || 1,
             qty: link.quantityPerChange || 1
         } : null;
     }).filter(Boolean);
@@ -1524,7 +1524,7 @@ function generateEquipmentMaintenanceOrder(eqId) {
         return oilItem ? {
             name: oilItem.name,
             partNo: oilItem.partNo,
-            needed: calculateNeededFor1000Hours(equipment, oilItem),
+            needed: link.quantityPerChange || 1,
             qty: link.quantityPerChange || 1
         } : null;
     }).filter(Boolean);
