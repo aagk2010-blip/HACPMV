@@ -900,7 +900,8 @@ function attachFirebaseListeners() {
         rentalDailyData = snapshot.val() ? Object.entries(snapshot.val()).map(function(e) {
             var obj = Object.assign({}, e[1]); obj.id = e[0]; return obj;
         }) : [];
-        renderRentalDaily();
+        renderRentalEquipment();
+        renderRentalDailyView();
     });
 
     isListeningAttached = true;
