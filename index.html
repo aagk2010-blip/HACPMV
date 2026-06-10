@@ -135,7 +135,15 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
   
   <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box" style="margin-bottom:8px"><span>🔍</span><input type="text" id="search-inventory" placeholder="بحث باسم أو رقم قطعة..."></div><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><button id="add-inventory-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,var(--purple),var(--pink))">📦 إضافة صنف جديد</button><button id="export-inventory-excel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير المخزون Excel</button><button id="order-report-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,var(--danger),var(--warning))">📋 إنشاء طلبية للنواقص (1000 ساعة)</button><button id="delete-all-inventory-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع أصناف المخزون</button><div id="inv-list"></div></div></div>
   
-  <div id="view-import" style="display:none">
+  <div id="view-rental" style="display:none">
+    <div style="padding:14px">
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <button id="add-rental-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5)">➕ إضافة معدة إيجار</button>
+        <button id="export-rental-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير Excel</button>
+      </div>
+      <div id="rental-list"></div>
+    </div>
+  </div>
     <div style="padding:14px">
       <div style="background:white; border-radius:18px; padding:20px; margin-bottom:16px; text-align:center">
         <div style="font-size:32px; margin-bottom:10px">🏗️</div>
@@ -169,11 +177,46 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     </div>
   </div>
   
-  <div class="tab-bar"><button class="tab-btn" data-view="home"><span class="tab-icon">📊</span><span>الرئيسية</span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon">🏗️</span><span>المعدات</span></button><button class="tab-btn" data-view="drivers"><span class="tab-icon">👨‍✈️</span><span>السائقين</span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon">⛽</span><span>الوقود</span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon">🔧</span><span>الصيانة</span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon">📦</span><span>المخزن</span></button><button class="tab-btn" data-view="import"><span class="tab-icon">📂</span><span>استيراد</span></button></div>
+  <div class="tab-bar"><button class="tab-btn" data-view="home"><span class="tab-icon">📊</span><span>الرئيسية</span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon">🏗️</span><span>المعدات</span></button><button class="tab-btn" data-view="drivers"><span class="tab-icon">👨‍✈️</span><span>السائقين</span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon">⛽</span><span>الوقود</span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon">🔧</span><span>الصيانة</span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon">📦</span><span>المخزن</span></button><button class="tab-btn" data-view="rental"><span class="tab-icon">🚧</span><span>الإيجار</span></button><button class="tab-btn" data-view="import"><span class="tab-icon">📂</span><span>استيراد</span></button></div>
   <button class="fab" id="fab-btn">+</button>
 </div>
 
 <!-- النوافذ المنبثقة (نفسها كما كانت) -->
+<div class="modal-overlay" id="rental-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)">
+    <div class="modal-title" id="rental-modal-title">➕ إضافة معدة إيجار</div>
+    <button class="modal-close" onclick="closeModal('rental-modal')">✕</button>
+  </div>
+  <div><div class="form-group">
+    <div class="form-field"><label class="form-label">نوع المعدة *</label>
+      <select class="form-select" id="rental-eq-type">
+        <option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option>
+        <option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option>
+        <option>دكاك</option><option>هزاز</option><option>أخرى</option>
+      </select>
+    </div>
+    <div class="form-field"><label class="form-label">كود / رقم المعدة</label>
+      <input class="form-input" id="rental-eq-code" placeholder="مثال: EX-101">
+    </div>
+    <div class="form-field"><label class="form-label">اسم السائق *</label>
+      <input class="form-input" id="rental-driver" placeholder="اسم السائق">
+    </div>
+    <div class="form-field"><label class="form-label">التاريخ</label>
+      <input class="form-input" type="date" id="rental-date">
+    </div>
+    <div class="form-field"><label class="form-label">ساعة الدخول</label>
+      <input class="form-input" type="time" id="rental-in">
+    </div>
+    <div class="form-field"><label class="form-label">ساعة الخروج</label>
+      <input class="form-input" type="time" id="rental-out">
+    </div>
+    <div class="form-field"><label class="form-label">ملاحظات</label>
+      <textarea class="form-textarea" id="rental-notes"></textarea>
+    </div>
+  </div>
+  <button class="save-btn" onclick="saveRentalRecord()">✅ حفظ</button>
+  </div>
+</div>
 <div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">🔄 دورة الصيانة</label><select class="form-select" id="eq-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="750">كل 750 ساعة</option><option value="1000">كل 1000 ساعة</option><option value="1250">كل 1250 ساعة</option><option value="1500">كل 1500 ساعة</option><option value="1750">كل 1750 ساعة</option><option value="2000">كل 2000 ساعة</option></select></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الاسم الكامل *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label">رقم الهاتف</label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label">رقم رخصة القيادة</label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label">تاريخ انتهاء الرخصة</label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
@@ -245,6 +288,7 @@ let equipmentFilterLinks = [];
 let equipmentOilLinks = [];
 let filterAlternatives = [];
 let pmHistory = {}; // سجل الصيانات التاريخية { equipmentCode: [sessions] }
+let rentalData = []; // بيانات معدات الإيجار
 let currentUser = null;
 let editingEquipmentId = null;
 let editingDriverId = null;
@@ -805,6 +849,13 @@ function attachFirebaseListeners() {
         pmHistory = snapshot.val() || {};
     });
 
+    listen('rental', function(snapshot) {
+        rentalData = snapshot.val() ? Object.entries(snapshot.val()).map(function(e) {
+            var obj = Object.assign({}, e[1]); obj.id = e[0]; return obj;
+        }) : [];
+        renderRental();
+    });
+
     isListeningAttached = true;
 }
 
@@ -936,7 +987,7 @@ function proceedToApp() {
             'delete-all-equipment-btn','delete-all-fuel-btn',
             'delete-all-maintenance-btn','delete-all-inventory-btn',
             'delete-all-equipment-global-btn',
-            'upload-equipment-excel-btn','upload-inventory-soh-btn','upload-pm-history-btn',
+            'upload-equipment-excel-btn','upload-inventory-soh-btn','upload-pm-history-btn','add-rental-btn',
             'confirm-import-btn','cancel-import-btn',
             'confirm-inventory-import-btn','cancel-inventory-import-btn'
         ];
@@ -1201,6 +1252,182 @@ function openEquipmentDetail(id) {
     document.getElementById('detail-content').innerHTML = contentHtml;
     document.getElementById('detail-modal').classList.add('active');
 }
+
+// ===== معدات الإيجار =====
+var editingRentalId = null;
+
+function calcHours(inTime, outTime) {
+    if (!inTime || !outTime) return { total: 0, extra: 0 };
+    var inParts  = inTime.split(':').map(Number);
+    var outParts = outTime.split(':').map(Number);
+    var inMins   = inParts[0] * 60 + inParts[1];
+    var outMins  = outParts[0] * 60 + outParts[1];
+    if (outMins <= inMins) outMins += 24 * 60; // تجاوز منتصف الليل
+    var totalMins = outMins - inMins;
+    var totalHrs  = totalMins / 60;
+    var extraHrs  = Math.max(0, totalHrs - 9);
+    return {
+        total: Math.round(totalHrs * 100) / 100,
+        extra: Math.round(extraHrs * 100) / 100
+    };
+}
+
+function renderRental() {
+    var container = document.getElementById('rental-list');
+    if (!container) return;
+
+    if (!rentalData.length) {
+        container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray)">🚧 لا توجد معدات إيجار مسجلة</div>';
+        return;
+    }
+
+    // ترتيب من الأحدث للأقدم
+    var sorted = rentalData.slice().sort(function(a, b) {
+        return (b.date || '').localeCompare(a.date || '');
+    });
+
+    // تجميع حسب التاريخ
+    var grouped = {};
+    sorted.forEach(function(r) {
+        var d = r.date || 'بدون تاريخ';
+        if (!grouped[d]) grouped[d] = [];
+        grouped[d].push(r);
+    });
+
+    var html = '';
+    Object.keys(grouped).forEach(function(date) {
+        var records = grouped[date];
+        var totalExtra = records.reduce(function(s, r) { return s + (r.extraHours || 0); }, 0);
+
+        html += '<div style="margin-bottom:6px;padding:8px 12px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border-radius:12px;color:white;display:flex;justify-content:space-between;align-items:center">' +
+                '<strong>📅 ' + date + '</strong>' +
+                '<span style="font-size:12px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px">' +
+                records.length + ' معدة' + (totalExtra > 0 ? ' | إضافي: ' + totalExtra.toFixed(1) + 'س' : '') + '</span></div>';
+
+        records.forEach(function(r) {
+            var h = calcHours(r.inTime, r.outTime);
+            var hasExtra = (r.extraHours || h.extra) > 0;
+            html += '<div style="background:white;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:8px;overflow:hidden">' +
+                    '<div style="padding:12px 14px">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+                    '<div style="font-weight:700;font-size:15px">🚧 ' + escapeHtml(r.type || '') + (r.code ? ' <span style="color:var(--gray);font-size:12px">(' + escapeHtml(r.code) + ')</span>' : '') + '</div>' +
+                    '<div style="display:flex;gap:6px">' +
+                    '<button onclick="editRental(\'' + r.id + '\')" style="background:#e0e7ff;color:#4338ca;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer">✏️</button>' +
+                    '<button onclick="deleteRental(\'' + r.id + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer">🗑️</button>' +
+                    '</div></div>' +
+                    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px">' +
+                    '<div style="background:var(--light);padding:6px 10px;border-radius:8px">👨‍✈️ ' + escapeHtml(r.driver || '—') + '</div>' +
+                    '<div style="background:var(--light);padding:6px 10px;border-radius:8px">⏱️ ' + (r.totalHours || h.total).toFixed(1) + ' ساعة</div>' +
+                    '<div style="background:var(--light);padding:6px 10px;border-radius:8px">🟢 دخول: ' + (r.inTime || '—') + '</div>' +
+                    '<div style="background:var(--light);padding:6px 10px;border-radius:8px">🔴 خروج: ' + (r.outTime || '—') + '</div>' +
+                    (hasExtra ? '<div style="grid-column:1/-1;background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:8px;font-weight:600">⚡ ساعات إضافية: ' + (r.extraHours || h.extra).toFixed(1) + ' ساعة</div>' : '') +
+                    (r.notes ? '<div style="grid-column:1/-1;background:var(--light);padding:6px 10px;border-radius:8px;color:var(--gray)">📝 ' + escapeHtml(r.notes) + '</div>' : '') +
+                    '</div></div>' +
+                    // زر تحديث الدخول/الخروج
+                    '<div style="border-top:1px solid #f1f5f9;padding:8px 14px;display:flex;gap:8px;align-items:center">' +
+                    '<input type="time" id="upd-in-' + r.id + '" value="' + (r.inTime || '') + '" style="flex:1;padding:6px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:13px">' +
+                    '<input type="time" id="upd-out-' + r.id + '" value="' + (r.outTime || '') + '" style="flex:1;padding:6px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:13px">' +
+                    '<button onclick="updateRentalTimes(\'' + r.id + '\')" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit">🔄 تحديث</button>' +
+                    '</div></div>';
+        });
+    });
+
+    container.innerHTML = html;
+}
+
+function openAddRentalModal() {
+    editingRentalId = null;
+    document.getElementById('rental-modal-title').textContent = '➕ إضافة معدة إيجار';
+    document.getElementById('rental-eq-type').value = 'حفارة';
+    document.getElementById('rental-eq-code').value = '';
+    document.getElementById('rental-driver').value = '';
+    document.getElementById('rental-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('rental-in').value = '';
+    document.getElementById('rental-out').value = '';
+    document.getElementById('rental-notes').value = '';
+    document.getElementById('rental-modal').classList.add('active');
+}
+
+function editRental(id) {
+    var r = rentalData.find(function(x) { return x.id === id; });
+    if (!r) return;
+    editingRentalId = id;
+    document.getElementById('rental-modal-title').textContent = '✏️ تعديل معدة إيجار';
+    document.getElementById('rental-eq-type').value = r.type || 'حفارة';
+    document.getElementById('rental-eq-code').value = r.code || '';
+    document.getElementById('rental-driver').value = r.driver || '';
+    document.getElementById('rental-date').value = r.date || '';
+    document.getElementById('rental-in').value = r.inTime || '';
+    document.getElementById('rental-out').value = r.outTime || '';
+    document.getElementById('rental-notes').value = r.notes || '';
+    document.getElementById('rental-modal').classList.add('active');
+}
+
+function saveRentalRecord() {
+    var type   = document.getElementById('rental-eq-type').value;
+    var code   = document.getElementById('rental-eq-code').value.trim();
+    var driver = document.getElementById('rental-driver').value.trim();
+    var date   = document.getElementById('rental-date').value;
+    var inTime = document.getElementById('rental-in').value;
+    var outTime= document.getElementById('rental-out').value;
+    var notes  = document.getElementById('rental-notes').value.trim();
+
+    if (!driver) { showToast('أدخل اسم السائق', true); return; }
+    if (!date)   { showToast('أدخل التاريخ', true); return; }
+
+    var h = calcHours(inTime, outTime);
+    var record = {
+        type: type, code: code, driver: driver, date: date,
+        inTime: inTime, outTime: outTime,
+        totalHours: h.total, extraHours: h.extra,
+        notes: notes, updatedAt: new Date().toISOString()
+    };
+
+    var ref = editingRentalId
+        ? fbDb.ref('rental/' + editingRentalId)
+        : fbDb.ref('rental').push();
+
+    ref.set(record).then(function() {
+        closeModal('rental-modal');
+        showToast(editingRentalId ? 'تم التحديث' : 'تم الحفظ');
+    }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+}
+
+function updateRentalTimes(id) {
+    var inTime  = document.getElementById('upd-in-' + id).value;
+    var outTime = document.getElementById('upd-out-' + id).value;
+    var h = calcHours(inTime, outTime);
+    fbDb.ref('rental/' + id).update({
+        inTime: inTime, outTime: outTime,
+        totalHours: h.total, extraHours: h.extra,
+        updatedAt: new Date().toISOString()
+    }).then(function() { showToast('تم تحديث المواعيد'); })
+      .catch(function(err) { showToast('خطأ: ' + err.message, true); });
+}
+
+function deleteRental(id) {
+    if (!confirm('حذف هذا السجل؟')) return;
+    fbDb.ref('rental/' + id).remove()
+        .then(function() { showToast('تم الحذف'); })
+        .catch(function(err) { showToast('خطأ: ' + err.message, true); });
+}
+
+function exportRentalToExcel() {
+    if (!rentalData.length) { showToast('لا توجد بيانات', true); return; }
+    var rows = [['التاريخ','نوع المعدة','كود المعدة','السائق','ساعة الدخول','ساعة الخروج','إجمالي الساعات','الساعات الإضافية','ملاحظات']];
+    rentalData.slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); })
+    .forEach(function(r) {
+        rows.push([r.date||'', r.type||'', r.code||'', r.driver||'',
+                   r.inTime||'', r.outTime||'',
+                   (r.totalHours||0).toFixed(2), (r.extraHours||0).toFixed(2), r.notes||'']);
+    });
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'الإيجار');
+    XLSX.writeFile(wb, 'rental_' + new Date().toISOString().split('T')[0] + '.xlsx');
+}
+
+// ===== نهاية دوال الإيجار =====
 
 // ===== استيراد سجل الصيانات PM =====
 function importPMHistory(file) {
@@ -4374,6 +4601,7 @@ function switchView(view) {
     document.getElementById('view-fuel').style.display = view === 'fuel' ? 'block' : 'none';
     document.getElementById('view-maintenance').style.display = view === 'maintenance' ? 'block' : 'none';
     document.getElementById('view-inventory').style.display = view === 'inventory' ? 'block' : 'none';
+    document.getElementById('view-rental').style.display = view === 'rental' ? 'block' : 'none';
     document.getElementById('view-import').style.display = view === 'import' ? 'block' : 'none';
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
         if (btn.dataset.view === view) btn.classList.add('active');
@@ -4713,6 +4941,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (categoryFilter) categoryFilter.onchange = function() { filterInventory(); };
     var searchInventory = document.getElementById('search-inventory');
     if (searchInventory) searchInventory.oninput = function() { renderInventory(); };
+
+    var addRentalBtn = document.getElementById('add-rental-btn');
+    if (addRentalBtn) addRentalBtn.onclick = openAddRentalModal;
+    var exportRentalBtn = document.getElementById('export-rental-btn');
+    if (exportRentalBtn) exportRentalBtn.onclick = exportRentalToExcel;
     
     // أزرار التبويب
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
@@ -4736,6 +4969,10 @@ document.addEventListener('DOMContentLoaded', function() {
     window.exportAllHoursExcel = exportAllHoursExcel;
     window.showHoursHistory = showHoursHistory;
     window.showPMHistory = showPMHistory;
+    window.saveRentalRecord = saveRentalRecord;
+    window.editRental = editRental;
+    window.deleteRental = deleteRental;
+    window.updateRentalTimes = updateRentalTimes;
     window.exportHoursHistoryToExcel = exportHoursHistoryToExcel;
     window.toggleGlobalSearch = toggleGlobalSearch;
     window.globalSearch = globalSearch;
