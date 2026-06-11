@@ -2327,62 +2327,6 @@ function updateDriverSelects() {
     });
 }
 
-// ==================== دوال الدخول ====================
-function directLogin() {
-    currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
-    showToast('مرحباً مشاهد');
-    proceedToApp();
-}
-
-function secureLogin() {
-    var username = document.getElementById('secure-username').value.trim();
-    var password = document.getElementById('secure-password').value;
-    if (!username || !password) {
-        showToast('أدخل اسم المستخدم وكلمة المرور', true);
-        return;
-    }
-    if (username === 'admin' && password === 'Admin123') {
-        currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
-        showToast('مرحباً مدير النظام ✅');
-        proceedToApp();
-    } else {
-        showToast('❌ بيانات الدخول غير صحيحة', true);
-    }
-}
-
-function setLoginMode(mode) {
-    SYSTEM_CONFIG.loginMode = mode;
-    var directBtn = document.getElementById('direct-login-btn');
-    var secureBtn = document.getElementById('secure-login-btn');
-    var directPanel = document.getElementById('direct-login-panel');
-    var securePanel = document.getElementById('secure-login-panel');
-    
-    if (mode === 'direct') {
-        directBtn.style.background = '#e8a020';
-        directBtn.style.color = '#0d1b2a';
-        secureBtn.style.background = 'rgba(255,255,255,0.1)';
-        secureBtn.style.color = 'white';
-        directPanel.style.display = 'block';
-        securePanel.style.display = 'none';
-    } else {
-        secureBtn.style.background = '#e8a020';
-        secureBtn.style.color = '#0d1b2a';
-        directBtn.style.background = 'rgba(255,255,255,0.1)';
-        directBtn.style.color = 'white';
-        directPanel.style.display = 'none';
-        securePanel.style.display = 'block';
-    }
-}
-
-function saveLoginMode() {
-    var rememberCheckbox = document.getElementById('remember-mode');
-    if (rememberCheckbox && rememberCheckbox.checked) {
-        localStorage.setItem('loginMode', SYSTEM_CONFIG.loginMode);
-    } else {
-        localStorage.removeItem('loginMode');
-    }
-}
-
 function proceedToApp() {
     var loginScreen = document.getElementById('login-screen');
     var appContainer = document.getElementById('app-container');
