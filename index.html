@@ -153,6 +153,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
           <input type="date" id="rental-daily-date" style="flex:1;padding:10px;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;font-size:14px">
           <button id="add-rental-daily-btn" style="padding:10px 14px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">➕</button>
           <button onclick="exportRentalToExcel()" style="padding:10px 14px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer">📊</button>
+          <button id="rental-wa-btn" onclick="sendRentalWhatsApp()" style="padding:10px 14px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer">📱</button>
         </div>
         <div id="rental-daily-list"></div>
       </div>
@@ -978,7 +979,8 @@ function proceedToApp() {
             'delete-all-equipment-global-btn',
             'upload-equipment-excel-btn','upload-inventory-soh-btn','upload-pm-history-btn',
             'confirm-import-btn','cancel-import-btn',
-            'confirm-inventory-import-btn','cancel-inventory-import-btn'
+            'confirm-inventory-import-btn','cancel-inventory-import-btn',
+            'rental-wa-btn','add-rental-daily-btn'
         ];
         adminBtnIds.forEach(function(id) {
             var btn = document.getElementById(id);
@@ -4849,6 +4851,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.exportSingleRentalExcel = exportSingleRentalExcel;
     window.exportSingleRentalPDF = exportSingleRentalPDF;
     window.exportRentalToExcel = exportRentalToExcel;
+    window.sendRentalWhatsApp = sendRentalWhatsApp;
     window.onRentalEqChange = onRentalEqChange;
     window.onRentalDailyEqChange = onRentalDailyEqChange;
     
@@ -5173,6 +5176,16 @@ function saveRentalDaily() {
     if (!rId) { showToast('اختر المعدة',true); return; }
     if (!date) { showToast('أدخل التاريخ',true); return; }
     if (!inT||!outT) { showToast('أدخل وقت الحضور والانصراف',true); return; }
+
+    // منع تكرار نفس التاريخ لنفس المعدة
+    var existing = rentalDailyData.find(function(d){
+        return d.equipmentId===rId && d.date===date && d.id !== editingRentalDailyId;
+    });
+    if (existing) {
+        showToast('⚠️ هذا اليوم مسجّل بالفعل — استخدم زر التعديل ✏️', true);
+        return;
+    }
+
     var rental=rentalData.find(function(r){ return r.id===rId; });
     var h=calcRentalHours(inT,outT,brk);
     var record={ equipmentId:rId, equipmentCode:rental?rental.equipmentCode:'', equipmentType:rental?rental.equipmentType:'',
@@ -5348,6 +5361,35 @@ function exportSingleRentalPDF(rentalId) {
         '<div class="summary"><div class="sum-box"><div class="num">'+records.length+'</div><div class="lbl">يوم عمل</div></div><div class="sum-box"><div class="num">'+sb.toFixed(1)+'</div><div class="lbl">ساعة أساسية</div></div><div class="sum-box" style="background:#d97706"><div class="num">'+se.toFixed(1)+'</div><div class="lbl">ساعة إضافية</div></div></div>'+
         '<table><thead><tr><th>التاريخ</th><th>حضور</th><th>انصراف</th><th>أساسي</th><th>إضافي</th><th>ملاحظات</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td colspan="3">الإجمالي</td><td>'+sb.toFixed(2)+'</td><td>'+se.toFixed(2)+'</td><td></td></tr></tfoot></table></body></html>');
     w.document.close();setTimeout(function(){ w.print(); },500);
+}
+
+function sendRentalWhatsApp() {
+    var dateEl = document.getElementById('rental-daily-date');
+    var dateFilter = dateEl ? dateEl.value : new Date().toISOString().split('T')[0];
+    var filtered = rentalDailyData.filter(function(d){ return d.date===dateFilter; });
+
+    if (!filtered.length) { showToast('لا توجد سجلات لهذا اليوم', true); return; }
+
+    var msg = '🚧 *تقرير الإيجار - ' + dateFilter + '*%0A';
+    msg += '━━━━━━━━━━━━%0A';
+
+    filtered.sort(function(a,b){ return (a.equipmentCode||'').localeCompare(b.equipmentCode||''); })
+    .forEach(function(r) {
+        var rental = rentalData.find(function(x){ return x.id===r.equipmentId; });
+        var eq  = rental ? equipmentData.find(function(e){ return e.id===rental.equipmentId; }) : null;
+        var drv = rental ? driversData.find(function(d){ return d.id===rental.driverId; }) : null;
+        var label = eq ? (eq.type + ' ' + (eq.name||eq.code)) : (r.equipmentCode||'—');
+        msg += '%0A▪️ *' + label + '*%0A';
+        msg += '👨‍✈️ ' + (drv ? drv.name : '—') + '%0A';
+        msg += '🟢 ' + (r.inTime||'—') + '  🔴 ' + (r.outTime||'—') + '%0A';
+        if ((r.extraHours||0) > 0) msg += '⚡ إضافي: *' + (r.extraHours||0).toFixed(2) + 'س*%0A';
+    });
+
+    msg += '%0A━━━━━━━━━━━━%0A';
+    msg += '🔢 ' + filtered.length + ' معدة';
+
+    var waNumber = notifSettings && notifSettings.whatsappNumber ? notifSettings.whatsappNumber : '';
+    window.open((waNumber ? 'https://wa.me/'+waNumber : 'https://wa.me') + '?text=' + msg, '_blank');
 }
 
 function exportRentalToExcel() {
