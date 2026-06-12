@@ -4931,8 +4931,11 @@ function calcRentalHours(inTime, outTime, breakHours) {
     var total = Math.round((outMins - inMins)/60*100)/100;
     var brk = (breakHours === undefined || breakHours === null || isNaN(parseFloat(breakHours))) ? 1 : parseFloat(breakHours);
     var workNet = Math.max(0, total - brk);
-    var basic = Math.min(workNet, 9);
-    var extra = Math.max(0, workNet - 9);
+    // راحة = 0 → اشتغل الغداء → 8س أساسي + إضافي من ساعة 8
+    // راحة > 0 → 9س أساسي + إضافي من ساعة 9
+    var threshold = brk > 0 ? 9 : 8;
+    var basic = Math.min(workNet, threshold);
+    var extra = Math.max(0, workNet - threshold);
     return { total:total, basic:Math.round(basic*100)/100, break:brk, extra:Math.round(extra*100)/100 };
 }
 
