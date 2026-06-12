@@ -4950,12 +4950,13 @@ function renderRentalEquipment() {
     var c = document.getElementById('rental-equipment-list');
     if (!c) return;
     var isAdmin = currentUser && currentUser.role === 'admin';
-    if (!rentalData.length) {
-        c.innerHTML = '<div style="text-align:center;padding:50px;color:var(--gray)">🚧 لا توجد عقود إيجار<br><small>اضغط إضافة عقد إيجار للبدء</small></div>';
-        return;
-    }
+    var addBtn = document.getElementById('add-rental-btn');
+    if (addBtn) addBtn.style.display = isAdmin ? '' : 'none';
+    var delBtn = document.getElementById('delete-all-rental-btn');
+    if (delBtn) delBtn.style.display = isAdmin ? '' : 'none';
+    if (!rentalData.length) { c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray)">🚧 لا توجد عقود إيجار</div>'; return; }
     var now = new Date();
-    var month = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+    var month = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
     var todayStr = now.toISOString().split('T')[0];
     var html = '';
     rentalData.forEach(function(r) {
@@ -4967,49 +4968,56 @@ function renderRentalEquipment() {
         var daysCount = monthDays.length;
         var sumBasic  = monthDays.reduce(function(s,d){ return s+(d.basicHours||0); },0);
         var sumExtra  = monthDays.reduce(function(s,d){ return s+(d.extraHours||0); },0);
-        var pct = Math.min(daysCount/30, 1);
+        var pct   = Math.min(daysCount/30,1);
         var color = daysCount>=25?'#059669':daysCount>=15?'#0e7490':daysCount>=7?'#d97706':'#7c3aed';
-        var r44=44,cx=50,cy=50;
-        var angle=(pct*360-90)*Math.PI/180;
-        var x2=cx+r44*Math.cos(angle), y2=cy+r44*Math.sin(angle);
-        var large=pct>0.5?1:0;
-        var arcPath=pct>=1?'M 50 6 A 44 44 0 1 1 49.99 6':'M 50 6 A 44 44 0 '+large+' 1 '+x2.toFixed(2)+' '+y2.toFixed(2);
-        var eqLabel=eq?(eq.type+' '+eq.name):(r.equipmentCode||'—');
-        var rid=r.id;
-        html += '<div style="background:white;border-radius:20px;border:1px solid #e2e8f0;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">' +
-            '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:12px 14px;color:white;display:flex;justify-content:space-between;align-items:center">' +
-            '<div><div style="font-weight:700;font-size:15px">🚧 '+escapeHtml(eqLabel)+'</div>' +
-            '<div style="font-size:11px;opacity:.8;margin-top:2px">'+(r.company?'🏢 '+escapeHtml(r.company):'')+(drv?' 👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>' +
-            (isAdmin?'<div style="display:flex;gap:5px"><button data-action="edit-rental" data-id="'+rid+'" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:8px;padding:5px 9px;cursor:pointer">✏️</button><button data-action="del-rental" data-id="'+rid+'" style="background:rgba(255,0,0,.3);color:white;border:none;border-radius:8px;padding:5px 9px;cursor:pointer">🗑️</button></div>':'') +
-            '</div>' +
-            '<div style="padding:14px">' +
-            '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">' +
-            '<div style="position:relative;width:100px;flex-shrink:0">' +
-            '<svg viewBox="0 0 100 100" style="width:100px;height:100px">' +
-            '<circle cx="50" cy="50" r="44" fill="none" stroke="#f1f5f9" stroke-width="10"/>' +
-            (pct>0?'<path d="'+arcPath+'" fill="none" stroke="'+color+'" stroke-width="10" stroke-linecap="round" transform="scale(-1,1) translate(-100,0)"/>':'') +
-            '</svg>' +
-            '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">' +
-            '<div style="font-size:22px;font-weight:800;color:'+color+'">'+daysCount+'</div>' +
-            '<div style="font-size:10px;color:var(--gray)">يوم/30</div></div></div>' +
-            '<div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
-            '<div style="background:var(--light);border-radius:10px;padding:8px;text-align:center"><div style="font-size:16px;font-weight:700;color:#0e7490">'+sumBasic.toFixed(1)+'</div><div style="font-size:10px;color:var(--gray)">ساعة أساسية</div></div>' +
-            '<div style="background:'+(sumExtra>0?'#fef3c7':'var(--light)')+';border-radius:10px;padding:8px;text-align:center"><div style="font-size:16px;font-weight:700;color:'+(sumExtra>0?'#d97706':'var(--gray)')+'">'+sumExtra.toFixed(1)+'</div><div style="font-size:10px;color:var(--gray)">ساعة إضافية</div></div>' +
-            (drv?'<div style="grid-column:1/-1;background:var(--light);border-radius:10px;padding:6px 10px;font-size:12px">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'') +
-            '</div></div>' +
-            '<div style="background:#f8fafc;border-radius:12px;padding:10px;margin-bottom:10px">' +
-            '<div style="font-size:11px;color:var(--gray);margin-bottom:6px;font-weight:600">⚡ تحديث سريع — '+todayStr+'</div>' +
-            '<div style="display:flex;gap:6px;align-items:center">' +
-            '<input type="time" id="quick-in-'+rid+'" value="'+(todayRec?todayRec.inTime||'':'07:00')+'" style="flex:1;padding:7px;border:1px solid #e2e8f0;border-radius:9px;font-family:inherit;font-size:13px">' +
-            '<span style="color:var(--gray)">→</span>' +
-            '<input type="time" id="quick-out-'+rid+'" value="'+(todayRec?todayRec.outTime||'':'')+'" style="flex:1;padding:7px;border:1px solid #e2e8f0;border-radius:9px;font-family:inherit;font-size:13px">' +
-            '<input type="number" id="quick-brk-'+rid+'" value="'+(todayRec?todayRec.breakHours||1:1)+'" min="0" max="5" step="0.5" title="راحة" style="width:48px;padding:7px;border:1px solid #e2e8f0;border-radius:9px;font-family:inherit;font-size:12px;text-align:center">' +
-            '<button data-action="quick-save" data-id="'+rid+'" data-today="'+todayStr+'" data-existing="'+(todayRec?todayRec.id:'')+'" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:9px;padding:7px 12px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">✅</button>' +
-            '</div></div>' +
-            '<div style="display:flex;gap:8px">' +
-            '<button data-action="add-daily" data-id="'+rid+'" style="flex:1;padding:9px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">➕ تسجيل يوم</button>' +
-            '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:9px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">📋 التقرير</button>' +
-            '</div></div></div>';
+        var angle = (pct*360-90)*Math.PI/180;
+        var x2=44+38*Math.cos(angle), y2=44+38*Math.sin(angle);
+        var arcPath = pct>=1 ? 'M 44 6 A 38 38 0 1 1 43.99 6' : 'M 44 6 A 38 38 0 '+(pct>0.5?1:0)+' 1 '+x2.toFixed(2)+' '+y2.toFixed(2);
+        var eqLabel  = eq ? (eq.type+' — '+(eq.name||eq.code)) : (r.equipmentCode||'—');
+        var rid = r.id;
+        var todayStatusColor = todayRec ? '#065f46' : '#92400e';
+        var todayStatus = todayRec ? '✅ مسجّل اليوم' : '⏳ لم يسجّل اليوم';
+        html +=
+        '<div style="background:white;border-radius:16px;border:1px solid #e2e8f0;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)">'+
+        '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:9px 12px;color:white;display:flex;justify-content:space-between;align-items:center">'+
+        '<div><div style="font-weight:700;font-size:14px">🚧 '+escapeHtml(eqLabel)+'</div>'+
+        '<div style="font-size:11px;opacity:.8">'+(r.company?'🏢 '+escapeHtml(r.company)+(drv?' · ':''):'' )+(drv?'👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>'+
+        (isAdmin?'<div style="display:flex;gap:4px">'+
+        '<button data-action="edit-rental" data-id="'+rid+'" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px">✏️</button>'+
+        '<button data-action="del-rental"  data-id="'+rid+'" style="background:rgba(255,0,0,.3);color:white;border:none;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px">🗑️</button></div>':'')+
+        '</div>'+
+        '<div style="padding:10px 12px;display:flex;gap:10px;align-items:center">'+
+        '<div style="position:relative;flex-shrink:0;width:88px;height:88px">'+
+        '<svg viewBox="0 0 88 88" style="width:88px;height:88px">'+
+        '<circle cx="44" cy="44" r="38" fill="none" stroke="#f1f5f9" stroke-width="9"/>'+
+        (pct>0?'<path d="'+arcPath+'" fill="none" stroke="'+color+'" stroke-width="9" stroke-linecap="round" transform="scale(-1,1) translate(-88,0)"/>':'')+
+        '</svg>'+
+        '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;line-height:1.1">'+
+        '<div style="font-size:20px;font-weight:800;color:'+color+'">'+daysCount+'</div>'+
+        '<div style="font-size:9px;color:var(--gray)">يوم/30</div></div></div>'+
+        '<div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:5px">'+
+        '<div style="background:var(--light);border-radius:9px;padding:7px;text-align:center"><div style="font-size:17px;font-weight:700;color:#0e7490">'+sumBasic.toFixed(1)+'</div><div style="font-size:9px;color:var(--gray)">أساسية</div></div>'+
+        '<div style="background:'+(sumExtra>0?'#fef3c7':'var(--light)')+';border-radius:9px;padding:7px;text-align:center"><div style="font-size:17px;font-weight:700;color:'+(sumExtra>0?'#d97706':'var(--gray)')+'">'+sumExtra.toFixed(1)+'</div><div style="font-size:9px;color:var(--gray)">إضافية</div></div>'+
+        '<div style="grid-column:1/-1;background:'+(todayRec?'#d1fae5':'#fef9c3')+';border-radius:9px;padding:5px 8px;text-align:center;font-size:11px;font-weight:600;color:'+todayStatusColor+'">'+todayStatus+'</div>'+
+        '</div></div>'+
+        '<div style="margin:0 10px 10px;background:'+(todayRec?'#f0fdf4':'#fef3c7')+';border:1px solid '+(todayRec?'#bbf7d0':'#fde68a')+';border-radius:11px;padding:8px">'+
+        '<div style="font-size:10px;color:'+todayStatusColor+';margin-bottom:5px;font-weight:600">⚡ '+(todayRec?'تعديل اليوم '+todayStr:'تسجيل اليوم '+todayStr)+'</div>'+
+        '<div style="display:flex;gap:5px;align-items:center">'+
+        '<input type="time" id="quick-in-'+rid+'" value="'+(todayRec?todayRec.inTime||'':'07:00')+'" style="flex:1;padding:6px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:12px">'+
+        '<span style="color:var(--gray);font-size:11px">→</span>'+
+        '<input type="time" id="quick-out-'+rid+'" value="'+(todayRec?todayRec.outTime||'':'')+'" style="flex:1;padding:6px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:12px">'+
+        '<input type="number" id="quick-brk-'+rid+'" value="'+(todayRec?todayRec.breakHours||1:1)+'" min="0" max="5" step="0.5" title="راحة" style="width:44px;padding:6px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:11px;text-align:center">'+
+        '<button data-action="quick-save" data-id="'+rid+'" data-today="'+todayStr+'" data-existing="'+(todayRec?todayRec.id:'')+'" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:8px;padding:6px 11px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">✅</button>'+
+        '</div></div>'+
+        (isAdmin?
+        '<div style="padding:0 10px 10px;display:flex;gap:6px">'+
+        '<button data-action="add-daily" data-id="'+rid+'" style="flex:1;padding:7px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">➕ يوم آخر</button>'+
+        '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:7px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">📋 التقرير</button>'+
+        '</div>':
+        '<div style="padding:0 10px 10px">'+
+        '<button data-action="show-report" data-id="'+rid+'" style="width:100%;padding:7px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">📋 عرض التقرير</button>'+
+        '</div>')+
+        '</div>';
     });
     c.innerHTML = html;
     c.onclick = function(e) {
@@ -5034,13 +5042,15 @@ function quickSaveRentalDay(rentalId,date,existingId,inTime,outTime,brk) {
     if (!inTime||!outTime) { showToast('أدخل وقت الحضور والانصراف',true); return; }
     var rental=rentalData.find(function(r){ return r.id===rentalId; });
     if (!rental) return;
+    var alreadyExists=rentalDailyData.find(function(d){ return d.equipmentId===rentalId&&d.date===date; });
+    var targetId=existingId||(alreadyExists?alreadyExists.id:null);
     var h=calcRentalHours(inTime,outTime,brk);
     var record={ equipmentId:rentalId, equipmentCode:rental.equipmentCode||'', equipmentType:rental.equipmentType||'',
         driverId:rental.driverId||'', company:rental.company||'', date:date,
         inTime:inTime, outTime:outTime, totalHours:h.total, basicHours:h.basic, breakHours:brk, extraHours:h.extra,
         notes:'', updatedAt:new Date().toISOString() };
-    var ref = existingId ? fbDb.ref('rentalDaily/'+existingId) : fbDb.ref('rentalDaily').push();
-    ref.set(record).then(function(){ showToast('✅ تم حفظ اليوم'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
+    var ref=targetId?fbDb.ref('rentalDaily/'+targetId):fbDb.ref('rentalDaily').push();
+    ref.set(record).then(function(){ showToast(targetId?'✅ تم تحديث اليوم':'✅ تم حفظ اليوم'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
 }
 
 function onRentalEqChange() {
