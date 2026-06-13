@@ -980,7 +980,7 @@ function proceedToApp() {
             'upload-equipment-excel-btn','upload-inventory-soh-btn','upload-pm-history-btn',
             'confirm-import-btn','cancel-import-btn',
             'confirm-inventory-import-btn','cancel-inventory-import-btn',
-            'rental-wa-btn','add-rental-daily-btn'
+            'rental-wa-btn','add-rental-daily-btn','notif-settings-btn'
         ];
         adminBtnIds.forEach(function(id) {
             var btn = document.getElementById(id);
@@ -5368,24 +5368,38 @@ function sendRentalWhatsApp() {
     var dateFilter = dateEl ? dateEl.value : new Date().toISOString().split('T')[0];
     var filtered = rentalDailyData.filter(function(d){ return d.date===dateFilter; });
 
-    if (!filtered.length) { showToast('لا توجد سجلات لهذا اليوم', true); return; }
-
     var msg = '*حسن علام القابضة*%0A';
     msg += '🚧 تقرير الإيجار | ' + dateFilter + '%0A';
     msg += '━━━━━━━━━━━━%0A';
 
-    filtered.sort(function(a,b){ return (a.equipmentCode||'').localeCompare(b.equipmentCode||''); })
-    .forEach(function(r) {
-        var rental = rentalData.find(function(x){ return x.id===r.equipmentId; });
-        var eq  = rental ? equipmentData.find(function(e){ return e.id===rental.equipmentId; }) : null;
-        var drv = rental ? driversData.find(function(d){ return d.id===rental.driverId; }) : null;
-        var label = eq ? (eq.type + ' ' + (eq.name||eq.code)) : (r.equipmentCode||'—');
-        var extra = (r.extraHours||0) > 0 ? ' | ⚡*' + (r.extraHours||0).toFixed(2) + 'س*' : '';
-        msg += '%0A▪️ *' + label + '*%0A';
-        msg += (drv ? drv.name : '—') + ' | 🟢' + (r.inTime||'—') + ' 🔴' + (r.outTime||'—') + extra + '%0A';
-    });
+    // المعدات المسجلة
+    if (filtered.length) {
+        filtered.sort(function(a,b){ return (a.equipmentCode||'').localeCompare(b.equipmentCode||''); })
+        .forEach(function(r) {
+            var rental = rentalData.find(function(x){ return x.id===r.equipmentId; });
+            var eq  = rental ? equipmentData.find(function(e){ return e.id===rental.equipmentId; }) : null;
+            var drv = rental ? driversData.find(function(d){ return d.id===rental.driverId; }) : null;
+            var label = eq ? (eq.type + ' ' + (eq.name||eq.code)) : (r.equipmentCode||'—');
+            var extra = (r.extraHours||0) > 0 ? ' | ⚡*' + (r.extraHours||0).toFixed(2) + 'س*' : '';
+            msg += '%0A▪️ *' + label + '*%0A';
+            msg += (drv ? drv.name : '—') + ' | 🟢' + (r.inTime||'—') + ' 🔴' + (r.outTime||'—') + extra + '%0A';
+        });
+    }
 
-    msg += '%0A━━━━━━━━━━━━%0A🔢 ' + filtered.length + ' معدة';
+    // المعدات غير المسجلة
+    var registeredIds = filtered.map(function(r){ return r.equipmentId; });
+    var absent = rentalData.filter(function(r){ return registeredIds.indexOf(r.id) < 0; });
+    if (absent.length) {
+        msg += '%0A🔴 *غياب*%0A';
+        absent.forEach(function(r) {
+            var eq = equipmentData.find(function(e){ return e.id===r.equipmentId; });
+            var label = eq ? (eq.type + ' ' + (eq.name||eq.code)) : (r.equipmentCode||'—');
+            msg += '▫️ ' + label + '%0A';
+        });
+    }
+
+    msg += '%0A━━━━━━━━━━━━%0A';
+    msg += '✅ ' + filtered.length + ' حاضر | 🔴 ' + absent.length + ' غياب';
 
     var waNumber = notifSettings && notifSettings.whatsappNumber ? notifSettings.whatsappNumber : '';
     window.open((waNumber ? 'https://wa.me/'+waNumber : 'https://wa.me') + '?text=' + msg, '_blank');
