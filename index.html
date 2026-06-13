@@ -5370,7 +5370,8 @@ function sendRentalWhatsApp() {
 
     if (!filtered.length) { showToast('لا توجد سجلات لهذا اليوم', true); return; }
 
-    var msg = '🚧 *تقرير الإيجار - ' + dateFilter + '*%0A';
+    var msg = '*حسن علام القابضة*%0A';
+    msg += '🚧 تقرير الإيجار | ' + dateFilter + '%0A';
     msg += '━━━━━━━━━━━━%0A';
 
     filtered.sort(function(a,b){ return (a.equipmentCode||'').localeCompare(b.equipmentCode||''); })
@@ -5379,14 +5380,12 @@ function sendRentalWhatsApp() {
         var eq  = rental ? equipmentData.find(function(e){ return e.id===rental.equipmentId; }) : null;
         var drv = rental ? driversData.find(function(d){ return d.id===rental.driverId; }) : null;
         var label = eq ? (eq.type + ' ' + (eq.name||eq.code)) : (r.equipmentCode||'—');
+        var extra = (r.extraHours||0) > 0 ? ' | ⚡*' + (r.extraHours||0).toFixed(2) + 'س*' : '';
         msg += '%0A▪️ *' + label + '*%0A';
-        msg += '👨‍✈️ ' + (drv ? drv.name : '—') + '%0A';
-        msg += '🟢 ' + (r.inTime||'—') + '  🔴 ' + (r.outTime||'—') + '%0A';
-        if ((r.extraHours||0) > 0) msg += '⚡ إضافي: *' + (r.extraHours||0).toFixed(2) + 'س*%0A';
+        msg += (drv ? drv.name : '—') + ' | 🟢' + (r.inTime||'—') + ' 🔴' + (r.outTime||'—') + extra + '%0A';
     });
 
-    msg += '%0A━━━━━━━━━━━━%0A';
-    msg += '🔢 ' + filtered.length + ' معدة';
+    msg += '%0A━━━━━━━━━━━━%0A🔢 ' + filtered.length + ' معدة';
 
     var waNumber = notifSettings && notifSettings.whatsappNumber ? notifSettings.whatsappNumber : '';
     window.open((waNumber ? 'https://wa.me/'+waNumber : 'https://wa.me') + '?text=' + msg, '_blank');
