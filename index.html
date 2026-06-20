@@ -8,113 +8,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d1b2a">
 <title>Equipment Maintenance Service - Hassan Allam</title>
-<script>
-// Global error handler - يجب أن يكون قبل أي سكريبت آخر
-window.onerror = function(msg, src, line, col, err) {
-    // إخفاء "Script error." تماماً - تأتي من CDN cross-origin في Safari
-    if (!msg || msg === 'Script error.' || msg === 'Script error') return true;
-    // إخفاء أخطاء الشبكة الخارجية
-    if (src && (src.indexOf('gstatic') !== -1 || src.indexOf('jsdelivr') !== -1 || src.indexOf('unpkg') !== -1)) return true;
-    console.error('خطأ في التطبيق:', msg, 'السطر:', line);
-    return true; // true = لا تظهر في console
-};
-window.addEventListener('unhandledrejection', function(e) {
-    console.error('Unhandled Promise:', e.reason);
-});
-// XLSX loaded by loadXLSX() with fallback chain
-</script>
-
-<script>
-// ==================== Firebase Loader with Multi-CDN Fallback ====================
-(function() {
-    var FB_VERSION = '9.23.0';
-    var SDKS = ['firebase-app-compat', 'firebase-auth-compat', 'firebase-database-compat', 'firebase-firestore-compat'];
-    // حالة التحميل
-    window._fbLoadStatus = { loaded: 0, total: SDKS.length, failed: false };
-
-    function loadScript(url, onSuccess, onFail) {
-        var s = document.createElement('script');
-        s.src = url;
-        s.crossOrigin = 'anonymous';
-        s.onload  = onSuccess;
-        s.onerror = onFail;
-        document.head.appendChild(s);
-    }
-
-    // الـ URLs الصحيحة لكل CDN
-    var SDK_URLS = {
-        'firebase-app-compat': [
-            'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
-            'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app.js',
-            'https://unpkg.com/firebase@9.23.0/firebase-app.js'
-        ],
-        'firebase-auth-compat': [
-            'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
-            'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-auth.js',
-            'https://unpkg.com/firebase@9.23.0/firebase-auth.js'
-        ],
-        'firebase-database-compat': [
-            'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',
-            'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database.js',
-            'https://unpkg.com/firebase@9.23.0/firebase-database.js'
-        ],
-        'firebase-firestore-compat': [
-            'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js',
-            'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore.js',
-            'https://unpkg.com/firebase@9.23.0/firebase-firestore.js'
-        ]
-    };
-
-    function loadSDK(sdkIndex, cdnIndex) {
-        if (sdkIndex >= SDKS.length) return; // الكل اتحمل
-        var sdk = SDKS[sdkIndex];
-        var urls = SDK_URLS[sdk];
-        var url = (cdnIndex < urls.length) ? urls[cdnIndex] : null;
-        if (!url) {
-            window._fbLoadStatus.failed = true;
-            window._fbLoadStatus.loaded++;
-            loadSDK(sdkIndex + 1, 0);
-            return;
-        }
-
-        loadScript(url,
-            function() { // success
-                window._fbLoadStatus.loaded++;
-                console.log('✅ ' + sdk + ' محمّل');
-                loadSDK(sdkIndex + 1, 0);
-            },
-            function() { // fail
-                console.warn('⚠️ فشل: ' + url);
-                loadSDK(sdkIndex, cdnIndex + 1);
-            }
-        );
-    }
-
-    // ابدأ التحميل
-    loadSDK(0, 0);
-})();
-</script>
-
-<!-- SheetJS with fallback -->
-<script>
-(function() {
-    function loadXLSX(cdnIndex) {
-        var urls = [
-            'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
-            'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
-        ];
-        if (cdnIndex >= urls.length) { console.warn('XLSX: كل المصادر فشلت'); return; }
-        var s = document.createElement('script');
-        s.src = urls[cdnIndex];
-        s.crossOrigin = 'anonymous';
-        s.onload  = function() { console.log('✅ XLSX محمّل من: ' + urls[cdnIndex]); };
-        s.onerror = function() { loadXLSX(cdnIndex + 1); };
-        document.head.appendChild(s);
-    }
-    loadXLSX(0);
-})();
-</script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
 :root{color-scheme:light only;--primary:#0d1b2a;--secondary:#1b2838;--accent:#e8a020;--accent-dark:#c88a18;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#0e7490;--purple:#8b5cf6;--pink:#ec4899;--light:#f0f4f8;--white:#ffffff;--gray:#6b7a8d;--shadow:0 4px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 3px rgba(0,0,0,0.05)}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -163,10 +61,24 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     <div style="font-size:22px;font-weight:800;margin-bottom:5px;color:white">Equipment Maintenance Service</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:24px">Hassan Allam Holding</div>
 
-    <!-- تسجيل الدخول فقط -->
+    <!-- أزرار التبويب الثلاثة -->
+    <div style="display:flex;gap:5px;margin-bottom:18px;background:rgba(255,255,255,0.05);border-radius:40px;padding:4px">
+      <button id="direct-login-btn" onclick="setLoginMode('direct')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:#e8a020;color:#0d1b2a;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🚪 زائر</button>
+      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🔐 دخول</button>
+      <button id="register-login-btn" onclick="setLoginMode('register')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">✨ تسجيل</button>
+    </div>
 
-    <!-- لوحة الدخول -->
-    <div id="secure-login-panel" style="display:block">
+    <!-- لوحة الدخول المباشر -->
+    <div id="direct-login-panel" style="display:block">
+      <div style="background:rgba(255,255,255,0.08);border-radius:16px;padding:14px;margin-bottom:16px;text-align:right">
+        <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:6px">👁 وضع المشاهدة</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4)">يمكنك تصفح البيانات بدون تسجيل، لكن لا يمكنك الاضافة او التعديل.</div>
+      </div>
+      <button id="direct-login-submit" style="width:100%;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">🚀 دخول كمشاهد</button>
+    </div>
+
+    <!-- لوحة الدخول الآمن -->
+    <div id="secure-login-panel" style="display:none">
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">📧</span>
@@ -186,6 +98,37 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
       </div>
     </div>
 
+    <!-- لوحة انشاء حساب جديد -->
+    <div id="register-login-panel" style="display:none">
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">👤</span>
+          <input type="text" id="reg-name" placeholder="الاسم الكامل" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">📧</span>
+          <input type="email" id="reg-email" placeholder="البريد الالكتروني" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">🔒</span>
+          <input type="password" id="reg-password" placeholder="كلمة المرور (6 احرف على الاقل)" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">🔒</span>
+          <input type="password" id="reg-password2" placeholder="تاكيد كلمة المرور" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+        </div>
+      </div>
+      <div id="reg-error-msg" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:10px;margin-bottom:10px;font-size:12px;color:#fca5a5;text-align:center"></div>
+      <div id="reg-success-msg" style="display:none;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:10px;margin-bottom:10px;font-size:12px;color:#6ee7b7;text-align:center"></div>
+      <button id="register-submit-btn" onclick="registerNewUser()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">✨ انشاء حساب</button>
+      <div style="margin-top:8px;font-size:10px;color:rgba(255,255,255,0.3);text-align:center">بعد التسجيل يحتاج حسابك لموافقة المدير لتفعيل الصلاحيات</div>
+    </div>
 
     <!-- اعدادات -->
     <div style="margin-top:16px;padding:10px;background:rgba(255,255,255,0.03);border-radius:16px">
@@ -434,37 +377,6 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     <div id="admin-users-list"><div class="empty-state">⏳ جاري التحميل...</div></div>
   </div>
 
-  <!-- Modal تعديل صلاحيات مستخدم -->
-  <div id="edit-perms-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:600;overflow-y:auto;padding:20px;box-sizing:border-box">
-    <div style="background:white;border-radius:20px;max-width:460px;margin:0 auto;overflow:hidden">
-      <div style="background:linear-gradient(135deg,#1d4ed8,#7c3aed);padding:16px;display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="color:white;font-weight:800;font-size:14px">🎯 تخصيص الصلاحيات</div>
-          <div id="epm-user-label" style="color:rgba(255,255,255,0.7);font-size:11px;margin-top:2px"></div>
-        </div>
-        <button onclick="closeEditPermsModal()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px">✕</button>
-      </div>
-      <div style="padding:14px">
-        <!-- شريط أدوات سريع -->
-        <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
-          <button onclick="epmSelectRole('viewer')"  style="font-size:10px;padding:5px 10px;border-radius:20px;border:1px solid #e2e8f0;cursor:pointer;background:#f1f5f9;color:#64748b;font-family:inherit">👁️ viewer</button>
-          <button onclick="epmSelectRole('editor')"  style="font-size:10px;padding:5px 10px;border-radius:20px;border:1px solid #e2e8f0;cursor:pointer;background:#dbeafe;color:#1d4ed8;font-family:inherit">✏️ editor</button>
-          <button onclick="epmSelectRole('manager')" style="font-size:10px;padding:5px 10px;border-radius:20px;border:1px solid #e2e8f0;cursor:pointer;background:#d1fae5;color:#065f46;font-family:inherit">🔧 manager</button>
-          <button onclick="epmSelectRole('admin')"   style="font-size:10px;padding:5px 10px;border-radius:20px;border:1px solid #e2e8f0;cursor:pointer;background:#fef3c7;color:#92400e;font-family:inherit">👑 admin</button>
-          <button onclick="epmSelectAll(true)"  style="font-size:10px;padding:5px 10px;border-radius:20px;border:1px solid #e2e8f0;cursor:pointer;background:#f0fdf4;color:#16a34a;font-family:inherit">✅ الكل</button>
-          <button onclick="epmSelectAll(false)" style="font-size:10px;padding:5px 10px;border-radius:20px;border:1px solid #e2e8f0;cursor:pointer;background:#fef2f2;color:#dc2626;font-family:inherit">❌ لا شيء</button>
-        </div>
-        <!-- قائمة الصلاحيات مجمّعة -->
-        <div id="epm-perms-list" style="max-height:380px;overflow-y:auto"></div>
-        <!-- أزرار الحفظ -->
-        <div style="display:flex;gap:8px;margin-top:14px">
-          <button onclick="saveEditedPerms()" style="flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;padding:12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit">💾 حفظ الصلاحيات</button>
-          <button onclick="closeEditPermsModal()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:12px;padding:12px 16px;cursor:pointer;font-size:14px;font-family:inherit">إلغاء</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- تبويب إعدادات Firebase -->
   <div id="atab-firebase" style="padding:14px;display:none">
     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;color:#92400e">
@@ -531,18 +443,6 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 </div>
 
 <script>
-// ==================== إعدادات Firebase ====================
-var FIREBASE_CONFIG_DEFAULT = {
-    apiKey: "AIzaSyD3eWEZZDXCfHtJ6xdD9VwW8hT5vZzV0W4",
-    authDomain: "hah-pmv.firebaseapp.com",
-    databaseURL: "https://hah-pmv-default-rtdb.firebaseio.com",
-    projectId: "hah-pmv",
-    storageBucket: "hah-pmv.appspot.com"
-};
-var _savedFBConfig = null;
-try { _savedFBConfig = JSON.parse(localStorage.getItem('fb_config') || 'null'); } catch(e){}
-var FIREBASE_CONFIG = _savedFBConfig || FIREBASE_CONFIG_DEFAULT;
-
 // ==================== نظام إدارة المستخدمين ====================
 var fbFirestore = null;
 var currentUid = null;
@@ -550,7 +450,13 @@ var currentUserRole = 'viewer';
 var currentUserPlan = 'free';
 var currentUserStatus = 'active';
 
-
+function initFirestoreUsers() {
+    try {
+        fbFirestore = firebase.firestore();
+    } catch(e) {
+        console.warn('Firestore init failed:', e);
+    }
+}
 
 function saveUserToFirestore(uid, data) {
     if (!fbFirestore) return Promise.resolve();
@@ -634,124 +540,11 @@ function loadAdminUsers() {
                 '<button onclick="toggleUserStatus(\''+esc(u.uid)+'\',\''+(u.status||'active')+'\')" style="background:' + (u.status==='active'?'#fee2e2':'#d1fae5') + ';color:' + (u.status==='active'?'#dc2626':'#059669') + ';border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">' +
                 (u.status === 'active' ? '🚫 تعطيل' : '✅ تفعيل') + '</button>' +
                 '<button onclick="adminChangePassword(\''+esc(u.email||'')+'\')" style="background:#dbeafe;color:#1e40af;border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">🔑 كلمة المرور</button>' +
-                '<button onclick="openEditPermsModal(\''+esc(u.uid)+'\',\''+esc(u.displayName||u.email||u.uid)+'\')" style="background:#f0fdf4;color:#16a34a;border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">🎯 صلاحيات</button>' +
                 '<button onclick="deleteAdminUser(\''+esc(u.uid)+'\',\''+esc(u.email||u.uid)+'\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">🗑️ حذف</button>' +
                 '</div></div>';
         }).join('');
     }).catch(function(err) {
         listEl.innerHTML = '<div class="empty-state" style="color:var(--danger)">⚠️ خطأ في تحميل المستخدمين<br><small>' + escapeHtml(err.message) + '</small></div>';
-    });
-}
-
-// ==================== تعديل صلاحيات مستخدم ====================
-var _epmCurrentUid = null;
-var _epmCurrentPerms = [];
-
-function openEditPermsModal(uid, userName) {
-    _epmCurrentUid = uid;
-    _epmCurrentPerms = [];
-    var labelEl = document.getElementById('epm-user-label');
-    if (labelEl) labelEl.textContent = userName || uid;
-
-    // تحميل صلاحيات المستخدم من Firestore
-    var modal = document.getElementById('edit-perms-modal');
-    if (modal) modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-
-    var listEl = document.getElementById('epm-perms-list');
-    if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8">⏳ جاري التحميل...</div>';
-
-    getUserFromFirestore(uid).then(function(userData) {
-        // الصلاحيات المخزنة أو الافتراضية للدور
-        var role = (userData && userData.role) || 'viewer';
-        var savedPerms = (userData && userData.customPermissions) || null;
-        _epmCurrentPerms = savedPerms ? savedPerms.slice() : (ROLE_DEFAULT_PERMISSIONS[role] || []).slice();
-        renderEpmPermsList();
-    }).catch(function() {
-        _epmCurrentPerms = [];
-        renderEpmPermsList();
-    });
-}
-
-function renderEpmPermsList() {
-    var listEl = document.getElementById('epm-perms-list');
-    if (!listEl) return;
-    // تجميع حسب المجموعة
-    var groups = {};
-    ALL_PERMISSIONS.forEach(function(p) {
-        if (!groups[p.group]) groups[p.group] = [];
-        groups[p.group].push(p);
-    });
-    var html = '';
-    Object.keys(groups).forEach(function(g) {
-        html += '<div style="margin-bottom:12px">' +
-            '<div style="font-size:11px;font-weight:800;color:#475569;margin-bottom:6px;padding:4px 8px;background:#f8fafc;border-radius:8px">' + g + '</div>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
-        groups[g].forEach(function(p) {
-            var active = _epmCurrentPerms.indexOf(p.key) !== -1;
-            html += '<label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;cursor:pointer;border:1.5px solid '+(active?'#7c3aed':'#e2e8f0')+';background:'+(active?'#f5f3ff':'white')+';transition:all 0.15s">' +
-                '<input type="checkbox" data-pkey="'+p.key+'" '+(active?'checked':'')+' onchange="toggleEpmPerm(''+p.key+'',this.checked)" style="accent-color:#7c3aed;width:15px;height:15px;cursor:pointer">' +
-                '<span style="font-size:11px;color:'+(active?'#5b21b6':'#64748b')+';font-weight:'+(active?'700':'400')+'">'+p.icon+' '+p.label+'</span>' +
-                '</label>';
-        });
-        html += '</div></div>';
-    });
-    listEl.innerHTML = html;
-    // عداد الصلاحيات
-    var counter = document.createElement('div');
-    counter.id = 'epm-counter';
-    counter.style.cssText = 'text-align:center;font-size:11px;color:#7c3aed;font-weight:700;margin-bottom:8px;padding:6px;background:#f5f3ff;border-radius:8px';
-    counter.textContent = '✅ ' + _epmCurrentPerms.length + ' صلاحية مفعّلة من أصل ' + ALL_PERMISSIONS.length;
-    listEl.insertBefore(counter, listEl.firstChild);
-}
-
-function toggleEpmPerm(key, checked) {
-    var idx = _epmCurrentPerms.indexOf(key);
-    if (checked && idx === -1) _epmCurrentPerms.push(key);
-    else if (!checked && idx !== -1) _epmCurrentPerms.splice(idx, 1);
-    // تحديث العداد فقط
-    var counter = document.getElementById('epm-counter');
-    if (counter) counter.textContent = '✅ ' + _epmCurrentPerms.length + ' صلاحية مفعّلة من أصل ' + ALL_PERMISSIONS.length;
-    // تحديث ألوان الـ label
-    var lbl = document.querySelector('input[data-pkey="'+key+'"]');
-    if (lbl) {
-        var container = lbl.parentElement;
-        container.style.borderColor = checked ? '#7c3aed' : '#e2e8f0';
-        container.style.background  = checked ? '#f5f3ff' : 'white';
-        var span = container.querySelector('span');
-        if (span) { span.style.color = checked ? '#5b21b6' : '#64748b'; span.style.fontWeight = checked ? '700' : '400'; }
-    }
-}
-
-function epmSelectRole(role) {
-    _epmCurrentPerms = (ROLE_DEFAULT_PERMISSIONS[role] || []).slice();
-    renderEpmPermsList();
-}
-
-function epmSelectAll(val) {
-    _epmCurrentPerms = val ? ALL_PERMISSIONS.map(function(p){ return p.key; }) : [];
-    renderEpmPermsList();
-}
-
-function closeEditPermsModal() {
-    var modal = document.getElementById('edit-perms-modal');
-    if (modal) modal.style.display = 'none';
-    document.body.style.overflow = '';
-    _epmCurrentUid = null;
-    _epmCurrentPerms = [];
-}
-
-function saveEditedPerms() {
-    if (!_epmCurrentUid || !fbFirestore) { showToast('خطأ في الحفظ', true); return; }
-    fbFirestore.collection('users').doc(_epmCurrentUid).update({
-        customPermissions: _epmCurrentPerms,
-        permissionsUpdatedAt: new Date().toISOString(),
-        permissionsUpdatedBy: currentUid || 'admin'
-    }).then(function() {
-        showToast('✅ تم حفظ ' + _epmCurrentPerms.length + ' صلاحية');
-        closeEditPermsModal();
-    }).catch(function(e) {
-        showToast('خطأ: ' + e.message, true);
     });
 }
 
@@ -797,77 +590,26 @@ function toggleAuPassword() {
     inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 
-// ==================== نظام الصلاحيات الديناميكي ====================
-// قائمة كل الصلاحيات المتاحة في النظام
-var ALL_PERMISSIONS = [
-    { key: 'view_equipment',    label: 'عرض المعدات',          icon: '🚜', group: 'معدات' },
-    { key: 'add_equipment',     label: 'إضافة معدات',          icon: '➕', group: 'معدات' },
-    { key: 'edit_equipment',    label: 'تعديل معدات',          icon: '✏️', group: 'معدات' },
-    { key: 'delete_equipment',  label: 'حذف معدات',            icon: '🗑️', group: 'معدات' },
-    { key: 'view_drivers',      label: 'عرض السائقين',         icon: '👷', group: 'سائقين' },
-    { key: 'add_drivers',       label: 'إضافة سائقين',         icon: '➕', group: 'سائقين' },
-    { key: 'edit_drivers',      label: 'تعديل سائقين',         icon: '✏️', group: 'سائقين' },
-    { key: 'delete_drivers',    label: 'حذف سائقين',           icon: '🗑️', group: 'سائقين' },
-    { key: 'view_fuel',         label: 'عرض الوقود',           icon: '⛽', group: 'وقود' },
-    { key: 'add_fuel',          label: 'إضافة وقود',           icon: '➕', group: 'وقود' },
-    { key: 'edit_fuel',         label: 'تعديل وقود',           icon: '✏️', group: 'وقود' },
-    { key: 'delete_fuel',       label: 'حذف وقود',             icon: '🗑️', group: 'وقود' },
-    { key: 'view_maintenance',  label: 'عرض الصيانة',          icon: '🔧', group: 'صيانة' },
-    { key: 'add_maintenance',   label: 'إضافة صيانة',          icon: '➕', group: 'صيانة' },
-    { key: 'delete_maintenance',label: 'حذف صيانة',            icon: '🗑️', group: 'صيانة' },
-    { key: 'view_inventory',    label: 'عرض المخزون',          icon: '📦', group: 'مخزون' },
-    { key: 'add_inventory',     label: 'إضافة مخزون',          icon: '➕', group: 'مخزون' },
-    { key: 'edit_inventory',    label: 'تعديل مخزون',          icon: '✏️', group: 'مخزون' },
-    { key: 'delete_inventory',  label: 'حذف مخزون',            icon: '🗑️', group: 'مخزون' },
-    { key: 'view_rental',       label: 'عرض الإيجار',          icon: '🏗️', group: 'إيجار' },
-    { key: 'add_rental',        label: 'إضافة إيجار',          icon: '➕', group: 'إيجار' },
-    { key: 'delete_rental',     label: 'حذف إيجار',            icon: '🗑️', group: 'إيجار' },
-    { key: 'export_reports',    label: 'تصدير التقارير',       icon: '📊', group: 'تقارير' },
-    { key: 'import_data',       label: 'استيراد البيانات',     icon: '📥', group: 'تقارير' },
-    { key: 'delete_all',        label: 'حذف جميع البيانات',    icon: '⚠️', group: 'إدارة' },
-    { key: 'manage_users',      label: 'إدارة المستخدمين',     icon: '👥', group: 'إدارة' },
-    { key: 'firebase_settings', label: 'إعدادات Firebase',     icon: '🔥', group: 'إدارة' },
-];
-
-// الصلاحيات الافتراضية لكل دور
-var ROLE_DEFAULT_PERMISSIONS = {
-    viewer:  ['view_equipment','view_drivers','view_fuel','view_maintenance','view_inventory','view_rental'],
-    editor:  ['view_equipment','add_equipment','edit_equipment','view_drivers','add_drivers','edit_drivers','view_fuel','add_fuel','edit_fuel','view_maintenance','add_maintenance','view_inventory','add_inventory','edit_inventory','view_rental','add_rental','export_reports'],
-    manager: ['view_equipment','add_equipment','edit_equipment','delete_equipment','view_drivers','add_drivers','edit_drivers','delete_drivers','view_fuel','add_fuel','edit_fuel','delete_fuel','view_maintenance','add_maintenance','delete_maintenance','view_inventory','add_inventory','edit_inventory','delete_inventory','view_rental','add_rental','delete_rental','export_reports','import_data'],
-    admin:   ['view_equipment','add_equipment','edit_equipment','delete_equipment','view_drivers','add_drivers','edit_drivers','delete_drivers','view_fuel','add_fuel','edit_fuel','delete_fuel','view_maintenance','add_maintenance','delete_maintenance','view_inventory','add_inventory','edit_inventory','delete_inventory','view_rental','add_rental','delete_rental','export_reports','import_data','delete_all','manage_users','firebase_settings']
-};
-
-var ROLE_META = {
-    viewer:  { label: '👁️ مشاهد',       color: '#64748b', bg: '#f1f5f9' },
-    editor:  { label: '✏️ محرر',        color: '#1d4ed8', bg: '#dbeafe' },
-    manager: { label: '🔧 مدير قسم',    color: '#065f46', bg: '#d1fae5' },
-    admin:   { label: '👑 مدير النظام', color: '#92400e', bg: '#fef3c7' }
+// معاينة الصلاحيات حسب الدور المختار
+var ROLE_PERMISSIONS = {
+    viewer:  { label: '👁️ مشاهد',      color: '#64748b', bg: '#f1f5f9', perms: ['✅ عرض المعدات','✅ عرض السائقين','✅ عرض الوقود','✅ عرض المخزون','❌ إضافة/تعديل','❌ حذف','❌ استيراد/تصدير'] },
+    editor:  { label: '✏️ محرر',       color: '#1d4ed8', bg: '#dbeafe', perms: ['✅ عرض كل البيانات','✅ إضافة معدات وسائقين','✅ إضافة وقود وصيانة','✅ تعديل سجلاته الخاصة','❌ حذف جماعي','❌ إدارة مستخدمين'] },
+    manager: { label: '🔧 مدير قسم',   color: '#065f46', bg: '#d1fae5', perms: ['✅ كل صلاحيات المحرر','✅ حذف السجلات','✅ تصدير التقارير','✅ إدارة الاستيراد','❌ إدارة مستخدمين','❌ إعدادات النظام'] },
+    admin:   { label: '👑 مدير النظام', color: '#92400e', bg: '#fef3c7', perms: ['✅ صلاحيات كاملة','✅ إدارة المستخدمين','✅ إعدادات Firebase','✅ حذف جميع البيانات','✅ عرض بيانات الكل','✅ تغيير أدوار المستخدمين'] }
 };
 
 function updateAuPermissionsPreview() {
     var role = (document.getElementById('au-role') || {}).value || 'editor';
-    var perms = ROLE_DEFAULT_PERMISSIONS[role] || ROLE_DEFAULT_PERMISSIONS.editor;
-    var meta  = ROLE_META[role] || ROLE_META.editor;
+    var info = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.editor;
     var previewEl = document.getElementById('au-permissions-preview');
     if (!previewEl) return;
-    // تجميع حسب المجموعة
-    var groups = {};
-    ALL_PERMISSIONS.forEach(function(p) {
-        if (!groups[p.group]) groups[p.group] = [];
-        groups[p.group].push(p);
-    });
-    var html = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">' +
-        '<span style="background:'+meta.bg+';color:'+meta.color+';padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">'+meta.label+'</span>' +
-        '<span style="color:#94a3b8;font-size:10px">('+perms.length+' صلاحية)</span></div>';
-    Object.keys(groups).forEach(function(g) {
-        html += '<div style="margin-bottom:4px"><span style="font-size:10px;font-weight:700;color:#64748b">'+g+':</span><span style="margin-right:4px"> ';
-        html += groups[g].map(function(p) {
-            var active = perms.indexOf(p.key) !== -1;
-            return '<span style="font-size:10px;color:'+(active?'#059669':'#cbd5e1')+'">'+p.icon+' '+(active?'':'<s style=opacity:.5>'+p.label+'</s>'+('')||p.label)+'</span>';
-        }).join(' ');
-        html += '</span></div>';
-    });
-    previewEl.innerHTML = html;
+    previewEl.innerHTML =
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+        '<span style="background:'+info.bg+';color:'+info.color+';padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">'+info.label+'</span>' +
+        '<span style="color:#64748b;font-size:11px">الصلاحيات:</span></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">' +
+        info.perms.map(function(p){ return '<div style="font-size:10px;color:#475569">'+p+'</div>'; }).join('') +
+        '</div>';
 }
 
 function createUserByAdmin() {
@@ -895,14 +637,8 @@ function createUserByAdmin() {
     btn.disabled = true;
     errEl.style.display = 'none';
 
-    try {
-        if (firebase.apps && firebase.apps.length && !fbFirestore) {
-            fbFirestore = firebase.firestore();
-        } else if (!firebase.apps || !firebase.apps.length) {
-            firebase.initializeApp(FIREBASE_CONFIG);
-            fbFirestore = firebase.firestore();
-        }
-    } catch(e) { console.warn('Firebase:', e.message); }
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    if (!fbFirestore) { try { fbFirestore = firebase.firestore(); } catch(e){} }
 
     // إنشاء الحساب في Firebase Auth
     firebase.auth().createUserWithEmailAndPassword(email, pass).then(function(cred) {
@@ -1107,54 +843,60 @@ function resetFBConfig() {
     showToast('تمت الاستعادة — جاري إعادة التشغيل...');
     setTimeout(function() { window.location.reload(); }, 1200);
 }
-// ==================== إعدادات Firebase - معرّفة في أعلى السكريبت ====================
+</script>
 
-// ==================== XLSX Safety Wrapper ====================
-function checkXLSX() {
-    if (typeof XLSX === 'undefined') {
-        showToast('⚠️ مكتبة Excel لم تتحمل بعد، حاول مرة أخرى', true);
-        return false;
-    }
-    return true;
-}
+<script>
+// ==================== إعدادات Firebase ====================
+// ==================== إعدادات Firebase (قابلة للتعديل) ====================
+const FIREBASE_CONFIG_DEFAULT = {
+    apiKey: "AIzaSyD3eWEZZDXCfHtJ6xdD9VwW8hT5vZzV0W4",
+    authDomain: "hah-pmv.firebaseapp.com",
+    databaseURL: "https://hah-pmv-default-rtdb.firebaseio.com",
+    projectId: "hah-pmv",
+    storageBucket: "hah-pmv.appspot.com"
+};
+// تحميل الإعدادات من localStorage (إن وُجدت)
+var _savedFBConfig = null;
+try { _savedFBConfig = JSON.parse(localStorage.getItem('fb_config') || 'null'); } catch(e){}
+const FIREBASE_CONFIG = _savedFBConfig || FIREBASE_CONFIG_DEFAULT;
 
-var fbDb = null;
-var equipmentData = [];
-var driversData = [];
-var fuelData = [];
-var maintenanceSchedules = [];
-var inventoryItems = [];
-var equipmentFilterLinks = [];
-var equipmentOilLinks = [];
-var filterAlternatives = [];
-var pmHistory = {};
-var rentalData = [];
-var rentalDailyData = [];
-var currentUser = null;
-var editingEquipmentId = null;
-var editingDriverId = null;
-var editingInventoryId = null;
-var currentLinkingItem = null;
-var currentLinkingOilItem = null;
-var currentEditingFuelId = null;
-var currentEditingFilterId = null;
-var activeListeners = [];
-var isOnline = true;
-var refreshTimeout = null;
-var isListeningAttached = false;
-var dbRequest = null;
-var isImporting = false;
-var windowInvAltCount = 0;
-var currentMaintenanceAttachment = null;
-var pendingImportData = null;
-var pendingInventoryData = null;
-var importResults = { equipment: 0, fuel: 0, parts: 0 };
-var lastAlertCheck = 0;
-var notifSettings = { whatsappNumber: '', threshold: 50 };
-var SYSTEM_CONFIG = { loginMode: 'secure' };
+let fbDb = null;
+let equipmentData = [];
+let driversData = [];
+let fuelData = [];
+let maintenanceSchedules = [];
+let inventoryItems = [];
+let equipmentFilterLinks = [];
+let equipmentOilLinks = [];
+let filterAlternatives = [];
+let pmHistory = {};
+let rentalData = [];
+let rentalDailyData = [];
+let currentUser = null;
+let editingEquipmentId = null;
+let editingDriverId = null;
+let editingInventoryId = null;
+let currentLinkingItem = null;
+let currentLinkingOilItem = null;
+let currentEditingFuelId = null;
+let currentEditingFilterId = null;
+let activeListeners = [];
+let isOnline = true;
+let refreshTimeout = null;
+let isListeningAttached = false;
+let dbRequest = null;
+let isImporting = false;
+let windowInvAltCount = 0;
+let currentMaintenanceAttachment = null;
+let pendingImportData = null;
+let pendingInventoryData = null;
+let importResults = { equipment: 0, fuel: 0, parts: 0 };
+let lastAlertCheck = 0;
+let notifSettings = { whatsappNumber: '', threshold: 50 };
+let SYSTEM_CONFIG = { loginMode: 'direct' };
 
-function showToast(message, isError) { isError = isError === true;
-    var toast = document.getElementById('toast');
+function showToast(message, isError = false) {
+    const toast = document.getElementById('toast');
     if (!toast) return;
     toast.textContent = message;
     toast.style.background = isError ? 'var(--danger)' : 'var(--primary)';
@@ -1166,7 +908,7 @@ function showToast(message, isError) { isError = isError === true;
 }
 
 function closeModal(modalId) {
-    var modal = document.getElementById(modalId);
+    const modal = document.getElementById(modalId);
     if (modal) modal.classList.remove('active');
 }
 
@@ -1189,15 +931,15 @@ function hoursRemaining(equipment) {
 }
 
 function getRemainingPercent(equipment) {
-    var remaining = hoursRemaining(equipment);
-    var GAUGE_MAX = 250;
+    const remaining = hoursRemaining(equipment);
+    const GAUGE_MAX = 250;
     if (remaining <= 0) return 0;
-    var percent = (remaining / GAUGE_MAX) * 100;
+    let percent = (remaining / GAUGE_MAX) * 100;
     return Math.min(100, Math.max(0, percent));
 }
 
 function getRemainingStatus(equipment) {
-    var remaining = hoursRemaining(equipment);
+    const remaining = hoursRemaining(equipment);
     if (remaining <= 0) return { text: '⚠️ تجاوز ' + Math.abs(remaining) + ' س', color: 'var(--danger)' };
     if (remaining <= 10) return { text: '🔴 باقي ' + remaining + ' س فقط!', color: 'var(--danger)' };
     if (remaining <= 50) return { text: '🟡 باقي ' + remaining + ' س', color: 'var(--warning)' };
@@ -1213,7 +955,7 @@ function getBarColor(remaining) {
 }
 
 function getCategoryBadge(category) {
-    var badges = {
+    const badges = {
         filter: '<span class="category-badge" style="background:#e0e7ff;color:#4338ca">🔧 فلتر</span>',
         oil: '<span class="category-badge" style="background:#fed7aa;color:#9a3412">🛢️ زيت</span>',
         tire: '<span class="category-badge" style="background:#d1fae5;color:#065f46">🚗 إطار</span>',
@@ -1249,18 +991,18 @@ function hasPermission(permission, record) {
 function parseDateFromExcel(dateValue) {
     if (!dateValue) return '';
     if (typeof dateValue === 'number') {
-        var excelEpoch = new Date(1899, 11, 30);
-        var msPerDay = 86400000;
-        var date = new Date(excelEpoch.getTime() + dateValue * msPerDay);
+        const excelEpoch = new Date(1899, 11, 30);
+        const msPerDay = 86400000;
+        const date = new Date(excelEpoch.getTime() + dateValue * msPerDay);
         if (!isNaN(date.getTime())) return date.toISOString().split('T')[0];
         return '';
     }
-    var dateStr = dateValue.toString();
+    const dateStr = dateValue.toString();
     if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return dateStr.substring(0, 10);
     if (dateStr.includes('/')) {
-        var parts = dateStr.split('/');
+        const parts = dateStr.split('/');
         if (parts.length === 3) {
-            var year = parts[2];
+            let year = parts[2];
             if (year.length === 2) year = '20' + year;
             return year + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
         }
@@ -1273,12 +1015,12 @@ function totalQty(item) {
 }
 
 function getTotalAvailableWithAlternatives(filterId) {
-    var main = inventoryItems.find(function(item) { return item && item.id === filterId; });
+    const main = inventoryItems.find(function(item) { return item && item.id === filterId; });
     if (!main) return 0;
-    var total = main.qty || 0;
-    var alts = filterAlternatives.filter(function(alt) { return alt.mainFilterId === filterId; });
+    let total = main.qty || 0;
+    const alts = filterAlternatives.filter(function(alt) { return alt.mainFilterId === filterId; });
     alts.forEach(function(alt) {
-        var altItem = inventoryItems.find(function(item) { return item && item.id === alt.alternativeFilterId; });
+        const altItem = inventoryItems.find(function(item) { return item && item.id === alt.alternativeFilterId; });
         if (altItem) total += altItem.qty || 0;
     });
     return total;
@@ -1286,18 +1028,18 @@ function getTotalAvailableWithAlternatives(filterId) {
 
 function calculateNeededFor1000Hours(equipment, item) {
     if (!equipment || !equipment.interval || equipment.interval <= 0) return 0;
-    var services = Math.ceil(1000 / equipment.interval);
-    var per = Math.ceil(services / ((item && item.interval) ? item.interval / equipment.interval : 1));
+    const services = Math.ceil(1000 / equipment.interval);
+    const per = Math.ceil(services / ((item && item.interval) ? item.interval / equipment.interval : 1));
     return per || 0;
 }
 
 function calculateAllFiltersNeeded() {
-    var needs = {};
+    const needs = {};
     inventoryItems.forEach(function(filter) {
         if (filter.category !== 'filter') return;
-        var total = 0;
+        let total = 0;
         equipmentFilterLinks.filter(function(link) { return link.filterPartNo === filter.partNo; }).forEach(function(link) {
-            var equipment = equipmentData.find(function(e) { return e.code === link.equipmentId; });
+            const equipment = equipmentData.find(function(e) { return e.code === link.equipmentId; });
             if (equipment && equipment.status !== 'متوقف') {
                 total += calculateNeededFor1000Hours(equipment, filter);
             }
@@ -1308,12 +1050,12 @@ function calculateAllFiltersNeeded() {
 }
 
 function calculateAllOilsNeeded() {
-    var needs = {};
+    const needs = {};
     inventoryItems.forEach(function(oil) {
         if (oil.category !== 'oil') return;
-        var total = 0;
+        let total = 0;
         equipmentOilLinks.filter(function(link) { return link.oilPartNo === oil.partNo; }).forEach(function(link) {
-            var equipment = equipmentData.find(function(e) { return e.code === link.equipmentId; });
+            const equipment = equipmentData.find(function(e) { return e.code === link.equipmentId; });
             if (equipment && equipment.status !== 'متوقف') {
                 total += calculateNeededFor1000Hours(equipment, oil);
             }
@@ -1324,14 +1066,14 @@ function calculateAllOilsNeeded() {
 }
 
 function calculateEnhancedOrderNeeds() {
-    var needs = {};
+    const needs = {};
     equipmentData.forEach(function(equipment) {
         if (equipment.status === 'متوقف') return;
-        var eqFilters = equipmentFilterLinks.filter(function(link) { return link.equipmentId === equipment.code; });
+        const eqFilters = equipmentFilterLinks.filter(function(link) { return link.equipmentId === equipment.code; });
         eqFilters.forEach(function(link) {
-            var main = inventoryItems.find(function(item) { return item.partNo === link.filterPartNo; });
+            const main = inventoryItems.find(function(item) { return item.partNo === link.filterPartNo; });
             if (!main) return;
-            var needed = calculateNeededFor1000Hours(equipment, main);
+            const needed = calculateNeededFor1000Hours(equipment, main);
             if (!needs[main.id]) {
                 needs[main.id] = {
                     needed: 0,
@@ -1346,11 +1088,11 @@ function calculateEnhancedOrderNeeds() {
             }
             needs[main.id].needed += needed;
         });
-        var eqOils = equipmentOilLinks.filter(function(link) { return link.equipmentId === equipment.code; });
+        const eqOils = equipmentOilLinks.filter(function(link) { return link.equipmentId === equipment.code; });
         eqOils.forEach(function(link) {
-            var main = inventoryItems.find(function(item) { return item.partNo === link.oilPartNo; });
+            const main = inventoryItems.find(function(item) { return item.partNo === link.oilPartNo; });
             if (!main) return;
-            var needed = calculateNeededFor1000Hours(equipment, main);
+            const needed = calculateNeededFor1000Hours(equipment, main);
             if (!needs[main.id]) {
                 needs[main.id] = {
                     needed: 0,
@@ -1367,12 +1109,12 @@ function calculateEnhancedOrderNeeds() {
         });
     });
     Object.keys(needs).forEach(function(id) {
-        var item = inventoryItems.find(function(i) { return i.id === id; });
+        const item = inventoryItems.find(function(i) { return i.id === id; });
         if (item) {
             needs[id].available = getTotalAvailableWithAlternatives(id);
             needs[id].shortage = Math.max(0, needs[id].needed - needs[id].available);
-            var alts = filterAlternatives.filter(function(alt) { return alt.mainFilterId === id; }).map(function(alt) {
-                var altItem = inventoryItems.find(function(i) { return i.id === alt.alternativeFilterId; });
+            const alts = filterAlternatives.filter(function(alt) { return alt.mainFilterId === id; }).map(function(alt) {
+                const altItem = inventoryItems.find(function(i) { return i.id === alt.alternativeFilterId; });
                 return altItem ? { name: altItem.name, partNo: altItem.partNo, qty: altItem.qty || 0, id: altItem.id } : null;
             }).filter(Boolean);
             needs[id].alternatives = alts;
@@ -1387,7 +1129,7 @@ function saveToFirebase(path, data) {
         showToast('❌ قاعدة البيانات غير جاهزة', true);
         return false;
     }
-    var ref;
+    let ref;
     if (data.id) {
         var rest = Object.assign({}, data);
         delete rest.id;
@@ -1578,8 +1320,8 @@ function processPendingOperations() {
         var ops = e.target.result;
         if (ops.length === 0) return;
         showToast('🔄 جاري مزامنة ' + ops.length + ' عملية معلقة...');
-        var successCount = 0;
-        var failCount = 0;
+        let successCount = 0;
+        let failCount = 0;
         ops.forEach(function(op) {
             if (op.path && op.data) {
                 var ref;
@@ -1727,16 +1469,11 @@ function detachFirebaseListeners() {
 
 function initFirebase() {
     try {
-        // تهيئة app واحدة فقط
-        if (!firebase.apps || !firebase.apps.length) {
-            firebase.initializeApp(FIREBASE_CONFIG);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
         fbDb = firebase.database();
         fbDb.goOnline();
-        // تهيئة Firestore
-        if (!fbFirestore) {
-            try { fbFirestore = firebase.firestore(); } catch(fe) { console.warn('Firestore:', fe.message); }
-        }
+        // تهيئة Firestore لإدارة المستخدمين
+        initFirestoreUsers();
         fbDb.ref('.info/connected').on('value', function(snapshot) {
             if (snapshot.val()) checkOnlineAndWarn();
             else checkOnlineAndWarn();
@@ -1772,126 +1509,233 @@ function updateDriverSelects() {
 }
 
 // ==================== دوال الدخول ====================
-// ==================== دوال الدخول ====================
+function directLogin() {
+    // دخول مباشر كمشاهد - بدون Firebase Auth (anonymous)
+    currentUid = 'viewer_' + Date.now();
+    currentUserRole = 'viewer';
+    currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
+    showToast('مرحباً مشاهد');
+    proceedToApp();
+}
+
 function secureLogin() {
-    var username  = (document.getElementById('secure-username').value || '').trim();
-    var password  = document.getElementById('secure-password').value || '';
-    var errDiv    = document.getElementById('login-error-msg');
+    var username = document.getElementById('secure-username').value.trim();
+    var password = document.getElementById('secure-password').value;
+    if (!username || !password) {
+        showToast('أدخل اسم المستخدم وكلمة المرور', true);
+        return;
+    }
+    
     var submitBtn = document.getElementById('secure-login-submit');
+    if (submitBtn) submitBtn.innerHTML = 'جاري التحقق... <span class="loading-spinner"></span>';
 
-    function showLoginErr(msg) {
-        if (errDiv)    { errDiv.textContent = msg; errDiv.style.display = 'block'; }
-        if (submitBtn) { submitBtn.innerHTML = '🔐 دخول'; submitBtn.disabled = false; }
+    // الدخول الافتراضي للمدير
+    if (username === 'admin' && password === 'A@bdo120') {
+        currentUid = 'admin_super';
+        currentUserRole = 'admin';
+        currentUserPlan = 'premium';
+        currentUserStatus = 'active';
+        currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
+        showToast('مرحباً مدير النظام ✅');
+        if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
+        // hide error
+        var errDiv2 = document.getElementById('login-error-msg');
+        if (errDiv2) errDiv2.style.display = 'none';
+        proceedToApp();
+        return;
     }
 
-    if (!username || !password) { showLoginErr('أدخل البريد الإلكتروني وكلمة المرور'); return; }
-    if (errDiv) errDiv.style.display = 'none';
-    if (submitBtn) { submitBtn.innerHTML = 'جاري التحقق... <span class="loading-spinner"></span>'; submitBtn.disabled = true; }
-
-    // Firebase يُهيَّأ عند proceedToApp - هنا نتأكد فقط
-    try {
-        if (firebase.apps && firebase.apps.length && !fbFirestore) {
-            fbFirestore = firebase.firestore();
-        } else if (!firebase.apps || !firebase.apps.length) {
-            firebase.initializeApp(FIREBASE_CONFIG);
-            fbFirestore = firebase.firestore();
-        }
-    } catch(e) { console.warn('Firebase pre-init:', e.message); }
-
-    // حساب المدير الثابت
-    if (username === 'admin' || username === 'admin@hah.app') {
-        if (password === 'A@bdo120') {
-            currentUid = 'admin_super';
-            currentUserRole = 'admin';
-            currentUserPlan = 'premium';
-            currentUserStatus = 'active';
-            currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
-            if (submitBtn) { submitBtn.innerHTML = '🔐 دخول'; submitBtn.disabled = false; }
-            showToast('مرحباً مدير النظام ✅');
-            proceedToApp();
-            return;
-        } else {
-            showLoginErr('❌ كلمة المرور غير صحيحة');
-            return;
-        }
-    }
-
+    // تسجيل الدخول عبر Firebase Auth (Email/Password)
+    // نفترض أن username يمكن أن يكون email أو email مُولَّد
     var email = username.includes('@') ? username : username + '@hah.app';
-
+    
+    // تأكد من تهيئة Firebase
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    
     firebase.auth().signInWithEmailAndPassword(email, password).then(function(userCred) {
         var uid = userCred.user.uid;
         currentUid = uid;
-        return getUserFromFirestore(uid);
-    }).then(function(userData) {
-        if (!userData) {
-            userData = { role: 'viewer', plan: 'free', status: 'active', email: email, createdAt: new Date().toISOString() };
-            saveUserToFirestore(currentUid, userData);
-        }
-        if (userData.status === 'disabled') {
-            try { firebase.auth().signOut(); } catch(e) {}
-            showLoginErr('⛔ حسابك معطل، تواصل مع المدير');
-            return;
-        }
-        currentUserRole   = userData.role   || 'viewer';
-        currentUserPlan   = userData.plan   || 'free';
-        currentUserStatus = userData.status || 'active';
-        saveUserToFirestore(currentUid, { lastLogin: new Date().toISOString() });
-        var isAdmin   = currentUserRole === 'admin';
-        var customP   = userData.customPermissions || null;
-        var perms = isAdmin ? ['all'] : (customP || (
-            currentUserRole === 'manager' ? ['view','edit','delete','export','import'] :
-            currentUserRole === 'editor'  ? ['view','edit','export'] : ['view']
-        ));
-        currentUser = {
-            username: email,
-            role: currentUserRole,
-            name: userData.displayName || email.split('@')[0],
-            permissions: perms
-        };
-        if (submitBtn) { submitBtn.innerHTML = '🔐 دخول'; submitBtn.disabled = false; }
-        if (errDiv) errDiv.style.display = 'none';
-        showToast('مرحباً ' + currentUser.name + ' ✅');
-        proceedToApp();
+        // تحميل بيانات المستخدم من Firestore
+        if (!fbFirestore) { try { fbFirestore = firebase.firestore(); } catch(e) {} }
+        return getUserFromFirestore(uid).then(function(userData) {
+            if (!fbFirestore) {
+                // Fallback: admin if not in firestore
+                userData = { role: 'editor', plan: 'basic', status: 'active', email: email };
+            }
+            if (!userData) {
+                // مستخدم جديد - إنشاء وثيقة
+                userData = { role: 'editor', plan: 'basic', status: 'active', email: email, createdAt: new Date().toISOString() };
+                saveUserToFirestore(uid, userData);
+            }
+            // تحقق من حالة الحساب
+            if (userData.status === 'disabled') {
+                firebase.auth().signOut();
+                showToast('⛔ حسابك معطل. تواصل مع المدير.', true);
+                if (submitBtn) submitBtn.innerHTML = '🔐 دخول آمن (صلاحيات كاملة)';
+                return;
+            }
+            currentUserRole = userData.role || 'editor';
+            currentUserPlan = userData.plan || 'basic';
+            currentUserStatus = userData.status || 'active';
+            // تحديث وقت آخر دخول
+            saveUserToFirestore(uid, { lastLogin: new Date().toISOString(), email: email });
+            var isAdmin = currentUserRole === 'admin';
+            currentUser = {
+                username: email,
+                role: currentUserRole,
+                name: userData.displayName || email.split('@')[0],
+                permissions: isAdmin ? ['all'] : (currentUserRole === 'editor' ? ['view', 'edit'] : ['view'])
+            };
+            showToast('مرحباً ' + currentUser.name + ' ✅');
+            if (submitBtn) submitBtn.innerHTML = '🔐 دخول آمن (صلاحيات كاملة)';
+            proceedToApp();
+        });
     }).catch(function(err) {
-        var code = err.code || '';
-        var msg  = code === 'auth/user-not-found'          ? '❌ البريد غير مسجل في النظام' :
-                   code === 'auth/wrong-password'           ? '❌ كلمة المرور غير صحيحة' :
-                   code === 'auth/invalid-email'            ? '❌ صيغة البريد غير صحيحة' :
-                   code === 'auth/invalid-credential'       ? '❌ بيانات الدخول غير صحيحة' :
-                   code === 'auth/too-many-requests'        ? '❌ تجاوزت عدد المحاولات، حاول لاحقاً' :
-                   code === 'auth/network-request-failed'   ? '❌ تحقق من اتصال الإنترنت' :
-                   '❌ ' + (err.message || 'خطأ غير معروف');
-        showLoginErr(msg);
+        var msg = err.code === 'auth/user-not-found' ? '❌ المستخدم غير موجود' :
+                  err.code === 'auth/wrong-password' ? '❌ كلمة المرور غير صحيحة' :
+                  err.code === 'auth/invalid-email' ? '❌ بريد إلكتروني غير صالح' :
+                  '❌ ' + err.message;
+        var errDiv = document.getElementById('login-error-msg');
+        if (errDiv) { errDiv.textContent = msg; errDiv.style.display = 'block'; }
+        showToast(msg, true);
+        if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
     });
 }
 
 function setLoginMode(mode) {
-    SYSTEM_CONFIG.loginMode = 'secure';
-    var p = document.getElementById('secure-login-panel');
-    if (p) p.style.display = 'block';
+    SYSTEM_CONFIG.loginMode = mode;
+    var directBtn = document.getElementById('direct-login-btn');
+    var secureBtn = document.getElementById('secure-login-btn');
+    var registerBtn = document.getElementById('register-login-btn');
+    var directPanel = document.getElementById('direct-login-panel');
+    var securePanel = document.getElementById('secure-login-panel');
+    var registerPanel = document.getElementById('register-login-panel');
+
+    // reset all
+    [directBtn, secureBtn, registerBtn].forEach(function(b) {
+        if (b) { b.style.background = 'rgba(255,255,255,0.1)'; b.style.color = 'white'; }
+    });
+    [directPanel, securePanel, registerPanel].forEach(function(p) {
+        if (p) p.style.display = 'none';
+    });
+
+    if (mode === 'direct') {
+        if (directBtn) { directBtn.style.background = '#e8a020'; directBtn.style.color = '#0d1b2a'; }
+        if (directPanel) directPanel.style.display = 'block';
+    } else if (mode === 'secure') {
+        if (secureBtn) { secureBtn.style.background = '#e8a020'; secureBtn.style.color = '#0d1b2a'; }
+        if (securePanel) securePanel.style.display = 'block';
+    } else if (mode === 'register') {
+        if (registerBtn) { registerBtn.style.background = 'linear-gradient(135deg,#7c3aed,#4f46e5)'; registerBtn.style.color = 'white'; }
+        if (registerPanel) registerPanel.style.display = 'block';
+        // reset messages
+        var errEl = document.getElementById('reg-error-msg');
+        var sucEl = document.getElementById('reg-success-msg');
+        if (errEl) errEl.style.display = 'none';
+        if (sucEl) sucEl.style.display = 'none';
+    }
+}
+
+// ==================== تسجيل مستخدم جديد ====================
+function registerNewUser() {
+    var name = (document.getElementById('reg-name').value || '').trim();
+    var email = (document.getElementById('reg-email').value || '').trim();
+    var pass = document.getElementById('reg-password').value;
+    var pass2 = document.getElementById('reg-password2').value;
+    var errEl = document.getElementById('reg-error-msg');
+    var sucEl = document.getElementById('reg-success-msg');
+    var btn = document.getElementById('register-submit-btn');
+
+    function showErr(msg) {
+        errEl.textContent = msg; errEl.style.display = 'block';
+        sucEl.style.display = 'none';
+    }
+    function showSuc(msg) {
+        sucEl.textContent = msg; sucEl.style.display = 'block';
+        errEl.style.display = 'none';
+    }
+
+    if (!name) { showErr('أدخل الاسم الكامل'); return; }
+    if (!email || !email.includes('@')) { showErr('أدخل بريد إلكتروني صحيح'); return; }
+    if (pass.length < 6) { showErr('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
+    if (pass !== pass2) { showErr('كلمتا المرور غير متطابقتين'); return; }
+
+    btn.innerHTML = 'جاري الإنشاء... <span class="loading-spinner"></span>';
+    btn.disabled = true;
+
+    // تأكد من تهيئة Firebase
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    if (!fbFirestore) { try { fbFirestore = firebase.firestore(); } catch(e) {} }
+
+    firebase.auth().createUserWithEmailAndPassword(email, pass).then(function(cred) {
+        var uid = cred.user.uid;
+        // تحديث الاسم في Firebase Auth
+        return cred.user.updateProfile({ displayName: name }).then(function() {
+            // حفظ في Firestore
+            var userData = {
+                email: email,
+                displayName: name,
+                role: 'viewer',
+                plan: 'free',
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString()
+            };
+            return saveUserToFirestore(uid, userData);
+        });
+    }).then(function() {
+        showSuc('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول. تواصل مع المدير لرفع صلاحياتك.');
+        document.getElementById('reg-name').value = '';
+        document.getElementById('reg-email').value = '';
+        document.getElementById('reg-password').value = '';
+        document.getElementById('reg-password2').value = '';
+        btn.innerHTML = '✨ انشاء حساب';
+        btn.disabled = false;
+        // تسجيل خروج تلقائي بعد التسجيل
+        firebase.auth().signOut().catch(function(){});
+        // انتقل لتبويب الدخول بعد 2 ثانية
+        setTimeout(function() { setLoginMode('secure'); }, 2000);
+    }).catch(function(err) {
+        var msg = err.code === 'auth/email-already-in-use' ? 'هذا البريد مسجل مسبقاً، حاول تسجيل الدخول.' :
+                  err.code === 'auth/invalid-email' ? 'بريد إلكتروني غير صالح.' :
+                  err.code === 'auth/weak-password' ? 'كلمة المرور ضعيفة جداً.' :
+                  'خطأ: ' + err.message;
+        showErr(msg);
+        btn.innerHTML = '✨ انشاء حساب';
+        btn.disabled = false;
+    });
 }
 
 // ==================== نسيت كلمة المرور ====================
 function showForgotPassword() {
     var email = (document.getElementById('secure-username').value || '').trim();
     if (!email || !email.includes('@')) {
-        email = prompt('أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور:') || '';
-        email = email.trim();
+        var inp = prompt('أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور:');
+        if (!inp) return;
+        email = inp.trim();
     }
-    if (!email || !email.includes('@')) { showToast('بريد إلكتروني غير صالح', true); return; }
-    try {
-        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    } catch(e) {}
+    if (!email || !email.includes('@')) {
+        showToast('بريد إلكتروني غير صالح', true);
+        return;
+    }
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     firebase.auth().sendPasswordResetEmail(email).then(function() {
-        showToast('✅ تم إرسال رابط إعادة التعيين إلى ' + email);
+        showToast('تم إرسال رابط إعادة التعيين إلى ' + email);
     }).catch(function(err) {
-        var msg = err.code === 'auth/user-not-found' ? 'البريد غير مسجل في النظام' : 'خطأ: ' + err.message;
+        var msg = err.code === 'auth/user-not-found' ? 'البريد غير مسجل في النظام' :
+                  'خطأ: ' + err.message;
         showToast(msg, true);
     });
 }
 
-// stub - التسجيل من داخل التطبيق فقط (createUserByAdmin)
-function registerNewUser() { showToast('التسجيل متاح للمدير فقط من داخل البرنامج', true); }
+function saveLoginMode() {
+    var rememberCheckbox = document.getElementById('remember-mode');
+    if (rememberCheckbox && rememberCheckbox.checked) {
+        localStorage.setItem('loginMode', SYSTEM_CONFIG.loginMode);
+    } else {
+        localStorage.removeItem('loginMode');
+    }
+}
 
 function proceedToApp() {
     var loginScreen = document.getElementById('login-screen');
@@ -5637,32 +5481,13 @@ function initOfflineDetector() {
 }
 
 // ==================== ربط الأحداث النهائي ====================
-// انتظار تحميل Firebase قبل تشغيل التطبيق
-function waitForFirebase(callback, attempts) {
-    attempts = attempts || 0;
-    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
-        callback();
-    } else if (attempts > 100) { // 10 ثوانٍ
-        console.error('❌ Firebase لم يتحمل بعد 10 ثوانٍ');
-        // أظهر رسالة خطأ للمستخدم
-        var loginCard = document.querySelector('.login-card');
-        if (loginCard) {
-            var errDiv = document.createElement('div');
-            errDiv.style.cssText = 'background:#fee2e2;color:#dc2626;padding:12px;border-radius:12px;margin-bottom:12px;font-size:12px;text-align:center';
-            errDiv.innerHTML = '⚠️ تعذّر الاتصال بالخادم.<br>تأكد من اتصال الإنترنت وأعد تحميل الصفحة.';
-            loginCard.insertBefore(errDiv, loginCard.firstChild);
-        }
-    } else {
-        setTimeout(function() { waitForFirebase(callback, attempts + 1); }, 100);
-    }
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    waitForFirebase(function() {
     console.log('تم تحميل الصفحة - جاري تهيئة التطبيق');
     
     // أزرار صفحة الدخول
+    var directLoginBtn = document.getElementById('direct-login-btn');
     var secureLoginBtn = document.getElementById('secure-login-btn');
+    var directLoginSubmit = document.getElementById('direct-login-submit');
     var secureLoginSubmit = document.getElementById('secure-login-submit');
     var rememberMode = document.getElementById('remember-mode');
     var logoutBtn = document.getElementById('logout-btn');
@@ -5672,7 +5497,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var deleteAllMaintenanceBtn = document.getElementById('delete-all-maintenance-btn');
     var deleteAllInventoryBtn = document.getElementById('delete-all-inventory-btn');
     
+    if (directLoginBtn) directLoginBtn.onclick = function() { setLoginMode('direct'); };
     if (secureLoginBtn) secureLoginBtn.onclick = function() { setLoginMode('secure'); };
+    if (directLoginSubmit) directLoginSubmit.onclick = function() { directLogin(); };
     if (secureLoginSubmit) secureLoginSubmit.onclick = function() { secureLogin(); };
     if (rememberMode) rememberMode.onchange = function() { saveLoginMode(); };
     if (deleteAllEquipmentGlobalBtn) deleteAllEquipmentGlobalBtn.onclick = function() { deleteAllData(); };
@@ -5681,7 +5508,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deleteAllMaintenanceBtn) deleteAllMaintenanceBtn.onclick = function() { deleteAllMaintenance(); };
     if (deleteAllInventoryBtn) deleteAllInventoryBtn.onclick = function() { deleteAllInventory(); };
     
-    setLoginMode('secure');
+    var savedMode = localStorage.getItem('loginMode');
+    if (savedMode === 'secure') setLoginMode('secure');
+    else if (savedMode === 'register') setLoginMode('register');
+    else setLoginMode('direct');
     
     if (logoutBtn) logoutBtn.onclick = function() { logout(); };
     
@@ -5866,15 +5696,10 @@ document.addEventListener('DOMContentLoaded', function() {
     window.adminChangePassword = adminChangePassword;
     window.filterByOwner = filterByOwner;
     window.checkDocumentOwnership = checkDocumentOwnership;
+    window.registerNewUser = registerNewUser;
     window.showForgotPassword = showForgotPassword;
     window.switchAdminTab = switchAdminTab;
     window.toggleAddUserForm = toggleAddUserForm;
-    window.openEditPermsModal = openEditPermsModal;
-    window.closeEditPermsModal = closeEditPermsModal;
-    window.toggleEpmPerm = toggleEpmPerm;
-    window.epmSelectRole = epmSelectRole;
-    window.epmSelectAll = epmSelectAll;
-    window.saveEditedPerms = saveEditedPerms;
     window.toggleAuPassword = toggleAuPassword;
     window.updateAuPermissionsPreview = updateAuPermissionsPreview;
     window.createUserByAdmin = createUserByAdmin;
@@ -5885,7 +5710,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.resetFBConfig = resetFBConfig;
     
     console.log('✅ تم تهيئة جميع الأزرار والدوال بنجاح');
-    }); // end waitForFirebase
 });
 
 // ==================== نافذة تقرير الوقود المنبثقة ====================
