@@ -21,15 +21,7 @@ window.onerror = function(msg, src, line, col, err) {
 window.addEventListener('unhandledrejection', function(e) {
     console.error('Unhandled Promise:', e.reason);
 });
-// XLSX fallback check
-window.addEventListener('load', function() {
-    if (typeof XLSX === 'undefined') {
-        console.warn('SheetJS لم يتحمل - جاري تحميله من مصدر بديل');
-        var s = document.createElement('script');
-        s.src = 'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js';
-        document.head.appendChild(s);
-    }
-});
+// XLSX loaded by loadXLSX() with fallback chain
 </script>
 
 <script>
@@ -1126,43 +1118,43 @@ function checkXLSX() {
     return true;
 }
 
-let fbDb = null;
-let equipmentData = [];
-let driversData = [];
-let fuelData = [];
-let maintenanceSchedules = [];
-let inventoryItems = [];
-let equipmentFilterLinks = [];
-let equipmentOilLinks = [];
-let filterAlternatives = [];
-let pmHistory = {};
-let rentalData = [];
-let rentalDailyData = [];
-let currentUser = null;
-let editingEquipmentId = null;
-let editingDriverId = null;
-let editingInventoryId = null;
-let currentLinkingItem = null;
-let currentLinkingOilItem = null;
-let currentEditingFuelId = null;
-let currentEditingFilterId = null;
-let activeListeners = [];
-let isOnline = true;
-let refreshTimeout = null;
-let isListeningAttached = false;
-let dbRequest = null;
-let isImporting = false;
-let windowInvAltCount = 0;
-let currentMaintenanceAttachment = null;
-let pendingImportData = null;
-let pendingInventoryData = null;
-let importResults = { equipment: 0, fuel: 0, parts: 0 };
-let lastAlertCheck = 0;
-let notifSettings = { whatsappNumber: '', threshold: 50 };
-let SYSTEM_CONFIG = { loginMode: 'direct' };
+var fbDb = null;
+var equipmentData = [];
+var driversData = [];
+var fuelData = [];
+var maintenanceSchedules = [];
+var inventoryItems = [];
+var equipmentFilterLinks = [];
+var equipmentOilLinks = [];
+var filterAlternatives = [];
+var pmHistory = {};
+var rentalData = [];
+var rentalDailyData = [];
+var currentUser = null;
+var editingEquipmentId = null;
+var editingDriverId = null;
+var editingInventoryId = null;
+var currentLinkingItem = null;
+var currentLinkingOilItem = null;
+var currentEditingFuelId = null;
+var currentEditingFilterId = null;
+var activeListeners = [];
+var isOnline = true;
+var refreshTimeout = null;
+var isListeningAttached = false;
+var dbRequest = null;
+var isImporting = false;
+var windowInvAltCount = 0;
+var currentMaintenanceAttachment = null;
+var pendingImportData = null;
+var pendingInventoryData = null;
+var importResults = { equipment: 0, fuel: 0, parts: 0 };
+var lastAlertCheck = 0;
+var notifSettings = { whatsappNumber: '', threshold: 50 };
+var SYSTEM_CONFIG = { loginMode: 'secure' };
 
-function showToast(message, isError = false) {
-    const toast = document.getElementById('toast');
+function showToast(message, isError) { isError = isError === true;
+    var toast = document.getElementById('toast');
     if (!toast) return;
     toast.textContent = message;
     toast.style.background = isError ? 'var(--danger)' : 'var(--primary)';
@@ -1174,7 +1166,7 @@ function showToast(message, isError = false) {
 }
 
 function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
+    var modal = document.getElementById(modalId);
     if (modal) modal.classList.remove('active');
 }
 
@@ -1197,15 +1189,15 @@ function hoursRemaining(equipment) {
 }
 
 function getRemainingPercent(equipment) {
-    const remaining = hoursRemaining(equipment);
-    const GAUGE_MAX = 250;
+    var remaining = hoursRemaining(equipment);
+    var GAUGE_MAX = 250;
     if (remaining <= 0) return 0;
-    let percent = (remaining / GAUGE_MAX) * 100;
+    var percent = (remaining / GAUGE_MAX) * 100;
     return Math.min(100, Math.max(0, percent));
 }
 
 function getRemainingStatus(equipment) {
-    const remaining = hoursRemaining(equipment);
+    var remaining = hoursRemaining(equipment);
     if (remaining <= 0) return { text: '⚠️ تجاوز ' + Math.abs(remaining) + ' س', color: 'var(--danger)' };
     if (remaining <= 10) return { text: '🔴 باقي ' + remaining + ' س فقط!', color: 'var(--danger)' };
     if (remaining <= 50) return { text: '🟡 باقي ' + remaining + ' س', color: 'var(--warning)' };
@@ -1221,7 +1213,7 @@ function getBarColor(remaining) {
 }
 
 function getCategoryBadge(category) {
-    const badges = {
+    var badges = {
         filter: '<span class="category-badge" style="background:#e0e7ff;color:#4338ca">🔧 فلتر</span>',
         oil: '<span class="category-badge" style="background:#fed7aa;color:#9a3412">🛢️ زيت</span>',
         tire: '<span class="category-badge" style="background:#d1fae5;color:#065f46">🚗 إطار</span>',
@@ -1257,18 +1249,18 @@ function hasPermission(permission, record) {
 function parseDateFromExcel(dateValue) {
     if (!dateValue) return '';
     if (typeof dateValue === 'number') {
-        const excelEpoch = new Date(1899, 11, 30);
-        const msPerDay = 86400000;
-        const date = new Date(excelEpoch.getTime() + dateValue * msPerDay);
+        var excelEpoch = new Date(1899, 11, 30);
+        var msPerDay = 86400000;
+        var date = new Date(excelEpoch.getTime() + dateValue * msPerDay);
         if (!isNaN(date.getTime())) return date.toISOString().split('T')[0];
         return '';
     }
-    const dateStr = dateValue.toString();
+    var dateStr = dateValue.toString();
     if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return dateStr.substring(0, 10);
     if (dateStr.includes('/')) {
-        const parts = dateStr.split('/');
+        var parts = dateStr.split('/');
         if (parts.length === 3) {
-            let year = parts[2];
+            var year = parts[2];
             if (year.length === 2) year = '20' + year;
             return year + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
         }
@@ -1281,12 +1273,12 @@ function totalQty(item) {
 }
 
 function getTotalAvailableWithAlternatives(filterId) {
-    const main = inventoryItems.find(function(item) { return item && item.id === filterId; });
+    var main = inventoryItems.find(function(item) { return item && item.id === filterId; });
     if (!main) return 0;
-    let total = main.qty || 0;
-    const alts = filterAlternatives.filter(function(alt) { return alt.mainFilterId === filterId; });
+    var total = main.qty || 0;
+    var alts = filterAlternatives.filter(function(alt) { return alt.mainFilterId === filterId; });
     alts.forEach(function(alt) {
-        const altItem = inventoryItems.find(function(item) { return item && item.id === alt.alternativeFilterId; });
+        var altItem = inventoryItems.find(function(item) { return item && item.id === alt.alternativeFilterId; });
         if (altItem) total += altItem.qty || 0;
     });
     return total;
@@ -1294,18 +1286,18 @@ function getTotalAvailableWithAlternatives(filterId) {
 
 function calculateNeededFor1000Hours(equipment, item) {
     if (!equipment || !equipment.interval || equipment.interval <= 0) return 0;
-    const services = Math.ceil(1000 / equipment.interval);
-    const per = Math.ceil(services / ((item && item.interval) ? item.interval / equipment.interval : 1));
+    var services = Math.ceil(1000 / equipment.interval);
+    var per = Math.ceil(services / ((item && item.interval) ? item.interval / equipment.interval : 1));
     return per || 0;
 }
 
 function calculateAllFiltersNeeded() {
-    const needs = {};
+    var needs = {};
     inventoryItems.forEach(function(filter) {
         if (filter.category !== 'filter') return;
-        let total = 0;
+        var total = 0;
         equipmentFilterLinks.filter(function(link) { return link.filterPartNo === filter.partNo; }).forEach(function(link) {
-            const equipment = equipmentData.find(function(e) { return e.code === link.equipmentId; });
+            var equipment = equipmentData.find(function(e) { return e.code === link.equipmentId; });
             if (equipment && equipment.status !== 'متوقف') {
                 total += calculateNeededFor1000Hours(equipment, filter);
             }
@@ -1316,12 +1308,12 @@ function calculateAllFiltersNeeded() {
 }
 
 function calculateAllOilsNeeded() {
-    const needs = {};
+    var needs = {};
     inventoryItems.forEach(function(oil) {
         if (oil.category !== 'oil') return;
-        let total = 0;
+        var total = 0;
         equipmentOilLinks.filter(function(link) { return link.oilPartNo === oil.partNo; }).forEach(function(link) {
-            const equipment = equipmentData.find(function(e) { return e.code === link.equipmentId; });
+            var equipment = equipmentData.find(function(e) { return e.code === link.equipmentId; });
             if (equipment && equipment.status !== 'متوقف') {
                 total += calculateNeededFor1000Hours(equipment, oil);
             }
@@ -1332,14 +1324,14 @@ function calculateAllOilsNeeded() {
 }
 
 function calculateEnhancedOrderNeeds() {
-    const needs = {};
+    var needs = {};
     equipmentData.forEach(function(equipment) {
         if (equipment.status === 'متوقف') return;
-        const eqFilters = equipmentFilterLinks.filter(function(link) { return link.equipmentId === equipment.code; });
+        var eqFilters = equipmentFilterLinks.filter(function(link) { return link.equipmentId === equipment.code; });
         eqFilters.forEach(function(link) {
-            const main = inventoryItems.find(function(item) { return item.partNo === link.filterPartNo; });
+            var main = inventoryItems.find(function(item) { return item.partNo === link.filterPartNo; });
             if (!main) return;
-            const needed = calculateNeededFor1000Hours(equipment, main);
+            var needed = calculateNeededFor1000Hours(equipment, main);
             if (!needs[main.id]) {
                 needs[main.id] = {
                     needed: 0,
@@ -1354,11 +1346,11 @@ function calculateEnhancedOrderNeeds() {
             }
             needs[main.id].needed += needed;
         });
-        const eqOils = equipmentOilLinks.filter(function(link) { return link.equipmentId === equipment.code; });
+        var eqOils = equipmentOilLinks.filter(function(link) { return link.equipmentId === equipment.code; });
         eqOils.forEach(function(link) {
-            const main = inventoryItems.find(function(item) { return item.partNo === link.oilPartNo; });
+            var main = inventoryItems.find(function(item) { return item.partNo === link.oilPartNo; });
             if (!main) return;
-            const needed = calculateNeededFor1000Hours(equipment, main);
+            var needed = calculateNeededFor1000Hours(equipment, main);
             if (!needs[main.id]) {
                 needs[main.id] = {
                     needed: 0,
@@ -1375,12 +1367,12 @@ function calculateEnhancedOrderNeeds() {
         });
     });
     Object.keys(needs).forEach(function(id) {
-        const item = inventoryItems.find(function(i) { return i.id === id; });
+        var item = inventoryItems.find(function(i) { return i.id === id; });
         if (item) {
             needs[id].available = getTotalAvailableWithAlternatives(id);
             needs[id].shortage = Math.max(0, needs[id].needed - needs[id].available);
-            const alts = filterAlternatives.filter(function(alt) { return alt.mainFilterId === id; }).map(function(alt) {
-                const altItem = inventoryItems.find(function(i) { return i.id === alt.alternativeFilterId; });
+            var alts = filterAlternatives.filter(function(alt) { return alt.mainFilterId === id; }).map(function(alt) {
+                var altItem = inventoryItems.find(function(i) { return i.id === alt.alternativeFilterId; });
                 return altItem ? { name: altItem.name, partNo: altItem.partNo, qty: altItem.qty || 0, id: altItem.id } : null;
             }).filter(Boolean);
             needs[id].alternatives = alts;
@@ -1395,7 +1387,7 @@ function saveToFirebase(path, data) {
         showToast('❌ قاعدة البيانات غير جاهزة', true);
         return false;
     }
-    let ref;
+    var ref;
     if (data.id) {
         var rest = Object.assign({}, data);
         delete rest.id;
@@ -1586,8 +1578,8 @@ function processPendingOperations() {
         var ops = e.target.result;
         if (ops.length === 0) return;
         showToast('🔄 جاري مزامنة ' + ops.length + ' عملية معلقة...');
-        let successCount = 0;
-        let failCount = 0;
+        var successCount = 0;
+        var failCount = 0;
         ops.forEach(function(op) {
             if (op.path && op.data) {
                 var ref;
@@ -5648,7 +5640,7 @@ function initOfflineDetector() {
 // انتظار تحميل Firebase قبل تشغيل التطبيق
 function waitForFirebase(callback, attempts) {
     attempts = attempts || 0;
-    if (typeof firebase !== 'undefined' && firebase.app) {
+    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
         callback();
     } else if (attempts > 100) { // 10 ثوانٍ
         console.error('❌ Firebase لم يتحمل بعد 10 ثوانٍ');
