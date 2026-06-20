@@ -11,6 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
 :root{color-scheme:light only;--primary:#0d1b2a;--secondary:#1b2838;--accent:#e8a020;--accent-dark:#c88a18;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#0e7490;--purple:#8b5cf6;--pink:#ec4899;--light:#f0f4f8;--white:#ffffff;--gray:#6b7a8d;--shadow:0 4px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 3px rgba(0,0,0,0.05)}
@@ -39,6 +40,8 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .close-alert{cursor:pointer;font-weight:bold;background:none;border:none;font-size:16px}
 .loading-spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite;margin-left:8px}
 @keyframes spin{to{transform:rotate(360deg)}}
+.admin-panel-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:100%;background:var(--light);z-index:500;overflow-y:auto;display:none}.admin-panel-overlay.active{display:block}
+.user-row{background:white;border-radius:14px;padding:12px;margin-bottom:8px;box-shadow:var(--shadow-sm)}.user-row-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.user-email{font-size:13px;font-weight:700;color:var(--primary)}.user-meta{font-size:11px;color:var(--gray)}.user-controls{display:flex;gap:6px;flex-wrap:wrap}.role-badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;cursor:pointer}.role-admin{background:#fef3c7;color:#92400e}.role-manager{background:#dbeafe;color:#1e40af}.role-editor{background:#d1fae5;color:#065f46}.role-viewer{background:#f3f4f6;color:#374151}.plan-badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;cursor:pointer}.plan-free{background:#f1f5f9;color:#475569}.plan-basic{background:#dbeafe;color:#1e40af}.plan-premium{background:#fef3c7;color:#92400e}
 </style>
 </head>
 <body>
@@ -108,7 +111,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 
 <!-- حاوية التطبيق -->
 <div id="app-container" style="display:none">
-  <div class="status-bar"><span>🏗️ Hassan Allam Holding</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="delete-all-equipment-global-btn" class="danger-btn" style="background:#7f1d1d;border:none;color:white;border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer;margin-right:5px;font-weight:700">🗑️ مسح كل البيانات</button></div></div>
+  <div class="status-bar"><span>🏗️ Hassan Allam Holding</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="admin-panel-btn" style="display:none;background:rgba(232,160,32,0.3);border:none;color:white;border-radius:20px;padding:4px 12px;font-size:11px;cursor:pointer;margin-right:5px">👑 إدارة المستخدمين</button><button id="delete-all-equipment-global-btn" class="danger-btn" style="background:#7f1d1d;border:none;color:white;border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer;margin-right:5px;font-weight:700">🗑️ مسح كل البيانات</button></div></div>
   <div class="header"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:20px;font-weight:900;color:white;letter-spacing:2px;flex-shrink:0;font-family:serif">HAC</span><div class="header-title" id="header-title" style="margin-bottom:0">📊 لوحة القيادة</div></div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
@@ -255,6 +258,148 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     </div>
 </div>
 
+<!-- لوحة تحكم المدير -->
+<div class="admin-panel-overlay" id="admin-panel-overlay">
+  <div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);position:sticky;top:0;z-index:10">
+    <div class="modal-title">👑 إدارة المستخدمين</div>
+    <button class="modal-close" onclick="document.getElementById('admin-panel-overlay').classList.remove('active')">✕</button>
+  </div>
+  <div style="padding:14px">
+    <div style="background:white;border-radius:14px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--gray)">
+      📋 يعرض هذا القسم جميع المستخدمين المسجلين في النظام. يمكنك تغيير أدوارهم وخططهم وحالتهم.
+    </div>
+    <div id="admin-users-list"><div class="empty-state">⏳ جاري التحميل...</div></div>
+  </div>
+</div>
+
+<script>
+// ==================== نظام إدارة المستخدمين ====================
+var fbFirestore = null;
+var currentUid = null;
+var currentUserRole = 'viewer';
+var currentUserPlan = 'free';
+var currentUserStatus = 'active';
+
+function initFirestoreUsers() {
+    try {
+        fbFirestore = firebase.firestore();
+    } catch(e) {
+        console.warn('Firestore init failed:', e);
+    }
+}
+
+function saveUserToFirestore(uid, data) {
+    if (!fbFirestore) return Promise.resolve();
+    return fbFirestore.collection('users').doc(uid).set(data, { merge: true });
+}
+
+function getUserFromFirestore(uid) {
+    if (!fbFirestore) return Promise.resolve(null);
+    return fbFirestore.collection('users').doc(uid).get().then(function(doc) {
+        return doc.exists ? doc.data() : null;
+    });
+}
+
+function getAllUsersFromFirestore() {
+    if (!fbFirestore) return Promise.resolve([]);
+    return fbFirestore.collection('users').get().then(function(snapshot) {
+        var users = [];
+        snapshot.forEach(function(doc) {
+            users.push(Object.assign({ uid: doc.id }, doc.data()));
+        });
+        return users;
+    });
+}
+
+// ==================== تصفية البيانات حسب ownerId ====================
+function filterByOwner(dataArray) {
+    if (!currentUid) return [];
+    if (currentUserRole === 'admin') return dataArray;
+    return dataArray.filter(function(item) {
+        return !item.ownerId || item.ownerId === currentUid;
+    });
+}
+
+function checkDocumentOwnership(record) {
+    if (!currentUid) return false;
+    if (currentUserRole === 'admin') return true;
+    return !record.ownerId || record.ownerId === currentUid;
+}
+
+// ==================== لوحة تحكم المدير ====================
+function openAdminPanel() {
+    if (currentUserRole !== 'admin') { showToast('غير مصرح', true); return; }
+    document.getElementById('admin-panel-overlay').classList.add('active');
+    loadAdminUsers();
+}
+
+function loadAdminUsers() {
+    var listEl = document.getElementById('admin-users-list');
+    listEl.innerHTML = '<div class="empty-state">⏳ جاري التحميل...</div>';
+    getAllUsersFromFirestore().then(function(users) {
+        if (!users.length) {
+            listEl.innerHTML = '<div class="empty-state">لا يوجد مستخدمون مسجلون بعد</div>';
+            return;
+        }
+        listEl.innerHTML = users.map(function(u) {
+            var roleColor = u.role === 'admin' ? 'role-admin' : u.role === 'manager' ? 'role-manager' : u.role === 'editor' ? 'role-editor' : 'role-viewer';
+            var planColor = u.plan === 'premium' ? 'plan-premium' : u.plan === 'basic' ? 'plan-basic' : 'plan-free';
+            var statusColor = u.status === 'active' ? '#d1fae5' : '#fee2e2';
+            var statusTextColor = u.status === 'active' ? '#065f46' : '#7f1d1d';
+            var statusLabel = u.status === 'active' ? '✅ نشط' : '🚫 معطل';
+            return '<div class="user-row" id="urow-' + u.uid + '">' +
+                '<div class="user-row-header">' +
+                '<div><div class="user-email">' + escapeHtml(u.email || u.uid) + '</div>' +
+                '<div class="user-meta">آخر دخول: ' + (u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('ar-EG') : '—') + '</div></div>' +
+                '<span style="background:' + statusColor + ';color:' + statusTextColor + ';padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700">' + statusLabel + '</span>' +
+                '</div>' +
+                '<div class="user-controls">' +
+                '<select onchange="updateUserField(\'' + u.uid + '\',\'role\',this.value)" style="border:1px solid #e2e8f0;border-radius:10px;padding:4px 8px;font-size:11px;background:white">' +
+                '<option value="admin"' + (u.role==='admin'?' selected':'') + '>👑 admin</option>' +
+                '<option value="manager"' + (u.role==='manager'?' selected':'') + '>🔧 manager</option>' +
+                '<option value="editor"' + (u.role==='editor'?' selected':'') + '>✏️ editor</option>' +
+                '<option value="viewer"' + (u.role==='viewer'?' selected':'') + '>👁️ viewer</option>' +
+                '</select>' +
+                '<select onchange="updateUserField(\'' + u.uid + '\',\'plan\',this.value)" style="border:1px solid #e2e8f0;border-radius:10px;padding:4px 8px;font-size:11px;background:white">' +
+                '<option value="free"' + (u.plan==='free'?' selected':'') + '>🆓 free</option>' +
+                '<option value="basic"' + (u.plan==='basic'?' selected':'') + '>📋 basic</option>' +
+                '<option value="premium"' + (u.plan==='premium'?' selected':'') + '>⭐ premium</option>' +
+                '</select>' +
+                '<button onclick="toggleUserStatus(\'' + u.uid + '\',\'' + (u.status||'active') + '\')" style="background:' + (u.status==='active'?'#fee2e2':'#d1fae5') + ';color:' + (u.status==='active'?'#dc2626':'#059669') + ';border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">' +
+                (u.status === 'active' ? '🚫 تعطيل' : '✅ تفعيل') + '</button>' +
+                '<button onclick="deleteAdminUser(\'' + u.uid + '\',\'' + escapeHtml(u.email||u.uid) + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">🗑️ حذف</button>' +
+                '</div></div>';
+        }).join('');
+    }).catch(function(err) {
+        listEl.innerHTML = '<div class="empty-state" style="color:var(--danger)">⚠️ خطأ في تحميل المستخدمين<br><small>' + escapeHtml(err.message) + '</small></div>';
+    });
+}
+
+function updateUserField(uid, field, value) {
+    if (!fbFirestore) return;
+    var update = {};
+    update[field] = value;
+    fbFirestore.collection('users').doc(uid).update(update).then(function() {
+        showToast('✅ تم تحديث ' + field);
+    }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
+}
+
+function toggleUserStatus(uid, currentStatus) {
+    var newStatus = currentStatus === 'active' ? 'disabled' : 'active';
+    updateUserField(uid, 'status', newStatus);
+    setTimeout(loadAdminUsers, 600);
+}
+
+function deleteAdminUser(uid, email) {
+    if (!confirm('⚠️ هل أنت متأكد من حذف المستخدم:\n' + email + '\n\nلا يمكن التراجع عن هذا الإجراء!')) return;
+    if (!fbFirestore) return;
+    fbFirestore.collection('users').doc(uid).delete().then(function() {
+        showToast('تم حذف المستخدم');
+        loadAdminUsers();
+    }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
+}
+</script>
+
 <script>
 // ==================== إعدادات Firebase ====================
 const FIREBASE_CONFIG = { apiKey: "AIzaSyD3eWEZZDXCfHtJ6xdD9VwW8hT5vZzV0W4", authDomain: "hah-pmv.firebaseapp.com", databaseURL: "https://hah-pmv-default-rtdb.firebaseio.com", projectId: "hah-pmv", storageBucket: "hah-pmv.appspot.com" };
@@ -375,9 +520,15 @@ function getItemBadgeWithAltStatus(item) {
     return getCategoryBadge(item.category);
 }
 
-function hasPermission(permission) {
+function hasPermission(permission, record) {
     if (!currentUser) return false;
+    // Admin has all permissions
     if (currentUser.permissions && currentUser.permissions.includes('all')) return true;
+    if (currentUserRole === 'admin') return true;
+    // Check document ownership if record provided
+    if (record && permission !== 'view') {
+        return checkDocumentOwnership(record);
+    }
     return currentUser.permissions && currentUser.permissions.includes(permission);
 }
 
@@ -526,6 +677,8 @@ function saveToFirebase(path, data) {
     if (data.id) {
         var rest = Object.assign({}, data);
         delete rest.id;
+        // حافظ على ownerId الأصلي ولا تسمح بتغييره
+        if (!rest.ownerId && currentUid) rest.ownerId = currentUid;
         ref = fbDb.ref(path + '/' + data.id);
         ref.update(rest).catch(function(err) { showToast('خطأ في الحفظ: ' + err.message, true); });
     } else {
@@ -533,6 +686,8 @@ function saveToFirebase(path, data) {
         var pushKey = ref.key;
         var newData = Object.assign({}, data);
         newData.id = pushKey;
+        // أضف ownerId تلقائياً عند إنشاء سجل جديد
+        if (!newData.ownerId && currentUid) newData.ownerId = currentUid;
         ref.set(newData).catch(function(err) { showToast('خطأ في الحفظ: ' + err.message, true); });
     }
     return true;
@@ -540,8 +695,16 @@ function saveToFirebase(path, data) {
 
 function deleteFromFirebase(path, id) {
     if (!fbDb) return;
-    fbDb.ref(path + '/' + id).remove().then(function() {
-        showToast('🗑️ تم الحذف');
+    // تحقق من الصلاحية: اقرأ السجل أولاً ثم احذفه
+    fbDb.ref(path + '/' + id).once('value').then(function(snap) {
+        var record = snap.val();
+        if (record && !checkDocumentOwnership(record)) {
+            showToast('⛔ لا يمكنك حذف سجل لا تملكه', true);
+            return;
+        }
+        return fbDb.ref(path + '/' + id).remove();
+    }).then(function(result) {
+        if (result !== undefined) showToast('🗑️ تم الحذف');
     }).catch(function(e) {
         showToast('خطأ في الحذف: ' + e.message, true);
     });
@@ -767,63 +930,56 @@ function attachFirebaseListeners() {
         var handler = ref.on('value', callback);
         activeListeners.push({ ref: ref, handler: handler });
     }
+
+    // دالة مساعدة لتحويل snapshot إلى مصفوفة مع تصفية ownerId
+    function snapshotToArray(snapshot) {
+        if (!snapshot.val()) return [];
+        var arr = Object.entries(snapshot.val()).map(function(entry) {
+            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
+        });
+        return filterByOwner(arr);
+    }
     
     listen('equipment', function(snapshot) {
-        equipmentData = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
-        }) : [];
+        equipmentData = snapshotToArray(snapshot);
         debouncedRefresh();
         setTimeout(function() { checkMaintenanceAlerts(); }, 500);
     });
     
     listen('drivers', function(snapshot) {
-        driversData = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
-        }) : [];
+        driversData = snapshotToArray(snapshot);
         debouncedRefresh();
         updateDriverSelects();
         checkDriverLicenses();
     });
     
     listen('fuelRecords', function(snapshot) {
-        fuelData = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
-        }) : [];
+        fuelData = snapshotToArray(snapshot);
         debouncedRefresh();
     });
     
     listen('maintenanceSchedules', function(snapshot) {
-        maintenanceSchedules = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
-        }) : [];
+        maintenanceSchedules = snapshotToArray(snapshot);
         debouncedRefresh();
     });
     
     listen('inventoryItems', function(snapshot) {
-        inventoryItems = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
-        }) : [];
+        inventoryItems = snapshotToArray(snapshot);
         debouncedRefresh();
     });
     
     listen('equipmentFilterLinks', function(snapshot) {
-        equipmentFilterLinks = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
-        }) : [];
+        equipmentFilterLinks = snapshotToArray(snapshot);
         debouncedRefresh();
     });
     
     listen('equipmentOilLinks', function(snapshot) {
-        equipmentOilLinks = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
-        }) : [];
+        equipmentOilLinks = snapshotToArray(snapshot);
         debouncedRefresh();
     });
     
     listen('filterAlternatives', function(snapshot) {
-        filterAlternatives = snapshot.val() ? Object.entries(snapshot.val()).map(function(entry) {
-            var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
-        }) : [];
+        filterAlternatives = snapshotToArray(snapshot);
         debouncedRefresh();
     });
 
@@ -832,16 +988,12 @@ function attachFirebaseListeners() {
     });
 
     listen('rental', function(snapshot) {
-        rentalData = snapshot.val() ? Object.entries(snapshot.val()).map(function(e) {
-            var obj = Object.assign({}, e[1]); obj.id = e[0]; return obj;
-        }) : [];
+        rentalData = snapshotToArray(snapshot);
         renderRentalEquipment();
     });
 
     listen('rentalDaily', function(snapshot) {
-        rentalDailyData = snapshot.val() ? Object.entries(snapshot.val()).map(function(e) {
-            var obj = Object.assign({}, e[1]); obj.id = e[0]; return obj;
-        }) : [];
+        rentalDailyData = snapshotToArray(snapshot);
         renderRentalEquipment();
         renderRentalDailyView();
     });
@@ -864,7 +1016,8 @@ function initFirebase() {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
         fbDb = firebase.database();
         fbDb.goOnline();
-        firebase.auth().signInAnonymously().catch(console.error);
+        // تهيئة Firestore لإدارة المستخدمين
+        initFirestoreUsers();
         fbDb.ref('.info/connected').on('value', function(snapshot) {
             if (snapshot.val()) checkOnlineAndWarn();
             else checkOnlineAndWarn();
@@ -901,6 +1054,9 @@ function updateDriverSelects() {
 
 // ==================== دوال الدخول ====================
 function directLogin() {
+    // دخول مباشر كمشاهد - بدون Firebase Auth (anonymous)
+    currentUid = 'viewer_' + Date.now();
+    currentUserRole = 'viewer';
     currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
     showToast('مرحباً مشاهد');
     proceedToApp();
@@ -913,13 +1069,76 @@ function secureLogin() {
         showToast('أدخل اسم المستخدم وكلمة المرور', true);
         return;
     }
+    
+    var submitBtn = document.getElementById('secure-login-submit');
+    if (submitBtn) submitBtn.innerHTML = 'جاري التحقق... <span class="loading-spinner"></span>';
+
+    // الدخول الافتراضي للمدير
     if (username === 'admin' && password === 'A@bdo120') {
+        currentUid = 'admin_super';
+        currentUserRole = 'admin';
+        currentUserPlan = 'premium';
+        currentUserStatus = 'active';
         currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
         showToast('مرحباً مدير النظام ✅');
+        if (submitBtn) submitBtn.innerHTML = '🔐 دخول آمن (صلاحيات كاملة)';
         proceedToApp();
-    } else {
-        showToast('❌ بيانات الدخول غير صحيحة', true);
+        return;
     }
+
+    // تسجيل الدخول عبر Firebase Auth (Email/Password)
+    // نفترض أن username يمكن أن يكون email أو email مُولَّد
+    var email = username.includes('@') ? username : username + '@hah.app';
+    
+    // تأكد من تهيئة Firebase
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    
+    firebase.auth().signInWithEmailAndPassword(email, password).then(function(userCred) {
+        var uid = userCred.user.uid;
+        currentUid = uid;
+        // تحميل بيانات المستخدم من Firestore
+        if (!fbFirestore) { try { fbFirestore = firebase.firestore(); } catch(e) {} }
+        return getUserFromFirestore(uid).then(function(userData) {
+            if (!fbFirestore) {
+                // Fallback: admin if not in firestore
+                userData = { role: 'editor', plan: 'basic', status: 'active', email: email };
+            }
+            if (!userData) {
+                // مستخدم جديد - إنشاء وثيقة
+                userData = { role: 'editor', plan: 'basic', status: 'active', email: email, createdAt: new Date().toISOString() };
+                saveUserToFirestore(uid, userData);
+            }
+            // تحقق من حالة الحساب
+            if (userData.status === 'disabled') {
+                firebase.auth().signOut();
+                showToast('⛔ حسابك معطل. تواصل مع المدير.', true);
+                if (submitBtn) submitBtn.innerHTML = '🔐 دخول آمن (صلاحيات كاملة)';
+                return;
+            }
+            currentUserRole = userData.role || 'editor';
+            currentUserPlan = userData.plan || 'basic';
+            currentUserStatus = userData.status || 'active';
+            // تحديث وقت آخر دخول
+            saveUserToFirestore(uid, { lastLogin: new Date().toISOString(), email: email });
+            var isAdmin = currentUserRole === 'admin';
+            currentUser = {
+                username: email,
+                role: currentUserRole,
+                name: userData.displayName || email.split('@')[0],
+                permissions: isAdmin ? ['all'] : (currentUserRole === 'editor' ? ['view', 'edit'] : ['view'])
+            };
+            showToast('مرحباً ' + currentUser.name + ' ✅');
+            if (submitBtn) submitBtn.innerHTML = '🔐 دخول آمن (صلاحيات كاملة)';
+            proceedToApp();
+        });
+    }).catch(function(err) {
+        var msg = err.code === 'auth/user-not-found' ? '❌ المستخدم غير موجود' :
+                  err.code === 'auth/wrong-password' ? '❌ كلمة المرور غير صحيحة' :
+                  err.code === 'auth/invalid-email' ? '❌ بريد إلكتروني غير صالح' :
+                  '❌ ' + err.message;
+        showToast(msg, true);
+        if (submitBtn) submitBtn.innerHTML = '🔐 دخول آمن (صلاحيات كاملة)';
+    });
 }
 
 function setLoginMode(mode) {
@@ -963,15 +1182,30 @@ function proceedToApp() {
     loginScreen.style.display = 'none';
     appContainer.style.display = 'block';
     
+    var isAdmin = currentUser.role === 'admin' || currentUserRole === 'admin';
+    var isEditor = currentUser.role === 'editor' || currentUserRole === 'editor';
+    
     if (userNameDisplay) {
-        userNameDisplay.innerHTML = escapeHtml(currentUser.name) + ' <span style="font-size:9px;padding:2px 7px;border-radius:10px;background:' + (currentUser.role === 'admin' ? 'rgba(232,160,32,0.3)' : 'rgba(255,255,255,0.15)') + ';margin-right:4px">' + (currentUser.role === 'admin' ? '👑 مدير' : '👁️ مشاهد') + '</span>';
+        userNameDisplay.innerHTML = escapeHtml(currentUser.name) + ' <span style="font-size:9px;padding:2px 7px;border-radius:10px;background:' + (isAdmin ? 'rgba(232,160,32,0.3)' : 'rgba(255,255,255,0.15)') + ';margin-right:4px">' + (isAdmin ? '👑 مدير' : isEditor ? '✏️ محرر' : '👁️ مشاهد') + '</span>';
+    }
+
+    // زر لوحة تحكم المدير - يظهر للمدير فقط
+    var adminPanelBtn = document.getElementById('admin-panel-btn');
+    if (adminPanelBtn) {
+        adminPanelBtn.style.display = isAdmin ? 'inline-block' : 'none';
+        adminPanelBtn.onclick = openAdminPanel;
     }
     
     if (!hasPermission('all')) {
         var fabButton = document.getElementById('fab-btn');
-        if (fabButton) fabButton.style.display = 'none';
+        if (fabButton) fabButton.style.display = isEditor ? 'flex' : 'none';
         // المشاهد يرى جميع الصفحات - نخفي أزرار التعديل والحذف فقط
-        var adminBtnIds = [
+        var adminBtnIds = isEditor ? [
+            // المحرر يرى أزرار الإضافة لكن لا يرى أزرار الحذف الجماعي
+            'delete-all-equipment-btn','delete-all-fuel-btn',
+            'delete-all-maintenance-btn','delete-all-inventory-btn',
+            'delete-all-equipment-global-btn'
+        ] : [
             'add-fuel-btn','add-maintenance-btn','add-inventory-btn',
             'order-report-btn','meter-update-btn','whatsapp-maint-btn',
             'delete-all-equipment-btn','delete-all-fuel-btn',
@@ -986,15 +1220,17 @@ function proceedToApp() {
             var btn = document.getElementById(id);
             if (btn) btn.style.display = 'none';
         });
-        var style = document.createElement('style');
-        style.textContent =
-            '.edit-equipment-btn,' +
-            '.fuel-edit-btn,' +
-            '#fab-btn,' +
-            'button.viewer-hidden' +
-            '{display:none!important}' +
-            '.qty-btn{display:none!important}';
-        document.head.appendChild(style);
+        if (!isEditor) {
+            var style = document.createElement('style');
+            style.textContent =
+                '.edit-equipment-btn,' +
+                '.fuel-edit-btn,' +
+                '#fab-btn,' +
+                'button.viewer-hidden' +
+                '{display:none!important}' +
+                '.qty-btn{display:none!important}';
+            document.head.appendChild(style);
+        }
     }
     
     loadNotifSettings();
@@ -1034,11 +1270,15 @@ function initSessionTimeout() {
 function logout() {
     detachFirebaseListeners();
     currentUser = null;
+    currentUid = null;
+    currentUserRole = 'viewer';
     var appContainer = document.getElementById('app-container');
     var loginScreen = document.getElementById('login-screen');
     if (appContainer) appContainer.style.display = 'none';
     if (loginScreen) loginScreen.style.display = 'flex';
     if (fbDb) fbDb.goOffline();
+    // تسجيل الخروج من Firebase Auth إن وجد
+    try { firebase.auth().signOut(); } catch(e) {}
     showToast('تم تسجيل الخروج');
 }
 
@@ -1096,10 +1336,17 @@ function saveEquipment() {
     
     if (editingEquipmentId) {
         var existing = equipmentData.find(function(e) { return e.id === editingEquipmentId; });
+        // التحقق من الملكية
+        if (existing && !checkDocumentOwnership(existing)) {
+            showToast('⛔ لا يمكنك تعديل معدة لا تملكها', true);
+            return;
+        }
         equipment.filters = existing ? existing.filters || {} : {};
         equipment.maintenanceLogs = existing ? existing.maintenanceLogs || [] : [];
         equipment.hoursLog = existing ? existing.hoursLog || [] : [];
         equipment.fuelRecords = existing ? existing.fuelRecords || [] : [];
+        // الحفاظ على ownerId الأصلي
+        if (existing && existing.ownerId) equipment.ownerId = existing.ownerId;
         saveToFirebase('equipment', Object.assign({ id: editingEquipmentId }, equipment));
         showToast('تم تحديث المعدة');
     } else {
@@ -1691,6 +1938,12 @@ function saveDriver() {
     }
     
     if (editingDriverId) {
+        var existingDriver = driversData.find(function(d) { return d.id === editingDriverId; });
+        if (existingDriver && !checkDocumentOwnership(existingDriver)) {
+            showToast('⛔ لا يمكنك تعديل سائق لا تملكه', true);
+            return;
+        }
+        if (existingDriver && existingDriver.ownerId) driver.ownerId = existingDriver.ownerId;
         saveToFirebase('drivers', Object.assign({ id: editingDriverId }, driver));
         showToast('تم تحديث السائق');
     } else {
@@ -1833,6 +2086,10 @@ function updateFuelRecord() {
     }
     var fuel = fuelData.find(function(f) { return f.id === currentEditingFuelId; });
     if (!fuel) return;
+    if (!checkDocumentOwnership(fuel)) {
+        showToast('⛔ لا يمكنك تعديل سجل لا تملكه', true);
+        return;
+    }
     var updated = Object.assign({}, fuel, {
         amount: parseFloat(document.getElementById('edit-fuel-amount').value) || 0,
         cost: parseFloat(document.getElementById('edit-fuel-cost').value) || 0,
@@ -2508,6 +2765,12 @@ function saveInventoryItem() {
         return;
     }
     if (editingInventoryId) {
+        var existingInv = inventoryItems.find(function(i) { return i.id === editingInventoryId; });
+        if (existingInv && !checkDocumentOwnership(existingInv)) {
+            showToast('⛔ لا يمكنك تعديل صنف لا تملكه', true);
+            return;
+        }
+        if (existingInv && existingInv.ownerId) item.ownerId = existingInv.ownerId;
         saveToFirebase('inventoryItems', Object.assign({ id: editingInventoryId }, item));
         showToast('تم تحديث الصنف');
     } else {
@@ -4090,6 +4353,10 @@ function forceRefreshData() {
         return;
     }
     showToast('🔄 جاري تحديث البيانات...');
+    function toArr(val) {
+        if (!val) return [];
+        return filterByOwner(Object.entries(val).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }));
+    }
     Promise.all([
         fbDb.ref('equipment').once('value'),
         fbDb.ref('inventoryItems').once('value'),
@@ -4100,15 +4367,14 @@ function forceRefreshData() {
         fbDb.ref('equipmentOilLinks').once('value'),
         fbDb.ref('filterAlternatives').once('value')
     ]).then(function(results) {
-        var eqSn = results[0], invSn = results[1], drSn = results[2], fuelSn = results[3], maintSn = results[4], flSn = results[5], oilSn = results[6], altSn = results[7];
-        equipmentData = eqSn.val() ? Object.entries(eqSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
-        inventoryItems = invSn.val() ? Object.entries(invSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
-        driversData = drSn.val() ? Object.entries(drSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
-        fuelData = fuelSn.val() ? Object.entries(fuelSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
-        maintenanceSchedules = maintSn.val() ? Object.entries(maintSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
-        equipmentFilterLinks = flSn.val() ? Object.entries(flSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
-        equipmentOilLinks = oilSn.val() ? Object.entries(oilSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
-        filterAlternatives = altSn.val() ? Object.entries(altSn.val()).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; }) : [];
+        equipmentData = toArr(results[0].val());
+        inventoryItems = toArr(results[1].val());
+        driversData = toArr(results[2].val());
+        fuelData = toArr(results[3].val());
+        maintenanceSchedules = toArr(results[4].val());
+        equipmentFilterLinks = toArr(results[5].val());
+        equipmentOilLinks = toArr(results[6].val());
+        filterAlternatives = toArr(results[7].val());
         debouncedRefresh();
         updateBellCounter();
         showToast('✅ تم التحديث: ' + equipmentData.length + ' معدة، ' + inventoryItems.length + ' صنف');
@@ -4856,6 +5122,14 @@ document.addEventListener('DOMContentLoaded', function() {
     window.importPMHistory = importPMHistory;
     window.onRentalEqChange = onRentalEqChange;
     window.onRentalDailyEqChange = onRentalDailyEqChange;
+    // Admin panel functions
+    window.openAdminPanel = openAdminPanel;
+    window.loadAdminUsers = loadAdminUsers;
+    window.updateUserField = updateUserField;
+    window.toggleUserStatus = toggleUserStatus;
+    window.deleteAdminUser = deleteAdminUser;
+    window.filterByOwner = filterByOwner;
+    window.checkDocumentOwnership = checkDocumentOwnership;
     
     console.log('✅ تم تهيئة جميع الأزرار والدوال بنجاح');
 });
