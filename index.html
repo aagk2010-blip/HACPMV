@@ -8,11 +8,121 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d1b2a">
 <title>Equipment Maintenance Service - Hassan Allam</title>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script>
+// Global error handler - يجب أن يكون قبل أي سكريبت آخر
+window.onerror = function(msg, src, line, col, err) {
+    // إخفاء "Script error." تماماً - تأتي من CDN cross-origin في Safari
+    if (!msg || msg === 'Script error.' || msg === 'Script error') return true;
+    // إخفاء أخطاء الشبكة الخارجية
+    if (src && (src.indexOf('gstatic') !== -1 || src.indexOf('jsdelivr') !== -1 || src.indexOf('unpkg') !== -1)) return true;
+    console.error('خطأ في التطبيق:', msg, 'السطر:', line);
+    return true; // true = لا تظهر في console
+};
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('Unhandled Promise:', e.reason);
+});
+// XLSX fallback check
+window.addEventListener('load', function() {
+    if (typeof XLSX === 'undefined') {
+        console.warn('SheetJS لم يتحمل - جاري تحميله من مصدر بديل');
+        var s = document.createElement('script');
+        s.src = 'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js';
+        document.head.appendChild(s);
+    }
+});
+</script>
+
+<script>
+// ==================== Firebase Loader with Multi-CDN Fallback ====================
+(function() {
+    var FB_VERSION = '9.23.0';
+    var SDKS = ['firebase-app-compat', 'firebase-auth-compat', 'firebase-database-compat', 'firebase-firestore-compat'];
+    // حالة التحميل
+    window._fbLoadStatus = { loaded: 0, total: SDKS.length, failed: false };
+
+    function loadScript(url, onSuccess, onFail) {
+        var s = document.createElement('script');
+        s.src = url;
+        s.crossOrigin = 'anonymous';
+        s.onload  = onSuccess;
+        s.onerror = onFail;
+        document.head.appendChild(s);
+    }
+
+    // الـ URLs الصحيحة لكل CDN
+    var SDK_URLS = {
+        'firebase-app-compat': [
+            'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
+            'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app.js',
+            'https://unpkg.com/firebase@9.23.0/firebase-app.js'
+        ],
+        'firebase-auth-compat': [
+            'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
+            'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-auth.js',
+            'https://unpkg.com/firebase@9.23.0/firebase-auth.js'
+        ],
+        'firebase-database-compat': [
+            'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',
+            'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database.js',
+            'https://unpkg.com/firebase@9.23.0/firebase-database.js'
+        ],
+        'firebase-firestore-compat': [
+            'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js',
+            'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-firestore.js',
+            'https://unpkg.com/firebase@9.23.0/firebase-firestore.js'
+        ]
+    };
+
+    function loadSDK(sdkIndex, cdnIndex) {
+        if (sdkIndex >= SDKS.length) return; // الكل اتحمل
+        var sdk = SDKS[sdkIndex];
+        var urls = SDK_URLS[sdk];
+        var url = (cdnIndex < urls.length) ? urls[cdnIndex] : null;
+        if (!url) {
+            window._fbLoadStatus.failed = true;
+            window._fbLoadStatus.loaded++;
+            loadSDK(sdkIndex + 1, 0);
+            return;
+        }
+
+        loadScript(url,
+            function() { // success
+                window._fbLoadStatus.loaded++;
+                console.log('✅ ' + sdk + ' محمّل');
+                loadSDK(sdkIndex + 1, 0);
+            },
+            function() { // fail
+                console.warn('⚠️ فشل: ' + url);
+                loadSDK(sdkIndex, cdnIndex + 1);
+            }
+        );
+    }
+
+    // ابدأ التحميل
+    loadSDK(0, 0);
+})();
+</script>
+
+<!-- SheetJS with fallback -->
+<script>
+(function() {
+    function loadXLSX(cdnIndex) {
+        var urls = [
+            'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+            'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+        ];
+        if (cdnIndex >= urls.length) { console.warn('XLSX: كل المصادر فشلت'); return; }
+        var s = document.createElement('script');
+        s.src = urls[cdnIndex];
+        s.crossOrigin = 'anonymous';
+        s.onload  = function() { console.log('✅ XLSX محمّل من: ' + urls[cdnIndex]); };
+        s.onerror = function() { loadXLSX(cdnIndex + 1); };
+        document.head.appendChild(s);
+    }
+    loadXLSX(0);
+})();
+</script>
 <style>
 :root{color-scheme:light only;--primary:#0d1b2a;--secondary:#1b2838;--accent:#e8a020;--accent-dark:#c88a18;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#0e7490;--purple:#8b5cf6;--pink:#ec4899;--light:#f0f4f8;--white:#ffffff;--gray:#6b7a8d;--shadow:0 4px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 3px rgba(0,0,0,0.05)}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -429,13 +539,6 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 </div>
 
 <script>
-// Global error handler
-window.onerror = function(msg, src, line, col, err) {
-    var info = (err && err.message) ? err.message : msg;
-    console.error('❌ JS Error:', info, 'line:', line);
-    return false;
-};
-
 // ==================== إعدادات Firebase ====================
 var FIREBASE_CONFIG_DEFAULT = {
     apiKey: "AIzaSyD3eWEZZDXCfHtJ6xdD9VwW8hT5vZzV0W4",
@@ -1013,6 +1116,15 @@ function resetFBConfig() {
     setTimeout(function() { window.location.reload(); }, 1200);
 }
 // ==================== إعدادات Firebase - معرّفة في أعلى السكريبت ====================
+
+// ==================== XLSX Safety Wrapper ====================
+function checkXLSX() {
+    if (typeof XLSX === 'undefined') {
+        showToast('⚠️ مكتبة Excel لم تتحمل بعد، حاول مرة أخرى', true);
+        return false;
+    }
+    return true;
+}
 
 let fbDb = null;
 let equipmentData = [];
@@ -5533,7 +5645,28 @@ function initOfflineDetector() {
 }
 
 // ==================== ربط الأحداث النهائي ====================
+// انتظار تحميل Firebase قبل تشغيل التطبيق
+function waitForFirebase(callback, attempts) {
+    attempts = attempts || 0;
+    if (typeof firebase !== 'undefined' && firebase.app) {
+        callback();
+    } else if (attempts > 100) { // 10 ثوانٍ
+        console.error('❌ Firebase لم يتحمل بعد 10 ثوانٍ');
+        // أظهر رسالة خطأ للمستخدم
+        var loginCard = document.querySelector('.login-card');
+        if (loginCard) {
+            var errDiv = document.createElement('div');
+            errDiv.style.cssText = 'background:#fee2e2;color:#dc2626;padding:12px;border-radius:12px;margin-bottom:12px;font-size:12px;text-align:center';
+            errDiv.innerHTML = '⚠️ تعذّر الاتصال بالخادم.<br>تأكد من اتصال الإنترنت وأعد تحميل الصفحة.';
+            loginCard.insertBefore(errDiv, loginCard.firstChild);
+        }
+    } else {
+        setTimeout(function() { waitForFirebase(callback, attempts + 1); }, 100);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    waitForFirebase(function() {
     console.log('تم تحميل الصفحة - جاري تهيئة التطبيق');
     
     // أزرار صفحة الدخول
@@ -5760,6 +5893,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.resetFBConfig = resetFBConfig;
     
     console.log('✅ تم تهيئة جميع الأزرار والدوال بنجاح');
+    }); // end waitForFirebase
 });
 
 // ==================== نافذة تقرير الوقود المنبثقة ====================
