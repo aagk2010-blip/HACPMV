@@ -294,14 +294,85 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 <!-- لوحة تحكم المدير -->
 <div class="admin-panel-overlay" id="admin-panel-overlay">
   <div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);position:sticky;top:0;z-index:10">
-    <div class="modal-title">👑 إدارة المستخدمين</div>
+    <div class="modal-title">👑 لوحة تحكم المدير</div>
     <button class="modal-close" onclick="document.getElementById('admin-panel-overlay').classList.remove('active')">✕</button>
   </div>
-  <div style="padding:14px">
+  <!-- تبويبات لوحة المدير -->
+  <div style="display:flex;gap:6px;padding:12px 14px 0;background:white;border-bottom:1px solid #e2e8f0;position:sticky;top:56px;z-index:9">
+    <button id="atab-users-btn" onclick="switchAdminTab('users')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">👥 المستخدمون</button>
+    <button id="atab-firebase-btn" onclick="switchAdminTab('firebase')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">🔥 إعدادات Firebase</button>
+  </div>
+
+  <!-- تبويب المستخدمين -->
+  <div id="atab-users" style="padding:14px;display:block">
     <div style="background:white;border-radius:14px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--gray)">
-      📋 يعرض هذا القسم جميع المستخدمين المسجلين في النظام. يمكنك تغيير أدوارهم وخططهم وحالتهم.
+      📋 جميع المستخدمين المسجلين. يمكنك تغيير أدوارهم وخططهم وحالتهم.
     </div>
     <div id="admin-users-list"><div class="empty-state">⏳ جاري التحميل...</div></div>
+  </div>
+
+  <!-- تبويب إعدادات Firebase -->
+  <div id="atab-firebase" style="padding:14px;display:none">
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;color:#92400e">
+      ⚠️ تأكد من صحة البيانات قبل الحفظ. بيانات خاطئة ستمنع التطبيق من الاتصال بقاعدة البيانات.
+    </div>
+
+    <!-- مصدر الإعدادات الحالية -->
+    <div id="fb-current-source" style="background:white;border-radius:14px;padding:10px 14px;margin-bottom:10px;font-size:12px;box-shadow:var(--shadow-sm);text-align:center">
+      جاري التحقق...
+    </div>
+
+    <!-- مصدر الإعدادات -->
+    <div style="background:white;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:10px">📥 استيراد من كود Firebase</div>
+      <textarea id="fb-paste-area" placeholder='الصق كود firebaseConfig هنا...&#10;&#10;const firebaseConfig = {&#10;  apiKey: "...",&#10;  authDomain: "...",&#10;  ...&#10;};' style="width:100%;height:100px;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-size:11px;font-family:monospace;resize:vertical;box-sizing:border-box;direction:ltr"></textarea>
+      <button onclick="parseFBConfigFromCode()" style="margin-top:8px;width:100%;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:10px;padding:10px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">📋 استخراج الإعدادات تلقائياً</button>
+    </div>
+
+    <!-- الحقول اليدوية -->
+    <div style="background:white;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:12px">✏️ تعديل يدوي</div>
+      <div id="fb-config-fields">
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:4px">API Key</label>
+          <input id="fb-apiKey" type="text" dir="ltr" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-size:12px;font-family:monospace;box-sizing:border-box" placeholder="AIzaSy...">
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:4px">Auth Domain</label>
+          <input id="fb-authDomain" type="text" dir="ltr" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-size:12px;font-family:monospace;box-sizing:border-box" placeholder="project-id.firebaseapp.com">
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:4px">Database URL <span style="color:var(--danger)">*</span></label>
+          <input id="fb-databaseURL" type="text" dir="ltr" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-size:12px;font-family:monospace;box-sizing:border-box" placeholder="https://project-id-default-rtdb.firebaseio.com">
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:4px">Project ID</label>
+          <input id="fb-projectId" type="text" dir="ltr" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-size:12px;font-family:monospace;box-sizing:border-box" placeholder="project-id">
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:4px">Storage Bucket</label>
+          <input id="fb-storageBucket" type="text" dir="ltr" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-size:12px;font-family:monospace;box-sizing:border-box" placeholder="project-id.appspot.com">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:4px">Messaging Sender ID <span style="font-weight:400;color:#94a3b8">(اختياري)</span></label>
+          <input id="fb-messagingSenderId" type="text" dir="ltr" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-size:12px;font-family:monospace;box-sizing:border-box" placeholder="123456789">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:4px">App ID <span style="font-weight:400;color:#94a3b8">(اختياري)</span></label>
+          <input id="fb-appId" type="text" dir="ltr" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-size:12px;font-family:monospace;box-sizing:border-box" placeholder="1:123:web:abc...">
+        </div>
+      </div>
+
+      <!-- أزرار الحفظ والاختبار -->
+      <div style="display:flex;gap:8px;flex-direction:column">
+        <button onclick="testFBConnection()" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">🔌 اختبار الاتصال</button>
+        <button onclick="saveFBConfig()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">💾 حفظ وإعادة تشغيل</button>
+        <button onclick="resetFBConfig()" style="width:100%;background:#f1f5f9;color:#64748b;border:none;border-radius:12px;padding:10px;font-weight:600;cursor:pointer;font-size:12px;font-family:inherit">↩️ استعادة الإعدادات الافتراضية</button>
+      </div>
+
+      <!-- نتيجة الاختبار -->
+      <div id="fb-test-result" style="display:none;margin-top:12px;border-radius:12px;padding:12px;font-size:12px;text-align:center"></div>
+    </div>
   </div>
 </div>
 
@@ -445,11 +516,169 @@ function deleteAdminUser(uid, email) {
         loadAdminUsers();
     }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
 }
+
+// ==================== إعدادات Firebase ====================
+function switchAdminTab(tab) {
+    var tabs = ['users', 'firebase'];
+    tabs.forEach(function(t) {
+        var panel = document.getElementById('atab-' + t);
+        var btn = document.getElementById('atab-' + t + '-btn');
+        if (!panel || !btn) return;
+        if (t === tab) {
+            panel.style.display = 'block';
+            btn.style.background = 'linear-gradient(135deg,#7c3aed,#4f46e5)';
+            btn.style.color = 'white';
+        } else {
+            panel.style.display = 'none';
+            btn.style.background = '#f1f5f9';
+            btn.style.color = '#64748b';
+        }
+    });
+    if (tab === 'firebase') {
+        loadFBConfigFields();
+        // عرض مصدر الإعدادات الحالية
+        var badge = document.getElementById('fb-current-source');
+        if (badge) {
+            var isCustom = !!localStorage.getItem('fb_config');
+            badge.innerHTML = isCustom
+                ? '<span style="color:#059669;font-weight:700">✅ إعدادات مخصصة محفوظة</span>'
+                : '<span style="color:#94a3b8">📄 إعدادات افتراضية (مدمجة في الكود)</span>';
+        }
+    }
+}
+
+function loadFBConfigFields() {
+    var cfg = null;
+    try { cfg = JSON.parse(localStorage.getItem('fb_config') || 'null'); } catch(e) {}
+    cfg = cfg || (typeof FIREBASE_CONFIG_DEFAULT !== 'undefined' ? FIREBASE_CONFIG_DEFAULT : FIREBASE_CONFIG);
+    var fields = ['apiKey','authDomain','databaseURL','projectId','storageBucket','messagingSenderId','appId'];
+    fields.forEach(function(k) {
+        var el = document.getElementById('fb-' + k);
+        if (el) el.value = cfg[k] || '';
+    });
+}
+
+function getFBFieldsValues() {
+    var fields = ['apiKey','authDomain','databaseURL','projectId','storageBucket','messagingSenderId','appId'];
+    var cfg = {};
+    fields.forEach(function(k) {
+        var el = document.getElementById('fb-' + k);
+        if (el && el.value.trim()) cfg[k] = el.value.trim();
+    });
+    return cfg;
+}
+
+function parseFBConfigFromCode() {
+    var code = (document.getElementById('fb-paste-area').value || '').trim();
+    if (!code) { showToast('الصق الكود أولاً', true); return; }
+    // استخراج القيم بالـ regex
+    var patterns = {
+        apiKey: /apiKey\s*:\s*["']([^"']+)["']/,
+        authDomain: /authDomain\s*:\s*["']([^"']+)["']/,
+        databaseURL: /databaseURL\s*:\s*["']([^"']+)["']/,
+        projectId: /projectId\s*:\s*["']([^"']+)["']/,
+        storageBucket: /storageBucket\s*:\s*["']([^"']+)["']/,
+        messagingSenderId: /messagingSenderId\s*:\s*["']([^"']+)["']/,
+        appId: /appId\s*:\s*["']([^"']+)["']/
+    };
+    var found = 0;
+    Object.keys(patterns).forEach(function(k) {
+        var m = code.match(patterns[k]);
+        if (m) {
+            var el = document.getElementById('fb-' + k);
+            if (el) { el.value = m[1]; found++; }
+        }
+    });
+    if (found > 0) {
+        showToast('✅ تم استخراج ' + found + ' حقل بنجاح');
+        document.getElementById('fb-paste-area').value = '';
+    } else {
+        showToast('لم يتم العثور على بيانات — تأكد من الكود', true);
+    }
+}
+
+function testFBConnection() {
+    var cfg = getFBFieldsValues();
+    if (!cfg.databaseURL) { showToast('⚠️ Database URL مطلوب', true); return; }
+    if (!cfg.apiKey) { showToast('⚠️ API Key مطلوب', true); return; }
+    
+    var resultEl = document.getElementById('fb-test-result');
+    resultEl.style.display = 'block';
+    resultEl.style.background = '#f8fafc';
+    resultEl.style.color = '#64748b';
+    resultEl.innerHTML = '⏳ جاري الاختبار...';
+
+    // اختبار بسيط: نحاول تهيئة app مؤقت وقراءة node صغير
+    var testAppName = 'fb-test-' + Date.now();
+    var testApp = null;
+    try {
+        testApp = firebase.initializeApp(cfg, testAppName);
+        var testDb = firebase.database(testApp);
+        var timeout = setTimeout(function() {
+            resultEl.style.background = '#fee2e2';
+            resultEl.style.color = '#dc2626';
+            resultEl.innerHTML = '⏱️ انتهت مهلة الاختبار — تحقق من Database URL';
+            try { testApp.delete(); } catch(e) {}
+        }, 8000);
+        testDb.ref('.info/connected').once('value').then(function(snap) {
+            clearTimeout(timeout);
+            resultEl.style.background = '#d1fae5';
+            resultEl.style.color = '#065f46';
+            resultEl.innerHTML = '✅ الاتصال ناجح! يمكنك حفظ الإعدادات.';
+            try { testApp.delete(); } catch(e) {}
+        }).catch(function(err) {
+            clearTimeout(timeout);
+            resultEl.style.background = '#fee2e2';
+            resultEl.style.color = '#dc2626';
+            resultEl.innerHTML = '❌ فشل الاتصال: ' + err.message;
+            try { testApp.delete(); } catch(e) {}
+        });
+    } catch(e) {
+        resultEl.style.background = '#fee2e2';
+        resultEl.style.color = '#dc2626';
+        resultEl.innerHTML = '❌ خطأ في الإعدادات: ' + e.message;
+        if (testApp) try { testApp.delete(); } catch(e2) {}
+    }
+}
+
+function saveFBConfig() {
+    var cfg = getFBFieldsValues();
+    if (!cfg.apiKey || !cfg.databaseURL || !cfg.projectId) {
+        showToast('⚠️ apiKey و databaseURL و projectId مطلوبة', true);
+        return;
+    }
+    if (!confirm('💾 سيتم حفظ الإعدادات وإعادة تحميل التطبيق.\n\nهل أنت متأكد؟')) return;
+    try {
+        localStorage.setItem('fb_config', JSON.stringify(cfg));
+        showToast('✅ تم الحفظ — جاري إعادة التشغيل...');
+        setTimeout(function() { window.location.reload(); }, 1200);
+    } catch(e) {
+        showToast('خطأ في الحفظ: ' + e.message, true);
+    }
+}
+
+function resetFBConfig() {
+    if (!confirm('↩️ سيتم العودة للإعدادات الافتراضية وإعادة تحميل التطبيق.\n\nهل أنت متأكد؟')) return;
+    localStorage.removeItem('fb_config');
+    showToast('تمت الاستعادة — جاري إعادة التشغيل...');
+    setTimeout(function() { window.location.reload(); }, 1200);
+}
 </script>
 
 <script>
 // ==================== إعدادات Firebase ====================
-const FIREBASE_CONFIG = { apiKey: "AIzaSyD3eWEZZDXCfHtJ6xdD9VwW8hT5vZzV0W4", authDomain: "hah-pmv.firebaseapp.com", databaseURL: "https://hah-pmv-default-rtdb.firebaseio.com", projectId: "hah-pmv", storageBucket: "hah-pmv.appspot.com" };
+// ==================== إعدادات Firebase (قابلة للتعديل) ====================
+const FIREBASE_CONFIG_DEFAULT = {
+    apiKey: "AIzaSyD3eWEZZDXCfHtJ6xdD9VwW8hT5vZzV0W4",
+    authDomain: "hah-pmv.firebaseapp.com",
+    databaseURL: "https://hah-pmv-default-rtdb.firebaseio.com",
+    projectId: "hah-pmv",
+    storageBucket: "hah-pmv.appspot.com"
+};
+// تحميل الإعدادات من localStorage (إن وُجدت)
+var _savedFBConfig = null;
+try { _savedFBConfig = JSON.parse(localStorage.getItem('fb_config') || 'null'); } catch(e){}
+const FIREBASE_CONFIG = _savedFBConfig || FIREBASE_CONFIG_DEFAULT;
 
 let fbDb = null;
 let equipmentData = [];
@@ -5289,6 +5518,12 @@ document.addEventListener('DOMContentLoaded', function() {
     window.checkDocumentOwnership = checkDocumentOwnership;
     window.registerNewUser = registerNewUser;
     window.showForgotPassword = showForgotPassword;
+    window.switchAdminTab = switchAdminTab;
+    window.loadFBConfigFields = loadFBConfigFields;
+    window.parseFBConfigFromCode = parseFBConfigFromCode;
+    window.testFBConnection = testFBConnection;
+    window.saveFBConfig = saveFBConfig;
+    window.resetFBConfig = resetFBConfig;
     
     console.log('✅ تم تهيئة جميع الأزرار والدوال بنجاح');
 });
