@@ -61,45 +61,78 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     <div style="font-size:22px;font-weight:800;margin-bottom:5px;color:white">Equipment Maintenance Service</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:24px">Hassan Allam Holding</div>
 
-    <!-- أزرار نوع الدخول -->
-    <div style="display:flex;gap:10px;margin-bottom:18px;background:rgba(255,255,255,0.05);border-radius:40px;padding:4px">
-      <button id="direct-login-btn" style="flex:1;padding:10px;border-radius:30px;border:none;background:#e8a020;color:#0d1b2a;font-weight:700;cursor:pointer;font-family:inherit">🚪 دخول مباشر</button>
-      <button id="secure-login-btn" style="flex:1;padding:10px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit">🔐 دخول آمن</button>
+    <!-- أزرار التبويب الثلاثة -->
+    <div style="display:flex;gap:5px;margin-bottom:18px;background:rgba(255,255,255,0.05);border-radius:40px;padding:4px">
+      <button id="direct-login-btn" onclick="setLoginMode('direct')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:#e8a020;color:#0d1b2a;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🚪 زائر</button>
+      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🔐 دخول</button>
+      <button id="register-login-btn" onclick="setLoginMode('register')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">✨ تسجيل</button>
     </div>
 
     <!-- لوحة الدخول المباشر -->
     <div id="direct-login-panel" style="display:block">
-      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:18px">
-        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
-          <span style="color:#e8a020;font-size:18px">👤</span>
-          <select id="direct-username" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
-            <option value="viewer" style="background:#1a2a3a">👁️ مشاهد (صلاحيات مشاهدة فقط)</option>
-          </select>
-        </div>
+      <div style="background:rgba(255,255,255,0.08);border-radius:16px;padding:14px;margin-bottom:16px;text-align:right">
+        <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:6px">👁 وضع المشاهدة</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4)">يمكنك تصفح البيانات بدون تسجيل، لكن لا يمكنك الاضافة او التعديل.</div>
       </div>
-      <button id="direct-login-submit" style="width:100%;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">🚀 دخول مباشر (مشاهدة فقط)</button>
+      <button id="direct-login-submit" style="width:100%;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">🚀 دخول كمشاهد</button>
     </div>
 
     <!-- لوحة الدخول الآمن -->
     <div id="secure-login-panel" style="display:none">
-      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:12px">
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
-          <span style="color:#e8a020;font-size:18px">👤</span>
-          <input type="text" id="secure-username" placeholder="اسم المستخدم" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
+          <span style="color:#e8a020;font-size:18px">📧</span>
+          <input type="email" id="secure-username" placeholder="البريد الالكتروني" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
         </div>
       </div>
-      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:18px">
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:14px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">🔒</span>
           <input type="password" id="secure-password" placeholder="كلمة المرور" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
         </div>
       </div>
-      <button id="secure-login-submit" style="width:100%;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">🔐 دخول آمن (صلاحيات كاملة)</button>
+      <div id="login-error-msg" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:10px;margin-bottom:10px;font-size:12px;color:#fca5a5;text-align:center"></div>
+      <button id="secure-login-submit" style="width:100%;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">🔐 دخول</button>
+      <div style="margin-top:12px;text-align:center">
+        <button onclick="showForgotPassword()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline">نسيت كلمة المرور؟</button>
+      </div>
     </div>
 
-    <!-- إعدادات -->
-    <div style="margin-top:18px;padding:10px;background:rgba(255,255,255,0.03);border-radius:16px">
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:5px">⚙️ إعدادات النظام</div>
+    <!-- لوحة انشاء حساب جديد -->
+    <div id="register-login-panel" style="display:none">
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">👤</span>
+          <input type="text" id="reg-name" placeholder="الاسم الكامل" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">📧</span>
+          <input type="email" id="reg-email" placeholder="البريد الالكتروني" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">🔒</span>
+          <input type="password" id="reg-password" placeholder="كلمة المرور (6 احرف على الاقل)" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
+          <span style="color:#e8a020;font-size:18px">🔒</span>
+          <input type="password" id="reg-password2" placeholder="تاكيد كلمة المرور" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+        </div>
+      </div>
+      <div id="reg-error-msg" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:10px;margin-bottom:10px;font-size:12px;color:#fca5a5;text-align:center"></div>
+      <div id="reg-success-msg" style="display:none;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:10px;margin-bottom:10px;font-size:12px;color:#6ee7b7;text-align:center"></div>
+      <button id="register-submit-btn" onclick="registerNewUser()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">✨ انشاء حساب</button>
+      <div style="margin-top:8px;font-size:10px;color:rgba(255,255,255,0.3);text-align:center">بعد التسجيل يحتاج حسابك لموافقة المدير لتفعيل الصلاحيات</div>
+    </div>
+
+    <!-- اعدادات -->
+    <div style="margin-top:16px;padding:10px;background:rgba(255,255,255,0.03);border-radius:16px">
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:5px">⚙️ اعدادات النظام</div>
       <label style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer">
         <input type="checkbox" id="remember-mode"> تذكر اختياري
       </label>
@@ -342,36 +375,50 @@ function loadAdminUsers() {
             return;
         }
         listEl.innerHTML = users.map(function(u) {
-            var roleColor = u.role === 'admin' ? 'role-admin' : u.role === 'manager' ? 'role-manager' : u.role === 'editor' ? 'role-editor' : 'role-viewer';
-            var planColor = u.plan === 'premium' ? 'plan-premium' : u.plan === 'basic' ? 'plan-basic' : 'plan-free';
             var statusColor = u.status === 'active' ? '#d1fae5' : '#fee2e2';
             var statusTextColor = u.status === 'active' ? '#065f46' : '#7f1d1d';
             var statusLabel = u.status === 'active' ? '✅ نشط' : '🚫 معطل';
-            return '<div class="user-row" id="urow-' + u.uid + '">' +
+            var esc = function(s){ return escapeHtml(String(s||'')); };
+            return '<div class="user-row" id="urow-' + esc(u.uid) + '">' +
                 '<div class="user-row-header">' +
-                '<div><div class="user-email">' + escapeHtml(u.email || u.uid) + '</div>' +
-                '<div class="user-meta">آخر دخول: ' + (u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('ar-EG') : '—') + '</div></div>' +
+                '<div>' +
+                  '<div class="user-email">' + esc(u.displayName || '') + '</div>' +
+                  '<div class="user-meta" style="color:var(--info)">' + esc(u.email || u.uid) + '</div>' +
+                  '<div class="user-meta">آخر دخول: ' + (u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('ar-EG') : '—') + '</div>' +
+                '</div>' +
                 '<span style="background:' + statusColor + ';color:' + statusTextColor + ';padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700">' + statusLabel + '</span>' +
                 '</div>' +
                 '<div class="user-controls">' +
-                '<select onchange="updateUserField(\'' + u.uid + '\',\'role\',this.value)" style="border:1px solid #e2e8f0;border-radius:10px;padding:4px 8px;font-size:11px;background:white">' +
+                '<select onchange="updateUserField(\''+esc(u.uid)+'\',\'role\',this.value)" style="border:1px solid #e2e8f0;border-radius:10px;padding:4px 8px;font-size:11px;background:white">' +
                 '<option value="admin"' + (u.role==='admin'?' selected':'') + '>👑 admin</option>' +
                 '<option value="manager"' + (u.role==='manager'?' selected':'') + '>🔧 manager</option>' +
                 '<option value="editor"' + (u.role==='editor'?' selected':'') + '>✏️ editor</option>' +
                 '<option value="viewer"' + (u.role==='viewer'?' selected':'') + '>👁️ viewer</option>' +
                 '</select>' +
-                '<select onchange="updateUserField(\'' + u.uid + '\',\'plan\',this.value)" style="border:1px solid #e2e8f0;border-radius:10px;padding:4px 8px;font-size:11px;background:white">' +
+                '<select onchange="updateUserField(\''+esc(u.uid)+'\',\'plan\',this.value)" style="border:1px solid #e2e8f0;border-radius:10px;padding:4px 8px;font-size:11px;background:white">' +
                 '<option value="free"' + (u.plan==='free'?' selected':'') + '>🆓 free</option>' +
                 '<option value="basic"' + (u.plan==='basic'?' selected':'') + '>📋 basic</option>' +
                 '<option value="premium"' + (u.plan==='premium'?' selected':'') + '>⭐ premium</option>' +
                 '</select>' +
-                '<button onclick="toggleUserStatus(\'' + u.uid + '\',\'' + (u.status||'active') + '\')" style="background:' + (u.status==='active'?'#fee2e2':'#d1fae5') + ';color:' + (u.status==='active'?'#dc2626':'#059669') + ';border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">' +
+                '<button onclick="toggleUserStatus(\''+esc(u.uid)+'\',\''+(u.status||'active')+'\')" style="background:' + (u.status==='active'?'#fee2e2':'#d1fae5') + ';color:' + (u.status==='active'?'#dc2626':'#059669') + ';border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">' +
                 (u.status === 'active' ? '🚫 تعطيل' : '✅ تفعيل') + '</button>' +
-                '<button onclick="deleteAdminUser(\'' + u.uid + '\',\'' + escapeHtml(u.email||u.uid) + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">🗑️ حذف</button>' +
+                '<button onclick="adminChangePassword(\''+esc(u.email||'')+'\')" style="background:#dbeafe;color:#1e40af;border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">🔑 كلمة المرور</button>' +
+                '<button onclick="deleteAdminUser(\''+esc(u.uid)+'\',\''+esc(u.email||u.uid)+'\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">🗑️ حذف</button>' +
                 '</div></div>';
         }).join('');
     }).catch(function(err) {
         listEl.innerHTML = '<div class="empty-state" style="color:var(--danger)">⚠️ خطأ في تحميل المستخدمين<br><small>' + escapeHtml(err.message) + '</small></div>';
+    });
+}
+
+function adminChangePassword(email) {
+    if (!email || !email.includes('@')) { showToast('بريد غير صالح', true); return; }
+    if (!confirm('ارسال رابط تغيير كلمة المرور الى:\n' + email + '\n\nهل تريد المتابعة؟')) return;
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    firebase.auth().sendPasswordResetEmail(email).then(function() {
+        showToast('تم الارسال الى ' + email);
+    }).catch(function(err) {
+        showToast((err.code === 'auth/user-not-found' ? 'المستخدم غير موجود' : 'خطأ: ' + err.message), true);
     });
 }
 
@@ -1081,7 +1128,10 @@ function secureLogin() {
         currentUserStatus = 'active';
         currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
         showToast('مرحباً مدير النظام ✅');
-        if (submitBtn) submitBtn.innerHTML = '🔐 دخول آمن (صلاحيات كاملة)';
+        if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
+        // hide error
+        var errDiv2 = document.getElementById('login-error-msg');
+        if (errDiv2) errDiv2.style.display = 'none';
         proceedToApp();
         return;
     }
@@ -1136,8 +1186,10 @@ function secureLogin() {
                   err.code === 'auth/wrong-password' ? '❌ كلمة المرور غير صحيحة' :
                   err.code === 'auth/invalid-email' ? '❌ بريد إلكتروني غير صالح' :
                   '❌ ' + err.message;
+        var errDiv = document.getElementById('login-error-msg');
+        if (errDiv) { errDiv.textContent = msg; errDiv.style.display = 'block'; }
         showToast(msg, true);
-        if (submitBtn) submitBtn.innerHTML = '🔐 دخول آمن (صلاحيات كاملة)';
+        if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
     });
 }
 
@@ -1145,24 +1197,126 @@ function setLoginMode(mode) {
     SYSTEM_CONFIG.loginMode = mode;
     var directBtn = document.getElementById('direct-login-btn');
     var secureBtn = document.getElementById('secure-login-btn');
+    var registerBtn = document.getElementById('register-login-btn');
     var directPanel = document.getElementById('direct-login-panel');
     var securePanel = document.getElementById('secure-login-panel');
-    
+    var registerPanel = document.getElementById('register-login-panel');
+
+    // reset all
+    [directBtn, secureBtn, registerBtn].forEach(function(b) {
+        if (b) { b.style.background = 'rgba(255,255,255,0.1)'; b.style.color = 'white'; }
+    });
+    [directPanel, securePanel, registerPanel].forEach(function(p) {
+        if (p) p.style.display = 'none';
+    });
+
     if (mode === 'direct') {
-        directBtn.style.background = '#e8a020';
-        directBtn.style.color = '#0d1b2a';
-        secureBtn.style.background = 'rgba(255,255,255,0.1)';
-        secureBtn.style.color = 'white';
-        directPanel.style.display = 'block';
-        securePanel.style.display = 'none';
-    } else {
-        secureBtn.style.background = '#e8a020';
-        secureBtn.style.color = '#0d1b2a';
-        directBtn.style.background = 'rgba(255,255,255,0.1)';
-        directBtn.style.color = 'white';
-        directPanel.style.display = 'none';
-        securePanel.style.display = 'block';
+        if (directBtn) { directBtn.style.background = '#e8a020'; directBtn.style.color = '#0d1b2a'; }
+        if (directPanel) directPanel.style.display = 'block';
+    } else if (mode === 'secure') {
+        if (secureBtn) { secureBtn.style.background = '#e8a020'; secureBtn.style.color = '#0d1b2a'; }
+        if (securePanel) securePanel.style.display = 'block';
+    } else if (mode === 'register') {
+        if (registerBtn) { registerBtn.style.background = 'linear-gradient(135deg,#7c3aed,#4f46e5)'; registerBtn.style.color = 'white'; }
+        if (registerPanel) registerPanel.style.display = 'block';
+        // reset messages
+        var errEl = document.getElementById('reg-error-msg');
+        var sucEl = document.getElementById('reg-success-msg');
+        if (errEl) errEl.style.display = 'none';
+        if (sucEl) sucEl.style.display = 'none';
     }
+}
+
+// ==================== تسجيل مستخدم جديد ====================
+function registerNewUser() {
+    var name = (document.getElementById('reg-name').value || '').trim();
+    var email = (document.getElementById('reg-email').value || '').trim();
+    var pass = document.getElementById('reg-password').value;
+    var pass2 = document.getElementById('reg-password2').value;
+    var errEl = document.getElementById('reg-error-msg');
+    var sucEl = document.getElementById('reg-success-msg');
+    var btn = document.getElementById('register-submit-btn');
+
+    function showErr(msg) {
+        errEl.textContent = msg; errEl.style.display = 'block';
+        sucEl.style.display = 'none';
+    }
+    function showSuc(msg) {
+        sucEl.textContent = msg; sucEl.style.display = 'block';
+        errEl.style.display = 'none';
+    }
+
+    if (!name) { showErr('أدخل الاسم الكامل'); return; }
+    if (!email || !email.includes('@')) { showErr('أدخل بريد إلكتروني صحيح'); return; }
+    if (pass.length < 6) { showErr('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
+    if (pass !== pass2) { showErr('كلمتا المرور غير متطابقتين'); return; }
+
+    btn.innerHTML = 'جاري الإنشاء... <span class="loading-spinner"></span>';
+    btn.disabled = true;
+
+    // تأكد من تهيئة Firebase
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    if (!fbFirestore) { try { fbFirestore = firebase.firestore(); } catch(e) {} }
+
+    firebase.auth().createUserWithEmailAndPassword(email, pass).then(function(cred) {
+        var uid = cred.user.uid;
+        // تحديث الاسم في Firebase Auth
+        return cred.user.updateProfile({ displayName: name }).then(function() {
+            // حفظ في Firestore
+            var userData = {
+                email: email,
+                displayName: name,
+                role: 'viewer',
+                plan: 'free',
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString()
+            };
+            return saveUserToFirestore(uid, userData);
+        });
+    }).then(function() {
+        showSuc('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول. تواصل مع المدير لرفع صلاحياتك.');
+        document.getElementById('reg-name').value = '';
+        document.getElementById('reg-email').value = '';
+        document.getElementById('reg-password').value = '';
+        document.getElementById('reg-password2').value = '';
+        btn.innerHTML = '✨ انشاء حساب';
+        btn.disabled = false;
+        // تسجيل خروج تلقائي بعد التسجيل
+        firebase.auth().signOut().catch(function(){});
+        // انتقل لتبويب الدخول بعد 2 ثانية
+        setTimeout(function() { setLoginMode('secure'); }, 2000);
+    }).catch(function(err) {
+        var msg = err.code === 'auth/email-already-in-use' ? 'هذا البريد مسجل مسبقاً، حاول تسجيل الدخول.' :
+                  err.code === 'auth/invalid-email' ? 'بريد إلكتروني غير صالح.' :
+                  err.code === 'auth/weak-password' ? 'كلمة المرور ضعيفة جداً.' :
+                  'خطأ: ' + err.message;
+        showErr(msg);
+        btn.innerHTML = '✨ انشاء حساب';
+        btn.disabled = false;
+    });
+}
+
+// ==================== نسيت كلمة المرور ====================
+function showForgotPassword() {
+    var email = (document.getElementById('secure-username').value || '').trim();
+    if (!email || !email.includes('@')) {
+        var inp = prompt('أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور:');
+        if (!inp) return;
+        email = inp.trim();
+    }
+    if (!email || !email.includes('@')) {
+        showToast('بريد إلكتروني غير صالح', true);
+        return;
+    }
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    firebase.auth().sendPasswordResetEmail(email).then(function() {
+        showToast('تم إرسال رابط إعادة التعيين إلى ' + email);
+    }).catch(function(err) {
+        var msg = err.code === 'auth/user-not-found' ? 'البريد غير مسجل في النظام' :
+                  'خطأ: ' + err.message;
+        showToast(msg, true);
+    });
 }
 
 function saveLoginMode() {
@@ -4946,7 +5100,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deleteAllInventoryBtn) deleteAllInventoryBtn.onclick = function() { deleteAllInventory(); };
     
     var savedMode = localStorage.getItem('loginMode');
-    if (savedMode === 'secure') setLoginMode('secure'); else setLoginMode('direct');
+    if (savedMode === 'secure') setLoginMode('secure');
+    else if (savedMode === 'register') setLoginMode('register');
+    else setLoginMode('direct');
     
     if (logoutBtn) logoutBtn.onclick = function() { logout(); };
     
@@ -5128,8 +5284,11 @@ document.addEventListener('DOMContentLoaded', function() {
     window.updateUserField = updateUserField;
     window.toggleUserStatus = toggleUserStatus;
     window.deleteAdminUser = deleteAdminUser;
+    window.adminChangePassword = adminChangePassword;
     window.filterByOwner = filterByOwner;
     window.checkDocumentOwnership = checkDocumentOwnership;
+    window.registerNewUser = registerNewUser;
+    window.showForgotPassword = showForgotPassword;
     
     console.log('✅ تم تهيئة جميع الأزرار والدوال بنجاح');
 });
