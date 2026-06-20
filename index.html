@@ -305,9 +305,75 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 
   <!-- تبويب المستخدمين -->
   <div id="atab-users" style="padding:14px;display:block">
-    <div style="background:white;border-radius:14px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--gray)">
-      📋 جميع المستخدمين المسجلين. يمكنك تغيير أدوارهم وخططهم وحالتهم.
+
+    <!-- شريط الأدوات -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <button onclick="toggleAddUserForm()" id="add-user-toggle-btn" style="flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;padding:10px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">➕ إضافة مستخدم جديد</button>
+      <button onclick="loadAdminUsers()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit" title="تحديث القائمة">🔄</button>
     </div>
+
+    <!-- نموذج إضافة مستخدم (مخفي افتراضياً) -->
+    <div id="add-user-form" style="display:none;background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 4px 20px rgba(124,58,237,0.12);border:2px solid #7c3aed22">
+      <div style="font-size:13px;font-weight:800;color:#7c3aed;margin-bottom:14px;display:flex;align-items:center;gap:6px">
+        <span>✨</span> إضافة مستخدم جديد
+      </div>
+
+      <!-- الاسم والبريد -->
+      <div style="display:grid;gap:10px;margin-bottom:10px">
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">👤 الاسم الكامل *</label>
+          <input id="au-name" type="text" placeholder="محمد أحمد" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:13px;font-family:inherit;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">📧 البريد الإلكتروني *</label>
+          <input id="au-email" type="email" placeholder="user@example.com" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:13px;font-family:monospace;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">🔒 كلمة المرور * <span style="color:#94a3b8;font-weight:400">(6 أحرف على الأقل)</span></label>
+          <div style="position:relative">
+            <input id="au-password" type="password" placeholder="••••••••" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 40px 10px 12px;font-size:13px;font-family:monospace;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'">
+            <button type="button" onclick="toggleAuPassword()" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:#94a3b8">👁</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- الدور والخطة -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">🎭 الدور</label>
+          <select id="au-role" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 8px;font-size:12px;font-family:inherit;background:white;outline:none" onchange="updateAuPermissionsPreview()">
+            <option value="viewer">👁️ viewer — مشاهدة فقط</option>
+            <option value="editor" selected>✏️ editor — تعديل وإضافة</option>
+            <option value="manager">🔧 manager — مدير قسم</option>
+            <option value="admin">👑 admin — صلاحيات كاملة</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">💳 الخطة</label>
+          <select id="au-plan" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 8px;font-size:12px;font-family:inherit;background:white;outline:none">
+            <option value="free">🆓 free</option>
+            <option value="basic" selected>📋 basic</option>
+            <option value="premium">⭐ premium</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- معاينة الصلاحيات -->
+      <div id="au-permissions-preview" style="background:#f8fafc;border-radius:10px;padding:10px;margin-bottom:12px;font-size:11px">
+        <!-- يتم ملؤه بـ JS -->
+      </div>
+
+      <!-- رسالة الخطأ -->
+      <div id="au-error" style="display:none;background:#fee2e2;color:#dc2626;border-radius:10px;padding:10px;font-size:12px;margin-bottom:10px;text-align:center"></div>
+
+      <!-- أزرار -->
+      <div style="display:flex;gap:8px">
+        <button onclick="createUserByAdmin()" id="au-submit-btn" style="flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;padding:12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit">✅ إنشاء الحساب</button>
+        <button onclick="toggleAddUserForm()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">✕ إلغاء</button>
+      </div>
+    </div>
+
+    <!-- قائمة المستخدمين -->
     <div id="admin-users-list"><div class="empty-state">⏳ جاري التحميل...</div></div>
   </div>
 
@@ -490,6 +556,120 @@ function adminChangePassword(email) {
         showToast('تم الارسال الى ' + email);
     }).catch(function(err) {
         showToast((err.code === 'auth/user-not-found' ? 'المستخدم غير موجود' : 'خطأ: ' + err.message), true);
+    });
+}
+
+// ==================== إضافة مستخدم من لوحة المدير ====================
+var _addUserFormOpen = false;
+
+function toggleAddUserForm() {
+    _addUserFormOpen = !_addUserFormOpen;
+    var form = document.getElementById('add-user-form');
+    var btn = document.getElementById('add-user-toggle-btn');
+    if (!form) return;
+    if (_addUserFormOpen) {
+        form.style.display = 'block';
+        if (btn) { btn.innerHTML = '✕ إغلاق'; btn.style.background = '#f1f5f9'; btn.style.color = '#64748b'; }
+        // reset fields
+        ['au-name','au-email','au-password'].forEach(function(id){
+            var el = document.getElementById(id); if(el) el.value = '';
+        });
+        var errEl = document.getElementById('au-error');
+        if (errEl) errEl.style.display = 'none';
+        updateAuPermissionsPreview();
+        setTimeout(function(){ var el=document.getElementById('au-name'); if(el) el.focus(); }, 100);
+    } else {
+        form.style.display = 'none';
+        if (btn) { btn.innerHTML = '➕ إضافة مستخدم جديد'; btn.style.background = 'linear-gradient(135deg,#7c3aed,#4f46e5)'; btn.style.color = 'white'; }
+    }
+}
+
+function toggleAuPassword() {
+    var inp = document.getElementById('au-password');
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// معاينة الصلاحيات حسب الدور المختار
+var ROLE_PERMISSIONS = {
+    viewer:  { label: '👁️ مشاهد',      color: '#64748b', bg: '#f1f5f9', perms: ['✅ عرض المعدات','✅ عرض السائقين','✅ عرض الوقود','✅ عرض المخزون','❌ إضافة/تعديل','❌ حذف','❌ استيراد/تصدير'] },
+    editor:  { label: '✏️ محرر',       color: '#1d4ed8', bg: '#dbeafe', perms: ['✅ عرض كل البيانات','✅ إضافة معدات وسائقين','✅ إضافة وقود وصيانة','✅ تعديل سجلاته الخاصة','❌ حذف جماعي','❌ إدارة مستخدمين'] },
+    manager: { label: '🔧 مدير قسم',   color: '#065f46', bg: '#d1fae5', perms: ['✅ كل صلاحيات المحرر','✅ حذف السجلات','✅ تصدير التقارير','✅ إدارة الاستيراد','❌ إدارة مستخدمين','❌ إعدادات النظام'] },
+    admin:   { label: '👑 مدير النظام', color: '#92400e', bg: '#fef3c7', perms: ['✅ صلاحيات كاملة','✅ إدارة المستخدمين','✅ إعدادات Firebase','✅ حذف جميع البيانات','✅ عرض بيانات الكل','✅ تغيير أدوار المستخدمين'] }
+};
+
+function updateAuPermissionsPreview() {
+    var role = (document.getElementById('au-role') || {}).value || 'editor';
+    var info = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.editor;
+    var previewEl = document.getElementById('au-permissions-preview');
+    if (!previewEl) return;
+    previewEl.innerHTML =
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+        '<span style="background:'+info.bg+';color:'+info.color+';padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">'+info.label+'</span>' +
+        '<span style="color:#64748b;font-size:11px">الصلاحيات:</span></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">' +
+        info.perms.map(function(p){ return '<div style="font-size:10px;color:#475569">'+p+'</div>'; }).join('') +
+        '</div>';
+}
+
+function createUserByAdmin() {
+    var name    = (document.getElementById('au-name').value || '').trim();
+    var email   = (document.getElementById('au-email').value || '').trim();
+    var pass    = document.getElementById('au-password').value || '';
+    var role    = document.getElementById('au-role').value || 'viewer';
+    var plan    = document.getElementById('au-plan').value || 'free';
+    var errEl   = document.getElementById('au-error');
+    var btn     = document.getElementById('au-submit-btn');
+
+    function showErr(msg) {
+        errEl.textContent = msg;
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '✅ إنشاء الحساب';
+    }
+
+    // التحقق
+    if (!name)                        { showErr('⚠️ أدخل الاسم الكامل'); return; }
+    if (!email || !email.includes('@')){ showErr('⚠️ أدخل بريد إلكتروني صحيح'); return; }
+    if (pass.length < 6)              { showErr('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
+
+    btn.innerHTML = 'جاري الإنشاء... <span class="loading-spinner"></span>';
+    btn.disabled = true;
+    errEl.style.display = 'none';
+
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    if (!fbFirestore) { try { fbFirestore = firebase.firestore(); } catch(e){} }
+
+    // إنشاء الحساب في Firebase Auth
+    firebase.auth().createUserWithEmailAndPassword(email, pass).then(function(cred) {
+        var uid = cred.user.uid;
+        // تحديث الاسم
+        return cred.user.updateProfile({ displayName: name }).then(function() {
+            var userData = {
+                email: email,
+                displayName: name,
+                role: role,
+                plan: plan,
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                lastLogin: null,
+                createdBy: currentUid || 'admin'
+            };
+            return saveUserToFirestore(uid, userData);
+        });
+    }).then(function() {
+        showToast('✅ تم إنشاء حساب ' + name + ' بنجاح');
+        btn.innerHTML = '✅ إنشاء الحساب';
+        btn.disabled = false;
+        // إغلاق الفورم وتحديث القائمة
+        toggleAddUserForm();
+        setTimeout(loadAdminUsers, 400);
+    }).catch(function(err) {
+        var msg = err.code === 'auth/email-already-in-use' ? '⚠️ هذا البريد مسجل مسبقاً' :
+                  err.code === 'auth/invalid-email'        ? '⚠️ بريد إلكتروني غير صالح' :
+                  err.code === 'auth/weak-password'        ? '⚠️ كلمة المرور ضعيفة جداً' :
+                  '❌ خطأ: ' + err.message;
+        showErr(msg);
     });
 }
 
@@ -5519,6 +5699,10 @@ document.addEventListener('DOMContentLoaded', function() {
     window.registerNewUser = registerNewUser;
     window.showForgotPassword = showForgotPassword;
     window.switchAdminTab = switchAdminTab;
+    window.toggleAddUserForm = toggleAddUserForm;
+    window.toggleAuPassword = toggleAuPassword;
+    window.updateAuPermissionsPreview = updateAuPermissionsPreview;
+    window.createUserByAdmin = createUserByAdmin;
     window.loadFBConfigFields = loadFBConfigFields;
     window.parseFBConfigFromCode = parseFBConfigFromCode;
     window.testFBConnection = testFBConnection;
