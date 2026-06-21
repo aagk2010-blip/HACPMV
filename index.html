@@ -1545,6 +1545,21 @@ function secureLogin() {
         return;
     }
 
+    // مستخدم إيجار فقط
+    if ((username === 'Mohamed' || username === 'mohamed') && password === 'M123456') {
+        currentUid = 'rental_only_mohamed';
+        currentUserRole = 'rental_only';
+        currentUserPlan = 'basic';
+        currentUserStatus = 'active';
+        currentUser = { username: 'Mohamed', role: 'rental_only', name: 'Mohamed', permissions: ['view'] };
+        showToast('مرحباً Mohamed ✅');
+        if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
+        var errDiv3 = document.getElementById('login-error-msg');
+        if (errDiv3) errDiv3.style.display = 'none';
+        proceedToApp();
+        return;
+    }
+
     // تسجيل الدخول عبر Firebase Auth (Email/Password)
     // نفترض أن username يمكن أن يكون email أو email مُولَّد
     var email = username.includes('@') ? username : username + '@hah.app';
@@ -1747,24 +1762,45 @@ function proceedToApp() {
     
     var isAdmin = currentUser.role === 'admin' || currentUserRole === 'admin';
     var isEditor = currentUser.role === 'editor' || currentUserRole === 'editor';
+    var isRentalOnly = currentUserRole === 'rental_only';
     
     if (userNameDisplay) {
-        userNameDisplay.innerHTML = escapeHtml(currentUser.name) + ' <span style="font-size:9px;padding:2px 7px;border-radius:10px;background:' + (isAdmin ? 'rgba(232,160,32,0.3)' : 'rgba(255,255,255,0.15)') + ';margin-right:4px">' + (isAdmin ? '👑 مدير' : isEditor ? '✏️ محرر' : '👁️ مشاهد') + '</span>';
+        var roleLabel = isAdmin ? '\u{1F451} \u0645\u062F\u064A\u0631' : isEditor ? '\u270F\uFE0F \u0645\u062D\u0631\u0631' : isRentalOnly ? '\u{1F6A7} \u0625\u064A\u062C\u0627\u0631' : '\u{1F441}\uFE0F \u0645\u0634\u0627\u0647\u062F';
+        var roleBg = isAdmin ? 'rgba(232,160,32,0.3)' : isRentalOnly ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.15)';
+        userNameDisplay.innerHTML = escapeHtml(currentUser.name) + ' <span style="font-size:9px;padding:2px 7px;border-radius:10px;background:' + roleBg + ';margin-right:4px">' + roleLabel + '</span>';
     }
 
-    // زر لوحة تحكم المدير - يظهر للمدير فقط
     var adminPanelBtn = document.getElementById('admin-panel-btn');
     if (adminPanelBtn) {
         adminPanelBtn.style.display = isAdmin ? 'inline-block' : 'none';
         adminPanelBtn.onclick = openAdminPanel;
     }
+
+    // rental_only: show rental page only
+    if (isRentalOnly) {
+        document.querySelectorAll('.tab-btn').forEach(function(btn) {
+            btn.style.display = btn.dataset.view === 'rental' ? 'flex' : 'none';
+        });
+        ['admin-panel-btn','delete-all-equipment-global-btn','export-pdf-btn',
+         'notif-settings-btn','global-search-toggle','meter-update-btn','force-refresh-btn'].forEach(function(id) {
+            var el = document.getElementById(id); if (el) el.style.display = 'none';
+        });
+        var hs = document.createElement('style');
+        hs.textContent = '#fab-btn,.edit-equipment-btn,.fuel-edit-btn,button.viewer-hidden,.qty-btn,' +
+            '#add-rental-btn,#delete-all-rental-btn,#add-rental-daily-btn,#rental-wa-btn{display:none!important}';
+        document.head.appendChild(hs);
+        loadNotifSettings();
+        initFirebase();
+        initIndexedDB();
+        initSessionTimeout();
+        setTimeout(function() { switchView('rental'); }, 100);
+        return;
+    }
     
     if (!hasPermission('all')) {
         var fabButton = document.getElementById('fab-btn');
         if (fabButton) fabButton.style.display = isEditor ? 'flex' : 'none';
-        // المشاهد يرى جميع الصفحات - نخفي أزرار التعديل والحذف فقط
         var adminBtnIds = isEditor ? [
-            // المحرر يرى أزرار الإضافة لكن لا يرى أزرار الحذف الجماعي
             'delete-all-equipment-btn','delete-all-fuel-btn',
             'delete-all-maintenance-btn','delete-all-inventory-btn',
             'delete-all-equipment-global-btn'
@@ -5264,6 +5300,8 @@ function globalSearch(query) {
 }
 
 function switchView(view) {
+    // rental_only: lock to rental page only
+    if (currentUserRole === 'rental_only' && view !== 'rental') return;
     document.getElementById('view-home').style.display = view === 'home' ? 'block' : 'none';
     document.getElementById('view-equipment').style.display = view === 'equipment' ? 'block' : 'none';
     document.getElementById('view-drivers').style.display = view === 'drivers' ? 'block' : 'none';
