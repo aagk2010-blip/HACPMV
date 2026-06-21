@@ -6231,6 +6231,7 @@ function showRentalReport(rentalId) {
 }
 
 function renderRentalReportContent(rentalId, dateFrom, dateTo) {
+    var isAdmin = currentUser && (currentUser.role === 'admin' || currentUserRole === 'admin');
     var records=rentalDailyData.filter(function(d){
         if (d.equipmentId!==rentalId) return false;
         if (dateFrom && d.date < dateFrom) return false;
@@ -6239,33 +6240,136 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo) {
     }).sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
     var sb=records.reduce(function(s,d){ return s+(d.basicHours||0); },0);
     var se=records.reduce(function(s,d){ return s+(d.extraHours||0); },0);
-    var periodLabel = (dateFrom||'') + (dateTo?' → '+dateTo:'');
+    var periodLabel = (dateFrom||'') + (dateTo?' \u2192 '+dateTo:'');
     var cont=document.getElementById('rental-report-content');
     if (!cont) return;
     var html='<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border-radius:14px;padding:14px;color:white;margin-bottom:10px">'+
-        '<div style="font-weight:700;margin-bottom:8px">📊 '+periodLabel+'</div>'+
+        '<div style="font-weight:700;margin-bottom:8px">\u{1F4CA} '+periodLabel+'</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:13px">'+
-        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+records.length+'</div><div>يوم عمل</div></div>'+
-        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+sb.toFixed(1)+'</div><div>ساعة أساسية</div></div>'+
-        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#fbbf24">'+se.toFixed(1)+'</div><div>ساعة إضافية</div></div>'+
+        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+records.length+'</div><div>\u064A\u0648\u0645 \u0639\u0645\u0644</div></div>'+
+        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+sb.toFixed(1)+'</div><div>\u0633\u0627\u0639\u0629 \u0623\u0633\u0627\u0633\u064A\u0629</div></div>'+
+        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#fbbf24">'+se.toFixed(1)+'</div><div>\u0633\u0627\u0639\u0629 \u0625\u0636\u0627\u0641\u064A\u0629</div></div>'+
         '</div></div>';
-    if (!records.length) { html+='<div style="text-align:center;padding:30px;color:var(--gray)">لا سجلات لهذه الفترة</div>'; cont.innerHTML=html; return; }
+    if (!records.length) { html+='<div style="text-align:center;padding:30px;color:var(--gray)">\u0644\u0627 \u0633\u062C\u0644\u0627\u062A \u0644\u0647\u0630\u0647 \u0627\u0644\u0641\u062A\u0631\u0629</div>'; cont.innerHTML=html; return; }
+    var colTemplate = isAdmin ? '70px 48px 48px 42px 42px 58px' : '85px 55px 55px 50px 55px';
+    var editHeader = isAdmin ? '<span style="text-align:center">\u062A\u0639\u062F\u064A\u0644</span>' : '';
     html+='<div style="background:white;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden">'+
-        '<div style="background:var(--light);padding:8px 12px;display:grid;grid-template-columns:85px 55px 55px 50px 55px;gap:4px;font-size:12px;font-weight:700">'+
-        '<span>التاريخ</span><span style="text-align:center">حضور</span><span style="text-align:center">انصراف</span><span style="text-align:center">أساسي</span><span style="text-align:center">إضافي</span></div>';
+        '<div style="background:var(--light);padding:8px 12px;display:grid;grid-template-columns:'+colTemplate+';gap:4px;font-size:12px;font-weight:700">'+
+        '<span>\u0627\u0644\u062A\u0627\u0631\u064A\u062E</span><span style="text-align:center">\u062D\u0636\u0648\u0631</span><span style="text-align:center">\u0627\u0646\u0635\u0631\u0627\u0641</span><span style="text-align:center">\u0623\u0633\u0627\u0633\u064A</span><span style="text-align:center">\u0625\u0636\u0627\u0641\u064A</span>'+editHeader+'</div>';
     records.forEach(function(r,i){
-        html+='<div style="background:'+(i%2?'#f8fafc':'white')+';padding:8px 12px;display:grid;grid-template-columns:85px 55px 55px 50px 55px;gap:4px;font-size:12px;border-top:1px solid #f1f5f9;align-items:center">'+
-            '<span>'+r.date+'</span><span style="text-align:center;color:var(--gray)">'+(r.inTime||'—')+'</span>'+
-            '<span style="text-align:center;color:var(--gray)">'+(r.outTime||'—')+'</span>'+
+        var editBtns = isAdmin ?
+            '<span style="display:flex;gap:3px;justify-content:center">'+
+            '<button data-action="edit-daily-entry" data-entry-id="'+r.id+'" data-rental-id="'+rentalId+'" style="background:#7c3aed;color:white;border:none;border-radius:5px;padding:3px 5px;cursor:pointer;font-size:10px">\u270F\uFE0F</button>'+
+            '<button data-action="del-daily-entry" data-entry-id="'+r.id+'" data-rental-id="'+rentalId+'" style="background:#dc2626;color:white;border:none;border-radius:5px;padding:3px 5px;cursor:pointer;font-size:10px">\u{1F5D1}\uFE0F</button>'+
+            '</span>' : '';
+        html+='<div style="background:'+(i%2?'#f8fafc':'white')+';padding:8px 12px;display:grid;grid-template-columns:'+colTemplate+';gap:4px;font-size:12px;border-top:1px solid #f1f5f9;align-items:center">'+
+            '<span>'+r.date+'</span><span style="text-align:center;color:var(--gray)">'+(r.inTime||'\u2014')+'</span>'+
+            '<span style="text-align:center;color:var(--gray)">'+(r.outTime||'\u2014')+'</span>'+
             '<span style="text-align:center;font-weight:600">'+(r.basicHours||0).toFixed(1)+'</span>'+
-            '<span style="text-align:center;font-weight:600;color:'+(r.extraHours>0?'#d97706':'var(--gray)')+'">'+(r.extraHours||0).toFixed(2)+'</span></div>'+
-            (r.notes?'<div style="padding:2px 12px 5px;font-size:10px;color:var(--gray);background:'+(i%2?'#f8fafc':'white')+'">📝 '+escapeHtml(r.notes)+'</div>':'');
+            '<span style="text-align:center;font-weight:600;color:'+(r.extraHours>0?'#d97706':'var(--gray)')+'\">'+(r.extraHours||0).toFixed(2)+'</span>'+
+            editBtns+'</div>'+
+            (r.notes?'<div style="padding:2px 12px 5px;font-size:10px;color:var(--gray);background:'+(i%2?'#f8fafc':'white')+'">\u{1F4DD} '+escapeHtml(r.notes)+'</div>':'');
     });
-    html+='<div style="background:#f1f5f9;padding:8px 12px;display:grid;grid-template-columns:85px 55px 55px 50px 55px;gap:4px;font-size:12px;font-weight:700;border-top:2px solid #e2e8f0">'+
-        '<span>الإجمالي</span><span></span><span></span><span style="text-align:center;color:#0e7490">'+sb.toFixed(1)+'</span><span style="text-align:center;color:#d97706">'+se.toFixed(1)+'</span></div>';
+    var emptyCol = isAdmin ? '<span></span>' : '';
+    html+='<div style="background:#f1f5f9;padding:8px 12px;display:grid;grid-template-columns:'+colTemplate+';gap:4px;font-size:12px;font-weight:700;border-top:2px solid #e2e8f0">'+
+        '<span>\u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A</span><span></span><span></span><span style="text-align:center;color:#0e7490">'+sb.toFixed(1)+'</span><span style="text-align:center;color:#d97706">'+se.toFixed(1)+'</span>'+emptyCol+'</div>';
     html+='</div>';
     cont.innerHTML=html;
+    if (isAdmin) {
+        cont.onclick = function(e) {
+            var btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            var action = btn.getAttribute('data-action');
+            var entryId = btn.getAttribute('data-entry-id');
+            var rId = btn.getAttribute('data-rental-id');
+            if (action === 'edit-daily-entry') openEditDailyEntryModal(entryId, rId, dateFrom, dateTo);
+            if (action === 'del-daily-entry') deleteDailyEntry(entryId, rId, dateFrom, dateTo);
+        };
+    }
 }
+
+function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
+    var entry = rentalDailyData.find(function(d){ return d.id === entryId; });
+    if (!entry) { showToast('\u0644\u0645 \u064A\u0648\u062C\u062F \u0627\u0644\u0633\u062C\u0644', true); return; }
+    // Remove old modal if exists
+    var old = document.getElementById('edit-daily-entry-modal');
+    if (old) old.remove();
+    var modal = document.createElement('div');
+    modal.id = 'edit-daily-entry-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    modal.innerHTML =
+        '<div style="background:white;border-radius:18px;width:100%;max-width:360px;padding:20px;direction:rtl">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'+
+        '<div style="font-size:16px;font-weight:800;color:#7c3aed">\u270F\uFE0F \u062A\u0639\u062F\u064A\u0644 \u0633\u062C\u0644 \u0627\u0644\u0633\u0627\u0639\u0627\u062A</div>'+
+        '<button id="edit-daily-close" style="background:#f1f5f9;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px">\u2715</button>'+
+        '</div>'+
+        '<div style="background:#ede9fe;border-radius:10px;padding:8px 12px;font-size:12px;color:#4c1d95;margin-bottom:14px">\u{1F4C5} \u0627\u0644\u062A\u0627\u0631\u064A\u062E: <strong>'+entry.date+'</strong></div>'+
+        '<div style="display:grid;gap:10px">'+
+        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">\u0648\u0642\u062A \u0627\u0644\u062D\u0636\u0648\u0631</label>'+
+        '<input type="time" id="edit-entry-in" value="'+(entry.inTime||'07:00')+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>'+
+        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">\u0648\u0642\u062A \u0627\u0644\u0627\u0646\u0635\u0631\u0627\u0641</label>'+
+        '<input type="time" id="edit-entry-out" value="'+(entry.outTime||'')+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>'+
+        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">\u0633\u0627\u0639\u0627\u062A \u0627\u0644\u0631\u0627\u062D\u0629</label>'+
+        '<input type="number" id="edit-entry-brk" value="'+(entry.breakHours||1)+'" min="0" max="5" step="0.5" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>'+
+        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">\u0645\u0644\u0627\u062D\u0638\u0627\u062A</label>'+
+        '<textarea id="edit-entry-notes" rows="2" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;resize:none">'+(entry.notes||'')+'</textarea></div>'+
+        '</div>'+
+        '<div id="edit-entry-calc" style="margin-top:10px;background:#f0fdf4;border-radius:10px;padding:10px;font-size:13px;display:none"></div>'+
+        '<button id="edit-daily-save-btn" style="width:100%;margin-top:14px;padding:12px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">\u2705 \u062D\u0641\u0638 \u0627\u0644\u062A\u0639\u062F\u064A\u0644</button>'+
+        '</div>';
+    document.body.appendChild(modal);
+
+    function calcAndShow() {
+        var inT = document.getElementById('edit-entry-in').value;
+        var outT = document.getElementById('edit-entry-out').value;
+        var brk = parseFloat(document.getElementById('edit-entry-brk').value)||0;
+        var calcDiv = document.getElementById('edit-entry-calc');
+        if (inT && outT) {
+            var h = calcRentalHours(inT, outT, brk);
+            calcDiv.style.display = 'block';
+            calcDiv.innerHTML = '\u2705 \u0623\u0633\u0627\u0633\u064A: <strong>'+h.basic.toFixed(1)+'</strong> \u0633\u0627\u0639\u0629 | \u0625\u0636\u0627\u0641\u064A: <strong style="color:#d97706">'+h.extra.toFixed(2)+'</strong> \u0633\u0627\u0639\u0629';
+        } else { calcDiv.style.display = 'none'; }
+    }
+    document.getElementById('edit-entry-in').oninput = calcAndShow;
+    document.getElementById('edit-entry-out').oninput = calcAndShow;
+    document.getElementById('edit-entry-brk').oninput = calcAndShow;
+    calcAndShow();
+
+    document.getElementById('edit-daily-close').onclick = function(){ modal.remove(); };
+    modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
+
+    document.getElementById('edit-daily-save-btn').onclick = function() {
+        var inT = document.getElementById('edit-entry-in').value;
+        var outT = document.getElementById('edit-entry-out').value;
+        var brk = parseFloat(document.getElementById('edit-entry-brk').value)||0;
+        var notes = document.getElementById('edit-entry-notes').value;
+        if (!inT || !outT) { showToast('\u0623\u062F\u062E\u0644 \u0648\u0642\u062A \u0627\u0644\u062D\u0636\u0648\u0631 \u0648\u0627\u0644\u0627\u0646\u0635\u0631\u0627\u0641', true); return; }
+        var h = calcRentalHours(inT, outT, brk);
+        var updated = Object.assign({}, entry, {
+            inTime: inT, outTime: outT, breakHours: brk,
+            totalHours: h.total, basicHours: h.basic, extraHours: h.extra,
+            notes: notes, updatedAt: new Date().toISOString()
+        });
+        fbDb.ref('rentalDaily/' + entryId).set(updated)
+            .then(function(){
+                showToast('\u2705 \u062A\u0645 \u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0633\u062C\u0644 \u0628\u0646\u062C\u0627\u062D');
+                modal.remove();
+                setTimeout(function(){ renderRentalReportContent(rentalId, dateFrom, dateTo); }, 600);
+            })
+            .catch(function(err){ showToast('\u062E\u0637\u0623: '+err.message, true); });
+    };
+}
+
+function deleteDailyEntry(entryId, rentalId, dateFrom, dateTo) {
+    if (!confirm('\u062D\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u0633\u062C\u0644\u061F')) return;
+    fbDb.ref('rentalDaily/' + entryId).remove()
+        .then(function(){
+            showToast('\u{1F5D1}\uFE0F \u062A\u0645 \u062D\u0630\u0641 \u0627\u0644\u0633\u062C\u0644');
+            setTimeout(function(){ renderRentalReportContent(rentalId, dateFrom, dateTo); }, 600);
+        })
+        .catch(function(err){ showToast('\u062E\u0637\u0623: '+err.message, true); });
+}
+
 
 function getReportDateRange() {
     return {
