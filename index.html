@@ -234,7 +234,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 </div>
 
 <!-- النوافذ المنبثقة (نفسها كما كانت) -->
-<div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">🔄 دورة الصيانة</label><select class="form-select" id="eq-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="750">كل 750 ساعة</option><option value="1000">كل 1000 ساعة</option><option value="1250">كل 1250 ساعة</option><option value="1500">كل 1500 ساعة</option><option value="1750">كل 1750 ساعة</option><option value="2000">كل 2000 ساعة</option></select></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
+<div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">🔄 دورة الصيانة</label><select class="form-select" id="eq-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="750">كل 750 ساعة</option><option value="1000">كل 1000 ساعة</option><option value="1250">كل 1250 ساعة</option><option value="1500">كل 1500 ساعة</option><option value="1750">كل 1750 ساعة</option><option value="2000">كل 2000 ساعة</option></select></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">🏷️ نوع الملكية</label><select class="form-select" id="eq-ownership"><option value="ملك">🔑 ملك</option><option value="إيجار">📋 إيجار</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الاسم الكامل *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label">رقم الهاتف</label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label">رقم رخصة القيادة</label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label">تاريخ انتهاء الرخصة</label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
 
@@ -1865,6 +1865,7 @@ function openAddEquipmentModal() {
     document.getElementById('eq-type').disabled = false;
     document.getElementById('eq-type-lock-msg').style.display = 'none';
     document.getElementById('eq-status').value = 'يعمل';
+    document.getElementById('eq-ownership').value = 'ملك';
     updateDriverSelects();
     document.getElementById('equipment-modal').classList.add('active');
 }
@@ -1888,6 +1889,7 @@ function saveEquipment() {
         lastMaintenanceDate: document.getElementById('eq-last-maintenance-date').value,
         lastMaintenanceHours: parseInt(document.getElementById('eq-last-maintenance-hours').value) || 0,
         status: document.getElementById('eq-status').value,
+        ownership: document.getElementById('eq-ownership').value || 'ملك',
         notes: document.getElementById('eq-notes').value,
         updatedAt: new Date().toISOString()
     };
@@ -1957,6 +1959,7 @@ function editEquipment(id) {
     document.getElementById('eq-last-maintenance-date').value = equipment.lastMaintenanceDate || '';
     document.getElementById('eq-last-maintenance-hours').value = equipment.lastMaintenanceHours || 0;
     document.getElementById('eq-status').value = equipment.status || 'يعمل';
+    document.getElementById('eq-ownership').value = equipment.ownership || 'ملك';
     document.getElementById('eq-notes').value = equipment.notes || '';
     updateDriverSelects();
     if (equipment.assignedDriver) {
@@ -2005,6 +2008,7 @@ function openEquipmentDetail(id) {
         '<div><div class="detail-label">الموقع</div><div class="detail-value">' + escapeHtml(equipment.location || '—') + '</div></div>' +
         '<div><div class="detail-label">السائق</div><div class="detail-value">' + (driver ? escapeHtml(driver.name) : '—') + '</div></div>' +
         '<div><div class="detail-label">الحالة</div><div class="detail-value">' + escapeHtml(equipment.status) + '</div></div>' +
+        '<div><div class="detail-label">🏷️ نوع الملكية</div><div class="detail-value">' + (equipment.ownership === 'إيجار' ? '📋 إيجار' : '🔑 ملك') + '</div></div>' +
         '<div><div class="detail-label">دورة الصيانة</div><div class="detail-value">كل ' + (equipment.interval || 250) + ' س</div></div>' +
         '</div></div>' +
         '<div class="detail-section">' +
@@ -5128,12 +5132,32 @@ function updateHomeStatsAndList() {
         else if (eq.status === 'صيانة') statusBadge = '<span class="badge badge-maintenance" style="font-size:9px;padding:2px 5px">صيانة</span>';
         else statusBadge = '<span class="badge badge-stopped" style="font-size:9px;padding:2px 5px">متوقف</span>';
         
-        equipmentListHtml += '<div class="equipment-card" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px">' +
+        var isRental = (eq.ownership === 'إيجار');
+        var ownershipBadge = isRental
+            ? '<span style="background:#ede9fe;color:#5b21b6;border-radius:8px;padding:2px 6px;font-size:9px;font-weight:700">📋 إيجار</span>'
+            : '<span style="background:#d1fae5;color:#065f46;border-radius:8px;padding:2px 6px;font-size:9px;font-weight:700">🔑 ملك</span>';
+        
+        if (isRental) {
+            // للمعدات المستأجرة: عرض مبسط بدون تفاصيل العداد والصيانة
+            equipmentListHtml += '<div class="equipment-card" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px">' +
+                '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">' +
+                '<div style="flex:1;min-width:0">' +
+                '<span style="font-size:12px;font-weight:800;color:var(--primary)">' + escapeHtml(eq.name) + '</span>' +
+                ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.code) + '</span>' +
+                '</div>' +
+                ownershipBadge +
+                statusBadge +
+                (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:1px 5px;border-radius:4px;cursor:pointer;font-size:8px;flex-shrink:0">✏️</button>' : '') +
+                '</div>' +
+                '</div>';
+        } else {
+            equipmentListHtml += '<div class="equipment-card" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px">' +
             '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap">' +
             '<div style="flex:1;min-width:0">' +
             '<span style="font-size:12px;font-weight:800;color:var(--primary)">' + escapeHtml(eq.name) + '</span>' +
             ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.code) + '</span>' +
             '</div>' +
+            ownershipBadge +
             '<span style="font-size:9px;color:#6b7a8d;white-space:nowrap">⏱️<b>' + formatNumber(eq.hours) + '</b> | 🔧<b>' + formatNumber(eq.nextHours) + '</b></span>' +
             '<span style="color:' + gaugeColor + ';font-weight:800;font-size:9px;white-space:nowrap">' + remainingLabel + '</span>' +
             statusBadge +
@@ -5149,6 +5173,7 @@ function updateHomeStatsAndList() {
             '<div style="display:flex;justify-content:space-between;font-size:6.5px;color:#9ca3af;margin-top:0px"><span>0</span><span>50</span><span>100</span><span>250 س</span></div>' +
             '</div>' +
             '</div>';
+        }
     });
     
     document.getElementById('equipment-list-home').innerHTML = equipmentListHtml;
