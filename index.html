@@ -1043,16 +1043,51 @@ var APP_USERS = [
         sections: { home:'none', equipment:'none', fuel:'none', maintenance:'none', inventory:'none', rental:'view', drivers:'none' }
     }
 ];
-// تحميل المستخدمين من localStorage إن وُجدوا
+
+// ====== حفظ وتحميل المستخدمين من Firebase (مزامنة فورية بين جميع الأجهزة) ======
+var _appUsersListenerAttached = false;
+
+function saveAppUsers() {
+    // حفظ نسخة احتياطية محلية
+    try { localStorage.setItem('ems_users', JSON.stringify(APP_USERS)); } catch(e) {}
+    // الحفظ الفعلي في Firebase - يُحدَّث فوراً على كل الأجهزة
+    if (fbDb) {
+        fbDb.ref('app_users').set(APP_USERS).catch(function(e) {
+            console.warn('خطأ حفظ المستخدمين في Firebase:', e);
+        });
+    }
+}
+
+function loadAppUsersFromFirebase() {
+    if (!fbDb || _appUsersListenerAttached) return;
+    _appUsersListenerAttached = true;
+    fbDb.ref('app_users').on('value', function(snapshot) {
+        var data = snapshot.val();
+        if (data && Array.isArray(data) && data.length > 0) {
+            APP_USERS = data;
+            // تحديث نسخة محلية احتياطية
+            try { localStorage.setItem('ems_users', JSON.stringify(APP_USERS)); } catch(e) {}
+        } else if (!data) {
+            // أول مرة: ارفع البيانات الافتراضية إلى Firebase
+            fbDb.ref('app_users').set(APP_USERS);
+        }
+    }, function(err) {
+        console.warn('خطأ في قراءة المستخدمين من Firebase:', err);
+        // استخدام النسخة المحلية عند فشل الاتصال
+        try {
+            var saved = localStorage.getItem('ems_users');
+            if (saved) APP_USERS = JSON.parse(saved);
+        } catch(e) {}
+    });
+}
+
+// تحميل نسخة محلية مؤقتة ريثما يتصل Firebase
 (function(){
     try {
         var saved = localStorage.getItem('ems_users');
         if (saved) APP_USERS = JSON.parse(saved);
     } catch(e) {}
 })();
-function saveAppUsers() {
-    try { localStorage.setItem('ems_users', JSON.stringify(APP_USERS)); } catch(e) {}
-}
 // صلاحية قسم معين للمستخدم الحالي
 function sectionPerm(section) {
     if (!currentUser) return 'none';
@@ -1666,6 +1701,8 @@ function initFirebase() {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
         fbDb = firebase.database();
         fbDb.goOnline();
+        // تحميل المستخدمين من Firebase ومزامنتهم فوراً على جميع الأجهزة
+        loadAppUsersFromFirebase();
         // تهيئة Firestore لإدارة المستخدمين
         initFirestoreUsers();
         fbDb.ref('.info/connected').on('value', function(snapshot) {
