@@ -6,7 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EMS">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b2a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%230d1b2a'/%3E%3Ctext y='130' x='96' text-anchor='middle' font-size='110' font-family='Arial'%3E⚙️%3C/text%3E%3C/svg%3E">
 <title>Equipment Maintenance Service - Hassan Allam</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -308,7 +312,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 
     <!-- شريط الأدوات -->
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-      <button onclick="toggleAddUserForm()" id="add-user-toggle-btn" style="flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;padding:10px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">➕ إضافة مستخدم جديد</button>
+      <button onclick="openAddUserModal()" id="add-user-toggle-btn" style="flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;padding:10px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">➕ إضافة مستخدم جديد</button>
       <button onclick="loadAdminUsers()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit" title="تحديث القائمة">🔄</button>
     </div>
 
@@ -505,47 +509,191 @@ function openAdminPanel() {
 
 function loadAdminUsers() {
     var listEl = document.getElementById('admin-users-list');
-    listEl.innerHTML = '<div class="empty-state">⏳ جاري التحميل...</div>';
-    getAllUsersFromFirestore().then(function(users) {
-        if (!users.length) {
-            listEl.innerHTML = '<div class="empty-state">لا يوجد مستخدمون مسجلون بعد</div>';
+    if (!listEl) return;
+    renderUsersList(listEl);
+}
+
+function renderUsersList(listEl) {
+    if (!listEl) listEl = document.getElementById('admin-users-list');
+    if (!listEl) return;
+    var PERM_LABELS = { none:'\u{1F6AB} \u0645\u062E\u0641\u064A', view:'\u{1F441}\uFE0F \u0639\u0631\u0636', add:'\u2795 \u0625\u0636\u0627\u0641\u0629', edit:'\u270F\uFE0F \u062A\u0639\u062F\u064A\u0644', full:'\u{1F511} \u0643\u0627\u0645\u0644' };
+    var PERM_COLORS = { none:'#f1f5f9', view:'#dbeafe', add:'#d1fae5', edit:'#fef3c7', full:'#ede9fe' };
+    var PERM_TEXT = { none:'#64748b', view:'#1e40af', add:'#065f46', edit:'#92400e', full:'#4c1d95' };
+
+    if (!APP_USERS.length) { listEl.innerHTML = '<div class="empty-state">\u0644\u0627 \u064A\u0648\u062C\u062F \u0645\u0633\u062A\u062E\u062F\u0645\u0648\u0646</div>'; return; }
+
+    listEl.innerHTML = APP_USERS.map(function(u, idx) {
+        var isAdmin = u.role === 'admin';
+        var sections = u.sections || {};
+        var secHtml = '';
+        var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646']];
+        SECS.forEach(function(s) {
+            var key = s[0], label = s[1];
+            var perm = isAdmin ? 'full' : (sections[key] || 'none');
+            var bg = PERM_COLORS[perm], tc = PERM_TEXT[perm];
+            secHtml += '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f1f5f9">' +
+                '<span style="font-size:12px;color:#374151">' + label + '</span>' +
+                (isAdmin
+                    ? '<span style="background:' + bg + ';color:' + tc + ';padding:2px 8px;border-radius:8px;font-size:11px">' + PERM_LABELS[perm] + '</span>'
+                    : '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
+                      ['none','view','add','edit','full'].map(function(p) {
+                          return '<button data-uid="' + u.id + '" data-sec="' + key + '" data-perm="' + p + '" ' +
+                              'style="padding:2px 7px;border-radius:8px;font-size:10px;border:none;cursor:pointer;font-family:inherit;' +
+                              'background:' + (perm===p ? PERM_COLORS[p] : '#f1f5f9') + ';' +
+                              'color:' + (perm===p ? PERM_TEXT[p] : '#94a3b8') + ';' +
+                              'font-weight:' + (perm===p ? '700' : '400') + '">' +
+                              PERM_LABELS[p] + '</button>';
+                      }).join('') + '</div>'
+                ) + '</div>';
+        });
+
+        return '<div style="background:white;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid #e2e8f0">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+            '<div>' +
+            '<div style="font-weight:700;font-size:15px;color:#0d1b2a">' + escapeHtml(u.name) +
+            ' <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:' + (isAdmin ? '#fef3c7' : '#e0e7ff') + ';color:' + (isAdmin ? '#92400e' : '#3730a3') + '">' + (isAdmin ? '\u{1F451} \u0645\u062F\u064A\u0631' : '\u{1F464} \u0645\u0633\u062A\u062E\u062F\u0645') + '</span></div>' +
+            '<div style="font-size:11px;color:#64748b;margin-top:2px">\u{1F464} ' + escapeHtml(u.username) + '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:6px;align-items:center">' +
+            '<span style="font-size:11px;padding:3px 8px;border-radius:8px;background:' + (u.active ? '#d1fae5' : '#fee2e2') + ';color:' + (u.active ? '#065f46' : '#7f1d1d') + '">' + (u.active ? '\u2705 \u0646\u0634\u0637' : '\u{1F6AB} \u0645\u0639\u0637\u0651\u0644') + '</span>' +
+            (!isAdmin ? '<button data-action="toggle-user" data-idx="' + idx + '" style="background:#f1f5f9;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px">\u{1F501}</button>' : '') +
+            (!isAdmin ? '<button data-action="edit-user" data-idx="' + idx + '" style="background:#e0e7ff;color:#3730a3;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px">\u270F\uFE0F</button>' : '') +
+            (!isAdmin ? '<button data-action="del-user" data-idx="' + idx + '" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px">\u{1F5D1}\uFE0F</button>' : '') +
+            '</div></div>' +
+            '<div style="border-top:1px solid #f1f5f9;padding-top:8px">' + secHtml + '</div>' +
+            '</div>';
+    }).join('');
+
+    // أحداث الأزرار
+    listEl.onclick = function(e) {
+        var btn = e.target.closest('[data-action]');
+        var permBtn = e.target.closest('[data-perm]');
+
+        if (permBtn && !permBtn.dataset.action) {
+            // تغيير صلاحية قسم
+            var uid = permBtn.dataset.uid;
+            var sec = permBtn.dataset.sec;
+            var perm = permBtn.dataset.perm;
+            var user = APP_USERS.find(function(u){ return u.id === uid; });
+            if (user) {
+                if (!user.sections) user.sections = {};
+                user.sections[sec] = perm;
+                saveAppUsers();
+                renderUsersList(listEl);
+            }
             return;
         }
-        listEl.innerHTML = users.map(function(u) {
-            var statusColor = u.status === 'active' ? '#d1fae5' : '#fee2e2';
-            var statusTextColor = u.status === 'active' ? '#065f46' : '#7f1d1d';
-            var statusLabel = u.status === 'active' ? '✅ نشط' : '🚫 معطل';
-            var esc = function(s){ return escapeHtml(String(s||'')); };
-            return '<div class="user-row" id="urow-' + esc(u.uid) + '">' +
-                '<div class="user-row-header">' +
-                '<div>' +
-                  '<div class="user-email">' + esc(u.displayName || '') + '</div>' +
-                  '<div class="user-meta" style="color:var(--info)">' + esc(u.email || u.uid) + '</div>' +
-                  '<div class="user-meta">آخر دخول: ' + (u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('ar-EG') : '—') + '</div>' +
-                '</div>' +
-                '<span style="background:' + statusColor + ';color:' + statusTextColor + ';padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700">' + statusLabel + '</span>' +
-                '</div>' +
-                '<div class="user-controls">' +
-                '<select onchange="updateUserField(\''+esc(u.uid)+'\',\'role\',this.value)" style="border:1px solid #e2e8f0;border-radius:10px;padding:4px 8px;font-size:11px;background:white">' +
-                '<option value="admin"' + (u.role==='admin'?' selected':'') + '>👑 admin</option>' +
-                '<option value="manager"' + (u.role==='manager'?' selected':'') + '>🔧 manager</option>' +
-                '<option value="editor"' + (u.role==='editor'?' selected':'') + '>✏️ editor</option>' +
-                '<option value="viewer"' + (u.role==='viewer'?' selected':'') + '>👁️ viewer</option>' +
-                '</select>' +
-                '<select onchange="updateUserField(\''+esc(u.uid)+'\',\'plan\',this.value)" style="border:1px solid #e2e8f0;border-radius:10px;padding:4px 8px;font-size:11px;background:white">' +
-                '<option value="free"' + (u.plan==='free'?' selected':'') + '>🆓 free</option>' +
-                '<option value="basic"' + (u.plan==='basic'?' selected':'') + '>📋 basic</option>' +
-                '<option value="premium"' + (u.plan==='premium'?' selected':'') + '>⭐ premium</option>' +
-                '</select>' +
-                '<button onclick="toggleUserStatus(\''+esc(u.uid)+'\',\''+(u.status||'active')+'\')" style="background:' + (u.status==='active'?'#fee2e2':'#d1fae5') + ';color:' + (u.status==='active'?'#dc2626':'#059669') + ';border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">' +
-                (u.status === 'active' ? '🚫 تعطيل' : '✅ تفعيل') + '</button>' +
-                '<button onclick="adminChangePassword(\''+esc(u.email||'')+'\')" style="background:#dbeafe;color:#1e40af;border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">🔑 كلمة المرور</button>' +
-                '<button onclick="deleteAdminUser(\''+esc(u.uid)+'\',\''+esc(u.email||u.uid)+'\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer">🗑️ حذف</button>' +
-                '</div></div>';
-        }).join('');
-    }).catch(function(err) {
-        listEl.innerHTML = '<div class="empty-state" style="color:var(--danger)">⚠️ خطأ في تحميل المستخدمين<br><small>' + escapeHtml(err.message) + '</small></div>';
-    });
+
+        if (!btn) return;
+        var action = btn.dataset.action;
+        var idx = parseInt(btn.dataset.idx);
+        var user = APP_USERS[idx];
+        if (!user) return;
+
+        if (action === 'toggle-user') {
+            user.active = !user.active;
+            saveAppUsers();
+            renderUsersList(listEl);
+        }
+        if (action === 'del-user') {
+            if (confirm('\u062D\u0630\u0641 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645 ' + user.name + '\u061F')) {
+                APP_USERS.splice(idx, 1);
+                saveAppUsers();
+                renderUsersList(listEl);
+            }
+        }
+        if (action === 'edit-user') {
+            openEditUserModal(idx);
+        }
+    };
+}
+
+function openAddUserModal() {
+    openEditUserModal(null);
+}
+
+function openEditUserModal(idx) {
+    var isNew = idx === null;
+    var user = isNew ? { id: 'u_' + Date.now(), username: '', password: '', name: '', role: 'custom', active: true,
+        sections: { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view' } } : APP_USERS[idx];
+
+    var old = document.getElementById('user-edit-modal');
+    if (old) old.remove();
+
+    var modal = document.createElement('div');
+    modal.id = 'user-edit-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto';
+
+    modal.innerHTML = '<div style="background:white;border-radius:18px;width:100%;max-width:420px;margin:auto;direction:rtl;overflow:hidden">' +
+        '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:16px 20px;color:white;display:flex;justify-content:space-between;align-items:center">' +
+        '<div style="font-size:16px;font-weight:800">' + (isNew ? '\u2795 \u0625\u0636\u0627\u0641\u0629 \u0645\u0633\u062A\u062E\u062F\u0645 \u062C\u062F\u064A\u062F' : '\u270F\uFE0F \u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645') + '</div>' +
+        '<button id="user-modal-close" style="background:rgba(255,255,255,.2);border:none;color:white;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">\u2715</button>' +
+        '</div>' +
+        '<div style="padding:16px;display:grid;gap:10px">' +
+        '<div><label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644</label>' +
+        '<input id="uem-name" value="' + escapeHtml(user.name) + '" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>' +
+        '<div><label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645</label>' +
+        '<input id="uem-username" value="' + escapeHtml(user.username) + '" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>' +
+        '<div><label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631</label>' +
+        '<input id="uem-password" type="text" value="' + escapeHtml(user.password) + '" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>' +
+        '<div style="border-top:1px solid #f1f5f9;padding-top:10px">' +
+        '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">\u{1F511} \u0635\u0644\u0627\u062D\u064A\u0627\u062A \u0627\u0644\u0623\u0642\u0633\u0627\u0645</div>' +
+        (function() {
+            var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646']];
+            return SECS.map(function(s) {
+                var key = s[0], label = s[1];
+                var cur = (user.sections || {})[key] || 'none';
+                return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f8fafc">' +
+                    '<span style="font-size:12px;font-weight:600;color:#374151">' + label + '</span>' +
+                    '<select id="uem-sec-' + key + '" style="padding:4px 8px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:12px">' +
+                    '<option value="none"' + (cur==='none'?' selected':'') + '>\u{1F6AB} \u0645\u062E\u0641\u064A</option>' +
+                    '<option value="view"' + (cur==='view'?' selected':'') + '>\u{1F441}\uFE0F \u0639\u0631\u0636 \u0641\u0642\u0637</option>' +
+                    '<option value="add"' + (cur==='add'?' selected':'') + '>\u2795 \u0639\u0631\u0636 + \u0625\u0636\u0627\u0641\u0629</option>' +
+                    '<option value="edit"' + (cur==='edit'?' selected':'') + '>\u270F\uFE0F \u0639\u0631\u0636 + \u062A\u0639\u062F\u064A\u0644</option>' +
+                    '<option value="full"' + (cur==='full'?' selected':'') + '>\u{1F511} \u0635\u0644\u0627\u062D\u064A\u0629 \u0643\u0627\u0645\u0644\u0629</option>' +
+                    '</select>' + '</div>';
+            }).join('');
+        })() +
+        '</div>' +
+        '<button id="uem-save" style="width:100%;padding:12px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">\u2705 \u062D\u0641\u0638</button>' +
+        '</div></div>';
+
+    document.body.appendChild(modal);
+
+    document.getElementById('user-modal-close').onclick = function(){ modal.remove(); };
+    modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
+
+    document.getElementById('uem-save').onclick = function() {
+        var name = document.getElementById('uem-name').value.trim();
+        var uname = document.getElementById('uem-username').value.trim();
+        var pass = document.getElementById('uem-password').value.trim();
+        if (!name || !uname || !pass) { showToast('\u0623\u0643\u0645\u0644 \u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0644', true); return; }
+
+        // تحقق من تكرار اسم المستخدم
+        var dup = APP_USERS.find(function(u, i) {
+            return u.username.toLowerCase() === uname.toLowerCase() && (isNew || i !== idx);
+        });
+        if (dup) { showToast('\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645 \u0645\u0648\u062C\u0648\u062F \u0645\u0633\u0628\u0642\u0627\u064B', true); return; }
+
+        var SECS = ['home','equipment','fuel','maintenance','inventory','rental','drivers'];
+        var sections = {};
+        SECS.forEach(function(k) {
+            sections[k] = document.getElementById('uem-sec-' + k).value;
+        });
+
+        if (isNew) {
+            APP_USERS.push({ id: user.id, username: uname, password: pass, name: name, role: 'custom', active: true, sections: sections });
+        } else {
+            APP_USERS[idx].name = name;
+            APP_USERS[idx].username = uname;
+            APP_USERS[idx].password = pass;
+            APP_USERS[idx].sections = sections;
+        }
+        saveAppUsers();
+        modal.remove();
+        renderUsersList();
+        showToast(isNew ? '\u2705 \u062A\u0645 \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645' : '\u2705 \u062A\u0645 \u062A\u062D\u062F\u064A\u062B \u0627\u0644\u0628\u064A\u0627\u0646\u0627\u062A');
+    };
 }
 
 function adminChangePassword(email) {
@@ -872,6 +1020,52 @@ let filterAlternatives = [];
 let pmHistory = {};
 let rentalData = [];
 let rentalDailyData = [];
+// ==================== نظام المستخدمين المحلي ====================
+// الأقسام المتاحة: home, equipment, fuel, maintenance, inventory, rental, drivers
+// مستويات الصلاحية لكل قسم: 'none' | 'view' | 'add' | 'edit' | 'full'
+var APP_USERS = [
+    {
+        id: 'admin_001',
+        username: 'admin',
+        password: 'A@bdo120',
+        name: 'المدير',
+        role: 'admin',
+        active: true,
+        sections: { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full' }
+    },
+    {
+        id: 'user_mohamed',
+        username: 'Mohamed',
+        password: 'M123456',
+        name: 'Mohamed',
+        role: 'custom',
+        active: true,
+        sections: { home:'none', equipment:'none', fuel:'none', maintenance:'none', inventory:'none', rental:'view', drivers:'none' }
+    }
+];
+// تحميل المستخدمين من localStorage إن وُجدوا
+(function(){
+    try {
+        var saved = localStorage.getItem('ems_users');
+        if (saved) APP_USERS = JSON.parse(saved);
+    } catch(e) {}
+})();
+function saveAppUsers() {
+    try { localStorage.setItem('ems_users', JSON.stringify(APP_USERS)); } catch(e) {}
+}
+// صلاحية قسم معين للمستخدم الحالي
+function sectionPerm(section) {
+    if (!currentUser) return 'none';
+    if (currentUser.role === 'admin') return 'full';
+    var s = currentUser.sections || {};
+    return s[section] || 'none';
+}
+function canView(section)   { var p=sectionPerm(section); return p==='view'||p==='add'||p==='edit'||p==='full'; }
+function canAdd(section)    { var p=sectionPerm(section); return p==='add'||p==='edit'||p==='full'; }
+function canEdit(section)   { var p=sectionPerm(section); return p==='edit'||p==='full'; }
+function canFull(section)   { return sectionPerm(section)==='full'; }
+// ================================================================
+
 let currentUser = null;
 let editingEquipmentId = null;
 let editingDriverId = null;
@@ -1519,102 +1713,56 @@ function directLogin() {
 }
 
 function secureLogin() {
-    var username = document.getElementById('secure-username').value.trim();
-    var password = document.getElementById('secure-password').value;
-    if (!username || !password) {
-        showToast('أدخل اسم المستخدم وكلمة المرور', true);
-        return;
-    }
-    
+    var username = (document.getElementById('secure-username').value || '').trim();
+    var password = document.getElementById('secure-password').value || '';
     var submitBtn = document.getElementById('secure-login-submit');
-    if (submitBtn) submitBtn.innerHTML = 'جاري التحقق... <span class="loading-spinner"></span>';
+    var errDiv = document.getElementById('login-error-msg');
 
-    // الدخول الافتراضي للمدير
-    if (username === 'admin' && password === 'A@bdo120') {
-        currentUid = 'admin_super';
-        currentUserRole = 'admin';
-        currentUserPlan = 'premium';
-        currentUserStatus = 'active';
-        currentUser = { username: 'admin', role: 'admin', name: 'المدير', permissions: ['all'] };
-        showToast('مرحباً مدير النظام ✅');
-        if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
-        // hide error
-        var errDiv2 = document.getElementById('login-error-msg');
-        if (errDiv2) errDiv2.style.display = 'none';
-        proceedToApp();
+    if (!username || !password) {
+        showToast('\u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0648\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631', true);
         return;
     }
 
-    // مستخدم إيجار فقط
-    if ((username === 'Mohamed' || username === 'mohamed') && password === 'M123456') {
-        currentUid = 'rental_only_mohamed';
-        currentUserRole = 'rental_only';
-        currentUserPlan = 'basic';
-        currentUserStatus = 'active';
-        currentUser = { username: 'Mohamed', role: 'rental_only', name: 'Mohamed', permissions: ['view'] };
-        showToast('مرحباً Mohamed ✅');
-        if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
-        var errDiv3 = document.getElementById('login-error-msg');
-        if (errDiv3) errDiv3.style.display = 'none';
-        proceedToApp();
+    // البحث في قائمة المستخدمين المحليين
+    var found = null;
+    for (var i = 0; i < APP_USERS.length; i++) {
+        var u = APP_USERS[i];
+        if (u.username.toLowerCase() === username.toLowerCase() && u.password === password) {
+            found = u;
+            break;
+        }
+    }
+
+    if (!found) {
+        if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = '\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0623\u0648 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d\u0629'; }
+        if (submitBtn) submitBtn.innerHTML = '\u{1F510} \u062f\u062e\u0648\u0644';
         return;
     }
 
-    // تسجيل الدخول عبر Firebase Auth (Email/Password)
-    // نفترض أن username يمكن أن يكون email أو email مُولَّد
-    var email = username.includes('@') ? username : username + '@hah.app';
-    
-    // تأكد من تهيئة Firebase
-    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    
-    firebase.auth().signInWithEmailAndPassword(email, password).then(function(userCred) {
-        var uid = userCred.user.uid;
-        currentUid = uid;
-        // تحميل بيانات المستخدم من Firestore
-        if (!fbFirestore) { try { fbFirestore = firebase.firestore(); } catch(e) {} }
-        return getUserFromFirestore(uid).then(function(userData) {
-            if (!fbFirestore) {
-                // Fallback: admin if not in firestore
-                userData = { role: 'editor', plan: 'basic', status: 'active', email: email };
-            }
-            if (!userData) {
-                // مستخدم جديد - إنشاء وثيقة
-                userData = { role: 'editor', plan: 'basic', status: 'active', email: email, createdAt: new Date().toISOString() };
-                saveUserToFirestore(uid, userData);
-            }
-            // تحقق من حالة الحساب
-            if (userData.status === 'disabled') {
-                firebase.auth().signOut();
-                showToast('⛔ حسابك معطل. تواصل مع المدير.', true);
-                if (submitBtn) submitBtn.innerHTML = '🔐 دخول آمن (صلاحيات كاملة)';
-                return;
-            }
-            currentUserRole = userData.role || 'editor';
-            currentUserPlan = userData.plan || 'basic';
-            currentUserStatus = userData.status || 'active';
-            // تحديث وقت آخر دخول
-            saveUserToFirestore(uid, { lastLogin: new Date().toISOString(), email: email });
-            var isAdmin = currentUserRole === 'admin';
-            currentUser = {
-                username: email,
-                role: currentUserRole,
-                name: userData.displayName || email.split('@')[0],
-                permissions: isAdmin ? ['all'] : (currentUserRole === 'editor' ? ['view', 'edit'] : ['view'])
-            };
-            showToast('مرحباً ' + currentUser.name + ' ✅');
-            if (submitBtn) submitBtn.innerHTML = '🔐 دخول آمن (صلاحيات كاملة)';
-            proceedToApp();
-        });
-    }).catch(function(err) {
-        var msg = err.code === 'auth/user-not-found' ? '❌ المستخدم غير موجود' :
-                  err.code === 'auth/wrong-password' ? '❌ كلمة المرور غير صحيحة' :
-                  err.code === 'auth/invalid-email' ? '❌ بريد إلكتروني غير صالح' :
-                  '❌ ' + err.message;
-        var errDiv = document.getElementById('login-error-msg');
-        if (errDiv) { errDiv.textContent = msg; errDiv.style.display = 'block'; }
-        showToast(msg, true);
-        if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
-    });
+    if (!found.active) {
+        if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = '\u0647\u0630\u0627 \u0627\u0644\u062d\u0633\u0627\u0628 \u0645\u0639\u0637\u0651\u0644. \u062a\u0648\u0627\u0635\u0644 \u0645\u0639 \u0627\u0644\u0645\u062f\u064a\u0631'; }
+        if (submitBtn) submitBtn.innerHTML = '\u{1F510} \u062f\u062e\u0648\u0644';
+        return;
+    }
+
+    // تسجيل الدخول الناجح
+    currentUid = found.id;
+    currentUserRole = found.role === 'admin' ? 'admin' : 'custom';
+    currentUserPlan = found.role === 'admin' ? 'premium' : 'basic';
+    currentUserStatus = 'active';
+    currentUser = {
+        id: found.id,
+        username: found.username,
+        name: found.name,
+        role: found.role,
+        sections: found.sections || {},
+        permissions: found.role === 'admin' ? ['all'] : ['view']
+    };
+
+    if (errDiv) errDiv.style.display = 'none';
+    if (submitBtn) submitBtn.innerHTML = '\u{1F510} \u062f\u062e\u0648\u0644';
+    showToast('\u0645\u0631\u062d\u0628\u0627\u064b ' + found.name + ' \u2705');
+    proceedToApp();
 }
 
 function setLoginMode(mode) {
@@ -1755,99 +1903,110 @@ function saveLoginMode() {
 function proceedToApp() {
     var loginScreen = document.getElementById('login-screen');
     var appContainer = document.getElementById('app-container');
-    var userNameDisplay = document.getElementById('user-name-display');
-    
     loginScreen.style.display = 'none';
     appContainer.style.display = 'block';
-    
-    var isAdmin = currentUser.role === 'admin' || currentUserRole === 'admin';
-    var isEditor = currentUser.role === 'editor' || currentUserRole === 'editor';
-    var isRentalOnly = currentUserRole === 'rental_only';
-    
+
+    var isAdmin = currentUser && currentUser.role === 'admin';
+
+    // عرض اسم المستخدم ودوره
+    var userNameDisplay = document.getElementById('user-name-display');
     if (userNameDisplay) {
-        var roleLabel = isAdmin ? '\u{1F451} \u0645\u062F\u064A\u0631' : isEditor ? '\u270F\uFE0F \u0645\u062D\u0631\u0631' : isRentalOnly ? '\u{1F6A7} \u0625\u064A\u062C\u0627\u0631' : '\u{1F441}\uFE0F \u0645\u0634\u0627\u0647\u062F';
-        var roleBg = isAdmin ? 'rgba(232,160,32,0.3)' : isRentalOnly ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.15)';
-        userNameDisplay.innerHTML = escapeHtml(currentUser.name) + ' <span style="font-size:9px;padding:2px 7px;border-radius:10px;background:' + roleBg + ';margin-right:4px">' + roleLabel + '</span>';
+        var roleLabel = isAdmin ? '\u{1F451} \u0645\u062F\u064A\u0631' : '\u{1F464} ' + (currentUser.name || '');
+        userNameDisplay.innerHTML = escapeHtml(currentUser.name) +
+            ' <span style="font-size:9px;padding:2px 7px;border-radius:10px;background:' +
+            (isAdmin ? 'rgba(232,160,32,0.3)' : 'rgba(255,255,255,0.15)') + ';margin-right:4px">' + roleLabel + '</span>';
     }
 
+    // زر لوحة المدير
     var adminPanelBtn = document.getElementById('admin-panel-btn');
     if (adminPanelBtn) {
         adminPanelBtn.style.display = isAdmin ? 'inline-block' : 'none';
         adminPanelBtn.onclick = openAdminPanel;
     }
 
-    // rental_only: show rental page only
-    if (isRentalOnly) {
-        document.querySelectorAll('.tab-btn').forEach(function(btn) {
-            btn.style.display = btn.dataset.view === 'rental' ? 'flex' : 'none';
-        });
-        ['admin-panel-btn','delete-all-equipment-global-btn','export-pdf-btn',
-         'notif-settings-btn','global-search-toggle','meter-update-btn','force-refresh-btn'].forEach(function(id) {
-            var el = document.getElementById(id); if (el) el.style.display = 'none';
-        });
-        var hs = document.createElement('style');
-        hs.textContent = '#fab-btn,.edit-equipment-btn,.fuel-edit-btn,button.viewer-hidden,.qty-btn,' +
-            '#add-rental-btn,#delete-all-rental-btn,#add-rental-daily-btn,#rental-wa-btn{display:none!important}';
-        document.head.appendChild(hs);
-        loadNotifSettings();
-        initFirebase();
-        initIndexedDB();
-        initSessionTimeout();
-        setTimeout(function() { switchView('rental'); }, 100);
-        return;
-    }
-    
-    if (!hasPermission('all')) {
-        var fabButton = document.getElementById('fab-btn');
-        if (fabButton) fabButton.style.display = isEditor ? 'flex' : 'none';
-        var adminBtnIds = isEditor ? [
-            'delete-all-equipment-btn','delete-all-fuel-btn',
-            'delete-all-maintenance-btn','delete-all-inventory-btn',
-            'delete-all-equipment-global-btn'
-        ] : [
-            'add-fuel-btn','add-maintenance-btn','add-inventory-btn',
-            'order-report-btn','meter-update-btn','whatsapp-maint-btn',
-            'delete-all-equipment-btn','delete-all-fuel-btn',
-            'delete-all-maintenance-btn','delete-all-inventory-btn',
-            'delete-all-equipment-global-btn',
-            'upload-equipment-excel-btn','upload-inventory-soh-btn','upload-pm-history-btn',
-            'confirm-import-btn','cancel-import-btn',
-            'confirm-inventory-import-btn','cancel-inventory-import-btn',
-            'rental-wa-btn','add-rental-daily-btn','notif-settings-btn'
-        ];
-        adminBtnIds.forEach(function(id) {
-            var btn = document.getElementById(id);
-            if (btn) btn.style.display = 'none';
-        });
-        if (!isEditor) {
-            var style = document.createElement('style');
-            style.textContent =
-                '.edit-equipment-btn,' +
-                '.fuel-edit-btn,' +
-                '#fab-btn,' +
-                'button.viewer-hidden' +
-                '{display:none!important}' +
-                '.qty-btn{display:none!important}';
-            document.head.appendChild(style);
+    // التبويبات: map section key -> tab data-view
+    var sectionToView = {
+        home: 'home', equipment: 'equipment', fuel: 'fuel',
+        maintenance: 'maintenance', inventory: 'inventory',
+        rental: 'rental', drivers: 'drivers'
+    };
+
+    var firstAllowedView = null;
+
+    // إخفاء التبويبات غير المسموح بها
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+        var view = btn.dataset.view;
+        // إيجاد القسم المقابل
+        var sectionKey = null;
+        for (var k in sectionToView) { if (sectionToView[k] === view) { sectionKey = k; break; } }
+
+        if (isAdmin) {
+            btn.style.display = 'flex';
+            if (!firstAllowedView) firstAllowedView = view;
+        } else if (!sectionKey || !canView(sectionKey)) {
+            btn.style.display = 'none';
+        } else {
+            btn.style.display = 'flex';
+            if (!firstAllowedView) firstAllowedView = view;
         }
+    });
+
+    // إخفاء أزرار التعديل/الحذف بحسب الصلاحيات (للمستخدمين غير المدير)
+    if (!isAdmin) {
+        // CSS ديناميكي بحسب صلاحيات كل قسم
+        var css = '';
+        var sections = ['home','equipment','fuel','maintenance','inventory','rental','drivers'];
+        sections.forEach(function(sec) {
+            if (!canAdd(sec)) {
+                css += '[data-section="' + sec + '"] .add-btn,' +
+                       '[data-section="' + sec + '"] .fab-section { display:none!important; }';
+            }
+            if (!canEdit(sec)) {
+                css += '[data-section="' + sec + '"] .edit-btn,' +
+                       '[data-section="' + sec + '"] .edit-equipment-btn,' +
+                       '[data-section="' + sec + '"] .fuel-edit-btn { display:none!important; }';
+            }
+            if (!canFull(sec)) {
+                css += '[data-section="' + sec + '"] .delete-btn,' +
+                       '[data-section="' + sec + '"] .danger-btn { display:none!important; }';
+            }
+        });
+        // إخفاء عام لأزرار التعديل إذا لم تكن للمستخدم صلاحية تعديل المعدات
+        if (!canEdit('equipment')) css += '.edit-equipment-btn{display:none!important}';
+        if (!canEdit('fuel'))      css += '.fuel-edit-btn{display:none!important}';
+        if (!canAdd('equipment') && !canAdd('fuel') && !canAdd('maintenance') && !canAdd('inventory') && !canAdd('rental') && !canAdd('drivers'))
+            css += '#fab-btn{display:none!important}';
+        if (!canFull('equipment')) css += '#delete-all-equipment-btn,#delete-all-equipment-global-btn{display:none!important}';
+        if (!canFull('fuel'))      css += '#delete-all-fuel-btn{display:none!important}';
+        if (!canFull('maintenance')) css += '#delete-all-maintenance-btn{display:none!important}';
+        if (!canFull('inventory'))  css += '#delete-all-inventory-btn{display:none!important}';
+        if (!canAdd('rental'))      css += '#add-rental-btn,#add-rental-daily-btn,#delete-all-rental-btn{display:none!important}';
+        if (!canEdit('rental'))     css += '#rental-wa-btn{display:none!important}';
+        css += '#admin-panel-btn,#notif-settings-btn{display:none!important}';
+        var st = document.createElement('style');
+        st.id = 'perm-style';
+        st.textContent = css;
+        document.head.appendChild(st);
     }
-    
+
     loadNotifSettings();
     initFirebase();
     initIndexedDB();
     initSessionTimeout();
 
-    setTimeout(function() { switchView('home'); }, 100);
+    var startView = firstAllowedView || 'home';
+    setTimeout(function() { switchView(startView); }, 100);
 
-    setTimeout(function() {
-        checkOnlineAndWarn();
-        checkDriverLicenses();
-    }, 1500);
-    
-    setInterval(function() {
-        lastAlertCheck = 0;
-        checkMaintenanceAlerts();
-    }, 30 * 60 * 1000);
+    if (isAdmin) {
+        setTimeout(function() {
+            checkOnlineAndWarn();
+            checkDriverLicenses();
+        }, 1500);
+        setInterval(function() {
+            lastAlertCheck = 0;
+            checkMaintenanceAlerts();
+        }, 30 * 60 * 1000);
+    }
 }
 
 function initSessionTimeout() {
@@ -5300,8 +5459,11 @@ function globalSearch(query) {
 }
 
 function switchView(view) {
-    // rental_only: lock to rental page only
-    if (currentUserRole === 'rental_only' && view !== 'rental') return;
+    // التحقق من صلاحية الوصول للقسم
+    if (currentUser && currentUser.role !== 'admin') {
+        var sectionMap = { home:'home', equipment:'equipment', fuel:'fuel', maintenance:'maintenance', inventory:'inventory', rental:'rental', drivers:'drivers' };
+        if (sectionMap[view] && !canView(sectionMap[view])) return;
+    }
     document.getElementById('view-home').style.display = view === 'home' ? 'block' : 'none';
     document.getElementById('view-equipment').style.display = view === 'equipment' ? 'block' : 'none';
     document.getElementById('view-drivers').style.display = view === 'drivers' ? 'block' : 'none';
@@ -6491,5 +6653,56 @@ function exportRentalToExcel() {
 
 
 </script>
+
+<script>
+// تسجيل Service Worker للـ PWA
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js')
+            .then(function(reg) { console.log('✅ SW registered:', reg.scope); })
+            .catch(function(err) { console.log('SW error:', err); });
+    });
+}
+// زر تثبيت التطبيق
+var deferredPrompt;
+window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    var installBanner = document.getElementById('pwa-install-banner');
+    if (installBanner) installBanner.style.display = 'flex';
+});
+window.addEventListener('appinstalled', function() {
+    var installBanner = document.getElementById('pwa-install-banner');
+    if (installBanner) installBanner.style.display = 'none';
+    deferredPrompt = null;
+});
+window.installPWA = function() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(r) {
+        deferredPrompt = null;
+        var installBanner = document.getElementById('pwa-install-banner');
+        if (installBanner) installBanner.style.display = 'none';
+    });
+};
+window.dismissInstall = function() {
+    var installBanner = document.getElementById('pwa-install-banner');
+    if (installBanner) installBanner.style.display = 'none';
+};
+</script>
+
+<!-- بانر تثبيت التطبيق -->
+<div id="pwa-install-banner" style="display:none;position:fixed;bottom:85px;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:472px;background:linear-gradient(135deg,#0d1b2a,#1b2838);color:white;border-radius:16px;padding:14px 16px;z-index:300;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
+    <div style="font-size:28px">⚙️</div>
+    <div style="flex:1">
+        <div style="font-weight:700;font-size:14px">ثبّت التطبيق على موبايلك</div>
+        <div style="font-size:11px;opacity:0.8;margin-top:2px">يعمل بدون إنترنت وكأنه تطبيق حقيقي</div>
+    </div>
+    <div style="display:flex;gap:8px">
+        <button onclick="installPWA()" style="background:#e8a020;color:#0d1b2a;border:none;border-radius:10px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">تثبيت</button>
+        <button onclick="dismissInstall()" style="background:rgba(255,255,255,.15);color:white;border:none;border-radius:10px;padding:8px 10px;font-family:inherit;font-size:13px;cursor:pointer">✕</button>
+    </div>
+</div>
+
 </body>
 </html>
