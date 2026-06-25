@@ -314,6 +314,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
       <button onclick="openAddUserModal()" id="add-user-toggle-btn" style="flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;padding:10px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">➕ إضافة مستخدم جديد</button>
       <button onclick="loadAdminUsers()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit" title="تحديث القائمة">🔄</button>
+      <button onclick="manualSaveAppUsers()" id="save-users-btn" style="background:#d1fae5;color:#065f46;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit" title="حفظ ومزامنة المستخدمين على السيرفر">💾 حفظ على السيرفر</button>
     </div>
 
     <!-- نموذج إضافة مستخدم (مخفي افتراضياً) -->
@@ -1051,13 +1052,38 @@ var APP_USERS = [
 function saveAppUsers() {
     if (!fbDb) {
         try { localStorage.setItem('ems_users', JSON.stringify(APP_USERS)); } catch(e) {}
-        return;
+        return Promise.reject(new Error('NO_FIREBASE'));
     }
     var usersObj = {};
     APP_USERS.forEach(function(u) { usersObj[u.id] = u; });
-    fbDb.ref('appUsers').set(usersObj).catch(function(e) {
+    return fbDb.ref('appUsers').set(usersObj).catch(function(e) {
         console.warn('Firebase save users failed:', e);
         try { localStorage.setItem('ems_users', JSON.stringify(APP_USERS)); } catch(ex) {}
+        throw e;
+    });
+}
+
+// حفظ يدوي مع تأكيد واضح للمستخدم (للضغط عليه عند الشك بوجود مشكلة في الحفظ)
+function manualSaveAppUsers() {
+    var btn = document.getElementById('save-users-btn');
+    var originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ جاري الحفظ...';
+    }
+    saveAppUsers().then(function() {
+        showToast('✅ تم حفظ بيانات المستخدمين على السيرفر بنجاح');
+    }).catch(function(e) {
+        if (e && e.message === 'NO_FIREBASE') {
+            showToast('⚠️ لا يوجد اتصال بقاعدة البيانات، تم الحفظ محلياً فقط على هذا الجهاز', true);
+        } else {
+            showToast('❌ فشل الحفظ على السيرفر، تحقق من الاتصال بالإنترنت وحاول مجدداً', true);
+        }
+    }).finally(function() {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
     });
 }
 
