@@ -6713,9 +6713,9 @@ function showRentalReport(rentalId) {
         (infoHtml?'<div style="background:#f1f5f9;border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:13px">'+infoHtml+'</div>':'')+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">'+
         '<div><div style="font-size:11px;color:var(--gray);margin-bottom:3px">من</div>'+
-        '<input type="date" id="report-date-from" value="'+defFrom+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px"></div>'+
+        '<input type="date" id="rental-report-date-from" value="'+defFrom+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px"></div>'+
         '<div><div style="font-size:11px;color:var(--gray);margin-bottom:3px">إلى</div>'+
-        '<input type="date" id="report-date-to" value="'+defTo+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px"></div>'+
+        '<input type="date" id="rental-report-date-to" value="'+defTo+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px"></div>'+
         '</div>'+
         '<div style="display:flex;gap:8px;margin-bottom:10px">'+
         '<button id="rental-report-apply-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">🔍 عرض</button>'+
@@ -6725,8 +6725,8 @@ function showRentalReport(rentalId) {
     document.getElementById('detail-modal').classList.add('active');
     var applyBtn=document.getElementById('rental-report-apply-btn');
     if (applyBtn) applyBtn.onclick=function(){
-        var from=(document.getElementById('report-date-from')||{}).value||'';
-        var to=(document.getElementById('report-date-to')||{}).value||'';
+        var from=(document.getElementById('rental-report-date-from')||{}).value||'';
+        var to=(document.getElementById('rental-report-date-to')||{}).value||'';
         renderRentalReportContent(rentalId,from,to);
     };
     var eb=document.getElementById('rental-report-excel-btn');
@@ -6879,8 +6879,8 @@ function deleteDailyEntry(entryId, rentalId, dateFrom, dateTo) {
 
 function getReportDateRange() {
     return {
-        from: (document.getElementById('report-date-from')||{}).value||'',
-        to:   (document.getElementById('report-date-to')||{}).value||''
+        from: (document.getElementById('rental-report-date-from')||{}).value||'',
+        to:   (document.getElementById('rental-report-date-to')||{}).value||''
     };
 }
 
