@@ -5770,27 +5770,26 @@ function refreshUI() {
         renderSitesDashboard();
     }
     if (activeView === 'equipment') {
-        var visibleEquipment = getVisibleEquipment();
-        var equipmentData = visibleEquipment;
+        var _eqList = getVisibleEquipment();
         var search = document.getElementById('search-equipment') ? document.getElementById('search-equipment').value : '';
         var projectFilter = document.getElementById('project-site-filter') ? document.getElementById('project-site-filter').value : '';
         var locationFilter = document.getElementById('location-filter') ? document.getElementById('location-filter').value : '';
         // Populate project filter options dynamically
         var projFilterEl = document.getElementById('project-site-filter');
         if (projFilterEl) {
-            var allProjects = [...new Set(equipmentData.map(function(e){ return e.projectSite||''; }).filter(Boolean))].sort();
+            var allProjects = [...new Set(_eqList.map(function(e){ return e.projectSite||''; }).filter(Boolean))].sort();
             var currentVal = projFilterEl.value;
             projFilterEl.innerHTML = '<option value="">📍 كل المشاريع</option>' + allProjects.map(function(p){ return '<option value="'+escapeHtml(p)+'"'+(p===currentVal?' selected':'')+'>'+escapeHtml(p)+'</option>'; }).join('');
         }
         // Populate location filter options dynamically
         var locFilterEl = document.getElementById('location-filter');
         if (locFilterEl) {
-            var allLocations = [...new Set(equipmentData.map(function(e){ return e.location||''; }).filter(Boolean))].sort();
+            var allLocations = [...new Set(_eqList.map(function(e){ return e.location||''; }).filter(Boolean))].sort();
             var currentLocVal = locFilterEl.value;
             locFilterEl.innerHTML = '<option value="">🏢 كل المواقع</option>' + allLocations.map(function(l){ return '<option value="'+escapeHtml(l)+'"'+(l===currentLocVal?' selected':'')+'>'+escapeHtml(l)+'</option>'; }).join('');
         }
         var equipmentListHtml = '';
-        equipmentData.filter(function(e) {
+        _eqList.filter(function(e) {
             var matchSearch = !search || (e.name && e.name.includes(search)) || (e.code && e.code.includes(search));
             var matchProject = !projectFilter || (e.projectSite && e.projectSite === projectFilter);
             var matchLocation = !locationFilter || (e.location && e.location === locationFilter);
