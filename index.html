@@ -185,7 +185,16 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
   
   <div id="view-fuel" style="display:none">
     <div style="padding:14px">
-      <div id="fuel-stats" class="grid-3" style="margin-bottom:16px"></div>
+      <div id="fuel-stats" class="grid-3" style="margin-bottom:12px"></div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <select id="fuel-project-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
+          <option value="">🏗️ كل المشاريع</option>
+        </select>
+        <select id="fuel-eq-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
+          <option value="">🚜 كل المعدات</option>
+        </select>
+      </div>
+      <div id="fuel-project-summary" style="margin-bottom:10px"></div>
       <div class="grid-2" style="gap:10px; margin-bottom:16px">
         <button id="add-fuel-btn" class="big-btn" style="margin:0">⛽ تسجيل تزود جديد</button>
         <button id="monthly-fuel-report-btn" class="big-btn" style="margin:0; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تقرير شهري</button>
@@ -1134,14 +1143,13 @@ var APP_USERS = [
 // حفظ المستخدمين في Firebase (مزامنة على كل الأجهزة)
 function saveAppUsers() {
     if (!fbDb) {
-        try { localStorage.setItem('ems_users', JSON.stringify(APP_USERS)); } catch(e) {}
+        showToast('❌ لا يوجد اتصال بقاعدة البيانات - لم يتم الحفظ', true);
         return Promise.reject(new Error('NO_FIREBASE'));
     }
     var usersObj = {};
     APP_USERS.forEach(function(u) { usersObj[u.id] = u; });
     return fbDb.ref('appUsers').set(usersObj).catch(function(e) {
-        console.warn('Firebase save users failed:', e);
-        try { localStorage.setItem('ems_users', JSON.stringify(APP_USERS)); } catch(ex) {}
+        showToast('❌ فشل حفظ المستخدمين: ' + e.message, true);
         throw e;
     });
 }
@@ -1184,7 +1192,7 @@ function loadAppUsersFromFirebase(callback) {
             saveAppUsers();
         }
         callback();
-    }).catch(function() { callback(); });
+    }).catch(function(e) { showToast('⚠️ تعذّر تحميل المستخدمين من السيرفر', true); callback(); });
 }
 
 // مراقبة التغييرات الفورية على كل الأجهزة
@@ -2073,12 +2081,7 @@ function showForgotPassword() {
 }
 
 function saveLoginMode() {
-    var rememberCheckbox = document.getElementById('remember-mode');
-    if (rememberCheckbox && rememberCheckbox.checked) {
-        localStorage.setItem('loginMode', SYSTEM_CONFIG.loginMode);
-    } else {
-        localStorage.removeItem('loginMode');
-    }
+    // loginMode يُحفظ في الذاكرة فقط (لا حاجة لحفظه محلياً أو سحابياً)
 }
 
 function proceedToApp() {
@@ -4457,21 +4460,29 @@ function updateSingleMeterFromHome(eid) {
 
 // ==================== دوال الإشعارات والتنبيهات ====================
 function loadNotifSettings() {
-    var saved = localStorage.getItem('notifSettings');
-    if (saved) {
-        try {
-            notifSettings = JSON.parse(saved);
-        } catch (e) {}
+    if (fbDb) {
+        fbDb.ref('appSettings/notifSettings').once('value').then(function(snap) {
+            var saved = snap.val();
+            if (saved) notifSettings = saved;
+            if (!notifSettings.threshold) notifSettings.threshold = 50;
+            if (!notifSettings.whatsappNumber) notifSettings.whatsappNumber = '';
+        });
+    } else {
+        if (!notifSettings.threshold) notifSettings.threshold = 50;
+        if (!notifSettings.whatsappNumber) notifSettings.whatsappNumber = '';
     }
-    if (!notifSettings.threshold) notifSettings.threshold = 50;
-    if (!notifSettings.whatsappNumber) notifSettings.whatsappNumber = '';
 }
 
 function saveNotifSettings() {
     var number = document.getElementById('whatsapp-number').value.trim();
     var threshold = parseInt(document.getElementById('notif-threshold').value) || 50;
     notifSettings = { whatsappNumber: number, threshold: threshold };
-    localStorage.setItem('notifSettings', JSON.stringify(notifSettings));
+    // حفظ في Firebase مباشرة
+    if (fbDb) {
+        fbDb.ref('appSettings/notifSettings').set(notifSettings).catch(function(e) {
+            showToast('⚠️ فشل حفظ الإعدادات: ' + e.message, true);
+        });
+    }
     closeModal('notif-settings-modal');
     showToast('✅ تم حفظ إعدادات الإشعارات');
 }
@@ -5735,9 +5746,9 @@ function sendSitesPeriodicReport() {
     msg += '━━━━━━━━━━━━\nنظام إدارة المعدات 🏗️';
 
     var encoded = encodeURIComponent(msg);
-    try {
-        localStorage.setItem('ems_last_report_date', new Date().toISOString());
-    } catch (e) {}
+    if (fbDb) {
+        fbDb.ref('appSettings/lastReportDate').set(new Date().toISOString()).catch(function(e){ console.warn(e); });
+    }
     window.open('https://wa.me/?text=' + encoded, '_blank');
     showToast('✅ تم تجهيز التقرير، اختر جهة الإرسال على واتساب');
 }
@@ -5916,28 +5927,100 @@ function refreshUI() {
     }
     if (activeView === 'fuel') {
         var visibleEqIds = getVisibleEquipment().map(function(e) { return e.id; });
-        var visibleFuelData = fuelData.filter(function(f) { return !f.equipmentId || visibleEqIds.indexOf(f.equipmentId) !== -1; });
+
+        // تحديث فلتر المشاريع
+        var fuelProjSel = document.getElementById('fuel-project-filter');
+        var fuelEqSel   = document.getElementById('fuel-eq-filter');
+        var selProj = fuelProjSel ? fuelProjSel.value : '';
+        var selEq   = fuelEqSel   ? fuelEqSel.value   : '';
+
+        if (fuelProjSel) {
+            var fuelProjects = [];
+            equipmentData.forEach(function(eq) {
+                var p = (eq.projectSite || eq.location || '').trim();
+                if (p && fuelProjects.indexOf(p) === -1) fuelProjects.push(p);
+            });
+            fuelProjects.sort();
+            fuelProjSel.innerHTML = '<option value="">🏗️ كل المشاريع</option>' +
+                fuelProjects.map(function(p) {
+                    return '<option value="' + escapeHtml(p) + '"' + (p === selProj ? ' selected' : '') + '>' + escapeHtml(p) + '</option>';
+                }).join('');
+        }
+
+        // تحديث فلتر المعدات (حسب المشروع المختار)
+        if (fuelEqSel) {
+            var eqsForFilter = selProj
+                ? equipmentData.filter(function(eq){ return (eq.projectSite || eq.location || '').trim() === selProj; })
+                : equipmentData;
+            eqsForFilter = eqsForFilter.filter(function(eq){ return visibleEqIds.indexOf(eq.id) !== -1; });
+            fuelEqSel.innerHTML = '<option value="">🚜 كل المعدات</option>' +
+                eqsForFilter.map(function(eq) {
+                    return '<option value="' + escapeHtml(eq.id) + '"' + (eq.id === selEq ? ' selected' : '') + '>' + escapeHtml(eq.name) + '</option>';
+                }).join('');
+        }
+
+        // تحديد المعدات المرئية بعد الفلتر
+        var fuelVisibleEqIds = visibleEqIds;
+        if (selProj) {
+            fuelVisibleEqIds = equipmentData
+                .filter(function(eq){ return (eq.projectSite || eq.location || '').trim() === selProj; })
+                .map(function(eq){ return eq.id; });
+        }
+        if (selEq) { fuelVisibleEqIds = [selEq]; }
+
+        var visibleFuelData = fuelData.filter(function(f) {
+            return !f.equipmentId || fuelVisibleEqIds.indexOf(f.equipmentId) !== -1;
+        });
+
+        // إحصائيات
         var totalAmount = visibleFuelData.reduce(function(sum, f) { return sum + (f.amount || 0); }, 0);
-        var totalCost = visibleFuelData.reduce(function(sum, f) { return sum + (f.cost || 0); }, 0);
-        var avgCost = visibleFuelData.length ? totalCost / visibleFuelData.length : 0;
-        document.getElementById('fuel-stats').innerHTML = '<div class="stat-card"><div class="stat-number">' + formatNumber(totalAmount) + '</div><div class="stat-label">لترات</div></div>' +
-            '<div class="stat-card"><div class="stat-number">' + formatNumber(totalCost) + '</div><div class="stat-label">تكلفة</div></div>' +
+        var totalCost   = visibleFuelData.reduce(function(sum, f) { return sum + (f.cost   || 0); }, 0);
+        var avgCost     = visibleFuelData.length ? totalCost / visibleFuelData.length : 0;
+        document.getElementById('fuel-stats').innerHTML =
+            '<div class="stat-card"><div class="stat-number">' + formatNumber(totalAmount) + '</div><div class="stat-label">لترات</div></div>' +
+            '<div class="stat-card"><div class="stat-number">' + formatNumber(totalCost)   + '</div><div class="stat-label">تكلفة</div></div>' +
             '<div class="stat-card"><div class="stat-number">' + formatNumber(Math.round(avgCost)) + '</div><div class="stat-label">متوسط</div></div>';
-        document.getElementById('fuel-list').innerHTML = visibleFuelData.slice(-20).reverse().map(function(f) {
-            var eq = equipmentData.find(function(e) { return e.id === f.equipmentId; });
-            var dr = driversData.find(function(d) { return d.id === f.driverId; });
-            return '<div class="fuel-card">' +
-                '<div class="card-header">' +
-                '<div><div class="card-title">⛽ ' + (eq ? escapeHtml(eq.name) : 'معدة') + '</div>' +
-                '<div class="card-code">' + escapeHtml(f.date) + '</div></div>' +
-                '<span class="badge badge-working">' + f.amount + ' لتر</span>' +
-                '</div>' +
-                '<div class="grid-2">' +
-                '<div><span class="detail-label">💰 ' + (f.cost || 0) + ' ج.م</span></div>' +
-                '<div><span class="detail-label">⏱️ ' + (f.hours || 0) + ' س</span></div>' +
-                '<div><span class="detail-label">👨‍✈️ ' + (dr ? escapeHtml(dr.name) : '—') + '</span></div>' +
-                '</div>' + (hasPermission('all') ? '<button class="fuel-edit-btn" onclick="event.stopPropagation();openEditFuelModal(\'' + f.id + '\')">✏️ تعديل</button>' : '') + '</div>';
-        }).join('');
+
+        // ملخص المشروع المختار
+        var summaryEl = document.getElementById('fuel-project-summary');
+        if (summaryEl) {
+            if (selProj && visibleFuelData.length > 0) {
+                var eqCount = fuelVisibleEqIds.length;
+                summaryEl.innerHTML =
+                    '<div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:14px;padding:12px 16px;border-right:4px solid #22c55e">' +
+                    '<div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:6px">🏗️ ' + escapeHtml(selProj) + '</div>' +
+                    '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#166534">' +
+                    '<span>📦 ' + visibleFuelData.length + ' سجل</span>' +
+                    '<span>🚜 ' + eqCount + ' معدة</span>' +
+                    '<span>⛽ ' + formatNumber(totalAmount) + ' لتر</span>' +
+                    '<span>💰 ' + formatNumber(totalCost) + ' ج.م</span>' +
+                    '</div></div>';
+            } else {
+                summaryEl.innerHTML = '';
+            }
+        }
+
+        // قائمة السجلات
+        if (visibleFuelData.length === 0) {
+            document.getElementById('fuel-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:40px;margin-bottom:8px">⛽</div><div style="font-size:14px;font-weight:600">لا توجد سجلات وقود</div><div style="font-size:12px;margin-top:4px">جرّب تغيير الفلتر</div></div>';
+        } else {
+            document.getElementById('fuel-list').innerHTML = visibleFuelData.slice(-50).reverse().map(function(f) {
+                var eq = equipmentData.find(function(e) { return e.id === f.equipmentId; });
+                var dr = driversData.find(function(d) { return d.id === f.driverId; });
+                var proj = eq ? (eq.projectSite || eq.location || '') : '';
+                return '<div class="fuel-card">' +
+                    '<div class="card-header">' +
+                    '<div><div class="card-title">⛽ ' + (eq ? escapeHtml(eq.name) : 'معدة') + '</div>' +
+                    '<div class="card-code">' + escapeHtml(f.date || '') + (proj ? ' · ' + escapeHtml(proj) : '') + '</div></div>' +
+                    '<span class="badge badge-working">' + (f.amount || 0) + ' لتر</span>' +
+                    '</div>' +
+                    '<div class="grid-2">' +
+                    '<div><span class="detail-label">💰 ' + formatNumber(f.cost || 0) + ' ج.م</span></div>' +
+                    '<div><span class="detail-label">⏱️ ' + (f.hours || 0) + ' س</span></div>' +
+                    '<div><span class="detail-label">👨‍✈️ ' + (dr ? escapeHtml(dr.name) : '—') + '</span></div>' +
+                    '</div>' + (hasPermission('all') ? '<button class="fuel-edit-btn" onclick="event.stopPropagation();openEditFuelModal(\'' + f.id + '\')">✏️ تعديل</button>' : '') + '</div>';
+            }).join('');
+        }
     }
     if (activeView === 'maintenance') {
         var visibleEqIdsM = getVisibleEquipment().map(function(e) { return e.id; });
@@ -5974,7 +6057,8 @@ function updateHomeStatsAndList() {
     if (bannerEl) {
         if (hasPermission('all')) {
             var lastReportStr = null;
-            try { lastReportStr = localStorage.getItem('ems_last_report_date'); } catch (e) {}
+            if (fbDb) { try { fbDb.ref('appSettings/lastReportDate').once('value').then(function(s){ var v=s.val(); if(v){ var daysSince2=Math.floor((Date.now()-new Date(v).getTime())/(24*60*60*1000)); if(daysSince2===null||daysSince2>=7){ var sinceText2=daysSince2===null?'لم يُرسل من قبل':('منذ '+daysSince2+' يوم'); bannerEl.innerHTML='<div style="background:#fef3c7;border:1px solid #fbbf24;border-radius:12px;padding:10px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-size:12px;color:#92400e"><b>⏰ تذكير:</b> لم يتم إرسال التقرير الدوري لكل المواقع — '+sinceText2+'</div><button onclick="switchView('sites');setTimeout(function(){sendSitesPeriodicReport()},100)" style="background:#16a34a;color:white;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📤 إرسال الآن</button></div>'; }}}); } catch(e){} }
+            // legacy check below is skipped - now handled above via Firebase
             var daysSince = lastReportStr ? Math.floor((Date.now() - new Date(lastReportStr).getTime()) / (24 * 60 * 60 * 1000)) : null;
             if (daysSince === null || daysSince >= 7) {
                 var sinceText = daysSince === null ? 'لم يُرسل من قبل' : ('منذ ' + daysSince + ' يوم');
@@ -6238,7 +6322,7 @@ function confirmDelete(path, id, message) {
 }
 
 function loadSavedSettings() {
-    var mode = localStorage.getItem('loginMode');
+    var mode = SYSTEM_CONFIG.loginMode || null;
     if (mode) setLoginMode(mode);
 }
 
@@ -6448,7 +6532,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deleteAllMaintenanceBtn) deleteAllMaintenanceBtn.onclick = function() { deleteAllMaintenance(); };
     if (deleteAllInventoryBtn) deleteAllInventoryBtn.onclick = function() { deleteAllInventory(); };
     
-    var savedMode = localStorage.getItem('loginMode');
+    var savedMode = SYSTEM_CONFIG.loginMode || null;
     if (savedMode === 'secure') setLoginMode('secure');
     else if (savedMode === 'register') setLoginMode('register');
     else setLoginMode('direct');
