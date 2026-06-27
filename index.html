@@ -152,13 +152,14 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
   <div class="header"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:20px;font-weight:900;color:white;letter-spacing:2px;flex-shrink:0;font-family:serif">HAC</span><div class="header-title" id="header-title" style="margin-bottom:0">📊 لوحة القيادة</div></div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
-  <div id="view-home"><div class="stats-row" id="stats-summary"></div><button id="meter-update-btn" class="big-btn">⏱️ تحديث العدادات اليومي</button><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info)); margin-top:5px">🔄 تحديث البيانات يدوياً</button><div class="section"><div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div><div id="equipment-list-home"></div></div></div>
+  <div id="view-home"><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="meter-update-btn" class="big-btn">⏱️ تحديث العدادات اليومي</button><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info)); margin-top:5px">🔄 تحديث البيانات يدوياً</button><div class="section"><div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div><div id="equipment-list-home"></div></div></div>
   <div id="view-sites" style="display:none"><div style="padding:14px">
     <div class="search-box"><span>🔍</span><input type="text" id="search-site" placeholder="بحث باسم الموقع..."></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
       <button id="sites-mode-cards-btn" class="big-btn" style="margin:0;flex:1;font-size:12px;padding:8px">🗂️ عرض الكروت</button>
       <button id="sites-mode-kpi-btn" class="big-btn" style="margin:0;flex:1;font-size:12px;padding:8px;background:linear-gradient(135deg,var(--purple),var(--info))">📊 مقارنة الأداء</button>
     </div>
+    <button id="sites-report-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#16a34a,#15803d);font-size:13px;padding:9px">📤 إرسال تقرير دوري لكل المواقع</button>
     <div id="sites-summary-row" style="display:flex;gap:8px;margin-bottom:12px"></div>
     <div id="sites-dashboard-list"></div>
   </div></div>
@@ -339,7 +340,11 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
           <input id="au-name" type="text" placeholder="محمد أحمد" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:13px;font-family:inherit;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'">
         </div>
         <div>
-          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">📧 البريد الإلكتروني *</label>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">🔑 اسم المستخدم (للدخول) *</label>
+          <input id="au-username" type="text" placeholder="مثال: ahmed123" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:13px;font-family:monospace;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">📧 البريد الإلكتروني <span style="color:#94a3b8;font-weight:400">(اختياري)</span></label>
           <input id="au-email" type="email" placeholder="user@example.com" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:13px;font-family:monospace;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'">
         </div>
         <div>
@@ -777,7 +782,7 @@ function toggleAddUserForm() {
         form.style.display = 'block';
         if (btn) { btn.innerHTML = '✕ إغلاق'; btn.style.background = '#f1f5f9'; btn.style.color = '#64748b'; }
         // reset fields
-        ['au-name','au-email','au-password'].forEach(function(id){
+        ['au-name','au-username','au-email','au-password'].forEach(function(id){
             var el = document.getElementById(id); if(el) el.value = '';
         });
         var errEl = document.getElementById('au-error');
@@ -820,10 +825,10 @@ function updateAuPermissionsPreview() {
 
 function createUserByAdmin() {
     var name    = (document.getElementById('au-name').value || '').trim();
+    var uname   = (document.getElementById('au-username').value || '').trim();
     var email   = (document.getElementById('au-email').value || '').trim();
     var pass    = document.getElementById('au-password').value || '';
     var role    = document.getElementById('au-role').value || 'viewer';
-    var plan    = document.getElementById('au-plan').value || 'free';
     var errEl   = document.getElementById('au-error');
     var btn     = document.getElementById('au-submit-btn');
 
@@ -835,47 +840,63 @@ function createUserByAdmin() {
     }
 
     // التحقق
-    if (!name)                        { showErr('⚠️ أدخل الاسم الكامل'); return; }
-    if (!email || !email.includes('@')){ showErr('⚠️ أدخل بريد إلكتروني صحيح'); return; }
-    if (pass.length < 6)              { showErr('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
+    if (!name)           { showErr('⚠️ أدخل الاسم الكامل'); return; }
+    if (!uname)          { showErr('⚠️ أدخل اسم المستخدم للدخول'); return; }
+    if (pass.length < 4) { showErr('⚠️ كلمة المرور يجب أن تكون 4 أحرف على الأقل'); return; }
+
+    // التحقق من عدم تكرار اسم المستخدم
+    var dup = APP_USERS.find(function(u) { return u.username.toLowerCase() === uname.toLowerCase(); });
+    if (dup) { showErr('⚠️ اسم المستخدم موجود مسبقاً، اختر اسماً آخر'); return; }
 
     btn.innerHTML = 'جاري الإنشاء... <span class="loading-spinner"></span>';
     btn.disabled = true;
     errEl.style.display = 'none';
 
-    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    if (!fbFirestore) { try { fbFirestore = firebase.firestore(); } catch(e){} }
+    // تحديد الصلاحيات حسب الدور
+    var defaultSections;
+    if (role === 'admin') {
+        defaultSections = { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full' };
+    } else if (role === 'manager') {
+        defaultSections = { home:'full', equipment:'edit', fuel:'edit', maintenance:'edit', inventory:'edit', rental:'edit', drivers:'edit' };
+    } else if (role === 'editor') {
+        defaultSections = { home:'view', equipment:'add', fuel:'add', maintenance:'add', inventory:'add', rental:'add', drivers:'add' };
+    } else {
+        defaultSections = { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view' };
+    }
 
-    // إنشاء الحساب في Firebase Auth
-    firebase.auth().createUserWithEmailAndPassword(email, pass).then(function(cred) {
-        var uid = cred.user.uid;
-        // تحديث الاسم
-        return cred.user.updateProfile({ displayName: name }).then(function() {
-            var userData = {
-                email: email,
-                displayName: name,
-                role: role,
-                plan: plan,
-                status: 'active',
-                createdAt: new Date().toISOString(),
-                lastLogin: null,
-                createdBy: currentUid || 'admin'
-            };
-            return saveUserToFirestore(uid, userData);
-        });
-    }).then(function() {
-        showToast('✅ تم إنشاء حساب ' + name + ' بنجاح');
+    // إضافة المستخدم في APP_USERS
+    var newUser = {
+        id: 'user_' + Date.now(),
+        username: uname,
+        password: pass,
+        name: name,
+        email: email || '',
+        role: role === 'admin' ? 'admin' : 'custom',
+        active: true,
+        sections: defaultSections,
+        sites: [],
+        createdAt: new Date().toISOString(),
+        createdBy: currentUid || 'admin'
+    };
+    APP_USERS.push(newUser);
+
+    // حفظ في Firebase Realtime Database (مزامنة على كل الأجهزة)
+    saveAppUsers().then(function() {
+        showToast('✅ تم إنشاء حساب ' + name + ' — يمكنه الدخول الآن من أي جهاز');
         btn.innerHTML = '✅ إنشاء الحساب';
         btn.disabled = false;
-        // إغلاق الفورم وتحديث القائمة
         toggleAddUserForm();
-        setTimeout(loadAdminUsers, 400);
-    }).catch(function(err) {
-        var msg = err.code === 'auth/email-already-in-use' ? '⚠️ هذا البريد مسجل مسبقاً' :
-                  err.code === 'auth/invalid-email'        ? '⚠️ بريد إلكتروني غير صالح' :
-                  err.code === 'auth/weak-password'        ? '⚠️ كلمة المرور ضعيفة جداً' :
-                  '❌ خطأ: ' + err.message;
-        showErr(msg);
+        renderUsersList();
+    }).catch(function(e) {
+        if (e && e.message === 'NO_FIREBASE') {
+            showToast('⚠️ تم الإنشاء محلياً فقط — لا يوجد اتصال بقاعدة البيانات', true);
+        } else {
+            showToast('⚠️ تم الإنشاء لكن فشل الحفظ على السيرفر: ' + e.message, true);
+        }
+        btn.innerHTML = '✅ إنشاء الحساب';
+        btn.disabled = false;
+        toggleAddUserForm();
+        renderUsersList();
     });
 }
 
@@ -1079,6 +1100,7 @@ let pmHistory = {};
 let rentalData = [];
 let rentalDailyData = [];
 let transferLogs = []; // سجل نقل المعدات بين المواقع
+let changeLogs = []; // سجل حركة/تعديل المعدات (من عدّل وامتى)
 // ==================== نظام المستخدمين - Firebase ====================
 var APP_USERS = [
     {
@@ -1786,6 +1808,10 @@ function attachFirebaseListeners() {
         transferLogs = snapshotToArray(snapshot);
     });
 
+    listen('changeLogs', function(snapshot) {
+        changeLogs = snapshotToArray(snapshot);
+    });
+
     isListeningAttached = true;
 }
 
@@ -2212,6 +2238,67 @@ function openAddEquipmentModal() {
     document.getElementById('equipment-modal').classList.add('active');
 }
 
+// ==================== سجل حركة/تعديل المعدات ====================
+var CHANGE_LOG_FIELD_LABELS = {
+    code: 'الكود', name: 'الاسم', type: 'النوع', chassis: 'الشاسيه',
+    location: 'الموقع', projectSite: 'المشروع', assignedDriver: 'السائق',
+    hours: 'العداد', nextHours: 'استحقاق الصيانة', interval: 'دورة الصيانة',
+    engineModel: 'موديل الموتور', engineSN: 'سيريال الموتور',
+    arrivalDate: 'تاريخ الوصول', arrivalHours: 'عداد الوصول',
+    lastMaintenanceDate: 'تاريخ آخر صيانة', lastMaintenanceHours: 'عداد آخر صيانة',
+    status: 'الحالة', ownership: 'الملكية', notes: 'ملاحظات'
+};
+function logEquipmentChanges(oldEq, newEq) {
+    var changes = [];
+    Object.keys(CHANGE_LOG_FIELD_LABELS).forEach(function(field) {
+        var oldVal = (oldEq[field] === undefined || oldEq[field] === null) ? '' : oldEq[field];
+        var newVal = (newEq[field] === undefined || newEq[field] === null) ? '' : newEq[field];
+        if (String(oldVal) !== String(newVal)) {
+            changes.push({ field: field, label: CHANGE_LOG_FIELD_LABELS[field], oldValue: String(oldVal) || '—', newValue: String(newVal) || '—' });
+        }
+    });
+    if (changes.length === 0) return;
+
+    var who = (currentUser && (currentUser.name || currentUser.username)) || 'غير معروف';
+    saveToFirebase('changeLogs', {
+        equipmentId: oldEq.id,
+        equipmentCode: newEq.code || oldEq.code || '',
+        equipmentName: newEq.name || oldEq.name || '',
+        changedBy: who,
+        changedAt: new Date().toISOString(),
+        changes: changes
+    });
+}
+
+function showEquipmentChangeLog(eqId) {
+    var equipment = equipmentData.find(function(e) { return e.id === eqId; });
+    if (!equipment) return;
+
+    var logs = changeLogs.filter(function(l) { return l.equipmentId === eqId; })
+        .slice().sort(function(a, b) { return (b.changedAt || '').localeCompare(a.changedAt || ''); });
+
+    var html;
+    if (logs.length === 0) {
+        html = '<div class="empty-state">لا يوجد سجل تعديلات لهذه المعدة بعد</div>';
+    } else {
+        html = logs.map(function(l) {
+            var dateStr = l.changedAt ? new Date(l.changedAt).toLocaleString('ar-EG') : '—';
+            var changesHtml = (l.changes || []).map(function(c) {
+                return '<div style="font-size:12px;padding:3px 0;color:#475569">• <b>' + escapeHtml(c.label || c.field) + '</b>: ' + escapeHtml(c.oldValue) + ' ← <b style="color:var(--primary)">' + escapeHtml(c.newValue) + '</b></div>';
+            }).join('');
+            return '<div style="padding:10px 0;border-bottom:1px solid #eef2f6">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700;color:var(--primary)">👤 ' + escapeHtml(l.changedBy || '—') + '</div>' +
+                '<div style="font-size:11px;color:#94a3b8">' + dateStr + '</div></div>' +
+                '<div style="margin-top:4px">' + changesHtml + '</div>' +
+                '</div>';
+        }).join('');
+    }
+
+    document.getElementById('detail-title').innerHTML = '📜 سجل تعديلات ' + escapeHtml(equipment.name);
+    document.getElementById('detail-content').innerHTML = '<div style="padding:14px">' + html + '</div>';
+    document.getElementById('detail-modal').classList.add('active');
+}
+
 function saveEquipment() {
     if (!hasPermission("all")) { showToast("⛔ غير مصرح", true); return; }
     var equipment = {
@@ -2255,6 +2342,7 @@ function saveEquipment() {
         equipment.fuelRecords = existing ? existing.fuelRecords || [] : [];
         // الحفاظ على ownerId الأصلي
         if (existing && existing.ownerId) equipment.ownerId = existing.ownerId;
+        if (existing) logEquipmentChanges(existing, equipment);
         saveToFirebase('equipment', Object.assign({ id: editingEquipmentId }, equipment));
         showToast('تم تحديث المعدة');
     } else {
@@ -2398,6 +2486,7 @@ function openEquipmentDetail(id) {
         '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,var(--success),var(--info))" onclick="generateEquipmentMaintenanceOrder(\'' + equipment.id + '\')">📄 أمر صيانة PDF</button>' +
         (hasPermission('all') ? '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="openTransferEquipmentModal(\'' + equipment.id + '\')">🚚 نقل لموقع آخر</button>' : '') +
         '<button class="save-btn" style="margin:0;background:#475569" onclick="showTransferHistory(\'' + equipment.id + '\')">🗺️ سجل النقل</button>' +
+        '<button class="save-btn" style="margin:0;background:#334155" onclick="showEquipmentChangeLog(\'' + equipment.id + '\')">📜 سجل التعديلات</button>' +
         '</div>';
     
     document.getElementById('detail-title').innerHTML = '🏗️ ' + escapeHtml(equipment.name);
@@ -5385,7 +5474,8 @@ function forceRefreshData() {
         fbDb.ref('equipmentFilterLinks').once('value'),
         fbDb.ref('equipmentOilLinks').once('value'),
         fbDb.ref('filterAlternatives').once('value'),
-        fbDb.ref('transferLogs').once('value')
+        fbDb.ref('transferLogs').once('value'),
+        fbDb.ref('changeLogs').once('value')
     ]).then(function(results) {
         equipmentData = toArr(results[0].val());
         inventoryItems = toArr(results[1].val());
@@ -5396,6 +5486,7 @@ function forceRefreshData() {
         equipmentOilLinks = toArr(results[6].val());
         filterAlternatives = toArr(results[7].val());
         transferLogs = toArr(results[8].val());
+        changeLogs = toArr(results[9].val());
         debouncedRefresh();
         updateBellCounter();
         showToast('✅ تم التحديث: ' + equipmentData.length + ' معدة، ' + inventoryItems.length + ' صنف');
@@ -5406,18 +5497,11 @@ function forceRefreshData() {
 }
 
 // ==================== لوحة المواقع المركزية ====================
-var sitesViewMode = 'cards'; // 'cards' أو 'kpi'
-function renderSitesDashboard() {
-    var summaryEl = document.getElementById('sites-summary-row');
-    var listEl = document.getElementById('sites-dashboard-list');
-    if (!summaryEl || !listEl) return;
-
-    var equipmentData = getVisibleEquipment();
-    var search = document.getElementById('search-site') ? document.getElementById('search-site').value.trim() : '';
+// تجميع إحصائيات المواقع من مجموعة معدات معينة (يُستخدم في اللوحة والتقرير الدوري)
+function computeSitesStats(equipmentData) {
     var now = Date.now();
     var ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
 
-    // تجميع المعدات حسب الموقع
     var sitesMap = {};
     equipmentData.forEach(function(eq) {
         var siteName = (eq.location && eq.location.trim()) ? eq.location.trim() : 'غير محدد';
@@ -5459,6 +5543,19 @@ function renderSitesDashboard() {
         s.avgRemaining = s.total > 0 ? Math.round(s.remSum / s.total) : 0;
     });
 
+    return sitesMap;
+}
+
+var sitesViewMode = 'cards'; // 'cards' أو 'kpi'
+function renderSitesDashboard() {
+    var summaryEl = document.getElementById('sites-summary-row');
+    var listEl = document.getElementById('sites-dashboard-list');
+    if (!summaryEl || !listEl) return;
+
+    var equipmentData = getVisibleEquipment();
+    var search = document.getElementById('search-site') ? document.getElementById('search-site').value.trim() : '';
+
+    var sitesMap = computeSitesStats(equipmentData);
     var sites = Object.values(sitesMap);
     if (search) {
         sites = sites.filter(function(s) { return s.name.includes(search); });
@@ -5594,6 +5691,49 @@ function renderSitesKpiTable(sites, listEl) {
     }, 0);
 }
 
+// ==================== التقرير الدوري لكل المواقع ====================
+function sendSitesPeriodicReport() {
+    var equipmentDataVisible = getVisibleEquipment();
+    var sitesMap = computeSitesStats(equipmentDataVisible);
+    var sites = Object.values(sitesMap).sort(function(a, b) {
+        if (b.overdue !== a.overdue) return b.overdue - a.overdue;
+        return a.complianceRate - b.complianceRate;
+    });
+
+    if (sites.length === 0) {
+        showToast('⚠️ لا توجد بيانات معدات لإصدار التقرير', true);
+        return;
+    }
+
+    var dateStr = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+    var totalEq = equipmentDataVisible.length;
+    var totalOverdue = sites.reduce(function(s, x) { return s + x.overdue; }, 0);
+    var totalSoon = sites.reduce(function(s, x) { return s + x.soon; }, 0);
+
+    var msg = '🔧 *تقرير حالة الصيانة - كل المواقع*\n📅 ' + dateStr + '\n━━━━━━━━━━━━\n';
+    msg += '🏢 عدد المواقع: *' + sites.length + '*\n';
+    msg += '🚜 إجمالي المعدات: *' + totalEq + '*\n';
+    msg += '⚠️ متأخرة الصيانة: *' + totalOverdue + '*\n';
+    msg += '🟡 قريبة الاستحقاق: *' + totalSoon + '*\n';
+    msg += '━━━━━━━━━━━━\n\n';
+
+    sites.forEach(function(s) {
+        var icon = s.overdue > 0 ? '🔴' : (s.soon > 0 ? '🟡' : '🟢');
+        msg += icon + ' *' + s.name + '*\n';
+        msg += '  🚜 إجمالي: ' + s.total + ' | ✅ يعمل: ' + s.working + ' | ⛔ متوقفة: ' + s.stopped + '\n';
+        msg += '  ⚠️ متأخرة: ' + s.overdue + ' | 🟡 قريبة: ' + s.soon + ' | 📊 الالتزام: ' + s.complianceRate + '%\n\n';
+    });
+
+    msg += '━━━━━━━━━━━━\nنظام إدارة المعدات 🏗️';
+
+    var encoded = encodeURIComponent(msg);
+    try {
+        localStorage.setItem('ems_last_report_date', new Date().toISOString());
+    } catch (e) {}
+    window.open('https://wa.me/?text=' + encoded, '_blank');
+    showToast('✅ تم تجهيز التقرير، اختر جهة الإرسال على واتساب');
+}
+
 
 function refreshUI() {
     var activeView = document.querySelector('.tab-btn.active') ? document.querySelector('.tab-btn.active').dataset.view : 'home';
@@ -5692,8 +5832,14 @@ function refreshUI() {
     }
     if (activeView === 'drivers') {
         var search = document.getElementById('search-driver') ? document.getElementById('search-driver').value : '';
-        document.getElementById('drivers-list').innerHTML = driversData.filter(function(d) { return !search || (d.name && d.name.includes(search)); }).map(function(d) {
-            var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
+        var visibleEqIdsD = getVisibleEquipment().map(function(e) { return e.id; });
+        var visibleDrivers = driversData.filter(function(d) {
+            var assignedEquip = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
+            if (assignedEquip.length === 0) return true; // سائق بدون معدة معيّنة يظهر دايمًا
+            return assignedEquip.some(function(eq) { return visibleEqIdsD.indexOf(eq.id) !== -1; });
+        });
+        document.getElementById('drivers-list').innerHTML = visibleDrivers.filter(function(d) { return !search || (d.name && d.name.includes(search)); }).map(function(d) {
+            var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id && visibleEqIdsD.indexOf(eq.id) !== -1; });
             var expired = d.licenseExpiry && new Date(d.licenseExpiry) < new Date();
             return '<div class="driver-card" onclick="openDriverDetail(\'' + d.id + '\')">' +
                 '<div class="card-header">' +
@@ -5708,13 +5854,15 @@ function refreshUI() {
         }).join('');
     }
     if (activeView === 'fuel') {
-        var totalAmount = fuelData.reduce(function(sum, f) { return sum + (f.amount || 0); }, 0);
-        var totalCost = fuelData.reduce(function(sum, f) { return sum + (f.cost || 0); }, 0);
-        var avgCost = fuelData.length ? totalCost / fuelData.length : 0;
+        var visibleEqIds = getVisibleEquipment().map(function(e) { return e.id; });
+        var visibleFuelData = fuelData.filter(function(f) { return !f.equipmentId || visibleEqIds.indexOf(f.equipmentId) !== -1; });
+        var totalAmount = visibleFuelData.reduce(function(sum, f) { return sum + (f.amount || 0); }, 0);
+        var totalCost = visibleFuelData.reduce(function(sum, f) { return sum + (f.cost || 0); }, 0);
+        var avgCost = visibleFuelData.length ? totalCost / visibleFuelData.length : 0;
         document.getElementById('fuel-stats').innerHTML = '<div class="stat-card"><div class="stat-number">' + formatNumber(totalAmount) + '</div><div class="stat-label">لترات</div></div>' +
             '<div class="stat-card"><div class="stat-number">' + formatNumber(totalCost) + '</div><div class="stat-label">تكلفة</div></div>' +
             '<div class="stat-card"><div class="stat-number">' + formatNumber(Math.round(avgCost)) + '</div><div class="stat-label">متوسط</div></div>';
-        document.getElementById('fuel-list').innerHTML = fuelData.slice(-20).reverse().map(function(f) {
+        document.getElementById('fuel-list').innerHTML = visibleFuelData.slice(-20).reverse().map(function(f) {
             var eq = equipmentData.find(function(e) { return e.id === f.equipmentId; });
             var dr = driversData.find(function(d) { return d.id === f.driverId; });
             return '<div class="fuel-card">' +
@@ -5731,7 +5879,9 @@ function refreshUI() {
         }).join('');
     }
     if (activeView === 'maintenance') {
-        document.getElementById('maintenance-list').innerHTML = maintenanceSchedules.filter(function(m) { return m.status === 'مجدول'; }).map(function(m) {
+        var visibleEqIdsM = getVisibleEquipment().map(function(e) { return e.id; });
+        var visibleMaintenance = maintenanceSchedules.filter(function(m) { return !m.equipmentId || visibleEqIdsM.indexOf(m.equipmentId) !== -1; });
+        document.getElementById('maintenance-list').innerHTML = visibleMaintenance.filter(function(m) { return m.status === 'مجدول'; }).map(function(m) {
             var eq = equipmentData.find(function(e) { return e.id === m.equipmentId; });
             var isToday = m.date === new Date().toISOString().split('T')[0];
             return '<div class="maintenance-card" onclick="showMaintenanceDetail(\'' + m.id + '\')">' +
@@ -5745,7 +5895,7 @@ function refreshUI() {
                 '<div><span class="detail-label">التكلفة</span><div class="detail-value">' + (m.estimatedCost || 0) + ' ج.م</div></div>' +
                 '</div></div>';
         }).join('');
-        if (!maintenanceSchedules.some(function(m) { return m.status === 'مجدول'; })) {
+        if (!visibleMaintenance.some(function(m) { return m.status === 'مجدول'; })) {
             document.getElementById('maintenance-list').innerHTML = '<div class="empty-state">لا توجد صيانات</div>';
         }
     }
@@ -5757,6 +5907,28 @@ function refreshUI() {
 
 function updateHomeStatsAndList() {
     var equipmentData = getVisibleEquipment();
+
+    // تذكير بإرسال التقرير الدوري (يظهر فقط لصاحب الصلاحية الكاملة، وبعد 7 أيام من آخر تقرير)
+    var bannerEl = document.getElementById('report-reminder-banner');
+    if (bannerEl) {
+        if (hasPermission('all')) {
+            var lastReportStr = null;
+            try { lastReportStr = localStorage.getItem('ems_last_report_date'); } catch (e) {}
+            var daysSince = lastReportStr ? Math.floor((Date.now() - new Date(lastReportStr).getTime()) / (24 * 60 * 60 * 1000)) : null;
+            if (daysSince === null || daysSince >= 7) {
+                var sinceText = daysSince === null ? 'لم يُرسل من قبل' : ('منذ ' + daysSince + ' يوم');
+                bannerEl.innerHTML = '<div style="background:#fef3c7;border:1px solid #fbbf24;border-radius:12px;padding:10px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+                    '<div style="font-size:12px;color:#92400e"><b>⏰ تذكير:</b> لم يتم إرسال التقرير الدوري لكل المواقع — ' + sinceText + '</div>' +
+                    '<button onclick="switchView(\'sites\');setTimeout(function(){sendSitesPeriodicReport()},100)" style="background:#16a34a;color:white;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📤 إرسال الآن</button>' +
+                    '</div>';
+            } else {
+                bannerEl.innerHTML = '';
+            }
+        } else {
+            bannerEl.innerHTML = '';
+        }
+    }
+
     var working = equipmentData.filter(function(e) { return e.status === 'يعمل'; }).length;
     var overdue = equipmentData.filter(function(e) { return e.status !== 'متوقف' && hoursRemaining(e) <= 0; }).length;
     var scheduled = maintenanceSchedules.filter(function(m) { return m.status === 'مجدول'; }).length;
@@ -6294,6 +6466,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var sitesModeKpiBtn = document.getElementById('sites-mode-kpi-btn');
     if (sitesModeCardsBtn) sitesModeCardsBtn.onclick = function() { sitesViewMode = 'cards'; renderSitesDashboard(); };
     if (sitesModeKpiBtn) sitesModeKpiBtn.onclick = function() { sitesViewMode = 'kpi'; renderSitesDashboard(); };
+    var sitesReportBtn = document.getElementById('sites-report-btn');
+    if (sitesReportBtn) sitesReportBtn.onclick = function() { sendSitesPeriodicReport(); };
     if (searchDriver) searchDriver.oninput = function() { debouncedRefresh(); };
     if (categoryFilter) categoryFilter.onchange = function() { filterInventory(); };
     var searchInventory = document.getElementById('search-inventory');
