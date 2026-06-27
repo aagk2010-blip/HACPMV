@@ -2081,7 +2081,10 @@ function showForgotPassword() {
 }
 
 function saveLoginMode() {
-    // loginMode يُحفظ في الذاكرة فقط (لا حاجة لحفظه محلياً أو سحابياً)
+    var rememberCheckbox = document.getElementById('remember-mode');
+    if (rememberCheckbox && rememberCheckbox.checked && fbDb) {
+        fbDb.ref('appSettings/loginMode').set(SYSTEM_CONFIG.loginMode).catch(function(e){ console.warn(e); });
+    }
 }
 
 function proceedToApp() {
@@ -6056,16 +6059,20 @@ function updateHomeStatsAndList() {
     var bannerEl = document.getElementById('report-reminder-banner');
     if (bannerEl) {
         if (hasPermission('all')) {
-            var lastReportStr = null;
-            if (fbDb) { try { fbDb.ref('appSettings/lastReportDate').once('value').then(function(s){ var v=s.val(); if(v){ var daysSince2=Math.floor((Date.now()-new Date(v).getTime())/(24*60*60*1000)); if(daysSince2===null||daysSince2>=7){ var sinceText2=daysSince2===null?'لم يُرسل من قبل':('منذ '+daysSince2+' يوم'); bannerEl.innerHTML='<div style="background:#fef3c7;border:1px solid #fbbf24;border-radius:12px;padding:10px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-size:12px;color:#92400e"><b>⏰ تذكير:</b> لم يتم إرسال التقرير الدوري لكل المواقع — '+sinceText2+'</div><button onclick="switchView('sites');setTimeout(function(){sendSitesPeriodicReport()},100)" style="background:#16a34a;color:white;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📤 إرسال الآن</button></div>'; }}}); } catch(e){} }
-            // legacy check below is skipped - now handled above via Firebase
-            var daysSince = lastReportStr ? Math.floor((Date.now() - new Date(lastReportStr).getTime()) / (24 * 60 * 60 * 1000)) : null;
-            if (daysSince === null || daysSince >= 7) {
-                var sinceText = daysSince === null ? 'لم يُرسل من قبل' : ('منذ ' + daysSince + ' يوم');
-                bannerEl.innerHTML = '<div style="background:#fef3c7;border:1px solid #fbbf24;border-radius:12px;padding:10px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px">' +
-                    '<div style="font-size:12px;color:#92400e"><b>⏰ تذكير:</b> لم يتم إرسال التقرير الدوري لكل المواقع — ' + sinceText + '</div>' +
-                    '<button onclick="switchView(\'sites\');setTimeout(function(){sendSitesPeriodicReport()},100)" style="background:#16a34a;color:white;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📤 إرسال الآن</button>' +
-                    '</div>';
+            if (fbDb) {
+                fbDb.ref('appSettings/lastReportDate').once('value').then(function(snap) {
+                    var lastDate = snap.val();
+                    var daysSince = lastDate ? Math.floor((Date.now() - new Date(lastDate).getTime()) / (24*60*60*1000)) : null;
+                    if (daysSince === null || daysSince >= 7) {
+                        var sinceText = daysSince === null ? 'لم يُرسل من قبل' : ('منذ ' + daysSince + ' يوم');
+                        bannerEl.innerHTML = '<div style="background:#fef3c7;border:1px solid #fbbf24;border-radius:12px;padding:10px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+                            '<div style="font-size:12px;color:#92400e"><b>⏰ تذكير:</b> لم يتم إرسال التقرير الدوري — ' + sinceText + '</div>' +
+                            '<button onclick="switchView(\'sites\');setTimeout(function(){sendSitesPeriodicReport()},100)" style="background:#16a34a;color:white;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📤 إرسال الآن</button>' +
+                            '</div>';
+                    } else {
+                        bannerEl.innerHTML = '';
+                    }
+                }).catch(function() { bannerEl.innerHTML = ''; });
             } else {
                 bannerEl.innerHTML = '';
             }
@@ -6322,8 +6329,7 @@ function confirmDelete(path, id, message) {
 }
 
 function loadSavedSettings() {
-    var mode = SYSTEM_CONFIG.loginMode || null;
-    if (mode) setLoginMode(mode);
+    // وضع الدخول يُحمّل من Firebase في DOMContentLoaded - لا حاجة لشيء هنا
 }
 
 function openFuelReportModal() {
@@ -6532,10 +6538,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deleteAllMaintenanceBtn) deleteAllMaintenanceBtn.onclick = function() { deleteAllMaintenance(); };
     if (deleteAllInventoryBtn) deleteAllInventoryBtn.onclick = function() { deleteAllInventory(); };
     
-    var savedMode = SYSTEM_CONFIG.loginMode || null;
-    if (savedMode === 'secure') setLoginMode('secure');
-    else if (savedMode === 'register') setLoginMode('register');
-    else setLoginMode('direct');
+    // تحميل وضع الدخول من Firebase إن وُجد
+    var fbCfgForMode = null;
+    try { fbCfgForMode = JSON.parse(localStorage.getItem('fb_config') || 'null'); } catch(e){}
+    if (fbCfgForMode) {
+        try {
+            var _tmpApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(fbCfgForMode);
+            var _tmpDb = firebase.database(_tmpApp);
+            _tmpDb.ref('appSettings/loginMode').once('value').then(function(snap) {
+                var savedMode = snap.val();
+                if (savedMode === 'secure') setLoginMode('secure');
+                else if (savedMode === 'register') setLoginMode('register');
+                else setLoginMode('direct');
+            }).catch(function() { setLoginMode('direct'); });
+        } catch(e) { setLoginMode('direct'); }
+    } else {
+        setLoginMode('direct');
+    }
     
     if (logoutBtn) logoutBtn.onclick = function() { logout(); };
     
