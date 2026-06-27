@@ -520,7 +520,10 @@ function getAllUsersFromFirestore() {
 // ==================== تصفية البيانات حسب ownerId ====================
 function filterByOwner(dataArray) {
     if (!currentUid) return [];
+    // Admin يرى كل البيانات دائماً
     if (currentUserRole === 'admin') return dataArray;
+    if (currentUser && currentUser.role === 'admin') return dataArray;
+    // المستخدمون العاديون: يرون السجلات بدون ownerId (قديمة أو مشتركة) + ما أنشأوه
     return dataArray.filter(function(item) {
         return !item.ownerId || item.ownerId === currentUid;
     });
@@ -529,6 +532,7 @@ function filterByOwner(dataArray) {
 function checkDocumentOwnership(record) {
     if (!currentUid) return false;
     if (currentUserRole === 'admin') return true;
+    if (currentUser && currentUser.role === 'admin') return true;
     return !record.ownerId || record.ownerId === currentUid;
 }
 
@@ -1753,12 +1757,17 @@ function attachFirebaseListeners() {
         activeListeners.push({ ref: ref, handler: handler });
     }
 
-    // دالة مساعدة لتحويل snapshot إلى مصفوفة مع تصفية ownerId
+    // دالة مساعدة لتحويل snapshot إلى مصفوفة
+    // Admin يرى كل البيانات - المستخدمون العاديون يرون بياناتهم فقط
     function snapshotToArray(snapshot) {
         if (!snapshot.val()) return [];
         var arr = Object.entries(snapshot.val()).map(function(entry) {
             var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
         });
+        // Admin يرى كل شيء بلا قيود
+        if (currentUserRole === 'admin' || (currentUser && currentUser.role === 'admin')) {
+            return arr;
+        }
         return filterByOwner(arr);
     }
     
