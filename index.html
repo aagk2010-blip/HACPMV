@@ -166,7 +166,22 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
   
   <div id="view-equipment" style="display:none"><div style="padding:14px"><div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div><div style="margin-bottom:10px;display:flex;gap:8px"><select id="location-filter" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">🏢 كل المواقع</option></select><select id="project-site-filter" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">📍 كل المشاريع</option></select></div><div style="display:flex;gap:10px;margin-bottom:10px"><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات</button><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ حذف الكل</button></div><div id="equipment-list"></div></div></div>
   
-  <div id="view-drivers" style="display:none"><div style="padding:14px"><div class="search-box"><span>🔍</span><input type="text" id="search-driver" placeholder="بحث باسم السائق..."></div><div id="drivers-list"></div></div></div>
+  <div id="view-drivers" style="display:none"><div style="padding:14px">
+    <div class="search-box"><span>🔍</span><input type="text" id="search-driver" placeholder="بحث باسم السائق..." oninput="debouncedRefresh()"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <select id="driver-project-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
+        <option value="">🏗️ كل المشاريع</option>
+      </select>
+      <select id="driver-status-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
+        <option value="">👤 كل الحالات</option>
+        <option value="نشط">✅ نشط</option>
+        <option value="في إجازة">🏖️ في إجازة</option>
+        <option value="منتهي العقد">❌ منتهي العقد</option>
+      </select>
+    </div>
+    <div id="drivers-stats-bar" style="display:flex;gap:8px;margin-bottom:10px"></div>
+    <div id="drivers-list"></div>
+  </div></div>
   
   <div id="view-fuel" style="display:none">
     <div style="padding:14px">
@@ -5824,24 +5839,80 @@ function refreshUI() {
         }, 100);
     }
     if (activeView === 'drivers') {
-        var search = document.getElementById('search-driver') ? document.getElementById('search-driver').value : '';
-        var visibleEqIdsD = getVisibleEquipment().map(function(e) { return e.id; });
-        // عرض جميع السائقين بغض النظر عن المعدة المعيّنة لهم
-        var visibleDrivers = driversData;
-        document.getElementById('drivers-list').innerHTML = visibleDrivers.filter(function(d) { return !search || (d.name && d.name.includes(search)); }).map(function(d) {
-            var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
-            var expired = d.licenseExpiry && new Date(d.licenseExpiry) < new Date();
-            return '<div class="driver-card" onclick="openDriverDetail(\'' + d.id + '\')">' +
-                '<div class="card-header">' +
-                '<div><div class="card-title">👨‍✈️ ' + escapeHtml(d.name) + '</div>' +
-                '<div class="card-code">' + escapeHtml(d.phone || '') + '</div></div>' +
-                '<span class="badge ' + (d.status === 'نشط' ? 'badge-active' : 'badge-stopped') + '">' + d.status + '</span>' +
-                '</div>' +
-                '<div class="grid-2">' +
-                '<div><span class="detail-label">🚜 معدة</span><br><span class="detail-value">' + (assigned.map(function(e) { return escapeHtml(e.name); }).join(', ') || '—') + '</span></div>' +
-                '<div><span class="detail-label">📜 الرخصة</span><br><span class="detail-value" style="color:' + (expired ? 'var(--danger)' : 'var(--success)') + '">' + escapeHtml(d.licenseExpiry || '—') + '</span></div>' +
-                '</div>' + getLicenseWarningBadge(d) + '</div>';
-        }).join('');
+        var search = (document.getElementById('search-driver') ? document.getElementById('search-driver').value : '').trim();
+        var projectFilter = document.getElementById('driver-project-filter') ? document.getElementById('driver-project-filter').value : '';
+        var statusFilter = document.getElementById('driver-status-filter') ? document.getElementById('driver-status-filter').value : '';
+
+        // تحديث قائمة المشاريع في الفلتر
+        var projectSel = document.getElementById('driver-project-filter');
+        if (projectSel) {
+            var allProjects = [];
+            equipmentData.forEach(function(eq) {
+                var proj = (eq.projectSite || eq.location || '').trim();
+                if (proj && allProjects.indexOf(proj) === -1) allProjects.push(proj);
+            });
+            allProjects.sort();
+            var currentProj = projectSel.value;
+            projectSel.innerHTML = '<option value="">🏗️ كل المشاريع</option>' +
+                allProjects.map(function(p) {
+                    return '<option value="' + escapeHtml(p) + '"' + (p === currentProj ? ' selected' : '') + '>' + escapeHtml(p) + '</option>';
+                }).join('');
+        }
+
+        // فلترة السائقين
+        var filtered = driversData.filter(function(d) {
+            // فلتر البحث
+            if (search && !(d.name && d.name.includes(search))) return false;
+            // فلتر الحالة
+            if (statusFilter && d.status !== statusFilter) return false;
+            // فلتر المشروع: السائق ينتمي للمشروع إذا كانت معدته في ذلك المشروع
+            if (projectFilter) {
+                var assignedEqs = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
+                if (assignedEqs.length === 0) return false; // سائق بلا معدة لا يظهر عند تحديد مشروع
+                var inProject = assignedEqs.some(function(eq) {
+                    return (eq.projectSite || eq.location || '').trim() === projectFilter;
+                });
+                if (!inProject) return false;
+            }
+            return true;
+        });
+
+        // إحصائيات شريط السريع
+        var statsBar = document.getElementById('drivers-stats-bar');
+        if (statsBar) {
+            var totalD = filtered.length;
+            var activeD = filtered.filter(function(d){ return d.status === 'نشط'; }).length;
+            var leaveD = filtered.filter(function(d){ return d.status === 'في إجازة'; }).length;
+            var expiredD = filtered.filter(function(d){ return d.licenseExpiry && new Date(d.licenseExpiry) < new Date(); }).length;
+            statsBar.innerHTML =
+                '<div style="background:white;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.07)">👥 ' + totalD + ' سائق</div>' +
+                '<div style="background:#d1fae5;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#065f46">✅ ' + activeD + ' نشط</div>' +
+                (leaveD ? '<div style="background:#fef3c7;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#78350f">🏖️ ' + leaveD + ' إجازة</div>' : '') +
+                (expiredD ? '<div style="background:#fee2e2;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#7f1d1d">⚠️ ' + expiredD + ' رخصة منتهية</div>' : '');
+        }
+
+        if (filtered.length === 0) {
+            document.getElementById('drivers-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:40px;margin-bottom:8px">👨‍✈️</div><div style="font-size:14px;font-weight:600">لا يوجد سائقون</div><div style="font-size:12px;margin-top:4px">جرّب تغيير الفلتر أو البحث</div></div>';
+        } else {
+            document.getElementById('drivers-list').innerHTML = filtered.map(function(d) {
+                var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
+                var projects = [...new Set(assigned.map(function(eq){ return (eq.projectSite || eq.location || '').trim(); }).filter(Boolean))];
+                var expired = d.licenseExpiry && new Date(d.licenseExpiry) < new Date();
+                var statusColor = d.status === 'نشط' ? 'badge-active' : d.status === 'في إجازة' ? 'badge-maintenance' : 'badge-stopped';
+                return '<div class="driver-card" onclick="openDriverDetail(\'' + d.id + '\')">' +
+                    '<div class="card-header">' +
+                    '<div><div class="card-title">👨‍✈️ ' + escapeHtml(d.name) + '</div>' +
+                    '<div class="card-code">' + escapeHtml(d.phone || '') + '</div></div>' +
+                    '<span class="badge ' + statusColor + '">' + escapeHtml(d.status) + '</span>' +
+                    '</div>' +
+                    '<div class="grid-2">' +
+                    '<div><span class="detail-label">🚜 معدة</span><br><span class="detail-value">' + (assigned.map(function(e){ return escapeHtml(e.name); }).join(', ') || '—') + '</span></div>' +
+                    '<div><span class="detail-label">🏗️ المشروع</span><br><span class="detail-value">' + (projects.join(', ') || '—') + '</span></div>' +
+                    '</div>' +
+                    '<div style="margin-top:6px"><span class="detail-label">📜 الرخصة: </span><span class="detail-value" style="color:' + (expired ? 'var(--danger)' : 'var(--success)') + '">' + escapeHtml(d.licenseExpiry || '—') + '</span></div>' +
+                    getLicenseWarningBadge(d) + '</div>';
+            }).join('');
+        }
     }
     if (activeView === 'fuel') {
         var visibleEqIds = getVisibleEquipment().map(function(e) { return e.id; });
