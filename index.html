@@ -3013,8 +3013,8 @@ function exportHoursHistoryToExcel(eqId) {
 
 // ==================== دوال السائقين ====================
 function openAddDriverModal() {
-    if (!hasPermission('all')) {
-        showToast('غير مصرح', true);
+    if (!canAdd('drivers') && !hasPermission('all')) {
+        showToast('غير مصرح بإضافة سائقين', true);
         return;
     }
     editingDriverId = null;
@@ -5833,13 +5833,10 @@ function refreshUI() {
     if (activeView === 'drivers') {
         var search = document.getElementById('search-driver') ? document.getElementById('search-driver').value : '';
         var visibleEqIdsD = getVisibleEquipment().map(function(e) { return e.id; });
-        var visibleDrivers = driversData.filter(function(d) {
-            var assignedEquip = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
-            if (assignedEquip.length === 0) return true; // سائق بدون معدة معيّنة يظهر دايمًا
-            return assignedEquip.some(function(eq) { return visibleEqIdsD.indexOf(eq.id) !== -1; });
-        });
+        // عرض جميع السائقين بغض النظر عن المعدة المعيّنة لهم
+        var visibleDrivers = driversData;
         document.getElementById('drivers-list').innerHTML = visibleDrivers.filter(function(d) { return !search || (d.name && d.name.includes(search)); }).map(function(d) {
-            var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id && visibleEqIdsD.indexOf(eq.id) !== -1; });
+            var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
             var expired = d.licenseExpiry && new Date(d.licenseExpiry) < new Date();
             return '<div class="driver-card" onclick="openDriverDetail(\'' + d.id + '\')">' +
                 '<div class="card-header">' +
@@ -6136,12 +6133,18 @@ function switchView(view) {
     document.getElementById('header-title').innerHTML = titles[view];
     var fabButton = document.getElementById('fab-btn');
     if (!fabButton) { debouncedRefresh(); return; }
-    if (!hasPermission('all')) {
+    // إظهار/إخفاء زر الإضافة حسب صلاحية القسم الحالي
+    var fabViewPermMap = { equipment:'equipment', drivers:'drivers', fuel:'fuel', inventory:'inventory', maintenance:'maintenance' };
+    var fabSection = fabViewPermMap[view];
+    if (fabSection && canAdd(fabSection)) {
+        fabButton.style.display = 'flex';
+    } else if (hasPermission('all')) {
+        fabButton.style.display = 'flex';
+    } else {
         fabButton.style.display = 'none';
         debouncedRefresh();
         return;
     }
-    fabButton.style.display = 'flex';
     if (view === 'equipment') {
         fabButton.onclick = function() { openAddEquipmentModal(); };
     } else if (view === 'drivers') {
