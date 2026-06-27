@@ -5770,7 +5770,8 @@ function refreshUI() {
         renderSitesDashboard();
     }
     if (activeView === 'equipment') {
-        var equipmentData = getVisibleEquipment();
+        var visibleEquipment = getVisibleEquipment();
+        var equipmentData = visibleEquipment;
         var search = document.getElementById('search-equipment') ? document.getElementById('search-equipment').value : '';
         var projectFilter = document.getElementById('project-site-filter') ? document.getElementById('project-site-filter').value : '';
         var locationFilter = document.getElementById('location-filter') ? document.getElementById('location-filter').value : '';
@@ -5862,10 +5863,11 @@ function refreshUI() {
         var statusFilter = document.getElementById('driver-status-filter') ? document.getElementById('driver-status-filter').value : '';
 
         // تحديث قائمة المشاريع في الفلتر
+        var _allEquip = equipmentData; // المتغير العالمي
         var projectSel = document.getElementById('driver-project-filter');
         if (projectSel) {
             var allProjects = [];
-            equipmentData.forEach(function(eq) {
+            _allEquip.forEach(function(eq) {
                 var proj = (eq.projectSite || eq.location || '').trim();
                 if (proj && allProjects.indexOf(proj) === -1) allProjects.push(proj);
             });
@@ -5885,7 +5887,7 @@ function refreshUI() {
             if (statusFilter && d.status !== statusFilter) return false;
             // فلتر المشروع: السائق ينتمي للمشروع إذا كانت معدته في ذلك المشروع
             if (projectFilter) {
-                var assignedEqs = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
+                var assignedEqs = _allEquip.filter(function(eq) { return eq.assignedDriver === d.id; });
                 if (assignedEqs.length === 0) return false; // سائق بلا معدة لا يظهر عند تحديد مشروع
                 var inProject = assignedEqs.some(function(eq) {
                     return (eq.projectSite || eq.location || '').trim() === projectFilter;
@@ -5910,7 +5912,7 @@ function refreshUI() {
         }
 
         function renderDriverCard(d) {
-            var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
+            var assigned = _allEquip.filter(function(eq) { return eq.assignedDriver === d.id; });
             var projects = [];
             assigned.forEach(function(eq){
                 var p = (eq.projectSite || eq.location || '').trim();
@@ -5942,7 +5944,7 @@ function refreshUI() {
             var groups = {}; // projectName -> [drivers]
             var generalDrivers = [];
             filtered.forEach(function(d) {
-                var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
+                var assigned = _allEquip.filter(function(eq) { return eq.assignedDriver === d.id; });
                 var projs = [];
                 assigned.forEach(function(eq){
                     var p = (eq.projectSite || eq.location || '').trim();
@@ -5974,6 +5976,7 @@ function refreshUI() {
         }
     }
     if (activeView === 'fuel') {
+        var _allEquip = equipmentData; // المتغير العالمي للمعدات
         var visibleEqIds = getVisibleEquipment().map(function(e) { return e.id; });
 
         // تحديث فلتر المشاريع
@@ -5984,7 +5987,7 @@ function refreshUI() {
 
         if (fuelProjSel) {
             var fuelProjects = [];
-            equipmentData.forEach(function(eq) {
+            _allEquip.forEach(function(eq) {
                 var p = (eq.projectSite || eq.location || '').trim();
                 if (p && fuelProjects.indexOf(p) === -1) fuelProjects.push(p);
             });
@@ -5998,8 +6001,8 @@ function refreshUI() {
         // تحديث فلتر المعدات (حسب المشروع المختار)
         if (fuelEqSel) {
             var eqsForFilter = selProj
-                ? equipmentData.filter(function(eq){ return (eq.projectSite || eq.location || '').trim() === selProj; })
-                : equipmentData;
+                ? _allEquip.filter(function(eq){ return (eq.projectSite || eq.location || '').trim() === selProj; })
+                : _allEquip;
             eqsForFilter = eqsForFilter.filter(function(eq){ return visibleEqIds.indexOf(eq.id) !== -1; });
             fuelEqSel.innerHTML = '<option value="">🚜 كل المعدات</option>' +
                 eqsForFilter.map(function(eq) {
@@ -6010,7 +6013,7 @@ function refreshUI() {
         // تحديد المعدات المرئية بعد الفلتر
         var fuelVisibleEqIds = visibleEqIds;
         if (selProj) {
-            fuelVisibleEqIds = equipmentData
+            fuelVisibleEqIds = _allEquip
                 .filter(function(eq){ return (eq.projectSite || eq.location || '').trim() === selProj; })
                 .map(function(eq){ return eq.id; });
         }
@@ -6049,7 +6052,7 @@ function refreshUI() {
         }
 
         function renderFuelCard(f) {
-            var eq = equipmentData.find(function(e) { return e.id === f.equipmentId; });
+            var eq = _allEquip.find(function(e) { return e.id === f.equipmentId; });
             var dr = driversData.find(function(d) { return d.id === f.driverId; });
             var proj = eq ? (eq.projectSite || eq.location || '').trim() : '';
             return '<div class="fuel-card">' +
@@ -6076,7 +6079,7 @@ function refreshUI() {
             var fuelGroups = {};
             var generalFuel = [];
             visibleFuelData.slice(-50).reverse().forEach(function(f) {
-                var eq = equipmentData.find(function(e) { return e.id === f.equipmentId; });
+                var eq = _allEquip.find(function(e) { return e.id === f.equipmentId; });
                 var proj = eq ? (eq.projectSite || eq.location || '').trim() : '';
                 if (!proj) {
                     generalFuel.push(f);
