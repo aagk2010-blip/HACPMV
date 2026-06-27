@@ -1758,17 +1758,12 @@ function attachFirebaseListeners() {
     }
 
     // دالة مساعدة لتحويل snapshot إلى مصفوفة
-    // Admin يرى كل البيانات - المستخدمون العاديون يرون بياناتهم فقط
+    // جميع بيانات المشروع مشتركة - لا فلترة بـ ownerId (الصلاحيات تُطبّق عبر المواقع والأقسام فقط)
     function snapshotToArray(snapshot) {
         if (!snapshot.val()) return [];
-        var arr = Object.entries(snapshot.val()).map(function(entry) {
+        return Object.entries(snapshot.val()).map(function(entry) {
             var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj;
         });
-        // Admin يرى كل شيء بلا قيود
-        if (currentUserRole === 'admin' || (currentUser && currentUser.role === 'admin')) {
-            return arr;
-        }
-        return filterByOwner(arr);
     }
     
     listen('equipment', function(snapshot) {
@@ -5862,6 +5857,11 @@ function refreshUI() {
         }, 100);
     }
     if (activeView === 'drivers') {
+        // إذا لم تُحمَّل البيانات بعد
+        if (!driversData) {
+            document.getElementById('drivers-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:30px">⏳</div><div style="font-size:13px;margin-top:8px">جاري التحميل...</div></div>';
+            return;
+        }
         var search = (document.getElementById('search-driver') ? document.getElementById('search-driver').value : '').trim();
         var projectFilter = document.getElementById('driver-project-filter') ? document.getElementById('driver-project-filter').value : '';
         var statusFilter = document.getElementById('driver-status-filter') ? document.getElementById('driver-status-filter').value : '';
