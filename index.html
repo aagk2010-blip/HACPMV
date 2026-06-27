@@ -5905,27 +5905,68 @@ function refreshUI() {
                 (expiredD ? '<div style="background:#fee2e2;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#7f1d1d">⚠️ ' + expiredD + ' رخصة منتهية</div>' : '');
         }
 
+        function renderDriverCard(d) {
+            var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
+            var projects = [];
+            assigned.forEach(function(eq){
+                var p = (eq.projectSite || eq.location || '').trim();
+                if (p && projects.indexOf(p) === -1) projects.push(p);
+            });
+            var expired = d.licenseExpiry && new Date(d.licenseExpiry) < new Date();
+            var statusColor = d.status === 'نشط' ? 'badge-active' : d.status === 'في إجازة' ? 'badge-maintenance' : 'badge-stopped';
+            return '<div class="driver-card" onclick="openDriverDetail(\'' + d.id + '\')">' +
+                '<div class="card-header">' +
+                '<div><div class="card-title">👨‍✈️ ' + escapeHtml(d.name) + '</div>' +
+                '<div class="card-code">' + escapeHtml(d.phone || '') + '</div></div>' +
+                '<span class="badge ' + statusColor + '">' + escapeHtml(d.status) + '</span>' +
+                '</div>' +
+                '<div class="grid-2">' +
+                '<div><span class="detail-label">🚜 معدة</span><br><span class="detail-value">' + (assigned.map(function(e){ return escapeHtml(e.name); }).join(', ') || '—') + '</span></div>' +
+                '<div><span class="detail-label">🏗️ المشروع</span><br><span class="detail-value">' + (projects.length ? projects.join(', ') : '<span style="color:#94a3b8">عام</span>') + '</span></div>' +
+                '</div>' +
+                '<div style="margin-top:6px"><span class="detail-label">📜 الرخصة: </span><span class="detail-value" style="color:' + (expired ? 'var(--danger)' : 'var(--success)') + '">' + escapeHtml(d.licenseExpiry || '—') + '</span></div>' +
+                getLicenseWarningBadge(d) + '</div>';
+        }
+
         if (filtered.length === 0) {
             document.getElementById('drivers-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:40px;margin-bottom:8px">👨‍✈️</div><div style="font-size:14px;font-weight:600">لا يوجد سائقون</div><div style="font-size:12px;margin-top:4px">جرّب تغيير الفلتر أو البحث</div></div>';
+        } else if (projectFilter) {
+            // عند تحديد مشروع: عرض عادي بدون تجميع
+            document.getElementById('drivers-list').innerHTML = filtered.map(renderDriverCard).join('');
         } else {
-            document.getElementById('drivers-list').innerHTML = filtered.map(function(d) {
+            // بدون فلتر: تجميع حسب المشروع + بند "عام" للبدون مشروع
+            var groups = {}; // projectName -> [drivers]
+            var generalDrivers = [];
+            filtered.forEach(function(d) {
                 var assigned = equipmentData.filter(function(eq) { return eq.assignedDriver === d.id; });
-                var projects = [...new Set(assigned.map(function(eq){ return (eq.projectSite || eq.location || '').trim(); }).filter(Boolean))];
-                var expired = d.licenseExpiry && new Date(d.licenseExpiry) < new Date();
-                var statusColor = d.status === 'نشط' ? 'badge-active' : d.status === 'في إجازة' ? 'badge-maintenance' : 'badge-stopped';
-                return '<div class="driver-card" onclick="openDriverDetail(\'' + d.id + '\')">' +
-                    '<div class="card-header">' +
-                    '<div><div class="card-title">👨‍✈️ ' + escapeHtml(d.name) + '</div>' +
-                    '<div class="card-code">' + escapeHtml(d.phone || '') + '</div></div>' +
-                    '<span class="badge ' + statusColor + '">' + escapeHtml(d.status) + '</span>' +
-                    '</div>' +
-                    '<div class="grid-2">' +
-                    '<div><span class="detail-label">🚜 معدة</span><br><span class="detail-value">' + (assigned.map(function(e){ return escapeHtml(e.name); }).join(', ') || '—') + '</span></div>' +
-                    '<div><span class="detail-label">🏗️ المشروع</span><br><span class="detail-value">' + (projects.join(', ') || '—') + '</span></div>' +
-                    '</div>' +
-                    '<div style="margin-top:6px"><span class="detail-label">📜 الرخصة: </span><span class="detail-value" style="color:' + (expired ? 'var(--danger)' : 'var(--success)') + '">' + escapeHtml(d.licenseExpiry || '—') + '</span></div>' +
-                    getLicenseWarningBadge(d) + '</div>';
-            }).join('');
+                var projs = [];
+                assigned.forEach(function(eq){
+                    var p = (eq.projectSite || eq.location || '').trim();
+                    if (p && projs.indexOf(p) === -1) projs.push(p);
+                });
+                if (projs.length === 0) {
+                    generalDrivers.push(d);
+                } else {
+                    projs.forEach(function(p) {
+                        if (!groups[p]) groups[p] = [];
+                        if (groups[p].indexOf(d) === -1) groups[p].push(d);
+                    });
+                }
+            });
+
+            var html = '';
+            var sectionStyle = 'margin-bottom:4px;padding:8px 12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border-radius:12px;font-size:12px;font-weight:700;color:#374151;display:flex;align-items:center;gap:6px;border-right:3px solid var(--accent)';
+            var generalStyle = 'margin-bottom:4px;padding:8px 12px;background:linear-gradient(135deg,#fafafa,#f3f4f6);border-radius:12px;font-size:12px;font-weight:700;color:#6b7280;display:flex;align-items:center;gap:6px;border-right:3px solid #9ca3af';
+
+            Object.keys(groups).sort().forEach(function(proj) {
+                html += '<div style="' + sectionStyle + '">🏗️ ' + escapeHtml(proj) + ' <span style="font-size:10px;font-weight:400;color:#6b7280">(' + groups[proj].length + ' سائق)</span></div>';
+                html += groups[proj].map(renderDriverCard).join('');
+            });
+            if (generalDrivers.length > 0) {
+                html += '<div style="' + generalStyle + '">📋 عام <span style="font-size:10px;font-weight:400;color:#9ca3af">(' + generalDrivers.length + ' سائق — غير مسند لمشروع)</span></div>';
+                html += generalDrivers.map(renderDriverCard).join('');
+            }
+            document.getElementById('drivers-list').innerHTML = html;
         }
     }
     if (activeView === 'fuel') {
@@ -6003,27 +6044,67 @@ function refreshUI() {
             }
         }
 
+        function renderFuelCard(f) {
+            var eq = equipmentData.find(function(e) { return e.id === f.equipmentId; });
+            var dr = driversData.find(function(d) { return d.id === f.driverId; });
+            var proj = eq ? (eq.projectSite || eq.location || '').trim() : '';
+            return '<div class="fuel-card">' +
+                '<div class="card-header">' +
+                '<div><div class="card-title">⛽ ' + (eq ? escapeHtml(eq.name) : 'معدة') + '</div>' +
+                '<div class="card-code">' + escapeHtml(f.date || '') + (proj ? ' · ' + escapeHtml(proj) : ' · <span style="color:#94a3b8">عام</span>') + '</div></div>' +
+                '<span class="badge badge-working">' + (f.amount || 0) + ' لتر</span>' +
+                '</div>' +
+                '<div class="grid-2">' +
+                '<div><span class="detail-label">💰 ' + formatNumber(f.cost || 0) + ' ج.م</span></div>' +
+                '<div><span class="detail-label">⏱️ ' + (f.hours || 0) + ' س</span></div>' +
+                '<div><span class="detail-label">👨‍✈️ ' + (dr ? escapeHtml(dr.name) : '—') + '</span></div>' +
+                '</div>' + (hasPermission('all') ? '<button class="fuel-edit-btn" onclick="event.stopPropagation();openEditFuelModal(\'' + f.id + '\')">✏️ تعديل</button>' : '') + '</div>';
+        }
+
         // قائمة السجلات
         if (visibleFuelData.length === 0) {
             document.getElementById('fuel-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:40px;margin-bottom:8px">⛽</div><div style="font-size:14px;font-weight:600">لا توجد سجلات وقود</div><div style="font-size:12px;margin-top:4px">جرّب تغيير الفلتر</div></div>';
+        } else if (selProj || selEq) {
+            // عند تحديد فلتر: عرض عادي بدون تجميع
+            document.getElementById('fuel-list').innerHTML = visibleFuelData.slice(-50).reverse().map(renderFuelCard).join('');
         } else {
-            document.getElementById('fuel-list').innerHTML = visibleFuelData.slice(-50).reverse().map(function(f) {
+            // بدون فلتر: تجميع حسب المشروع + بند "عام" للبدون مشروع
+            var fuelGroups = {};
+            var generalFuel = [];
+            visibleFuelData.slice(-50).reverse().forEach(function(f) {
                 var eq = equipmentData.find(function(e) { return e.id === f.equipmentId; });
-                var dr = driversData.find(function(d) { return d.id === f.driverId; });
-                var proj = eq ? (eq.projectSite || eq.location || '') : '';
-                return '<div class="fuel-card">' +
-                    '<div class="card-header">' +
-                    '<div><div class="card-title">⛽ ' + (eq ? escapeHtml(eq.name) : 'معدة') + '</div>' +
-                    '<div class="card-code">' + escapeHtml(f.date || '') + (proj ? ' · ' + escapeHtml(proj) : '') + '</div></div>' +
-                    '<span class="badge badge-working">' + (f.amount || 0) + ' لتر</span>' +
-                    '</div>' +
-                    '<div class="grid-2">' +
-                    '<div><span class="detail-label">💰 ' + formatNumber(f.cost || 0) + ' ج.م</span></div>' +
-                    '<div><span class="detail-label">⏱️ ' + (f.hours || 0) + ' س</span></div>' +
-                    '<div><span class="detail-label">👨‍✈️ ' + (dr ? escapeHtml(dr.name) : '—') + '</span></div>' +
-                    '</div>' + (hasPermission('all') ? '<button class="fuel-edit-btn" onclick="event.stopPropagation();openEditFuelModal(\'' + f.id + '\')">✏️ تعديل</button>' : '') + '</div>';
-            }).join('');
+                var proj = eq ? (eq.projectSite || eq.location || '').trim() : '';
+                if (!proj) {
+                    generalFuel.push(f);
+                } else {
+                    if (!fuelGroups[proj]) fuelGroups[proj] = [];
+                    fuelGroups[proj].push(f);
+                }
+            });
+
+            var fuelHtml = '';
+            var fuelSecStyle = 'margin-bottom:4px;padding:8px 12px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:12px;font-size:12px;font-weight:700;color:#15803d;display:flex;align-items:center;gap:6px;border-right:3px solid #22c55e';
+            var fuelGenStyle = 'margin-bottom:4px;padding:8px 12px;background:linear-gradient(135deg,#fafafa,#f3f4f6);border-radius:12px;font-size:12px;font-weight:700;color:#6b7280;display:flex;align-items:center;gap:6px;border-right:3px solid #9ca3af';
+
+            Object.keys(fuelGroups).sort().forEach(function(proj) {
+                var grpTotal = fuelGroups[proj].reduce(function(s,f){ return s+(f.amount||0); }, 0);
+                var grpCost  = fuelGroups[proj].reduce(function(s,f){ return s+(f.cost||0); }, 0);
+                fuelHtml += '<div style="' + fuelSecStyle + '">🏗️ ' + escapeHtml(proj) +
+                    ' <span style="font-size:10px;font-weight:400;color:#166534">' +
+                    fuelGroups[proj].length + ' سجل · ' + formatNumber(grpTotal) + ' لتر · ' + formatNumber(grpCost) + ' ج.م</span></div>';
+                fuelHtml += fuelGroups[proj].map(renderFuelCard).join('');
+            });
+            if (generalFuel.length > 0) {
+                var genTotal = generalFuel.reduce(function(s,f){ return s+(f.amount||0); }, 0);
+                var genCost  = generalFuel.reduce(function(s,f){ return s+(f.cost||0); }, 0);
+                fuelHtml += '<div style="' + fuelGenStyle + '">📋 عام' +
+                    ' <span style="font-size:10px;font-weight:400;color:#9ca3af">' +
+                    generalFuel.length + ' سجل · ' + formatNumber(genTotal) + ' لتر · ' + formatNumber(genCost) + ' ج.م (غير مسند لمشروع)</span></div>';
+                fuelHtml += generalFuel.map(renderFuelCard).join('');
+            }
+            document.getElementById('fuel-list').innerHTML = fuelHtml;
         }
+        
     }
     if (activeView === 'maintenance') {
         var visibleEqIdsM = getVisibleEquipment().map(function(e) { return e.id; });
