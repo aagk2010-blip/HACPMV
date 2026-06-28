@@ -1875,18 +1875,17 @@ function detachFirebaseListeners() {
 }
 
 function preloadUsersFromFirebase() {
-    // تحميل المستخدمين مبكراً من Firebase عند فتح صفحة الدخول
+    // تهيئة Firebase مبكراً وتحميل المستخدمين
     try {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-        var _preDb = firebase.database();
-        _preDb.ref('appUsers').once('value').then(function(snap) {
+        if (!fbDb) fbDb = firebase.database();
+        fbDb.ref('appUsers').once('value').then(function(snap) {
             var data = snap.val();
             if (data && typeof data === 'object') {
                 var loaded = Object.values(data);
                 var hasAdmin = loaded.find(function(u){ return u.role === 'admin'; });
                 if (!hasAdmin) loaded.unshift(APP_USERS[0]);
                 APP_USERS = loaded;
-                console.log('[preload] Loaded', APP_USERS.length, 'users from Firebase');
             }
         }).catch(function(e){ console.warn('[preload] Failed:', e.message); });
     } catch(e) { console.warn('[preload] Firebase init error:', e.message); }
@@ -1895,7 +1894,7 @@ function preloadUsersFromFirebase() {
 function initFirebase() {
     try {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-        fbDb = firebase.database();
+        if (!fbDb) fbDb = firebase.database();
         fbDb.goOnline();
         // مراقبة المستخدمين في الوقت الفعلي
         watchAppUsers();
@@ -1990,13 +1989,12 @@ function secureLogin() {
         proceedToApp();
     }
 
-    // دائماً نحمّل أحدث بيانات المستخدمين من Firebase قبل الدخول
-    function tryLoadThenLogin(retries) {
-        retries = retries || 0;
+    // تحميل أحدث المستخدمين من Firebase ثم الدخول
+    function tryLoadThenLogin() {
         try {
             if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-            var _db = firebase.database();
-            _db.ref('appUsers').once('value').then(function(snap) {
+            if (!fbDb) fbDb = firebase.database();
+            fbDb.ref('appUsers').once('value').then(function(snap) {
                 var data = snap.val();
                 if (data && typeof data === 'object') {
                     var loaded = Object.values(data);
@@ -2007,11 +2005,7 @@ function secureLogin() {
                 doLogin();
             }).catch(function() { doLogin(); });
         } catch(e) {
-            if (retries < 2) {
-                setTimeout(function(){ tryLoadThenLogin(retries+1); }, 800);
-            } else {
-                doLogin();
-            }
+            doLogin();
         }
     }
     tryLoadThenLogin();
@@ -6684,23 +6678,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deleteAllMaintenanceBtn) deleteAllMaintenanceBtn.onclick = function() { deleteAllMaintenance(); };
     if (deleteAllInventoryBtn) deleteAllInventoryBtn.onclick = function() { deleteAllInventory(); };
     
-    // تحميل وضع الدخول من Firebase إن وُجد
-    var fbCfgForMode = null;
-    try { fbCfgForMode = JSON.parse(localStorage.getItem('fb_config') || 'null'); } catch(e){}
-    if (fbCfgForMode) {
-        try {
-            var _tmpApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(fbCfgForMode);
-            var _tmpDb = firebase.database(_tmpApp);
-            _tmpDb.ref('appSettings/loginMode').once('value').then(function(snap) {
-                var savedMode = snap.val();
-                if (savedMode === 'secure') setLoginMode('secure');
-                else if (savedMode === 'register') setLoginMode('register');
-                else setLoginMode('direct');
-            }).catch(function() { setLoginMode('direct'); });
-        } catch(e) { setLoginMode('direct'); }
-    } else {
-        setLoginMode('direct');
-    }
+    // وضع الدخول الافتراضي - لا نحتاج Firebase لهذا
+    setLoginMode('secure');
     
     if (logoutBtn) logoutBtn.onclick = function() { logout(); };
     
@@ -6819,9 +6798,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     loadSavedSettings();
 
-    // تحميل المستخدمين من Firebase فوراً عند فتح الصفحة
-    preloadUsersFromFirebase();
-    
+    // تهيئة Firebase مبكراً وتحميل المستخدمين في الخلفية
+    setTimeout(function() { preloadUsersFromFirebase(); }, 500);
+
     // ربط الدوال بـ window لضمان الوصول من HTML
     window.openEquipmentDetail = openEquipmentDetail;
     window.editEquipment = editEquipment;
