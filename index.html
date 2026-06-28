@@ -152,7 +152,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
   <div class="header"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:20px;font-weight:900;color:white;letter-spacing:2px;flex-shrink:0;font-family:serif">HAC</span><div class="header-title" id="header-title" style="margin-bottom:0">📊 لوحة القيادة</div></div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
-  <div id="view-home"><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="meter-update-btn" class="big-btn">⏱️ تحديث العدادات اليومي</button><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info)); margin-top:5px">🔄 تحديث البيانات يدوياً</button><div class="section"><div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div><div id="equipment-list-home"></div></div></div>
+  <div id="view-home"><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="meter-update-btn" class="big-btn">⏱️ تحديث العدادات اليومي</button><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info)); margin-top:5px">🔄 تحديث البيانات يدوياً</button><div class="section"><div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div><div id="home-ownership-filter" style="display:flex;gap:6px;margin-bottom:10px"><button class="home-own-btn" data-own="" style="flex:1;padding:8px;border-radius:30px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🌐 الكل</button><button class="home-own-btn" data-own="ملك" style="flex:1;padding:8px;border-radius:30px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🔑 ملك</button><button class="home-own-btn" data-own="إيجار" style="flex:1;padding:8px;border-radius:30px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">📋 إيجار</button></div><div id="equipment-list-home"></div></div></div>
   <div id="view-sites" style="display:none"><div style="padding:14px">
     <div class="search-box"><span>🔍</span><input type="text" id="search-site" placeholder="بحث باسم الموقع..."></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -164,7 +164,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     <div id="sites-dashboard-list"></div>
   </div></div>
   
-  <div id="view-equipment" style="display:none"><div style="padding:14px"><div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div><div style="margin-bottom:10px;display:flex;gap:8px"><select id="location-filter" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">🏢 كل المواقع</option></select><select id="project-site-filter" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">📍 كل المشاريع</option></select></div><div style="display:flex;gap:10px;margin-bottom:10px"><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات</button><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ حذف الكل</button></div><div id="equipment-list"></div></div></div>
+  <div id="view-equipment" style="display:none"><div style="padding:14px"><div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div><div style="margin-bottom:10px;display:flex;gap:8px"><select id="location-filter" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">🏢 كل المواقع</option></select><select id="project-site-filter" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">📍 كل المشاريع</option></select><select id="ownership-filter" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">🏷️ ملك وإيجار</option><option value="ملك">🔑 ملك فقط</option><option value="إيجار">📋 إيجار فقط</option></select></div><div style="display:flex;gap:10px;margin-bottom:10px"><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات</button><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ حذف الكل</button></div><div id="equipment-list"></div></div></div>
   
   <div id="view-drivers" style="display:none"><div style="padding:14px">
     <div class="search-box"><span>🔍</span><input type="text" id="search-driver" placeholder="بحث باسم السائق..." oninput="debouncedRefresh()"></div>
@@ -5839,6 +5839,7 @@ function refreshUI() {
         var search = document.getElementById('search-equipment') ? document.getElementById('search-equipment').value : '';
         var projectFilter = document.getElementById('project-site-filter') ? document.getElementById('project-site-filter').value : '';
         var locationFilter = document.getElementById('location-filter') ? document.getElementById('location-filter').value : '';
+        var ownershipFilter = document.getElementById('ownership-filter') ? document.getElementById('ownership-filter').value : '';
         // Populate project filter options dynamically
         var projFilterEl = document.getElementById('project-site-filter');
         if (projFilterEl) {
@@ -5858,7 +5859,8 @@ function refreshUI() {
             var matchSearch = !search || (e.name && e.name.includes(search)) || (e.code && e.code.includes(search));
             var matchProject = !projectFilter || (e.projectSite && e.projectSite === projectFilter);
             var matchLocation = !locationFilter || (e.location && e.location === locationFilter);
-            return matchSearch && matchProject && matchLocation;
+            var matchOwnership = !ownershipFilter || (e.ownership || 'ملك') === ownershipFilter;
+            return matchSearch && matchProject && matchLocation && matchOwnership;
         }).forEach(function(eq) {
             var rem = hoursRemaining(eq);
             var GAUGE_MAX = 250;
@@ -6204,6 +6206,7 @@ function refreshUI() {
     updateBellCounter();
 }
 
+var homeOwnershipFilter = '';
 function updateHomeStatsAndList() {
     var equipmentData = getVisibleEquipment();
 
@@ -6251,8 +6254,16 @@ function updateHomeStatsAndList() {
         (expiredLicenses > 0 ? '<div class="stat-card" style="border:2px solid var(--danger)"><div class="stat-number" style="color:var(--danger)">' + expiredLicenses + '</div><div class="stat-label">رخصة منتهية ❌</div></div>' : '') +
         (totalMaintCost > 0 ? '<div class="stat-card"><div class="stat-number" style="color:var(--success);font-size:12px">' + totalMaintCost.toLocaleString() + '</div><div class="stat-label">ج.م صيانة 💰</div></div>' : '');
     
-    var sorted = equipmentData.slice().sort(function(a, b) { return hoursRemaining(a) - hoursRemaining(b); });
-    document.getElementById('equipment-count').innerHTML = '(' + equipmentData.length + ')';
+    var homeFilteredEquipment = equipmentData.filter(function(e) {
+        return !homeOwnershipFilter || (e.ownership || 'ملك') === homeOwnershipFilter;
+    });
+    var sorted = homeFilteredEquipment.slice().sort(function(a, b) { return hoursRemaining(a) - hoursRemaining(b); });
+    document.getElementById('equipment-count').innerHTML = '(' + homeFilteredEquipment.length + ')';
+    document.querySelectorAll('.home-own-btn').forEach(function(btn) {
+        var active = btn.dataset.own === homeOwnershipFilter;
+        btn.style.background = active ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : '#f1f5f9';
+        btn.style.color = active ? 'white' : '#374151';
+    });
     
     var equipmentListHtml = '';
     sorted.forEach(function(eq) {
@@ -6782,6 +6793,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (projectSiteFilter) projectSiteFilter.onchange = function() { debouncedRefresh(); };
     var locationFilterEl = document.getElementById('location-filter');
     if (locationFilterEl) locationFilterEl.onchange = function() { debouncedRefresh(); };
+    var ownershipFilterEl = document.getElementById('ownership-filter');
+    if (ownershipFilterEl) ownershipFilterEl.onchange = function() { debouncedRefresh(); };
+    document.querySelectorAll('.home-own-btn').forEach(function(btn) {
+        btn.onclick = function() {
+            homeOwnershipFilter = btn.dataset.own || '';
+            updateHomeStatsAndList();
+        };
+    });
     var searchSiteEl = document.getElementById('search-site');
     if (searchSiteEl) searchSiteEl.oninput = function() { renderSitesDashboard(); };
     var sitesModeCardsBtn = document.getElementById('sites-mode-cards-btn');
