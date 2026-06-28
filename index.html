@@ -67,13 +67,13 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 
     <!-- أزرار التبويب الثلاثة -->
     <div style="display:flex;gap:5px;margin-bottom:18px;background:rgba(255,255,255,0.05);border-radius:40px;padding:4px">
-      <button id="direct-login-btn" onclick="setLoginMode('direct')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:#e8a020;color:#0d1b2a;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🚪 زائر</button>
-      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🔐 دخول</button>
+      <button id="direct-login-btn" onclick="setLoginMode('direct')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🚪 زائر</button>
+      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:#e8a020;color:#0d1b2a;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🔐 دخول</button>
       <button id="register-login-btn" onclick="setLoginMode('register')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">✨ تسجيل</button>
     </div>
 
     <!-- لوحة الدخول المباشر -->
-    <div id="direct-login-panel" style="display:block">
+    <div id="direct-login-panel" style="display:none">
       <div style="background:rgba(255,255,255,0.08);border-radius:16px;padding:14px;margin-bottom:16px;text-align:right">
         <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:6px">👁 وضع المشاهدة</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.4)">يمكنك تصفح البيانات بدون تسجيل، لكن لا يمكنك الاضافة او التعديل.</div>
@@ -82,11 +82,11 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     </div>
 
     <!-- لوحة الدخول الآمن -->
-    <div id="secure-login-panel" style="display:none">
+    <div id="secure-login-panel" style="display:block">
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
-          <span style="color:#e8a020;font-size:18px">📧</span>
-          <input type="email" id="secure-username" placeholder="البريد الالكتروني" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
+          <span style="color:#e8a020;font-size:18px">👤</span>
+          <input type="text" id="secure-username" placeholder="اسم المستخدم" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit" dir="ltr">
         </div>
       </div>
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:14px">
@@ -674,7 +674,13 @@ function openEditUserModal(idx) {
         '<div><label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631</label>' +
         '<input id="uem-password" type="text" value="' + escapeHtml(user.password) + '" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>' +
         '<div style="border-top:1px solid #f1f5f9;padding-top:10px">' +
-        '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">\u{1F511} \u0635\u0644\u0627\u062D\u064A\u0627\u062A \u0627\u0644\u0623\u0642\u0633\u0627\u0645</div>' +
+        '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">🎭 دور المستخدم</div>' +
+        '<div style="display:flex;gap:8px;margin-bottom:12px">' +
+        '<button id="uem-role-admin" onclick="uemSetRole(\'admin\')" style="flex:1;padding:8px;border-radius:10px;border:2px solid ' + (user.role==\'admin\' ? \'#7c3aed\' : \'#e2e8f0\') + ';background:' + (user.role==\'admin\' ? \'#ede9fe\' : \'white\') + ';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;color:' + (user.role==\'admin\' ? \'#4c1d95\' : \'#64748b\') + '">👑 مدير (كامل الصلاحيات)</button>' +
+        '<button id="uem-role-custom" onclick="uemSetRole(\'custom\')" style="flex:1;padding:8px;border-radius:10px;border:2px solid ' + (user.role!=\'admin\' ? \'#7c3aed\' : \'#e2e8f0\') + ';background:' + (user.role!=\'admin\' ? \'#ede9fe\' : \'white\') + ';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;color:' + (user.role!=\'admin\' ? \'#4c1d95\' : \'#64748b\') + '">👤 مستخدم عادي</button>' +
+        '</div>' +
+        '<div id="uem-sections-wrapper" style="' + (user.role==\'admin\' ? \'display:none\' : \'\') + '">' +
+        '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">🔑 صلاحيات الأقسام</div>' +
         (function() {
             var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646']];
             return SECS.map(function(s) {
@@ -691,6 +697,7 @@ function openEditUserModal(idx) {
                     '</select>' + '</div>';
             }).join('');
         })() +
+        '</div>' +
         '</div>' +
         '<div style="border-top:1px solid #f1f5f9;padding-top:10px">' +
         '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:4px">\u{1F3E2} \u0635\u0644\u0627\u062D\u064A\u0629 \u0627\u0644\u0645\u0648\u0627\u0642\u0639</div>' +
@@ -716,6 +723,23 @@ function openEditUserModal(idx) {
         '</div></div>';
 
     document.body.appendChild(modal);
+
+    window.uemSetRole = function(role) {
+        var wrapper = document.getElementById('uem-sections-wrapper');
+        var btnAdmin = document.getElementById('uem-role-admin');
+        var btnCustom = document.getElementById('uem-role-custom');
+        if (role === 'admin') {
+            if (wrapper) wrapper.style.display = 'none';
+            if (btnAdmin) { btnAdmin.style.borderColor='#7c3aed'; btnAdmin.style.background='#ede9fe'; btnAdmin.style.color='#4c1d95'; }
+            if (btnCustom) { btnCustom.style.borderColor='#e2e8f0'; btnCustom.style.background='white'; btnCustom.style.color='#64748b'; }
+        } else {
+            if (wrapper) wrapper.style.display = 'block';
+            if (btnCustom) { btnCustom.style.borderColor='#7c3aed'; btnCustom.style.background='#ede9fe'; btnCustom.style.color='#4c1d95'; }
+            if (btnAdmin) { btnAdmin.style.borderColor='#e2e8f0'; btnAdmin.style.background='white'; btnAdmin.style.color='#64748b'; }
+        }
+        modal.dataset.role = role;
+    };
+    modal.dataset.role = user.role === 'admin' ? 'admin' : 'custom';
 
     document.getElementById('user-modal-close').onclick = function(){ modal.remove(); };
     modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
@@ -758,13 +782,18 @@ function openEditUserModal(idx) {
             document.querySelectorAll('.uem-site-cb:checked').forEach(function(cb) { sites.push(cb.value); });
         }
 
+        var chosenRole = (modal.dataset.role === 'admin') ? 'admin' : 'custom';
+        var finalSections = chosenRole === 'admin'
+            ? { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full' }
+            : sections;
         if (isNew) {
-            APP_USERS.push({ id: user.id, username: uname, password: pass, name: name, role: 'custom', active: true, sections: sections, sites: sites });
+            APP_USERS.push({ id: user.id, username: uname, password: pass, name: name, role: chosenRole, active: true, sections: finalSections, sites: sites });
         } else {
             APP_USERS[idx].name = name;
             APP_USERS[idx].username = uname;
             APP_USERS[idx].password = pass;
-            APP_USERS[idx].sections = sections;
+            APP_USERS[idx].role = chosenRole;
+            APP_USERS[idx].sections = finalSections;
             APP_USERS[idx].sites = sites;
         }
         saveAppUsers();
@@ -1263,7 +1292,7 @@ let pendingInventoryData = null;
 let importResults = { equipment: 0, fuel: 0, parts: 0 };
 let lastAlertCheck = 0;
 let notifSettings = { whatsappNumber: '', threshold: 50 };
-let SYSTEM_CONFIG = { loginMode: 'direct' };
+let SYSTEM_CONFIG = { loginMode: 'secure' };
 
 function showToast(message, isError = false) {
     const toast = document.getElementById('toast');
@@ -1845,6 +1874,24 @@ function detachFirebaseListeners() {
     if (fbDb) fbDb.goOffline();
 }
 
+function preloadUsersFromFirebase() {
+    // تحميل المستخدمين مبكراً من Firebase عند فتح صفحة الدخول
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+        var _preDb = firebase.database();
+        _preDb.ref('appUsers').once('value').then(function(snap) {
+            var data = snap.val();
+            if (data && typeof data === 'object') {
+                var loaded = Object.values(data);
+                var hasAdmin = loaded.find(function(u){ return u.role === 'admin'; });
+                if (!hasAdmin) loaded.unshift(APP_USERS[0]);
+                APP_USERS = loaded;
+                console.log('[preload] Loaded', APP_USERS.length, 'users from Firebase');
+            }
+        }).catch(function(e){ console.warn('[preload] Failed:', e.message); });
+    } catch(e) { console.warn('[preload] Firebase init error:', e.message); }
+}
+
 function initFirebase() {
     try {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
@@ -1943,19 +1990,31 @@ function secureLogin() {
         proceedToApp();
     }
 
-    // تحميل أحدث بيانات المستخدمين من Firebase أولاً
-    if (typeof fbDb !== 'undefined' && fbDb) {
-        loadAppUsersFromFirebase(doLogin);
-    } else {
-        // Firebase لم يتهيأ بعد — انتظر ثانية ثم حاول
-        setTimeout(function() {
-            if (typeof fbDb !== 'undefined' && fbDb) {
-                loadAppUsersFromFirebase(doLogin);
+    // دائماً نحمّل أحدث بيانات المستخدمين من Firebase قبل الدخول
+    function tryLoadThenLogin(retries) {
+        retries = retries || 0;
+        try {
+            if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+            var _db = firebase.database();
+            _db.ref('appUsers').once('value').then(function(snap) {
+                var data = snap.val();
+                if (data && typeof data === 'object') {
+                    var loaded = Object.values(data);
+                    var hasAdmin = loaded.find(function(u){ return u.role === 'admin'; });
+                    if (!hasAdmin) loaded.unshift(APP_USERS[0]);
+                    APP_USERS = loaded;
+                }
+                doLogin();
+            }).catch(function() { doLogin(); });
+        } catch(e) {
+            if (retries < 2) {
+                setTimeout(function(){ tryLoadThenLogin(retries+1); }, 800);
             } else {
                 doLogin();
             }
-        }, 1000);
+        }
     }
+    tryLoadThenLogin();
 }
 
 function setLoginMode(mode) {
@@ -6759,6 +6818,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     loadSavedSettings();
+
+    // تحميل المستخدمين من Firebase فوراً عند فتح الصفحة
+    preloadUsersFromFirebase();
     
     // ربط الدوال بـ window لضمان الوصول من HTML
     window.openEquipmentDetail = openEquipmentDetail;
