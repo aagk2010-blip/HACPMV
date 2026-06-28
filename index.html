@@ -676,8 +676,8 @@ function openEditUserModal(idx) {
         '<div style="border-top:1px solid #f1f5f9;padding-top:10px">' +
         '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">🎭 دور المستخدم</div>' +
         '<div style="display:flex;gap:8px;margin-bottom:12px">' +
-        '<button id="uem-role-admin" onclick="uemSetRole(\'admin\')" style="flex:1;padding:8px;border-radius:10px;border:2px solid ' + (user.role==\'admin\' ? \'#7c3aed\' : \'#e2e8f0\') + ';background:' + (user.role==\'admin\' ? \'#ede9fe\' : \'white\') + ';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;color:' + (user.role==\'admin\' ? \'#4c1d95\' : \'#64748b\') + '">👑 مدير (كامل الصلاحيات)</button>' +
-        '<button id="uem-role-custom" onclick="uemSetRole(\'custom\')" style="flex:1;padding:8px;border-radius:10px;border:2px solid ' + (user.role!=\'admin\' ? \'#7c3aed\' : \'#e2e8f0\') + ';background:' + (user.role!=\'admin\' ? \'#ede9fe\' : \'white\') + ';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;color:' + (user.role!=\'admin\' ? \'#4c1d95\' : \'#64748b\') + '">👤 مستخدم عادي</button>' +
+        '<button id="uem-role-admin" data-selected="' + (user.role==\'admin\' ? \'1\' : \'0\') + '" onclick="uemSetRole(\'admin\')" style="flex:1;padding:8px;border-radius:10px;border:2px solid ' + (user.role==\'admin\' ? \'#7c3aed\' : \'#e2e8f0\') + ';background:' + (user.role==\'admin\' ? \'#ede9fe\' : \'white\') + ';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;color:' + (user.role==\'admin\' ? \'#4c1d95\' : \'#64748b\') + '">👑 مدير (كامل الصلاحيات)</button>' +
+        '<button id="uem-role-custom" data-selected="' + (user.role!=\'admin\' ? \'1\' : \'0\') + '" onclick="uemSetRole(\'custom\')" style="flex:1;padding:8px;border-radius:10px;border:2px solid ' + (user.role!=\'admin\' ? \'#7c3aed\' : \'#e2e8f0\') + ';background:' + (user.role!=\'admin\' ? \'#ede9fe\' : \'white\') + ';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;color:' + (user.role!=\'admin\' ? \'#4c1d95\' : \'#64748b\') + '">👤 مستخدم عادي</button>' +
         '</div>' +
         '<div id="uem-sections-wrapper" style="' + (user.role==\'admin\' ? \'display:none\' : \'\') + '">' +
         '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">🔑 صلاحيات الأقسام</div>' +
@@ -725,21 +725,19 @@ function openEditUserModal(idx) {
     document.body.appendChild(modal);
 
     window.uemSetRole = function(role) {
-        var wrapper = document.getElementById('uem-sections-wrapper');
-        var btnAdmin = document.getElementById('uem-role-admin');
+        var btnAdmin  = document.getElementById('uem-role-admin');
         var btnCustom = document.getElementById('uem-role-custom');
+        var wrapper   = document.getElementById('uem-sections-wrapper');
         if (role === 'admin') {
+            if (btnAdmin)  { btnAdmin.dataset.selected='1';  btnAdmin.style.borderColor='#7c3aed'; btnAdmin.style.background='#ede9fe'; btnAdmin.style.color='#4c1d95'; }
+            if (btnCustom) { btnCustom.dataset.selected='0'; btnCustom.style.borderColor='#e2e8f0'; btnCustom.style.background='white'; btnCustom.style.color='#64748b'; }
             if (wrapper) wrapper.style.display = 'none';
-            if (btnAdmin) { btnAdmin.style.borderColor='#7c3aed'; btnAdmin.style.background='#ede9fe'; btnAdmin.style.color='#4c1d95'; }
-            if (btnCustom) { btnCustom.style.borderColor='#e2e8f0'; btnCustom.style.background='white'; btnCustom.style.color='#64748b'; }
         } else {
+            if (btnCustom) { btnCustom.dataset.selected='1'; btnCustom.style.borderColor='#7c3aed'; btnCustom.style.background='#ede9fe'; btnCustom.style.color='#4c1d95'; }
+            if (btnAdmin)  { btnAdmin.dataset.selected='0';  btnAdmin.style.borderColor='#e2e8f0'; btnAdmin.style.background='white'; btnAdmin.style.color='#64748b'; }
             if (wrapper) wrapper.style.display = 'block';
-            if (btnCustom) { btnCustom.style.borderColor='#7c3aed'; btnCustom.style.background='#ede9fe'; btnCustom.style.color='#4c1d95'; }
-            if (btnAdmin) { btnAdmin.style.borderColor='#e2e8f0'; btnAdmin.style.background='white'; btnAdmin.style.color='#64748b'; }
         }
-        modal.dataset.role = role;
     };
-    modal.dataset.role = user.role === 'admin' ? 'admin' : 'custom';
 
     document.getElementById('user-modal-close').onclick = function(){ modal.remove(); };
     modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
@@ -782,7 +780,8 @@ function openEditUserModal(idx) {
             document.querySelectorAll('.uem-site-cb:checked').forEach(function(cb) { sites.push(cb.value); });
         }
 
-        var chosenRole = (modal.dataset.role === 'admin') ? 'admin' : 'custom';
+        // الدور: admin أو custom حسب اختيار الزر
+        var chosenRole = (document.getElementById('uem-role-admin') && document.getElementById('uem-role-admin').dataset.selected === '1') ? 'admin' : (isNew ? 'custom' : (APP_USERS[idx] ? APP_USERS[idx].role : 'custom'));
         var finalSections = chosenRole === 'admin'
             ? { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full' }
             : sections;
@@ -1172,6 +1171,25 @@ var APP_USERS = [
         sections: { home:'none', equipment:'none', fuel:'none', maintenance:'none', inventory:'none', rental:'view', drivers:'none' }
     }
 ];
+
+// تهيئة Firebase المبكرة لتحميل المستخدمين قبل الدخول
+function earlyInitFirebase() {
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+        if (!fbDb) fbDb = firebase.database();
+        // تحميل المستخدمين فوراً
+        fbDb.ref('appUsers').once('value').then(function(snap) {
+            var data = snap.val();
+            if (data && typeof data === 'object') {
+                var loaded = Object.values(data);
+                var hasAdmin = loaded.find(function(u){ return u.role === 'admin'; });
+                if (!hasAdmin) loaded.unshift(APP_USERS[0]);
+                APP_USERS = loaded;
+                console.log('[earlyInit] loaded', APP_USERS.length, 'users');
+            }
+        }).catch(function(e){ console.warn('[earlyInit]', e.message); });
+    } catch(e) { console.warn('[earlyInit] failed:', e.message); }
+}
 
 // حفظ المستخدمين في Firebase (مزامنة على كل الأجهزة)
 function saveAppUsers() {
@@ -1874,23 +1892,6 @@ function detachFirebaseListeners() {
     if (fbDb) fbDb.goOffline();
 }
 
-function preloadUsersFromFirebase() {
-    // تهيئة Firebase مبكراً وتحميل المستخدمين
-    try {
-        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-        if (!fbDb) fbDb = firebase.database();
-        fbDb.ref('appUsers').once('value').then(function(snap) {
-            var data = snap.val();
-            if (data && typeof data === 'object') {
-                var loaded = Object.values(data);
-                var hasAdmin = loaded.find(function(u){ return u.role === 'admin'; });
-                if (!hasAdmin) loaded.unshift(APP_USERS[0]);
-                APP_USERS = loaded;
-            }
-        }).catch(function(e){ console.warn('[preload] Failed:', e.message); });
-    } catch(e) { console.warn('[preload] Firebase init error:', e.message); }
-}
-
 function initFirebase() {
     try {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
@@ -1990,7 +1991,7 @@ function secureLogin() {
     }
 
     // تحميل أحدث المستخدمين من Firebase ثم الدخول
-    function tryLoadThenLogin() {
+    function doLoginWithFirebase() {
         try {
             if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
             if (!fbDb) fbDb = firebase.database();
@@ -2004,11 +2005,9 @@ function secureLogin() {
                 }
                 doLogin();
             }).catch(function() { doLogin(); });
-        } catch(e) {
-            doLogin();
-        }
+        } catch(e) { doLogin(); }
     }
-    tryLoadThenLogin();
+    doLoginWithFirebase();
 }
 
 function setLoginMode(mode) {
@@ -6653,6 +6652,8 @@ function initOfflineDetector() {
 // ==================== ربط الأحداث النهائي ====================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('تم تحميل الصفحة - جاري تهيئة التطبيق');
+    // تهيئة Firebase وتحميل المستخدمين مبكراً
+    setTimeout(function(){ earlyInitFirebase(); }, 300);
     
     // أزرار صفحة الدخول
     var directLoginBtn = document.getElementById('direct-login-btn');
@@ -6678,8 +6679,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deleteAllMaintenanceBtn) deleteAllMaintenanceBtn.onclick = function() { deleteAllMaintenance(); };
     if (deleteAllInventoryBtn) deleteAllInventoryBtn.onclick = function() { deleteAllInventory(); };
     
-    // وضع الدخول الافتراضي - لا نحتاج Firebase لهذا
-    setLoginMode('secure');
+    // تحميل وضع الدخول من Firebase إن وُجد
+    var fbCfgForMode = null;
+    try { fbCfgForMode = JSON.parse(localStorage.getItem('fb_config') || 'null'); } catch(e){}
+    if (fbCfgForMode) {
+        try {
+            var _tmpApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(fbCfgForMode);
+            var _tmpDb = firebase.database(_tmpApp);
+            _tmpDb.ref('appSettings/loginMode').once('value').then(function(snap) {
+                var savedMode = snap.val();
+                if (savedMode === 'secure') setLoginMode('secure');
+                else if (savedMode === 'register') setLoginMode('register');
+                else setLoginMode('direct');
+            }).catch(function() { setLoginMode('direct'); });
+        } catch(e) { setLoginMode('direct'); }
+    } else {
+        setLoginMode('direct');
+    }
     
     if (logoutBtn) logoutBtn.onclick = function() { logout(); };
     
@@ -6797,10 +6813,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     loadSavedSettings();
-
-    // تهيئة Firebase مبكراً وتحميل المستخدمين في الخلفية
-    setTimeout(function() { preloadUsersFromFirebase(); }, 500);
-
+    
     // ربط الدوال بـ window لضمان الوصول من HTML
     window.openEquipmentDetail = openEquipmentDetail;
     window.editEquipment = editEquipment;
