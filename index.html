@@ -409,6 +409,9 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
       </div>
     </div>
 
+    <!-- طلبات الحسابات الجديدة -->
+    <div id="account-requests-list"></div>
+
     <!-- قائمة المستخدمين -->
     <div id="admin-users-list"><div class="empty-state">⏳ جاري التحميل...</div></div>
   </div>
@@ -547,6 +550,7 @@ function loadAdminUsers() {
     var listEl = document.getElementById('admin-users-list');
     if (!listEl) return;
     renderUsersList(listEl);
+    renderAccountRequests();
 }
 
 function renderUsersList(listEl) {
@@ -1917,6 +1921,8 @@ function initFirebase() {
         fbDb.goOnline();
         // مراقبة المستخدمين في الوقت الفعلي
         watchAppUsers();
+        // مراقبة طلبات الحسابات الجديدة
+        watchAccountRequests();
         // تهيئة Firestore لإدارة المستخدمين
         initFirestoreUsers();
         fbDb.ref('.info/connected').on('value', function(snapshot) {
@@ -2081,49 +2087,123 @@ function registerNewUser() {
     if (pass.length < 6) { showErr('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
     if (pass !== pass2) { showErr('كلمتا المرور غير متطابقتين'); return; }
 
-    btn.innerHTML = 'جاري الإنشاء... <span class="loading-spinner"></span>';
+    if (!fbDb) { showErr('لا يوجد اتصال بقاعدة البيانات، حاول مرة أخرى لاحقاً'); return; }
+
+    // تأكد عدم وجود حساب فعّال بنفس البريد مسبقاً
+    var existingUser = APP_USERS.find(function(u) { return u.username.toLowerCase() === email.toLowerCase(); });
+    if (existingUser) { showErr('هذا البريد مسجل مسبقاً، حاول تسجيل الدخول.'); return; }
+
+    btn.innerHTML = 'جاري الإرسال... <span class="loading-spinner"></span>';
     btn.disabled = true;
 
-    // تأكد من تهيئة Firebase
-    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    if (!fbFirestore) { try { fbFirestore = firebase.firestore(); } catch(e) {} }
-
-    firebase.auth().createUserWithEmailAndPassword(email, pass).then(function(cred) {
-        var uid = cred.user.uid;
-        // تحديث الاسم في Firebase Auth
-        return cred.user.updateProfile({ displayName: name }).then(function() {
-            // حفظ في Firestore
-            var userData = {
-                email: email,
-                displayName: name,
-                role: 'viewer',
-                plan: 'free',
-                status: 'active',
-                createdAt: new Date().toISOString(),
-                lastLogin: new Date().toISOString()
-            };
-            return saveUserToFirestore(uid, userData);
+    fbDb.ref('accountRequests').once('value').then(function(snap) {
+        var data = snap.val() || {};
+        var alreadyPending = Object.values(data).some(function(r) {
+            return r.username && r.username.toLowerCase() === email.toLowerCase();
         });
-    }).then(function() {
-        showSuc('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول. تواصل مع المدير لرفع صلاحياتك.');
-        document.getElementById('reg-name').value = '';
-        document.getElementById('reg-email').value = '';
-        document.getElementById('reg-password').value = '';
-        document.getElementById('reg-password2').value = '';
-        btn.innerHTML = '✨ انشاء حساب';
-        btn.disabled = false;
-        // تسجيل خروج تلقائي بعد التسجيل
-        firebase.auth().signOut().catch(function(){});
-        // انتقل لتبويب الدخول بعد 2 ثانية
-        setTimeout(function() { setLoginMode('secure'); }, 2000);
+        if (alreadyPending) {
+            showErr('تم إرسال طلب بهذا البريد مسبقاً، انتظر موافقة المدير.');
+            btn.innerHTML = '✨ انشاء حساب';
+            btn.disabled = false;
+            return;
+        }
+        return fbDb.ref('accountRequests').push({
+            name: name,
+            username: email,
+            password: pass,
+            requestedAt: new Date().toISOString()
+        }).then(function() {
+            showSuc('✅ تم إرسال طلبك بنجاح. انتظر موافقة المدير لتفعيل حسابك، ثم يمكنك تسجيل الدخول.');
+            document.getElementById('reg-name').value = '';
+            document.getElementById('reg-email').value = '';
+            document.getElementById('reg-password').value = '';
+            document.getElementById('reg-password2').value = '';
+            btn.innerHTML = '✨ انشاء حساب';
+            btn.disabled = false;
+            setTimeout(function() { setLoginMode('secure'); }, 2500);
+        });
     }).catch(function(err) {
-        var msg = err.code === 'auth/email-already-in-use' ? 'هذا البريد مسجل مسبقاً، حاول تسجيل الدخول.' :
-                  err.code === 'auth/invalid-email' ? 'بريد إلكتروني غير صالح.' :
-                  err.code === 'auth/weak-password' ? 'كلمة المرور ضعيفة جداً.' :
-                  'خطأ: ' + err.message;
-        showErr(msg);
+        showErr('خطأ: ' + err.message);
         btn.innerHTML = '✨ انشاء حساب';
         btn.disabled = false;
+    });
+}
+
+// ==================== طلبات الحسابات الجديدة (موافقة / رفض) ====================
+var accountRequestsData = [];
+
+function renderAccountRequests() {
+    var listEl = document.getElementById('account-requests-list');
+    if (!listEl) return;
+    if (!accountRequestsData.length) {
+        listEl.innerHTML = '';
+        return;
+    }
+    listEl.innerHTML = '<div style="font-weight:800;font-size:13px;color:#92400e;margin-bottom:8px">📩 طلبات حسابات جديدة (' + accountRequestsData.length + ')</div>' +
+        accountRequestsData.map(function(r) {
+            return '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+                '<div style="min-width:0;flex:1">' +
+                '<div style="font-weight:700;font-size:13px;color:#0d1b2a">' + escapeHtml(r.name) + '</div>' +
+                '<div style="font-size:11px;color:#64748b">' + escapeHtml(r.username) + '</div>' +
+                '</div>' +
+                '<div style="display:flex;gap:6px;flex-shrink:0">' +
+                '<button data-action="approve-request" data-id="' + r.id + '" style="background:#10b981;color:white;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">✅ قبول</button>' +
+                '<button data-action="reject-request" data-id="' + r.id + '" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">❌ رفض</button>' +
+                '</div></div>';
+        }).join('');
+
+    listEl.querySelectorAll('[data-action="approve-request"]').forEach(function(btn) {
+        btn.onclick = function() { approveAccountRequest(btn.dataset.id); };
+    });
+    listEl.querySelectorAll('[data-action="reject-request"]').forEach(function(btn) {
+        btn.onclick = function() { rejectAccountRequest(btn.dataset.id); };
+    });
+}
+
+function watchAccountRequests() {
+    if (!fbDb) return;
+    fbDb.ref('accountRequests').on('value', function(snap) {
+        var data = snap.val();
+        accountRequestsData = data ? Object.entries(data).map(function(e) {
+            var obj = Object.assign({}, e[1]); obj.id = e[0]; return obj;
+        }) : [];
+        renderAccountRequests();
+    });
+}
+
+function approveAccountRequest(id) {
+    var req = accountRequestsData.find(function(r) { return r.id === id; });
+    if (!req) return;
+    if (APP_USERS.some(function(u) { return u.username.toLowerCase() === req.username.toLowerCase(); })) {
+        showToast('⛔ يوجد مستخدم بنفس اسم الدخول مسبقاً', true);
+        return;
+    }
+    APP_USERS.push({
+        id: 'user_' + Date.now(),
+        username: req.username,
+        password: req.password,
+        name: req.name,
+        role: 'custom',
+        active: true,
+        sections: { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view' },
+        sites: []
+    });
+    saveAppUsers().then(function() {
+        return fbDb.ref('accountRequests/' + id).remove();
+    }).then(function() {
+        showToast('✅ تم قبول الطلب وإنشاء الحساب');
+        loadAdminUsers();
+    }).catch(function(e) {
+        showToast('❌ فشل قبول الطلب: ' + e.message, true);
+    });
+}
+
+function rejectAccountRequest(id) {
+    if (!confirm('هل تريد رفض هذا الطلب؟ لن يتمكن المتقدّم من الدخول.')) return;
+    fbDb.ref('accountRequests/' + id).remove().then(function() {
+        showToast('🚫 تم رفض الطلب');
+    }).catch(function(e) {
+        showToast('❌ فشل رفض الطلب: ' + e.message, true);
     });
 }
 
