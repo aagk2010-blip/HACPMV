@@ -674,6 +674,13 @@ function openEditUserModal(idx) {
         '<div><label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631</label>' +
         '<input id="uem-password" type="text" value="' + escapeHtml(user.password) + '" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>' +
         '<div style="border-top:1px solid #f1f5f9;padding-top:10px">' +
+        '<label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:6px">\u0646\u0648\u0639 \u0627\u0644\u062D\u0633\u0627\u0628</label>' +
+        '<div style="display:flex;gap:8px">' +
+        '<button type="button" id="uem-role-admin" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">\u{1F451} \u0645\u062F\u064A\u0631</button>' +
+        '<button type="button" id="uem-role-user" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">\u{1F464} \u0645\u0633\u062A\u062E\u062F\u0645 \u0639\u0627\u062F\u064A</button>' +
+        '</div>' +
+        '</div>' +
+        '<div id="uem-permissions-section" style="border-top:1px solid #f1f5f9;padding-top:10px">' +
         '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">\u{1F511} \u0635\u0644\u0627\u062D\u064A\u0627\u062A \u0627\u0644\u0623\u0642\u0633\u0627\u0645</div>' +
         (function() {
             var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646']];
@@ -734,6 +741,58 @@ function openEditUserModal(idx) {
         };
     }
 
+    // ==== تبديل نوع الحساب: مدير / مستخدم عادي ====
+    var SECS_ALL = ['home','equipment','fuel','maintenance','inventory','rental','drivers'];
+    var roleAdminBtn = document.getElementById('uem-role-admin');
+    var roleUserBtn = document.getElementById('uem-role-user');
+    var permsSection = document.getElementById('uem-permissions-section');
+    var selectedRole = (user.role === 'admin') ? 'admin' : 'custom';
+    // نحفظ آخر صلاحيات مخصّصة كي نرجع لها لو رجع لـ"مستخدم عادي"
+    var lastCustomSections = (user.role === 'admin')
+        ? { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view' }
+        : Object.assign({}, user.sections || {});
+
+    function refreshRoleUI() {
+        var isAdminSel = selectedRole === 'admin';
+        if (roleAdminBtn) {
+            roleAdminBtn.style.background = isAdminSel ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'white';
+            roleAdminBtn.style.color = isAdminSel ? 'white' : '#374151';
+            roleAdminBtn.style.borderColor = isAdminSel ? '#d97706' : '#e2e8f0';
+        }
+        if (roleUserBtn) {
+            roleUserBtn.style.background = !isAdminSel ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : 'white';
+            roleUserBtn.style.color = !isAdminSel ? 'white' : '#374151';
+            roleUserBtn.style.borderColor = !isAdminSel ? '#4f46e5' : '#e2e8f0';
+        }
+        if (permsSection) permsSection.style.display = isAdminSel ? 'none' : 'block';
+    }
+
+    if (roleAdminBtn) {
+        roleAdminBtn.onclick = function() {
+            // قبل التحويل لمدير، نحفظ الصلاحيات الحالية المختارة كـ"مخصصة" لاستخدامها لو رجع مستخدم عادي
+            if (selectedRole !== 'admin') {
+                SECS_ALL.forEach(function(k) {
+                    var el = document.getElementById('uem-sec-' + k);
+                    if (el) lastCustomSections[k] = el.value;
+                });
+            }
+            selectedRole = 'admin';
+            refreshRoleUI();
+        };
+    }
+    if (roleUserBtn) {
+        roleUserBtn.onclick = function() {
+            selectedRole = 'custom';
+            refreshRoleUI();
+            // استرجاع آخر صلاحيات مخصصة في القوائم
+            SECS_ALL.forEach(function(k) {
+                var el = document.getElementById('uem-sec-' + k);
+                if (el) el.value = lastCustomSections[k] || 'view';
+            });
+        };
+    }
+    refreshRoleUI();
+
     document.getElementById('uem-save').onclick = function() {
         var name = document.getElementById('uem-name').value.trim();
         var uname = document.getElementById('uem-username').value.trim();
@@ -748,9 +807,13 @@ function openEditUserModal(idx) {
 
         var SECS = ['home','equipment','fuel','maintenance','inventory','rental','drivers'];
         var sections = {};
-        SECS.forEach(function(k) {
-            sections[k] = document.getElementById('uem-sec-' + k).value;
-        });
+        if (selectedRole === 'admin') {
+            SECS.forEach(function(k) { sections[k] = 'full'; });
+        } else {
+            SECS.forEach(function(k) {
+                sections[k] = document.getElementById('uem-sec-' + k).value;
+            });
+        }
 
         var sitesAllChecked = document.getElementById('uem-sites-all') ? document.getElementById('uem-sites-all').checked : true;
         var sites = [];
@@ -759,17 +822,19 @@ function openEditUserModal(idx) {
         }
 
         if (isNew) {
-            APP_USERS.push({ id: user.id, username: uname, password: pass, name: name, role: 'custom', active: true, sections: sections, sites: sites });
+            APP_USERS.push({ id: user.id, username: uname, password: pass, name: name, role: selectedRole, active: true, sections: sections, sites: sites });
         } else {
             APP_USERS[idx].name = name;
             APP_USERS[idx].username = uname;
             APP_USERS[idx].password = pass;
+            APP_USERS[idx].role = selectedRole;
             APP_USERS[idx].sections = sections;
             APP_USERS[idx].sites = sites;
         }
         saveAppUsers();
         // تحديث صلاحيات المستخدم الحالي إذا كان هو المعدَّل
         if (currentUser && !isNew && APP_USERS[idx] && currentUser.id === APP_USERS[idx].id) {
+            currentUser.role = selectedRole;
             currentUser.sections = sections;
             currentUser.sites = sites;
             currentUser.name = name;
