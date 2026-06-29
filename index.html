@@ -679,9 +679,10 @@ function openEditUserModal(idx) {
         '<input id="uem-password" type="text" value="' + escapeHtml(user.password) + '" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>' +
         '<div style="border-top:1px solid #f1f5f9;padding-top:10px">' +
         '<label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:6px">\u0646\u0648\u0639 \u0627\u0644\u062D\u0633\u0627\u0628</label>' +
-        '<div style="display:flex;gap:8px">' +
-        '<button type="button" id="uem-role-admin" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">\u{1F451} \u0645\u062F\u064A\u0631</button>' +
-        '<button type="button" id="uem-role-user" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">\u{1F464} \u0645\u0633\u062A\u062E\u062F\u0645 \u0639\u0627\u062F\u064A</button>' +
+        '<div style="display:flex;gap:6px">' +
+        '<button type="button" id="uem-role-admin" style="flex:1;padding:10px 4px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">\u{1F451} \u0645\u062F\u064A\u0631</button>' +
+        '<button type="button" id="uem-role-user" style="flex:1;padding:10px 4px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">\u{1F464} \u0645\u0633\u062A\u062E\u062F\u0645 \u0639\u0627\u062F\u064A</button>' +
+        '<button type="button" id="uem-role-viewer" style="flex:1;padding:10px 4px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">\u{1F441}\uFE0F \u0645\u0634\u0627\u0647\u062F\u0629 \u0641\u0642\u0637</button>' +
         '</div>' +
         '</div>' +
         '<div id="uem-permissions-section" style="border-top:1px solid #f1f5f9;padding-top:10px">' +
@@ -745,16 +746,25 @@ function openEditUserModal(idx) {
         };
     }
 
-    // ==== تبديل نوع الحساب: مدير / مستخدم عادي ====
+    // ==== تبديل نوع الحساب: مدير / مستخدم عادي / مشاهدة فقط ====
     var SECS_ALL = ['home','equipment','fuel','maintenance','inventory','rental','drivers'];
     var roleAdminBtn = document.getElementById('uem-role-admin');
     var roleUserBtn = document.getElementById('uem-role-user');
+    var roleViewerBtn = document.getElementById('uem-role-viewer');
     var permsSection = document.getElementById('uem-permissions-section');
     var selectedRole = (user.role === 'admin') ? 'admin' : 'custom';
     // نحفظ آخر صلاحيات مخصّصة كي نرجع لها لو رجع لـ"مستخدم عادي"
     var lastCustomSections = (user.role === 'admin')
         ? { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view' }
         : Object.assign({}, user.sections || {});
+    // هل المستخدم في وضع "مشاهدة فقط" (كل الأقسام عرض فقط أو مخفية، بدون أي صلاحية إضافة/تعديل)؟
+    function sectionsAreViewOnly(sections) {
+        return SECS_ALL.every(function(k) {
+            var v = (sections || {})[k] || 'none';
+            return v === 'view' || v === 'none';
+        });
+    }
+    var isViewerSel = (selectedRole !== 'admin') && sectionsAreViewOnly(user.sections);
 
     function refreshRoleUI() {
         var isAdminSel = selectedRole === 'admin';
@@ -764,12 +774,38 @@ function openEditUserModal(idx) {
             roleAdminBtn.style.borderColor = isAdminSel ? '#d97706' : '#e2e8f0';
         }
         if (roleUserBtn) {
-            roleUserBtn.style.background = !isAdminSel ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : 'white';
-            roleUserBtn.style.color = !isAdminSel ? 'white' : '#374151';
-            roleUserBtn.style.borderColor = !isAdminSel ? '#4f46e5' : '#e2e8f0';
+            var isPlainUserSel = !isAdminSel && !isViewerSel;
+            roleUserBtn.style.background = isPlainUserSel ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : 'white';
+            roleUserBtn.style.color = isPlainUserSel ? 'white' : '#374151';
+            roleUserBtn.style.borderColor = isPlainUserSel ? '#4f46e5' : '#e2e8f0';
+        }
+        if (roleViewerBtn) {
+            var isViewerActive = !isAdminSel && isViewerSel;
+            roleViewerBtn.style.background = isViewerActive ? 'linear-gradient(135deg,#0ea5e9,#0369a1)' : 'white';
+            roleViewerBtn.style.color = isViewerActive ? 'white' : '#374151';
+            roleViewerBtn.style.borderColor = isViewerActive ? '#0369a1' : '#e2e8f0';
         }
         if (permsSection) permsSection.style.display = isAdminSel ? 'none' : 'block';
     }
+
+    // إذا تغيّر أي قسم يدويًا، نحدّث حالة زر "مشاهدة فقط" تلقائيًا
+    function bindSectionWatchers() {
+        SECS_ALL.forEach(function(k) {
+            var el = document.getElementById('uem-sec-' + k);
+            if (el) {
+                el.onchange = function() {
+                    var current = {};
+                    SECS_ALL.forEach(function(kk) {
+                        var e2 = document.getElementById('uem-sec-' + kk);
+                        current[kk] = e2 ? e2.value : 'none';
+                    });
+                    isViewerSel = sectionsAreViewOnly(current);
+                    refreshRoleUI();
+                };
+            }
+        });
+    }
+    bindSectionWatchers();
 
     if (roleAdminBtn) {
         roleAdminBtn.onclick = function() {
@@ -787,11 +823,32 @@ function openEditUserModal(idx) {
     if (roleUserBtn) {
         roleUserBtn.onclick = function() {
             selectedRole = 'custom';
+            isViewerSel = false;
             refreshRoleUI();
-            // استرجاع آخر صلاحيات مخصصة في القوائم
+            // استرجاع آخر صلاحيات مخصصة في القوائم (وإن كانت كلها "عرض فقط" نرفعها لـ"إضافة" كنقطة بداية معقولة)
             SECS_ALL.forEach(function(k) {
                 var el = document.getElementById('uem-sec-' + k);
-                if (el) el.value = lastCustomSections[k] || 'view';
+                var v = lastCustomSections[k] || 'view';
+                if (el) el.value = (sectionsAreViewOnly(lastCustomSections) && v === 'view') ? 'add' : v;
+            });
+        };
+    }
+    if (roleViewerBtn) {
+        roleViewerBtn.onclick = function() {
+            // نحفظ الصلاحيات الحالية كمخصصة قبل التحويل لمشاهدة فقط (للرجوع لها لاحقًا)
+            if (selectedRole !== 'admin' && !isViewerSel) {
+                SECS_ALL.forEach(function(k) {
+                    var el = document.getElementById('uem-sec-' + k);
+                    if (el) lastCustomSections[k] = el.value;
+                });
+            }
+            selectedRole = 'custom';
+            isViewerSel = true;
+            refreshRoleUI();
+            // كل الأقسام تصبح "عرض فقط" — بدون أي إضافة أو تعديل أو حذف
+            SECS_ALL.forEach(function(k) {
+                var el = document.getElementById('uem-sec-' + k);
+                if (el) el.value = 'view';
             });
         };
     }
@@ -1964,7 +2021,12 @@ function directLogin() {
     // دخول مباشر كمشاهد - بدون Firebase Auth (anonymous)
     currentUid = 'viewer_' + Date.now();
     currentUserRole = 'viewer';
-    currentUser = { username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'] };
+    currentUser = {
+        username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'],
+        // صلاحية عرض فقط لكل الصفحات حتى تظهر أزرار التنقل بين الأقسام للزائر
+        sections: { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view' },
+        sites: []
+    };
     showToast('مرحباً مشاهد');
     proceedToApp();
 }
