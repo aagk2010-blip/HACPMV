@@ -490,7 +490,7 @@ var currentUserRole = 'viewer';
 var currentUserPlan = 'free';
 var currentUserStatus = 'active';
 // صلاحيات وضع "الزائر" (دخول مباشر بدون حساب) — يتحكم فيها المدير من لوحة التحكم
-var VIEWER_SECTIONS = { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view' };
+var VIEWER_SECTIONS = { home:'view', equipment:'none', fuel:'none', maintenance:'none', inventory:'none', rental:'view', drivers:'view' };
 
 function initFirestoreUsers() {
     try {
