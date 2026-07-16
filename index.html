@@ -18,9 +18,11 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
-:root{color-scheme:light only;--primary:#0d1b2a;--secondary:#1b2838;--accent:#e8a020;--accent-dark:#c88a18;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#0e7490;--purple:#8b5cf6;--pink:#ec4899;--light:#f0f4f8;--white:#ffffff;--gray:#6b7a8d;--shadow:0 4px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 3px rgba(0,0,0,0.05)}
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
+:root{color-scheme:light only;--primary:#0d1b2a;--secondary:#1b2838;--accent:#e8a020;--accent-dark:#c88a18;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#0e7490;--purple:#8b5cf6;--pink:#ec4899;--light:#f0f4f8;--white:#ffffff;--gray:#6b7a8d;--shadow:0 4px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 3px rgba(0,0,0,0.05);--mono:'IBM Plex Mono',ui-monospace,monospace;--sidebar-w:268px}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction:rtl;max-width:500px;margin:0 auto;min-height:100vh;padding-bottom:80px}
+.stat-number,.card-code,#eq-code,.detail-value{font-family:var(--mono)}
 .header{background:linear-gradient(135deg,var(--primary),var(--secondary));padding:20px 18px;color:white;position:relative;overflow:hidden}.header::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;background:rgba(232,160,32,0.08);border-radius:50%}.header-title{font-size:24px;font-weight:800}.header-sub{font-size:11px;opacity:0.7;margin-top:4px}
 .stats-row{display:flex;gap:10px;padding:14px;overflow-x:auto;scrollbar-width:none}.stats-row::-webkit-scrollbar{display:none}.stat-card{background:var(--white);border-radius:20px;padding:12px 16px;min-width:85px;text-align:center;box-shadow:var(--shadow-sm)}.stat-number{font-size:26px;font-weight:800}.stat-label{font-size:11px;color:var(--gray);margin-top:4px}
 .section{padding:0 14px;margin-top:20px}.section-title{font-size:13px;font-weight:700;color:var(--gray);margin-bottom:12px;display:flex;justify-content:space-between}
@@ -46,9 +48,274 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 @keyframes spin{to{transform:rotate(360deg)}}
 .admin-panel-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:100%;background:var(--light);z-index:500;overflow-y:auto;display:none}.admin-panel-overlay.active{display:block}
 .user-row{background:white;border-radius:14px;padding:12px;margin-bottom:8px;box-shadow:var(--shadow-sm)}.user-row-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.user-email{font-size:13px;font-weight:700;color:var(--primary)}.user-meta{font-size:11px;color:var(--gray)}.user-controls{display:flex;gap:6px;flex-wrap:wrap}.role-badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;cursor:pointer}.role-admin{background:#fef3c7;color:#92400e}.role-manager{background:#dbeafe;color:#1e40af}.role-editor{background:#d1fae5;color:#065f46}.role-viewer{background:#f3f4f6;color:#374151}.plan-badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;cursor:pointer}.plan-free{background:#f1f5f9;color:#475569}.plan-basic{background:#dbeafe;color:#1e40af}.plan-premium{background:#fef3c7;color:#92400e}
+
+/* أيقونات SVG بدل الإيموجي في التنقل */
+.icon{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block;flex-shrink:0}
+.tab-btn .tab-icon{display:flex;align-items:center;justify-content:center}
+.sidebar-btn .icon{width:20px;height:20px}
+
+/* لمسة احترافية على الكروت */
+.equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{transition:transform .15s ease,box-shadow .15s ease}
+.equipment-card:hover,.driver-card:hover,.fuel-card:hover,.maintenance-card:hover,.inventory-item-card:hover{
+  transform:translateY(-2px);box-shadow:0 8px 22px rgba(13,27,42,0.10)}
+
+/* بانر رئيسي احترافي أعلى لوحة القيادة (سطح المكتب فقط) */
+.dash-hero{display:none}
+@media (min-width:1024px){
+  .dash-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:28px 28px 0;padding:34px 38px;
+    border-radius:24px;position:relative;overflow:hidden;color:#fff;
+    background:linear-gradient(120deg,var(--primary) 0%,#132840 55%,var(--secondary) 100%)}
+  .dash-hero::before{content:'';position:absolute;inset:0;opacity:.14;background-size:26px 26px;pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px)}
+  .dash-hero::after{content:'';position:absolute;left:-40px;bottom:-60px;width:220px;height:220px;border-radius:50%;
+    background:radial-gradient(circle,rgba(232,160,32,.28),transparent 70%);pointer-events:none}
+  .dash-hero-text{position:relative;z-index:1}
+  .dash-hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:2.5px;color:var(--accent);text-transform:uppercase;font-weight:600}
+  .dash-hero-title{font-size:28px;font-weight:800;margin-top:8px}
+  .dash-hero-sub{font-size:13px;color:rgba(255,255,255,.62);margin-top:6px;max-width:440px}
+  .dash-hero-art{position:relative;z-index:1;width:112px;height:112px;flex-shrink:0}
+  .dash-hero-art svg{width:100%;height:100%;stroke:var(--accent);opacity:.9}
+}
+
+/* خلفية هندسية احترافية لشاشة الدخول */
+#login-screen{background:
+  radial-gradient(circle at 15% 20%,rgba(232,160,32,.10),transparent 45%),
+  linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px),
+  linear-gradient(135deg,#0a1622,#1a2a3a) !important;
+  background-size:auto,32px 32px,32px 32px,auto}
+
+/* =======================================================================
+   واجهة سطح المكتب — Desktop dashboard layer
+   طبقة تصميم إضافية فقط، لا تلمس أي كلاس تستخدمه الجافاسكريبت الديناميكي.
+   ======================================================================= */
+.sidebar-nav{display:none}
+@media (min-width:1024px){
+  html{background:#e7ecf2}
+  body{max-width:none;padding-bottom:0;background:#e7ecf2}
+
+  /* الشريط الجانبي */
+  .sidebar-nav{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:var(--sidebar-w);
+    background:linear-gradient(180deg,var(--primary),#0a1420 75%);z-index:120;padding:22px 14px;gap:4px}
+  .sidebar-brand{display:flex;align-items:center;gap:12px;padding:6px 10px 22px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:14px}
+  .sidebar-brand-mark{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--primary);background:var(--accent);
+    width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sidebar-brand-title{color:#fff;font-weight:800;font-size:16px;letter-spacing:.5px}
+  .sidebar-brand-sub{color:rgba(255,255,255,0.45);font-size:10.5px;margin-top:1px}
+  .sidebar-links{display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+  .sidebar-btn{flex-direction:row !important;justify-content:flex-start;gap:12px;color:rgba(255,255,255,0.62) !important;
+    padding:11px 12px;border-radius:11px;font-size:13.5px !important;font-weight:600;min-width:0 !important;
+    border-right:3px solid transparent;transition:background .15s,color .15s}
+  .sidebar-btn .tab-icon{font-size:17px}
+  .sidebar-btn:hover{background:rgba(255,255,255,0.06);color:#fff !important}
+  .sidebar-btn.active{background:rgba(232,160,32,0.14);color:var(--accent) !important;border-right-color:var(--accent)}
+  .sidebar-foot{margin-top:auto;padding:12px 10px 0;font-size:10px;color:rgba(255,255,255,0.3);border-top:1px solid rgba(255,255,255,0.08)}
+
+  /* منطقة المحتوى */
+  .app-main{margin-right:var(--sidebar-w)}
+  .status-bar{padding:10px 28px}
+  .header{padding:22px 28px 20px}
+  .header-title{font-size:26px}
+  .section{padding:0 28px;max-width:1400px}
+  .stats-row{padding:18px 28px 4px;display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));overflow-x:visible}
+  .stat-card{min-width:0}
+  #alert-bar,.smart-alert-bar{margin-right:28px;margin-left:28px}
+
+  /* كل القوائم عمود واحد تحت بعض، بعرض مريح للقراءة على الشاشات الكبيرة */
+  #equipment-list-home,#equipment-list,#drivers-list,#fuel-list,#maintenance-list,#inv-list,
+  #sites-dashboard-list,#rental-equipment-list,#rental-daily-list{
+    display:flex;flex-direction:column;gap:12px;max-width:720px}
+  .equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{margin-bottom:0}
+
+  .search-box{max-width:420px}
+  #view-equipment>div>div[style*="margin-bottom:10px;display:flex;gap:8px"]{max-width:900px}
+
+  /* الأزرار الكبيرة تبقى بعرض معقول بدل ما تمتد بلا داعي */
+  .big-btn{max-width:1400px}
+  .save-btn{max-width:520px}
+
+  /* الأزرار العائمة والتنقل السفلي مش محتاجينهم في سطح المكتب */
+  .tab-bar{display:none}
+  .fab{right:auto;left:32px;bottom:32px}
+
+  /* المودالز تتحول لنوافذ توسط الشاشة بدل الشيت الكامل، مع خلفية معتمة */
+  .modal-overlay,.admin-panel-overlay{
+    left:50%;top:50%;transform:translate(-50%,-50%);width:640px;max-width:92vw;height:auto;max-height:88vh;
+    border-radius:22px;box-shadow:0 30px 90px rgba(0,0,0,.35),0 0 0 3000px rgba(9,16,26,.58);overflow-y:auto}
+  .modal-header{border-radius:22px 22px 0 0;padding:28px 26px 22px}
+  #detail-modal .modal-header{border-radius:22px 22px 0 0}
+
+  /* شاشة الدخول تاخد مساحة أهدأ */
+  #login-screen > div{max-width:400px}
+}
+@media (min-width:1440px){
+  :root{--sidebar-w:288px}
+}
+
+/* =======================================================================
+   طبقة التجميل الاحترافية V2 — إضافات بصرية فقط
+   لا يتم حذف أو تعديل أي كلاس تعتمد عليه الجافاسكريبت، فقط تحسين المظهر.
+   ======================================================================= */
+
+/* --- أساسيات عامة --- */
+html{scroll-behavior:smooth}
+::selection{background:rgba(232,160,32,.32);color:var(--primary)}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(13,27,42,.18);border-radius:20px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(13,27,42,.32);background-clip:padding-box}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* --- الهيدر: توهج ونقشة أدق --- */
+.header{background:radial-gradient(circle at 100% 0%,rgba(232,160,32,.20),transparent 55%),linear-gradient(135deg,var(--primary),var(--secondary) 70%)}
+.header::before{width:190px;height:190px;top:-60px;right:-50px;background:radial-gradient(circle,rgba(232,160,32,.16),transparent 70%)}
+.header::after{content:'';position:absolute;left:-60px;bottom:-70px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(14,116,144,.22),transparent 70%);pointer-events:none}
+.header-title{background:linear-gradient(90deg,#fff,#f3d9a6 85%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.2px}
+
+/* --- بطاقات الإحصائيات: تدرجات لونية دورية + أيقونة زخرفية --- */
+.stat-card{position:relative;overflow:hidden;border:1px solid rgba(13,27,42,.05);transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease}
+.stat-card::before{content:'';position:absolute;top:-16px;left:-16px;width:52px;height:52px;border-radius:50%;background:rgba(232,160,32,.10)}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(13,27,42,.12)}
+.stats-row .stat-card:nth-child(4n+1)::before{background:rgba(232,160,32,.12)}
+.stats-row .stat-card:nth-child(4n+2)::before{background:rgba(14,116,144,.12)}
+.stats-row .stat-card:nth-child(4n+3)::before{background:rgba(16,185,129,.12)}
+.stats-row .stat-card:nth-child(4n+4)::before{background:rgba(139,92,246,.12)}
+.stat-number{position:relative;background:linear-gradient(90deg,var(--primary),var(--secondary));-webkit-background-clip:text;background-clip:text}
+
+/* --- عناوين الأقسام: مؤشر لوني + خط سفلي خفيف --- */
+.section-title{position:relative;padding-right:12px;font-size:13.5px;letter-spacing:.2px}
+.section-title::before{content:'';position:absolute;right:0;top:1px;bottom:1px;width:4px;border-radius:4px;background:linear-gradient(180deg,var(--accent),var(--accent-dark))}
+
+/* --- الكروت: ظل متعدد الطبقات + دخول ناعم --- */
+.equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{
+  box-shadow:0 1px 2px rgba(13,27,42,.04),0 1px 6px rgba(13,27,42,.05);
+  border:1px solid rgba(13,27,42,.04);
+  transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease,border-color .18s ease}
+.equipment-card:hover,.driver-card:hover,.fuel-card:hover,.maintenance-card:hover,.inventory-item-card:hover{
+  transform:translateY(-3px);box-shadow:0 14px 30px rgba(13,27,42,.13);border-color:rgba(13,27,42,.06)}
+.equipment-card:active,.driver-card:active,.fuel-card:active,.maintenance-card:active,.inventory-item-card:active{transform:translateY(-1px) scale(.995)}
+.card-title{letter-spacing:.1px}
+
+/* --- الشارات (Badges): نقطة حالة + ظل ناعم --- */
+.badge{position:relative;padding-right:18px;box-shadow:0 1px 2px rgba(0,0,0,.04);letter-spacing:.1px}
+.badge::before{content:'';position:absolute;right:8px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%}
+.badge-working::before{background:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.18)}
+.badge-maintenance::before{background:#d97706;box-shadow:0 0 0 3px rgba(217,119,6,.18)}
+.badge-stopped::before{background:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.18)}
+.badge-active::before{background:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.18)}
+
+/* --- الأزرار: لمعة عند المرور + ضغطة ناعمة --- */
+.save-btn,.big-btn{position:relative;overflow:hidden;transition:transform .15s ease,box-shadow .15s ease;box-shadow:0 6px 16px rgba(13,27,42,.10)}
+.save-btn::after,.big-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);transition:transform .5s ease}
+.save-btn:hover::after,.big-btn:hover::after{transform:translateX(120%)}
+.save-btn:hover,.big-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(13,27,42,.16)}
+.save-btn:active,.big-btn:active{transform:translateY(0) scale(.985)}
+.fab{transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s ease}
+.fab:hover{transform:scale(1.08) rotate(8deg);box-shadow:0 8px 22px rgba(232,160,32,.5)}
+
+/* --- مربع البحث: تركيز أنيق --- */
+.search-box{transition:box-shadow .18s ease,border-color .18s ease;border:1px solid transparent}
+.search-box:focus-within{box-shadow:0 0 0 3px rgba(232,160,32,.18),var(--shadow-sm);border-color:rgba(232,160,32,.35)}
+
+/* --- شريط التبويب السفلي: تأثير اختيار --- */
+.tab-btn{position:relative;transition:color .18s ease}
+.tab-btn.active .tab-icon{transform:translateY(-1px)}
+.tab-btn.active::after{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent)}
+
+/* --- بانر لوحة القيادة: زخارف إضافية + شارات صغيرة --- */
+@media (min-width:1024px){
+  .dash-hero-art{filter:drop-shadow(0 6px 18px rgba(232,160,32,.35))}
+  .dash-hero-eyebrow::before{content:'⚙️ ';font-size:11px}
+  .dash-hero{box-shadow:0 20px 50px rgba(13,27,42,.28)}
+}
+
+/* --- شاشة الدخول: هوية بصرية أرقى --- */
+#login-screen{position:relative}
+#login-screen::after{content:'⚙️';position:absolute;font-size:120px;opacity:.05;top:8%;left:6%;transform:rotate(-12deg);pointer-events:none}
+#login-screen > div{position:relative;z-index:1}
+
+/* --- الشريط الجانبي (سطح المكتب): توهج للعنصر النشط --- */
+@media (min-width:1024px){
+  .sidebar-btn.active{box-shadow:inset 0 0 0 1px rgba(232,160,32,.18)}
+  .sidebar-btn.active .icon{filter:drop-shadow(0 0 4px rgba(232,160,32,.5))}
+  .sidebar-brand-mark{box-shadow:0 4px 12px rgba(232,160,32,.4)}
+}
+
+/* --- المودالز: دخول ناعم --- */
+@keyframes modalPopIn{from{opacity:0;transform:translate(-50%,-50%) scale(.96)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@media (min-width:1024px){
+  .modal-overlay.active,.admin-panel-overlay.active{animation:modalPopIn .22s cubic-bezier(.2,.8,.2,1)}
+}
+
+/* --- تدرج شريط الحالة السفلي --- */
+.status-bar{background:linear-gradient(90deg,var(--primary),#152840)}
+
+/* --- تحسين خط الأزرار الكبيرة والعائمة --- */
+.big-btn,.save-btn,.fab{font-family:'Cairo',sans-serif}
+
+/* --- حركة دخول خفيفة للأقسام --- */
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.section{animation:fadeSlideUp .35s ease both}
+
+/* --- حالات "لا توجد بيانات": أيقونة ودائرة توهج بدل النص المجرد --- */
+.empty-state{position:relative;padding:56px 20px 44px}
+.empty-state::before{content:'';display:block;width:64px;height:64px;margin:0 auto 14px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,160,32,.14),rgba(232,160,32,.03) 70%);
+  background-image:radial-gradient(circle,rgba(232,160,32,.14),rgba(232,160,32,.03) 70%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8a56a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l2-5h14l2 5'/%3E%3Cpath d='M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9'/%3E%3Cpath d='M3 9h18'/%3E%3Cpath d='M9 13a3 3 0 0 0 6 0'/%3E%3C/svg%3E");
+  background-repeat:no-repeat,no-repeat;background-position:center,center;background-size:64px 64px,26px 26px}
+.empty-state{font-size:13px;font-weight:600}
+
+/* --- شارات الثقة أعلى شاشة الدخول --- */
+.login-trust-row{display:flex;justify-content:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.login-trust-chip{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.65);font-size:10.5px;font-weight:600;padding:6px 12px;border-radius:20px;backdrop-filter:blur(6px)}
+.login-trust-chip svg{width:13px;height:13px;stroke:var(--accent);fill:none;stroke-width:2}
+.login-eyebrow{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:2px;color:var(--accent);
+  text-transform:uppercase;font-weight:700;margin-bottom:12px;padding:5px 14px;border:1px solid rgba(232,160,32,.3);
+  border-radius:30px;background:rgba(232,160,32,.08)}
+
+/* --- زخرفة ثانوية داخل بانر لوحة القيادة (سطح المكتب) --- */
+@media (min-width:1024px){
+  .dash-hero-deco{position:absolute;left:26px;top:50%;transform:translateY(-50%);width:74px;height:74px;opacity:.16;z-index:0}
+  .dash-hero-deco svg{width:100%;height:100%;stroke:#fff;fill:none;stroke-width:1.3}
+}
+.dash-hero-deco{display:none}
+@media (min-width:1024px){.dash-hero-deco{display:block}}
+
+/* =======================================================================
+   كل الكروت (معدات، سائقين، وقود، صيانة، مخزن، إيجار، مواقع) عمود واحد
+   تحت بعض على كل الشاشات، بعرض مريح للقراءة على الشاشات الكبيرة.
+   ======================================================================= */
+#equipment-list-home,#equipment-list,#drivers-list,#fuel-list,#maintenance-list,#inv-list,
+#sites-dashboard-list,#rental-equipment-list,#rental-daily-list{
+  display:flex !important;flex-direction:column !important;gap:12px}
+@media (min-width:1024px){
+  #equipment-list-home,#equipment-list,#drivers-list,#fuel-list,#maintenance-list,#inv-list,
+  #sites-dashboard-list,#rental-equipment-list,#rental-daily-list{max-width:720px;gap:14px}
+}
 </style>
 </head>
 <body>
+<svg style="display:none">
+<symbol id="ic-dashboard" viewBox="0 0 24 24"><path d="M4 13a8 8 0 0 1 16 0"/><path d="M12 13l4-4"/><circle cx="12" cy="13" r="1"/><path d="M4 20h16"/></symbol>
+<symbol id="ic-building" viewBox="0 0 24 24"><rect x="5" y="3" width="10" height="18" rx="1"/><path d="M9 7h2M9 11h2M9 15h2"/><path d="M15 10h4v11h-4"/></symbol>
+<symbol id="ic-equipment" viewBox="0 0 24 24"><path d="M3 20h9"/><path d="M6 20v-6l6-4 3 3-5 4"/><circle cx="18" cy="17" r="3"/><path d="M15 8l3-4 3 4"/></symbol>
+<symbol id="ic-rental" viewBox="0 0 24 24"><rect x="2" y="8" width="12" height="8" rx="1"/><path d="M14 11h4l3 3v2h-3"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></symbol>
+<symbol id="ic-drivers" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 4v6M6.5 15.5l4-2M17.5 15.5l-4-2"/></symbol>
+<symbol id="ic-fuel" viewBox="0 0 24 24"><path d="M5 20V6a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v14"/><path d="M4 20h10"/><path d="M13 10h2l3 3v4a1 1 0 0 1-2 0v-1a1 1 0 0 0-1-1h-2"/><path d="M7 6v3h4V6"/></symbol>
+<symbol id="ic-maintenance" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 1 5.4-5.4l-2.6 2.6-2-2z"/></symbol>
+<symbol id="ic-inventory" viewBox="0 0 24 24"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M12 13v9"/></symbol>
+<symbol id="ic-import" viewBox="0 0 24 24"><path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M4 17v3h16v-3"/></symbol>
+<symbol id="ic-gauge" viewBox="0 0 24 24"><path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l5-6"/><path d="M2 15h2M20 15h2M12 5v2"/></symbol>
+<symbol id="ic-empty" viewBox="0 0 24 24"><path d="M3 9l2-5h14l2 5"/><path d="M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9"/><path d="M3 9h18"/><path d="M9 13a3 3 0 0 0 6 0"/></symbol>
+<symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></symbol>
+<symbol id="ic-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+<symbol id="ic-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></symbol>
+<symbol id="ic-crane" viewBox="0 0 24 24"><path d="M4 21V7l9-4v18"/><path d="M13 6h7l-3 4"/><path d="M17 10v6a2 2 0 0 1-2 2H9"/><path d="M4 21h16"/></symbol>
+<symbol id="ic-truck" viewBox="0 0 24 24"><path d="M2 8h11v9H2z"/><path d="M13 11h4l3 3v3h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></symbol>
+<symbol id="ic-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5 5-6"/></symbol>
+</svg>
 <div class="toast" id="toast"></div>
 
 <!-- شاشة الدخول -->
@@ -63,7 +330,13 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     </div>
 
     <div style="font-size:22px;font-weight:800;margin-bottom:5px;color:white">Equipment Maintenance Service</div>
-    <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:24px">Hassan Allam Holding</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:14px">Hassan Allam Holding</div>
+    <span class="login-eyebrow">⚙️ نظام إدارة المعدات المتكامل</span>
+    <div class="login-trust-row">
+      <span class="login-trust-chip"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg>بيانات آمنة</span>
+      <span class="login-trust-chip"><svg viewBox="0 0 24 24"><use href="#ic-bolt"/></svg>تحديث لحظي</span>
+      <span class="login-trust-chip"><svg viewBox="0 0 24 24"><use href="#ic-chart"/></svg>تقارير دقيقة</span>
+    </div>
 
     <!-- أزرار التبويب الثلاثة -->
     <div style="display:flex;gap:5px;margin-bottom:18px;background:rgba(255,255,255,0.05);border-radius:40px;padding:4px">
@@ -148,11 +421,27 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 
 <!-- حاوية التطبيق -->
 <div id="app-container" style="display:none">
+  <nav class="sidebar-nav">
+    <div class="sidebar-brand"><span class="sidebar-brand-mark">HAC</span><div><div class="sidebar-brand-title">EMS</div><div class="sidebar-brand-sub">Hassan Allam Holding</div></div></div>
+    <div class="sidebar-links">
+      <button class="tab-btn sidebar-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span>الرئيسية</span></button>
+      <button class="tab-btn sidebar-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span>المواقع</span></button>
+      <button class="tab-btn sidebar-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span>المعدات</span></button>
+      <button class="tab-btn sidebar-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span>الإيجار</span></button>
+      <button class="tab-btn sidebar-btn" data-view="drivers"><span class="tab-icon"><svg class="icon"><use href="#ic-drivers"/></svg></span><span>السائقين</span></button>
+      <button class="tab-btn sidebar-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span>الوقود</span></button>
+      <button class="tab-btn sidebar-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span>الصيانة</span></button>
+      <button class="tab-btn sidebar-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span>المخزن</span></button>
+      <button class="tab-btn sidebar-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span>استيراد</span></button>
+    </div>
+    <div class="sidebar-foot">EMS Dashboard</div>
+  </nav>
+  <div class="app-main">
   <div class="status-bar"><span>🏗️ Hassan Allam Holding</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="admin-panel-btn" style="display:none;background:rgba(232,160,32,0.3);border:none;color:white;border-radius:20px;padding:4px 12px;font-size:11px;cursor:pointer;margin-right:5px">👑 إدارة المستخدمين</button><button id="delete-all-equipment-global-btn" class="danger-btn" style="background:#7f1d1d;border:none;color:white;border-radius:20px;padding:6px 12px;font-size:11px;cursor:pointer;margin-right:5px;font-weight:700">🗑️ مسح كل البيانات</button></div></div>
   <div class="header"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:20px;font-weight:900;color:white;letter-spacing:2px;flex-shrink:0;font-family:serif">HAC</span><div class="header-title" id="header-title" style="margin-bottom:0">📊 لوحة القيادة</div></div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
-  <div id="view-home"><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="meter-update-btn" class="big-btn">⏱️ تحديث العدادات اليومي</button><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info)); margin-top:5px">🔄 تحديث البيانات يدوياً</button><div class="section"><div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div><div id="home-ownership-filter" style="display:flex;gap:6px;margin-bottom:10px"><button class="home-own-btn" data-own="" style="flex:1;padding:8px;border-radius:30px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🌐 الكل</button><button class="home-own-btn" data-own="ملك" style="flex:1;padding:8px;border-radius:30px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🔑 ملك</button><button class="home-own-btn" data-own="إيجار" style="flex:1;padding:8px;border-radius:30px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">📋 إيجار</button></div><div id="equipment-list-home"></div></div></div>
+  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title">لوحة القيادة</div><div class="dash-hero-sub">متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع.</div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="meter-update-btn" class="big-btn">⏱️ تحديث العدادات اليومي</button><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info)); margin-top:5px">🔄 تحديث البيانات يدوياً</button><div class="section"><div class="section-title">🚜 جميع المعدات <span id="equipment-count"></span></div><div id="home-ownership-filter" style="display:flex;gap:6px;margin-bottom:10px"><button class="home-own-btn" data-own="" style="flex:1;padding:8px;border-radius:30px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🌐 الكل</button><button class="home-own-btn" data-own="ملك" style="flex:1;padding:8px;border-radius:30px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🔑 ملك</button><button class="home-own-btn" data-own="إيجار" style="flex:1;padding:8px;border-radius:30px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">📋 إيجار</button></div><div id="equipment-list-home"></div></div></div>
   <div id="view-sites" style="display:none"><div style="padding:14px">
     <div class="search-box"><span>🔍</span><input type="text" id="search-site" placeholder="بحث باسم الموقع..."></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -267,7 +556,8 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
     </div>
   </div>
   
-  <div class="tab-bar"><button class="tab-btn" data-view="home"><span class="tab-icon">📊</span><span>الرئيسية</span></button><button class="tab-btn" data-view="sites"><span class="tab-icon">🏢</span><span>المواقع</span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon">🏗️</span><span>المعدات</span></button><button class="tab-btn" data-view="rental"><span class="tab-icon">🚧</span><span>الإيجار</span></button><button class="tab-btn" data-view="drivers"><span class="tab-icon">👨‍✈️</span><span>السائقين</span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon">⛽</span><span>الوقود</span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon">🔧</span><span>الصيانة</span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon">📦</span><span>المخزن</span></button><button class="tab-btn" data-view="import"><span class="tab-icon">📂</span><span>استيراد</span></button></div>
+  </div><!-- /.app-main -->
+  <div class="tab-bar"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span>الرئيسية</span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span>المواقع</span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span>المعدات</span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span>الإيجار</span></button><button class="tab-btn" data-view="drivers"><span class="tab-icon"><svg class="icon"><use href="#ic-drivers"/></svg></span><span>السائقين</span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span>الوقود</span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span>الصيانة</span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span>المخزن</span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span>استيراد</span></button></div>
   <button class="fab" id="fab-btn">+</button>
 </div>
 
