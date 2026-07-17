@@ -628,6 +628,7 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   <!-- تبويبات لوحة المدير -->
   <div style="display:flex;gap:6px;padding:12px 14px 0;background:white;border-bottom:1px solid #e2e8f0;position:sticky;top:56px;z-index:9">
     <button id="atab-users-btn" onclick="switchAdminTab('users')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">👥 المستخدمون</button>
+    <button id="atab-backup-btn" onclick="switchAdminTab('backup')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">💾 نسخ احتياطي</button>
     <button id="atab-firebase-btn" onclick="switchAdminTab('firebase')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">🔥 إعدادات Firebase</button>
     <button id="atab-danger-btn" onclick="switchAdminTab('danger')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">⚠️ منطقة الخطر</button>
   </div>
@@ -709,6 +710,30 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   </div>
 
   <!-- تبويب إعدادات Firebase -->
+  <!-- تبويب النسخ الاحتياطي -->
+  <div id="atab-backup" style="padding:14px;display:none">
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;color:#1e40af">
+      💡 النسخة الاحتياطية عبارة عن ملف JSON يحتوي كل بيانات التطبيق (معدات، صيانة، إيجار، مخزون، مستخدمين...). احتفظ بنسخة على جهازك أو Google Drive بشكل دوري.
+    </div>
+
+    <div style="background:white;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px">📅 آخر نسخة احتياطية</div>
+      <div id="backup-last-info" style="font-size:12.5px;color:var(--gray);margin-bottom:12px">جاري التحقق...</div>
+      <button id="backup-download-btn" style="width:100%;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">⬇️ تنزيل نسخة احتياطية كاملة الآن</button>
+      <div id="backup-download-status" style="display:none;margin-top:10px;border-radius:10px;padding:10px;font-size:12px;text-align:center"></div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #fed7aa;border-radius:14px;padding:14px">
+      <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px">⬆️ استعادة نسخة احتياطية</div>
+      <div style="font-size:11.5px;color:var(--gray);margin-bottom:10px;line-height:1.6">
+        سيتم استبدال كل البيانات الحالية في قاعدة البيانات بمحتوى الملف المرفوع. لا يمكن التراجع عن هذه الخطوة إلا بنسخة احتياطية أخرى.
+      </div>
+      <input type="file" id="backup-restore-file" accept="application/json" style="width:100%;font-size:12px;margin-bottom:10px">
+      <button id="backup-restore-btn" style="width:100%;background:#fff7ed;color:#92400e;border:1.5px solid #fdba74;border-radius:12px;padding:11px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">⚠️ استعادة من الملف</button>
+      <div id="backup-restore-status" style="display:none;margin-top:10px;border-radius:10px;padding:10px;font-size:12px;text-align:center"></div>
+    </div>
+  </div>
+
   <div id="atab-firebase" style="padding:14px;display:none">
     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;color:#92400e">
       ⚠️ تأكد من صحة البيانات قبل الحفظ. بيانات خاطئة ستمنع التطبيق من الاتصال بقاعدة البيانات.
@@ -1384,7 +1409,7 @@ function deleteAdminUser(uid, email) {
 
 // ==================== إعدادات Firebase ====================
 function switchAdminTab(tab) {
-    var tabs = ['users', 'firebase', 'danger'];
+    var tabs = ['users', 'backup', 'firebase', 'danger'];
     tabs.forEach(function(t) {
         var panel = document.getElementById('atab-' + t);
         var btn = document.getElementById('atab-' + t + '-btn');
@@ -1399,6 +1424,9 @@ function switchAdminTab(tab) {
             btn.style.color = '#64748b';
         }
     });
+    if (tab === 'backup') {
+        loadLastBackupInfo();
+    }
     if (tab === 'firebase') {
         loadFBConfigFields();
         // عرض مصدر الإعدادات الحالية
@@ -1410,6 +1438,86 @@ function switchAdminTab(tab) {
                 : '<span style="color:#94a3b8">📄 إعدادات افتراضية (مدمجة في الكود)</span>';
         }
     }
+}
+
+// ==================== النسخ الاحتياطي ====================
+function loadLastBackupInfo() {
+    var el = document.getElementById('backup-last-info');
+    if (!el) return;
+    el.textContent = 'جاري التحقق...';
+    fbDb.ref('appSettings/lastBackup').once('value').then(function(snap) {
+        var v = snap.val();
+        if (!v || !v.at) { el.innerHTML = '<span style="color:#d97706">⚠️ لا توجد نسخة احتياطية مسجّلة بعد</span>'; return; }
+        var d = new Date(v.at);
+        var daysAgo = Math.floor((Date.now() - d.getTime()) / 86400000);
+        var byWho = v.by ? (' بواسطة ' + escapeHtml(v.by)) : '';
+        var warn = daysAgo >= 7 ? ' <span style="color:#d97706;font-weight:700">(مر ' + daysAgo + ' يوم — يُفضّل عمل نسخة جديدة)</span>' : ' <span style="color:#059669">✅</span>';
+        el.innerHTML = d.toLocaleDateString('ar-EG') + ' — ' + d.toLocaleTimeString('ar-EG') + byWho + warn;
+    }).catch(function(){ el.textContent = 'تعذّر التحقق'; });
+}
+
+function performFullBackup() {
+    var btn = document.getElementById('backup-download-btn');
+    var status = document.getElementById('backup-download-status');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري التجهيز...'; }
+    fbDb.ref('/').once('value').then(function(snap) {
+        var data = snap.val() || {};
+        var payload = { exportedAt: new Date().toISOString(), exportedBy: (currentUser && currentUser.name) || 'admin', app: 'HACPMV', data: data };
+        var jsonStr = JSON.stringify(payload, null, 2);
+        var blob = new Blob([jsonStr], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        var stamp = new Date().toISOString().split('T')[0];
+        a.href = url; a.download = 'hacpmv_backup_' + stamp + '.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+        var lastBackup = { at: new Date().toISOString(), by: (currentUser && currentUser.name) || 'admin' };
+        return fbDb.ref('appSettings/lastBackup').set(lastBackup);
+    }).then(function() {
+        if (status) { status.style.display = 'block'; status.style.background = '#d1fae5'; status.style.color = '#065f46'; status.textContent = '✅ تم تنزيل النسخة الاحتياطية بنجاح'; }
+        loadLastBackupInfo();
+        showToast('✅ تم تنزيل النسخة الاحتياطية');
+    }).catch(function(err) {
+        if (status) { status.style.display = 'block'; status.style.background = '#fee2e2'; status.style.color = '#991b1b'; status.textContent = 'خطأ: ' + err.message; }
+        showToast('خطأ: ' + err.message, true);
+    }).finally(function() {
+        if (btn) { btn.disabled = false; btn.textContent = '⬇️ تنزيل نسخة احتياطية كاملة الآن'; }
+    });
+}
+
+function restoreFromBackupFile() {
+    var fileInput = document.getElementById('backup-restore-file');
+    var status = document.getElementById('backup-restore-status');
+    var file = fileInput && fileInput.files && fileInput.files[0];
+    if (!file) { showToast('اختر ملف النسخة الاحتياطية أولاً', true); return; }
+    if (!currentUser || currentUser.role !== 'admin') { showToast('هذه العملية للمدير فقط', true); return; }
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var parsed;
+        try { parsed = JSON.parse(e.target.result); } catch(err) {
+            showToast('الملف غير صالح (ليس JSON سليم)', true); return;
+        }
+        var data = (parsed && parsed.data && parsed.app === 'HACPMV') ? parsed.data : parsed;
+        if (!data || typeof data !== 'object') { showToast('الملف لا يحتوي بيانات صالحة', true); return; }
+
+        var keysCount = Object.keys(data).length;
+        var sure1 = confirm('⚠️ سيتم استبدال كل البيانات الحالية بمحتوى هذا الملف (' + keysCount + ' قسم بيانات). هل أنت متأكد؟');
+        if (!sure1) return;
+        var typed = prompt('اكتب كلمة "استعادة" للتأكيد النهائي:');
+        if (typed !== 'استعادة') { showToast('تم الإلغاء — الكلمة غير مطابقة', true); return; }
+
+        if (status) { status.style.display = 'block'; status.style.background = '#fff7ed'; status.style.color = '#92400e'; status.textContent = '⏳ جاري الاستعادة...'; }
+        fbDb.ref('/').set(data).then(function() {
+            if (status) { status.style.background = '#d1fae5'; status.style.color = '#065f46'; status.textContent = '✅ تمت الاستعادة بنجاح — سيُعاد تحميل الصفحة'; }
+            showToast('✅ تمت الاستعادة بنجاح');
+            setTimeout(function(){ location.reload(); }, 1800);
+        }).catch(function(err) {
+            if (status) { status.style.background = '#fee2e2'; status.style.color = '#991b1b'; status.textContent = 'خطأ: ' + err.message; }
+            showToast('خطأ: ' + err.message, true);
+        });
+    };
+    reader.readAsText(file);
 }
 
 function loadFBConfigFields() {
@@ -7233,6 +7341,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deleteAllFuelBtn) deleteAllFuelBtn.onclick = function() { deleteAllFuelRecords(); };
     if (deleteAllMaintenanceBtn) deleteAllMaintenanceBtn.onclick = function() { deleteAllMaintenance(); };
     if (deleteAllInventoryBtn) deleteAllInventoryBtn.onclick = function() { deleteAllInventory(); };
+    var backupDownloadBtn = document.getElementById('backup-download-btn');
+    if (backupDownloadBtn) backupDownloadBtn.onclick = function() { performFullBackup(); };
+    var backupRestoreBtn = document.getElementById('backup-restore-btn');
+    if (backupRestoreBtn) backupRestoreBtn.onclick = function() { restoreFromBackupFile(); };
     
     // تحميل وضع الدخول من Firebase إن وُجد
     var fbCfgForMode = null;
