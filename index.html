@@ -294,6 +294,29 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   #equipment-list-home,#equipment-list,#drivers-list,#fuel-list,#maintenance-list,#inv-list,
   #sites-dashboard-list,#rental-equipment-list,#rental-daily-list{max-width:720px;gap:14px}
 }
+/* كارت المعدة في صفحة التحليلات - رفع + لمعة + حركة عند الضغط */
+.eq-usage-card{
+  position:relative;overflow:hidden;cursor:pointer;
+  box-shadow:0 2px 6px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04);
+  transition:transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.eq-usage-card:active{
+  transform:scale(0.97) translateY(1px);
+  box-shadow:0 1px 2px rgba(15,23,42,0.08);
+}
+.eq-usage-card::before{
+  content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
+  background:linear-gradient(115deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%);
+  transform:skewX(-20deg);pointer-events:none;
+}
+.eq-usage-card.shine-play::before{
+  animation:eqCardShine 0.65s ease;
+}
+@keyframes eqCardShine{
+  from{left:-60%;}
+  to{left:130%;}
+}
 </style>
 </head>
 <body>
@@ -6948,12 +6971,12 @@ function renderAnalytics() {
             var fuelTxt = u.fuel > 0 ? u.fuel.toFixed(0) + ' لتر' : '—';
             var rateTxt = u.rate !== null ? (u.rate.toFixed(2) + ' لتر/س') : '';
             var pct = maxHours > 0 ? Math.max(2, Math.round(((u.hours||0) / maxHours) * 100)) : 0;
-            return '<div style="background:var(--light);border-radius:10px;padding:8px 10px;margin-bottom:6px">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">' +
-                '<span style="font-weight:600;font-size:12px">' + escapeHtml(u.eq.name) + ' (' + escapeHtml(u.eq.code) + ')</span>' +
-                '<span style="font-weight:700;font-size:12.5px;color:' + color + '">' + hoursTxt + '</span></div>' +
-                '<div style="background:#e2e8f0;border-radius:8px;height:8px;overflow:hidden;margin-bottom:5px"><div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:8px"></div></div>' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:var(--gray)">' +
+            return '<div class="eq-usage-card" onclick="this.classList.remove(\'shine-play\');void this.offsetWidth;this.classList.add(\'shine-play\')" style="background:var(--light);border-radius:10px;padding:6px 10px;margin-bottom:5px">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">' +
+                '<span style="font-weight:600;font-size:11.5px">' + escapeHtml(u.eq.name) + ' (' + escapeHtml(u.eq.code) + ')</span>' +
+                '<span style="font-weight:700;font-size:12px;color:' + color + '">' + hoursTxt + '</span></div>' +
+                '<div style="background:#e2e8f0;border-radius:8px;height:6px;overflow:hidden;margin-bottom:3px"><div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:8px"></div></div>' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:var(--gray)">' +
                 '<span>⛽ ' + fuelTxt + (rateTxt ? (' <span style="color:#374151">(' + rateTxt + ')</span>') : '') + '</span>' +
                 fuelFlagHtml(u) + '</div></div>';
         }).join('');
