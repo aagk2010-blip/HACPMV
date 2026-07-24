@@ -60,6 +60,10 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .tab-btn:active span:not(.tab-icon),.sidebar-btn:active span:last-child{transform:scale(1.08)}
 .tab-btn span:not(.tab-icon),.sidebar-btn span:last-child{display:inline-block;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
 
+/* نفس حركة النطّة لكل أزرار وأيقونات التطبيق (تعديل، حذف، حفظ...إلخ) */
+button:not(.tab-btn):not(.sidebar-btn){transition:transform .18s cubic-bezier(.34,1.56,.64,1);-webkit-tap-highlight-color:transparent}
+button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
+
 /* لمسة احترافية على الكروت */
 .equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{transition:transform .15s ease,box-shadow .15s ease}
 .equipment-card:hover,.driver-card:hover,.fuel-card:hover,.maintenance-card:hover,.inventory-item-card:hover{
@@ -635,6 +639,36 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 <div class="modal-overlay" id="notif-settings-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 إعدادات الإشعارات</div><button class="modal-close" onclick="closeModal('notif-settings-modal')">✕</button></div><div style="padding:16px"><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">📱 رقم واتساب لاستقبال التنبيهات</div><input class="form-input" id="whatsapp-number" type="tel" placeholder="مثال: 201012345678" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%; font-size:14px"><div style="font-size:11px; color:var(--gray); margin-top:6px">أدخل الرقم مع كود الدولة بدون + مثلاً 201012345678</div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">⏰ إشعار عند باقي (ساعات)</div><select class="form-select" id="notif-threshold" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%"><option value="10">10 ساعات فأقل</option><option value="25">25 ساعة فأقل</option><option value="50" selected>50 ساعة فأقل</option><option value="100">100 ساعة فأقل</option></select></div><div class="detail-section" style="margin:0 0 12px 0; display:flex; justify-content:space-between; align-items:center"><div><div class="detail-label">🔔 إشعارات المتصفح</div><div style="font-size:11px; color:var(--gray)">تنبيه تلقائي عند فتح التطبيق</div></div><div id="notif-permission-status" style="font-size:12px; font-weight:600"></div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">🔔 أنواع التنبيهات التي تريد استلامها</div><div style="display:flex;flex-direction:column;gap:8px"><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-maintenance" style="width:18px;height:18px">🔧 صيانة المعدات (متأخرة / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-licenses" style="width:18px;height:18px">📜 رخص السائقين (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-inventory" style="width:18px;height:18px">📦 المخزون المنخفض</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental" style="width:18px;height:18px">📄 عقود الإيجار (منتهية / قريبة)</label></div></div><button id="enable-notif-btn" class="save-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5); margin-bottom:10px">🔔 تفعيل إشعارات المتصفح</button><button id="send-wa-report-btn" class="save-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير واتساب الآن</button><button id="save-notif-settings-btn" class="save-btn">✅ حفظ الإعدادات</button></div></div>
 
 <div class="modal-overlay" id="notif-center-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 مركز التنبيهات</div><button class="modal-close" onclick="closeModal('notif-center-modal')">✕</button></div><div id="notif-center-body" style="padding:14px"></div></div>
+
+<div class="modal-overlay" id="site-layout-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#0e7490,#0369a1)">
+    <div class="modal-title" id="site-layout-title">🗺️ مخطط الموقع</div>
+    <button class="modal-close" onclick="closeModal('site-layout-modal')">✕</button>
+  </div>
+  <div style="padding:10px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+      <button id="layout-add-generator-btn" style="flex:1;min-width:110px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🔌 إضافة مولد</button>
+      <button id="layout-add-panel-btn" style="flex:1;min-width:110px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⚡ إضافة لوحة كهرباء</button>
+    </div>
+    <div id="site-layout-canvas-wrap" style="position:relative;width:100%;padding-top:75%;background:
+        repeating-linear-gradient(0deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px),
+        repeating-linear-gradient(90deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px);
+        border-radius:12px;border:1.5px solid #cbd5e1;overflow:hidden;touch-action:none;margin-bottom:8px">
+      <div id="site-layout-canvas" style="position:absolute;inset:0"></div>
+    </div>
+    <div id="site-layout-item-toolbar" style="display:none;justify-content:center;gap:8px;margin-bottom:8px">
+      <button id="layout-rename-btn" style="background:#f1f5f9;border:none;border-radius:20px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit">✏️ تعديل الاسم</button>
+      <button id="layout-delete-btn" style="background:#fee2e2;color:#991b1b;border:none;border-radius:20px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit">🗑️ حذف</button>
+    </div>
+    <div style="display:flex;gap:8px;font-size:11px;color:var(--gray);margin-bottom:10px;justify-content:center">
+      <span>🔌 مولد كهرباء</span><span>⚡ لوحة كهرباء</span><span style="margin-right:8px">👆 اسحب أي عنصر لتحريكه</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="layout-save-btn" class="save-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#059669,#047857)">💾 حفظ المخطط</button>
+      <button id="layout-export-pdf-btn" class="save-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📄 تصدير PDF</button>
+    </div>
+  </div>
+</div>
 
 
 <div class="modal-overlay" id="date-range-modal">
@@ -2552,6 +2586,10 @@ function attachFirebaseListeners() {
 
     listen('pmHistory', function(snapshot) {
         pmHistory = snapshot.val() || {};
+    });
+
+    listen('siteLayouts', function(snapshot) {
+        siteLayoutsData = snapshot.val() || {};
     });
 
     listen('rental', function(snapshot) {
@@ -6799,18 +6837,25 @@ function renderSitesDashboard() {
             '<div style="font-weight:800;font-size:15px;color:var(--primary)">' + statusDot + ' ' + escapeHtml(s.name) + '</div>' +
             '<span style="font-size:11px;color:' + statusColor + ';font-weight:700">' + statusText + '</span>' +
             '</div>' +
-            '<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#475569">' +
+            '<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#475569;margin-bottom:8px">' +
             '<span>🚜 إجمالي: <b>' + s.total + '</b></span>' +
             '<span style="color:var(--success)">✅ يعمل: <b>' + s.working + '</b></span>' +
             '<span style="color:var(--danger)">⚠️ متأخرة: <b>' + s.overdue + '</b></span>' +
             '<span style="color:var(--warning)">🟡 قريبة: <b>' + s.soon + '</b></span>' +
             '<span style="color:#64748b">⛔ متوقفة: <b>' + s.stopped + '</b></span>' +
             '</div>' +
+            '<button class="site-layout-open-btn" data-site="' + escapeHtml(s.name) + '" style="width:100%;background:#eff6ff;color:#0369a1;border:1px solid #bfdbfe;border-radius:10px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🗺️ مخطط الموقع</button>' +
             '</div>';
     });
     listEl.innerHTML = html;
 
     setTimeout(function() {
+        document.querySelectorAll('.site-layout-open-btn').forEach(function(btn) {
+            btn.onclick = function(e) {
+                e.stopPropagation();
+                openSiteLayoutModal(btn.dataset.site);
+            };
+        });
         document.querySelectorAll('.site-dashboard-card').forEach(function(card) {
             card.onclick = function() {
                 var siteName = card.dataset.site;
@@ -6882,29 +6927,183 @@ function renderSitesKpiTable(sites, listEl) {
     }, 0);
 }
 
+// ==================== مخطط الموقع (توزيع المولدات ولوحات الكهرباء) ====================
+var siteLayoutsData = {};      // { siteKey: { items: [...] } } - محمّلة من Firebase
+var currentLayoutSite = null;  // اسم الموقع الحالي المفتوح
+var currentLayoutItems = [];   // نسخة قابلة للتعديل من عناصر الموقع الحالي
+var selectedLayoutItemId = null;
+
+function siteKeyOf(siteName) {
+    return (siteName || 'unknown').replace(/[.#$\[\]\/]/g, '_');
+}
+
+function openSiteLayoutModal(siteName) {
+    currentLayoutSite = siteName;
+    var key = siteKeyOf(siteName);
+    var saved = siteLayoutsData[key];
+    currentLayoutItems = saved && Array.isArray(saved.items) ? JSON.parse(JSON.stringify(saved.items)) : [];
+    selectedLayoutItemId = null;
+    document.getElementById('site-layout-title').textContent = '🗺️ مخطط الموقع — ' + siteName;
+    document.getElementById('site-layout-item-toolbar').style.display = 'none';
+    renderLayoutCanvas();
+    document.getElementById('site-layout-modal').classList.add('active');
+}
+
+function renderLayoutCanvas() {
+    var canvas = document.getElementById('site-layout-canvas');
+    if (!canvas) return;
+    canvas.innerHTML = '';
+    currentLayoutItems.forEach(function(item) {
+        var isGen = item.type === 'generator';
+        var el = document.createElement('div');
+        el.className = 'layout-item';
+        el.dataset.id = item.id;
+        el.style.cssText = 'position:absolute;left:' + item.x + '%;top:' + item.y + '%;transform:translate(-50%,-50%);' +
+            'display:flex;flex-direction:column;align-items:center;cursor:grab;user-select:none;touch-action:none;z-index:' + (item.id === selectedLayoutItemId ? 5 : 2) + ';';
+        el.innerHTML =
+            '<div style="width:40px;height:40px;border-radius:50%;background:' + (isGen ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#3b82f6,#2563eb)') + ';' +
+            'display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.25);' +
+            (item.id === selectedLayoutItemId ? 'outline:3px solid #059669;outline-offset:2px;' : '') + '">' + (isGen ? '🔌' : '⚡') + '</div>' +
+            '<div style="background:white;border-radius:6px;padding:1px 6px;font-size:9.5px;font-weight:700;margin-top:2px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.15);max-width:90px;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(item.label || (isGen ? 'مولد' : 'لوحة')) + '</div>';
+        canvas.appendChild(el);
+        wireLayoutItemDrag(el, item);
+    });
+}
+
+function wireLayoutItemDrag(el, item) {
+    var wrap = document.getElementById('site-layout-canvas-wrap');
+    var dragging = false;
+    el.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        dragging = true;
+        el.setPointerCapture(e.pointerId);
+        el.style.cursor = 'grabbing';
+        selectLayoutItem(item.id);
+    });
+    el.addEventListener('pointermove', function(e) {
+        if (!dragging) return;
+        var rect = wrap.getBoundingClientRect();
+        var x = ((e.clientX - rect.left) / rect.width) * 100;
+        var y = ((e.clientY - rect.top) / rect.height) * 100;
+        x = Math.max(3, Math.min(97, x));
+        y = Math.max(5, Math.min(95, y));
+        item.x = Math.round(x * 10) / 10;
+        item.y = Math.round(y * 10) / 10;
+        el.style.left = item.x + '%';
+        el.style.top = item.y + '%';
+    });
+    function endDrag(e) {
+        if (!dragging) return;
+        dragging = false;
+        el.style.cursor = 'grab';
+        try { el.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+    el.addEventListener('pointerup', endDrag);
+    el.addEventListener('pointercancel', endDrag);
+}
+
+function selectLayoutItem(id) {
+    selectedLayoutItemId = id;
+    var toolbar = document.getElementById('site-layout-item-toolbar');
+    toolbar.style.display = id ? 'flex' : 'none';
+    renderLayoutCanvas();
+}
+
+function addLayoutItem(type) {
+    var id = 'itm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    currentLayoutItems.push({ id: id, type: type, x: 50, y: 50, label: type === 'generator' ? 'مولد جديد' : 'لوحة جديدة' });
+    selectLayoutItem(id);
+}
+
+function renameSelectedLayoutItem() {
+    var item = currentLayoutItems.find(function(i) { return i.id === selectedLayoutItemId; });
+    if (!item) return;
+    var name = prompt('اسم العنصر (مثال: مولد 1 - 500KVA):', item.label || '');
+    if (name === null) return;
+    item.label = name.trim() || item.label;
+    renderLayoutCanvas();
+}
+
+function deleteSelectedLayoutItem() {
+    if (!selectedLayoutItemId) return;
+    currentLayoutItems = currentLayoutItems.filter(function(i) { return i.id !== selectedLayoutItemId; });
+    selectLayoutItem(null);
+}
+
+function saveSiteLayout() {
+    if (!currentLayoutSite) return;
+    var key = siteKeyOf(currentLayoutSite);
+    var payload = { siteName: currentLayoutSite, items: currentLayoutItems, updatedAt: new Date().toISOString(), updatedBy: (currentUser && currentUser.name) || '' };
+    fbDb.ref('siteLayouts/' + key).set(payload).then(function() {
+        showToast('✅ تم حفظ المخطط');
+    }).catch(function(e) {
+        showToast('خطأ: ' + e.message, true);
+    });
+}
+
+function exportSiteLayoutPDF() {
+    if (!currentLayoutSite) return;
+    var genCount = currentLayoutItems.filter(function(i){ return i.type === 'generator'; }).length;
+    var panelCount = currentLayoutItems.filter(function(i){ return i.type === 'panel'; }).length;
+    var itemsHtml = currentLayoutItems.map(function(item) {
+        var isGen = item.type === 'generator';
+        return '<div style="position:absolute;left:' + item.x + '%;top:' + item.y + '%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center">' +
+            '<div style="width:42px;height:42px;border-radius:50%;background:' + (isGen ? '#d97706' : '#2563eb') + ';color:white;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 2px 6px rgba(0,0,0,.3)">' + (isGen ? '🔌' : '⚡') + '</div>' +
+            '<div style="background:white;border:1px solid #cbd5e1;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700;margin-top:3px;white-space:nowrap">' + escapeHtml(item.label || '') + '</div>' +
+            '</div>';
+    }).join('');
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>مخطط الموقع - ' + escapeHtml(currentLayoutSite) + '</title><style>' +
+        'body{font-family:Arial;padding:20px;direction:rtl}h2{color:#0369a1;margin-bottom:4px}' +
+        '.info{background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px}' +
+        '.legend{display:flex;gap:18px;margin-bottom:14px;font-size:13px}' +
+        '.canvas{position:relative;width:100%;padding-top:70%;border:2px solid #94a3b8;border-radius:8px;' +
+        'background-image:repeating-linear-gradient(0deg,#f8fafc,#f8fafc 24px,#e2e8f0 24px,#e2e8f0 25px),repeating-linear-gradient(90deg,#f8fafc,#f8fafc 24px,#e2e8f0 24px,#e2e8f0 25px)}' +
+        '@media print{ .no-print{display:none} }' +
+        '</style></head><body>' +
+        '<h2>🗺️ مخطط الموقع — ' + escapeHtml(currentLayoutSite) + '</h2>' +
+        '<div class="info">📅 تاريخ التصدير: ' + new Date().toLocaleDateString('ar-EG') + '&nbsp;&nbsp; 🔌 عدد المولدات: ' + genCount + '&nbsp;&nbsp; ⚡ عدد لوحات الكهرباء: ' + panelCount + '</div>' +
+        '<div class="legend"><span>🔌 مولد كهرباء</span><span>⚡ لوحة كهرباء</span></div>' +
+        '<div class="canvas">' + itemsHtml + '</div>' +
+        '</body></html>');
+    w.document.close();
+    setTimeout(function() { w.print(); }, 500);
+}
+
 // ==================== التحليلات والتقارير ====================
+// فترة التحليل من 21 الشهر السابق إلى 20 الشهر المختار (بنفس نظام تقرير الإيجار)
+function getPeriodRange(monthStr) {
+    var ref = new Date(monthStr + '-01T00:00:00');
+    var to = new Date(ref.getFullYear(), ref.getMonth(), 20);
+    var from = new Date(ref.getFullYear(), ref.getMonth() - 1, 21);
+    function fmt(d) { return d.toISOString().split('T')[0]; }
+    return { from: fmt(from), to: fmt(to) };
+}
+
 function getMonthlyRentalHours(eq, monthStr) {
+    var range = getPeriodRange(monthStr);
     var contracts = rentalData.filter(function(r) { return r.equipmentId === eq.id; });
     if (!contracts.length) return null;
     var contractIds = contracts.map(function(r) { return r.id; });
     var records = rentalDailyData.filter(function(d) {
-        return contractIds.indexOf(d.equipmentId) !== -1 && d.date && d.date.slice(0, 7) === monthStr;
+        return contractIds.indexOf(d.equipmentId) !== -1 && d.date && d.date >= range.from && d.date <= range.to;
     });
     var hours = records.reduce(function(s, r) { return s + (r.basicHours || 0) + (r.breakHours || 0) + (r.extraHours || 0); }, 0);
     return { hours: hours, hadBaseline: true, daysWorked: records.length };
 }
 
 function getMonthlyHoursForEquipment(eq, monthStr) {
+    var range = getPeriodRange(monthStr);
     var log = (eq.hoursLog || []).slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
     if (!log.length) return null;
-    var monthStart = new Date(monthStr + '-01T00:00:00');
-    var monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0, 23, 59, 59);
+    var periodStart = new Date(range.from + 'T00:00:00');
+    var periodEnd = new Date(range.to + 'T23:59:59');
     var before = null;
     var uptoEnd = [];
     log.forEach(function(l) {
         var d = new Date(l.date);
-        if (d < monthStart) before = l;
-        if (d <= monthEnd) uptoEnd.push(l);
+        if (d < periodStart) before = l;
+        if (d <= periodEnd) uptoEnd.push(l);
     });
     if (!uptoEnd.length) return null;
     var endReading = uptoEnd[uptoEnd.length - 1];
@@ -6914,8 +7113,9 @@ function getMonthlyHoursForEquipment(eq, monthStr) {
 }
 
 function getMonthlyFuelForEquipment(eq, monthStr) {
+    var range = getPeriodRange(monthStr);
     return (fuelData || []).filter(function(f) {
-        return f.equipmentId === eq.id && f.date && f.date.slice(0, 7) === monthStr;
+        return f.equipmentId === eq.id && f.date && f.date >= range.from && f.date <= range.to;
     }).reduce(function(s, f) { return s + (f.amount || 0); }, 0);
 }
 
@@ -6933,6 +7133,8 @@ function renderAnalytics() {
     if (!body || !monthInput) return;
     if (!monthInput.value) monthInput.value = new Date().toISOString().slice(0, 7);
     var month = monthInput.value;
+    var period = getPeriodRange(month);
+    var periodLabel = period.from + ' \u2192 ' + period.to;
 
     var eqList = getVisibleEquipment();
 
@@ -7009,16 +7211,17 @@ function renderAnalytics() {
         return s.c + ' ' + start.toFixed(1) + 'deg ' + end.toFixed(1) + 'deg';
     }).join(', ');
 
-    // 3) اتجاه الصيانة المكتملة آخر 6 شهور
-    var monthsBack = [];
-    var refDate = new Date(month + '-01T00:00:00');
+    // 3) اتجاه الصيانة المكتملة آخر 6 فترات (بنفس دورة 21-20)
+    var periodsBack = [];
     for (var i = 5; i >= 0; i--) {
-        var d = new Date(refDate.getFullYear(), refDate.getMonth() - i, 1);
-        monthsBack.push(d.toISOString().slice(0, 7));
+        var refM = new Date(month + '-01T00:00:00');
+        var pm = new Date(refM.getFullYear(), refM.getMonth() - i, 1).toISOString().slice(0, 7);
+        periodsBack.push(pm);
     }
-    var maintByMonth = monthsBack.map(function(mo) {
+    var maintByMonth = periodsBack.map(function(mo) {
+        var r = getPeriodRange(mo);
         var count = maintenanceSchedules.filter(function(ms) {
-            return ms.status === 'مكتمل' && ms.completedAt && ms.completedAt.slice(0, 7) === mo;
+            return ms.status === 'مكتمل' && ms.completedAt && ms.completedAt.slice(0,10) >= r.from && ms.completedAt.slice(0,10) <= r.to;
         }).length;
         return { month: mo, count: count };
     });
@@ -7026,26 +7229,29 @@ function renderAnalytics() {
 
     var html = '';
 
+    // شريط الفترة (21 الشهر السابق إلى 20 الشهر المختار)
+    html += '<div style="text-align:center;background:var(--light);border-radius:10px;padding:6px 10px;margin-bottom:10px;font-size:12px;font-weight:700;color:var(--primary)">📅 الفترة: ' + periodLabel + '</div>';
+
     // بطاقات ملخص
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">' +
-        '<div class="stat-card"><div class="stat-number">' + withData.reduce(function(s,u){return s+u.hours;},0).toFixed(0) + '</div><div class="stat-label">إجمالي ساعات العمل (الشهر) ⏱️</div></div>' +
+        '<div class="stat-card"><div class="stat-number">' + withData.reduce(function(s,u){return s+u.hours;},0).toFixed(0) + '</div><div class="stat-label">إجمالي ساعات العمل (الفترة) ⏱️</div></div>' +
         '<div class="stat-card"><div class="stat-number" style="color:' + (idle.length?'var(--danger)':'var(--success)') + '">' + idle.length + '</div><div class="stat-label">معدة بدون استخدام ⚠️</div></div>' +
         '</div>';
 
     // معدل الاستخدام مبوّبة (ملك / إيجار / لا تعمل) + استهلاك الوقود
     if (avgRate) {
         html += '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:9px 12px;margin-bottom:10px;font-size:11px;color:#1e40af">' +
-            '⛽ متوسط استهلاك الأسطول هذا الشهر: <b>' + avgRate.toFixed(2) + ' لتر/ساعة</b> — أي معدة تتخطى ' + (avgRate*1.3).toFixed(2) + ' لتر/ساعة تُعتبر "استهلاك مرتفع"' +
+            '⛽ متوسط استهلاك الأسطول في هذه الفترة: <b>' + avgRate.toFixed(2) + ' لتر/ساعة</b> — أي معدة تتخطى ' + (avgRate*1.3).toFixed(2) + ' لتر/ساعة تُعتبر "استهلاك مرتفع"' +
             '</div>';
     }
-    html += usageGroupHtml('🔑 معدات الملك (' + month + ')', '#7c3aed', ownedWorking, overallMaxHours);
-    html += usageGroupHtml('📋 معدات الإيجار (' + month + ')', '#0e7490', rentalWorking, overallMaxHours);
+    html += usageGroupHtml('🔑 معدات الملك (' + periodLabel + ')', '#7c3aed', ownedWorking, overallMaxHours);
+    html += usageGroupHtml('📋 معدات الإيجار (' + periodLabel + ')', '#0e7490', rentalWorking, overallMaxHours);
     html += usageGroupHtml('⛔ معدات لا تعمل', '#64748b', notWorking, overallMaxHours);
 
-    // معدات بدون استخدام (شغالة بالحالة بس مفيش عليها ساعات مسجّلة الشهر ده)
+    // معدات بدون استخدام (شغالة بالحالة بس مفيش عليها ساعات مسجّلة في الفترة دي)
     if (idle.length) {
         html += '<div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:14px;padding:14px;margin-bottom:14px">' +
-            '<div style="font-weight:700;font-size:13px;color:#92400e;margin-bottom:8px">⚠️ معدات بدون أي استخدام هذا الشهر (' + idle.length + ')</div>' +
+            '<div style="font-weight:700;font-size:13px;color:#92400e;margin-bottom:8px">⚠️ معدات بدون أي استخدام في هذه الفترة (' + idle.length + ')</div>' +
             idle.map(function(u) {
                 return '<div style="background:white;border-radius:10px;padding:7px 10px;margin-bottom:5px;font-size:12px;display:flex;justify-content:space-between"><span>' + escapeHtml(u.eq.name) + ' (' + escapeHtml(u.eq.code) + ')</span><span style="color:var(--gray)">' + escapeHtml(u.eq.location||'—') + '</span></div>';
             }).join('') + '</div>';
@@ -8010,6 +8216,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (backupDownloadBtn) backupDownloadBtn.onclick = function() { performFullBackup(); };
     var backupRestoreBtn = document.getElementById('backup-restore-btn');
     if (backupRestoreBtn) backupRestoreBtn.onclick = function() { restoreFromBackupFile(); };
+    var layoutAddGenBtn = document.getElementById('layout-add-generator-btn');
+    if (layoutAddGenBtn) layoutAddGenBtn.onclick = function() { addLayoutItem('generator'); };
+    var layoutAddPanelBtn = document.getElementById('layout-add-panel-btn');
+    if (layoutAddPanelBtn) layoutAddPanelBtn.onclick = function() { addLayoutItem('panel'); };
+    var layoutRenameBtn = document.getElementById('layout-rename-btn');
+    if (layoutRenameBtn) layoutRenameBtn.onclick = function() { renameSelectedLayoutItem(); };
+    var layoutDeleteBtn = document.getElementById('layout-delete-btn');
+    if (layoutDeleteBtn) layoutDeleteBtn.onclick = function() { deleteSelectedLayoutItem(); };
+    var layoutSaveBtn = document.getElementById('layout-save-btn');
+    if (layoutSaveBtn) layoutSaveBtn.onclick = function() { saveSiteLayout(); };
+    var layoutExportBtn = document.getElementById('layout-export-pdf-btn');
+    if (layoutExportBtn) layoutExportBtn.onclick = function() { exportSiteLayoutPDF(); };
+    var layoutCanvasWrap = document.getElementById('site-layout-canvas-wrap');
+    if (layoutCanvasWrap) layoutCanvasWrap.addEventListener('pointerdown', function(e) {
+        if (e.target === layoutCanvasWrap || e.target.id === 'site-layout-canvas') selectLayoutItem(null);
+    });
     
     // تحميل وضع الدخول من Firebase إن وُجد
     var fbCfgForMode = null;
