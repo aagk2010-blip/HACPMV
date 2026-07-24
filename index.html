@@ -17,6 +17,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
 :root{color-scheme:light only;--primary:#0d1b2a;--secondary:#1b2838;--accent:#e8a020;--accent-dark:#c88a18;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#0e7490;--purple:#8b5cf6;--pink:#ec4899;--light:#f0f4f8;--white:#ffffff;--gray:#6b7a8d;--shadow:0 4px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 3px rgba(0,0,0,0.05);--mono:'IBM Plex Mono',ui-monospace,monospace;--sidebar-w:268px}
@@ -647,9 +649,16 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   </div>
   <div style="padding:10px">
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-      <button id="layout-add-generator-btn" style="flex:1;min-width:110px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🔌 إضافة مولد</button>
-      <button id="layout-add-panel-btn" style="flex:1;min-width:110px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⚡ إضافة لوحة كهرباء</button>
+      <button id="layout-add-generator-btn" style="flex:1;min-width:100px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🔌 مولد</button>
+      <button id="layout-add-panel-btn" style="flex:1;min-width:100px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⚡ لوحة كهرباء</button>
+      <button id="layout-add-note-btn" style="flex:1;min-width:100px;background:linear-gradient(135deg,#84cc16,#65a30d);color:white;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📝 ملاحظة</button>
     </div>
+    <div style="display:flex;gap:6px;align-items:center;background:var(--light);border-radius:10px;padding:8px 10px;margin-bottom:8px">
+      <label for="layout-bg-upload" style="flex:1;background:white;border:1.5px dashed #94a3b8;border-radius:8px;padding:7px 10px;font-size:11.5px;text-align:center;cursor:pointer;color:#475569">📎 رفع مخطط الموقع (PDF أو صورة)</label>
+      <input type="file" id="layout-bg-upload" accept="application/pdf,image/*" style="display:none">
+      <button id="layout-bg-remove-btn" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:7px 10px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">🗑️ إزالة</button>
+    </div>
+    <div id="layout-bg-status" style="display:none;font-size:11px;color:var(--gray);text-align:center;margin-bottom:8px"></div>
     <div id="site-layout-canvas-wrap" style="position:relative;width:100%;padding-top:75%;background:
         repeating-linear-gradient(0deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px),
         repeating-linear-gradient(90deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px);
@@ -660,8 +669,8 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
       <button id="layout-rename-btn" style="background:#f1f5f9;border:none;border-radius:20px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit">✏️ تعديل الاسم</button>
       <button id="layout-delete-btn" style="background:#fee2e2;color:#991b1b;border:none;border-radius:20px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit">🗑️ حذف</button>
     </div>
-    <div style="display:flex;gap:8px;font-size:11px;color:var(--gray);margin-bottom:10px;justify-content:center">
-      <span>🔌 مولد كهرباء</span><span>⚡ لوحة كهرباء</span><span style="margin-right:8px">👆 اسحب أي عنصر لتحريكه</span>
+    <div style="display:flex;gap:8px;font-size:10.5px;color:var(--gray);margin-bottom:10px;justify-content:center;flex-wrap:wrap">
+      <span>🔌 مولد</span><span>⚡ لوحة كهرباء</span><span>📝 ملاحظة</span><span style="margin-right:8px">👆 اسحب أي عنصر لتحريكه</span>
     </div>
     <div style="display:flex;gap:8px">
       <button id="layout-save-btn" class="save-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#059669,#047857)">💾 حفظ المخطط</button>
@@ -6928,25 +6937,52 @@ function renderSitesKpiTable(sites, listEl) {
 }
 
 // ==================== مخطط الموقع (توزيع المولدات ولوحات الكهرباء) ====================
-var siteLayoutsData = {};      // { siteKey: { items: [...] } } - محمّلة من Firebase
+var siteLayoutsData = {};      // { siteKey: { items: [...], background: 'data:...' } } - محمّلة من Firebase
 var currentLayoutSite = null;  // اسم الموقع الحالي المفتوح
 var currentLayoutItems = [];   // نسخة قابلة للتعديل من عناصر الموقع الحالي
+var currentLayoutBackground = null; // صورة المخطط المرفوعة (data URL) أو null
 var selectedLayoutItemId = null;
 
 function siteKeyOf(siteName) {
     return (siteName || 'unknown').replace(/[.#$\[\]\/]/g, '_');
 }
 
+var LAYOUT_ICONS = {
+    generator: { emoji: '🔌', color: 'linear-gradient(135deg,#f59e0b,#d97706)', flat: '#d97706', defaultLabel: 'مولد جديد' },
+    panel:     { emoji: '⚡', color: 'linear-gradient(135deg,#3b82f6,#2563eb)', flat: '#2563eb', defaultLabel: 'لوحة جديدة' },
+    note:      { emoji: '📝', color: 'linear-gradient(135deg,#84cc16,#65a30d)', flat: '#65a30d', defaultLabel: 'ملاحظة جديدة' }
+};
+
 function openSiteLayoutModal(siteName) {
     currentLayoutSite = siteName;
     var key = siteKeyOf(siteName);
     var saved = siteLayoutsData[key];
     currentLayoutItems = saved && Array.isArray(saved.items) ? JSON.parse(JSON.stringify(saved.items)) : [];
+    currentLayoutBackground = (saved && saved.background) || null;
     selectedLayoutItemId = null;
     document.getElementById('site-layout-title').textContent = '🗺️ مخطط الموقع — ' + siteName;
     document.getElementById('site-layout-item-toolbar').style.display = 'none';
+    document.getElementById('layout-bg-status').style.display = 'none';
+    applyLayoutBackground();
     renderLayoutCanvas();
     document.getElementById('site-layout-modal').classList.add('active');
+}
+
+function applyLayoutBackground() {
+    var wrap = document.getElementById('site-layout-canvas-wrap');
+    if (!wrap) return;
+    if (currentLayoutBackground) {
+        wrap.style.backgroundImage = 'url(' + currentLayoutBackground + ')';
+        wrap.style.backgroundSize = 'contain';
+        wrap.style.backgroundRepeat = 'no-repeat';
+        wrap.style.backgroundPosition = 'center';
+        wrap.style.backgroundColor = '#ffffff';
+    } else {
+        wrap.style.backgroundImage =
+            'repeating-linear-gradient(0deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px), ' +
+            'repeating-linear-gradient(90deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px)';
+        wrap.style.backgroundColor = '';
+    }
 }
 
 function renderLayoutCanvas() {
@@ -6954,17 +6990,17 @@ function renderLayoutCanvas() {
     if (!canvas) return;
     canvas.innerHTML = '';
     currentLayoutItems.forEach(function(item) {
-        var isGen = item.type === 'generator';
+        var cfg = LAYOUT_ICONS[item.type] || LAYOUT_ICONS.note;
         var el = document.createElement('div');
         el.className = 'layout-item';
         el.dataset.id = item.id;
         el.style.cssText = 'position:absolute;left:' + item.x + '%;top:' + item.y + '%;transform:translate(-50%,-50%);' +
             'display:flex;flex-direction:column;align-items:center;cursor:grab;user-select:none;touch-action:none;z-index:' + (item.id === selectedLayoutItemId ? 5 : 2) + ';';
         el.innerHTML =
-            '<div style="width:40px;height:40px;border-radius:50%;background:' + (isGen ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#3b82f6,#2563eb)') + ';' +
-            'display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.25);' +
-            (item.id === selectedLayoutItemId ? 'outline:3px solid #059669;outline-offset:2px;' : '') + '">' + (isGen ? '🔌' : '⚡') + '</div>' +
-            '<div style="background:white;border-radius:6px;padding:1px 6px;font-size:9.5px;font-weight:700;margin-top:2px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.15);max-width:90px;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(item.label || (isGen ? 'مولد' : 'لوحة')) + '</div>';
+            '<div style="width:38px;height:38px;border-radius:50%;background:' + cfg.color + ';' +
+            'display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,.3);' +
+            (item.id === selectedLayoutItemId ? 'outline:3px solid #059669;outline-offset:2px;' : '') + '">' + cfg.emoji + '</div>' +
+            '<div style="background:white;border-radius:6px;padding:1px 6px;font-size:9.5px;font-weight:700;margin-top:2px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.2);max-width:100px;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(item.label || cfg.defaultLabel) + '</div>';
         canvas.appendChild(el);
         wireLayoutItemDrag(el, item);
     });
@@ -7011,14 +7047,16 @@ function selectLayoutItem(id) {
 
 function addLayoutItem(type) {
     var id = 'itm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
-    currentLayoutItems.push({ id: id, type: type, x: 50, y: 50, label: type === 'generator' ? 'مولد جديد' : 'لوحة جديدة' });
+    var cfg = LAYOUT_ICONS[type] || LAYOUT_ICONS.note;
+    currentLayoutItems.push({ id: id, type: type, x: 50, y: 50, label: cfg.defaultLabel });
     selectLayoutItem(id);
 }
 
 function renameSelectedLayoutItem() {
     var item = currentLayoutItems.find(function(i) { return i.id === selectedLayoutItemId; });
     if (!item) return;
-    var name = prompt('اسم العنصر (مثال: مولد 1 - 500KVA):', item.label || '');
+    var promptText = item.type === 'note' ? 'نص الملاحظة:' : 'اسم العنصر (مثال: مولد 1 - 500KVA):';
+    var name = prompt(promptText, item.label || '');
     if (name === null) return;
     item.label = name.trim() || item.label;
     renderLayoutCanvas();
@@ -7030,10 +7068,87 @@ function deleteSelectedLayoutItem() {
     selectLayoutItem(null);
 }
 
+// ضغط أي صورة (أو صفحة PDF مُحوَّلة) لأبعاد وحجم معقول قبل الحفظ في قاعدة البيانات
+function compressImageDataUrl(sourceDataUrl, maxDim, quality) {
+    return new Promise(function(resolve, reject) {
+        var img = new Image();
+        img.onload = function() {
+            var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+            var w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+            var c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            var ctx = c.getContext('2d');
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(c.toDataURL('image/jpeg', quality || 0.75));
+        };
+        img.onerror = reject;
+        img.src = sourceDataUrl;
+    });
+}
+
+function handleLayoutBgUpload(file) {
+    var status = document.getElementById('layout-bg-status');
+    if (!file) return;
+    status.style.display = 'block';
+    status.style.color = 'var(--gray)';
+    status.textContent = '⏳ جاري معالجة الملف...';
+
+    function finish(dataUrl) {
+        currentLayoutBackground = dataUrl;
+        applyLayoutBackground();
+        status.style.color = 'var(--success)';
+        status.textContent = '✅ تم رفع المخطط — لا تنسَ الضغط على "حفظ المخطط"';
+    }
+    function fail(err) {
+        status.style.color = 'var(--danger)';
+        status.textContent = '❌ تعذّر رفع الملف: ' + (err && err.message ? err.message : err);
+    }
+
+    if (file.type === 'application/pdf') {
+        if (!window.pdfjsLib) { fail('مكتبة قراءة PDF غير متاحة، تأكد من الاتصال بالإنترنت'); return; }
+        var reader = new FileReader();
+        reader.onload = function() {
+            pdfjsLib.getDocument({ data: new Uint8Array(reader.result) }).promise.then(function(pdf) {
+                return pdf.getPage(1);
+            }).then(function(page) {
+                var viewport = page.getViewport({ scale: 2 });
+                var c = document.createElement('canvas');
+                c.width = viewport.width; c.height = viewport.height;
+                return page.render({ canvasContext: c.getContext('2d'), viewport: viewport }).promise.then(function() {
+                    return c.toDataURL('image/png');
+                });
+            }).then(function(rawDataUrl) {
+                return compressImageDataUrl(rawDataUrl, 1400, 0.8);
+            }).then(finish).catch(fail);
+        };
+        reader.onerror = function() { fail('فشل قراءة الملف'); };
+        reader.readAsArrayBuffer(file);
+    } else if (file.type.indexOf('image/') === 0) {
+        var reader2 = new FileReader();
+        reader2.onload = function() {
+            compressImageDataUrl(reader2.result, 1400, 0.8).then(finish).catch(fail);
+        };
+        reader2.onerror = function() { fail('فشل قراءة الملف'); };
+        reader2.readAsDataURL(file);
+    } else {
+        fail('الملف لازم يكون PDF أو صورة');
+    }
+}
+
+function removeLayoutBackground() {
+    currentLayoutBackground = null;
+    applyLayoutBackground();
+    var status = document.getElementById('layout-bg-status');
+    status.style.display = 'block';
+    status.style.color = 'var(--gray)';
+    status.textContent = 'تمت إزالة المخطط — لا تنسَ الضغط على "حفظ المخطط"';
+}
+
 function saveSiteLayout() {
     if (!currentLayoutSite) return;
     var key = siteKeyOf(currentLayoutSite);
-    var payload = { siteName: currentLayoutSite, items: currentLayoutItems, updatedAt: new Date().toISOString(), updatedBy: (currentUser && currentUser.name) || '' };
+    var payload = { siteName: currentLayoutSite, items: currentLayoutItems, background: currentLayoutBackground || null, updatedAt: new Date().toISOString(), updatedBy: (currentUser && currentUser.name) || '' };
     fbDb.ref('siteLayouts/' + key).set(payload).then(function() {
         showToast('✅ تم حفظ المخطط');
     }).catch(function(e) {
@@ -7045,25 +7160,28 @@ function exportSiteLayoutPDF() {
     if (!currentLayoutSite) return;
     var genCount = currentLayoutItems.filter(function(i){ return i.type === 'generator'; }).length;
     var panelCount = currentLayoutItems.filter(function(i){ return i.type === 'panel'; }).length;
+    var noteCount = currentLayoutItems.filter(function(i){ return i.type === 'note'; }).length;
     var itemsHtml = currentLayoutItems.map(function(item) {
-        var isGen = item.type === 'generator';
+        var cfg = LAYOUT_ICONS[item.type] || LAYOUT_ICONS.note;
         return '<div style="position:absolute;left:' + item.x + '%;top:' + item.y + '%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center">' +
-            '<div style="width:42px;height:42px;border-radius:50%;background:' + (isGen ? '#d97706' : '#2563eb') + ';color:white;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 2px 6px rgba(0,0,0,.3)">' + (isGen ? '🔌' : '⚡') + '</div>' +
+            '<div style="width:40px;height:40px;border-radius:50%;background:' + cfg.flat + ';color:white;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 6px rgba(0,0,0,.3)">' + cfg.emoji + '</div>' +
             '<div style="background:white;border:1px solid #cbd5e1;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700;margin-top:3px;white-space:nowrap">' + escapeHtml(item.label || '') + '</div>' +
             '</div>';
     }).join('');
+    var bgStyle = currentLayoutBackground
+        ? ('background-image:url(' + currentLayoutBackground + ');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;')
+        : ('background-image:repeating-linear-gradient(0deg,#f8fafc,#f8fafc 24px,#e2e8f0 24px,#e2e8f0 25px),repeating-linear-gradient(90deg,#f8fafc,#f8fafc 24px,#e2e8f0 24px,#e2e8f0 25px);');
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>مخطط الموقع - ' + escapeHtml(currentLayoutSite) + '</title><style>' +
         'body{font-family:Arial;padding:20px;direction:rtl}h2{color:#0369a1;margin-bottom:4px}' +
         '.info{background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px}' +
         '.legend{display:flex;gap:18px;margin-bottom:14px;font-size:13px}' +
-        '.canvas{position:relative;width:100%;padding-top:70%;border:2px solid #94a3b8;border-radius:8px;' +
-        'background-image:repeating-linear-gradient(0deg,#f8fafc,#f8fafc 24px,#e2e8f0 24px,#e2e8f0 25px),repeating-linear-gradient(90deg,#f8fafc,#f8fafc 24px,#e2e8f0 24px,#e2e8f0 25px)}' +
+        '.canvas{position:relative;width:100%;padding-top:70%;border:2px solid #94a3b8;border-radius:8px;' + bgStyle + '}' +
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
         '<h2>🗺️ مخطط الموقع — ' + escapeHtml(currentLayoutSite) + '</h2>' +
-        '<div class="info">📅 تاريخ التصدير: ' + new Date().toLocaleDateString('ar-EG') + '&nbsp;&nbsp; 🔌 عدد المولدات: ' + genCount + '&nbsp;&nbsp; ⚡ عدد لوحات الكهرباء: ' + panelCount + '</div>' +
-        '<div class="legend"><span>🔌 مولد كهرباء</span><span>⚡ لوحة كهرباء</span></div>' +
+        '<div class="info">📅 تاريخ التصدير: ' + new Date().toLocaleDateString('ar-EG') + '&nbsp;&nbsp; 🔌 مولدات: ' + genCount + '&nbsp;&nbsp; ⚡ لوحات: ' + panelCount + '&nbsp;&nbsp; 📝 ملاحظات: ' + noteCount + '</div>' +
+        '<div class="legend"><span>🔌 مولد</span><span>⚡ لوحة كهرباء</span><span>📝 ملاحظة</span></div>' +
         '<div class="canvas">' + itemsHtml + '</div>' +
         '</body></html>');
     w.document.close();
@@ -8220,6 +8338,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (layoutAddGenBtn) layoutAddGenBtn.onclick = function() { addLayoutItem('generator'); };
     var layoutAddPanelBtn = document.getElementById('layout-add-panel-btn');
     if (layoutAddPanelBtn) layoutAddPanelBtn.onclick = function() { addLayoutItem('panel'); };
+    var layoutAddNoteBtn = document.getElementById('layout-add-note-btn');
+    if (layoutAddNoteBtn) layoutAddNoteBtn.onclick = function() { addLayoutItem('note'); };
+    var layoutBgUpload = document.getElementById('layout-bg-upload');
+    if (layoutBgUpload) layoutBgUpload.onchange = function(e) {
+        var file = e.target.files && e.target.files[0];
+        if (file) handleLayoutBgUpload(file);
+        layoutBgUpload.value = '';
+    };
+    var layoutBgRemoveBtn = document.getElementById('layout-bg-remove-btn');
+    if (layoutBgRemoveBtn) layoutBgRemoveBtn.onclick = function() { removeLayoutBackground(); };
     var layoutRenameBtn = document.getElementById('layout-rename-btn');
     if (layoutRenameBtn) layoutRenameBtn.onclick = function() { renameSelectedLayoutItem(); };
     var layoutDeleteBtn = document.getElementById('layout-delete-btn');
