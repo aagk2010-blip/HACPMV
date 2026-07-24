@@ -659,18 +659,26 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
       <button id="layout-bg-remove-btn" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:7px 10px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">🗑️ إزالة</button>
     </div>
     <div id="layout-bg-status" style="display:none;font-size:11px;color:var(--gray);text-align:center;margin-bottom:8px"></div>
-    <div id="site-layout-canvas-wrap" style="position:relative;width:100%;padding-top:75%;background:
-        repeating-linear-gradient(0deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px),
-        repeating-linear-gradient(90deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px);
-        border-radius:12px;border:1.5px solid #cbd5e1;overflow:hidden;touch-action:none;margin-bottom:8px">
-      <div id="site-layout-canvas" style="position:absolute;inset:0"></div>
+    <div style="display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:6px">
+      <button id="layout-zoom-out-btn" style="background:#f1f5f9;border:none;border-radius:20px;width:34px;height:34px;font-size:16px;cursor:pointer;font-family:inherit">➖</button>
+      <span id="layout-zoom-level" style="font-size:11.5px;color:var(--gray);min-width:44px;text-align:center">100%</span>
+      <button id="layout-zoom-in-btn" style="background:#f1f5f9;border:none;border-radius:20px;width:34px;height:34px;font-size:16px;cursor:pointer;font-family:inherit">➕</button>
+      <button id="layout-zoom-reset-btn" style="background:#f1f5f9;border:none;border-radius:20px;padding:0 14px;height:34px;font-size:11.5px;cursor:pointer;font-family:inherit">↺ إعادة ضبط</button>
+    </div>
+    <div id="site-layout-canvas-wrap" style="position:relative;width:100%;height:340px;overflow:auto;
+        border-radius:12px;border:1.5px solid #cbd5e1;margin-bottom:8px;background:#f8fafc">
+      <div id="site-layout-zoom-content" style="position:relative;width:700px;height:525px;background:
+          repeating-linear-gradient(0deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px),
+          repeating-linear-gradient(90deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px);">
+        <div id="site-layout-canvas" style="position:absolute;inset:0;touch-action:none"></div>
+      </div>
     </div>
     <div id="site-layout-item-toolbar" style="display:none;justify-content:center;gap:8px;margin-bottom:8px">
       <button id="layout-rename-btn" style="background:#f1f5f9;border:none;border-radius:20px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit">✏️ تعديل الاسم</button>
       <button id="layout-delete-btn" style="background:#fee2e2;color:#991b1b;border:none;border-radius:20px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit">🗑️ حذف</button>
     </div>
     <div style="display:flex;gap:8px;font-size:10.5px;color:var(--gray);margin-bottom:10px;justify-content:center;flex-wrap:wrap">
-      <span>🔌 مولد</span><span>⚡ لوحة كهرباء</span><span>📝 ملاحظة</span><span style="margin-right:8px">👆 اسحب أي عنصر لتحريكه</span>
+      <span>🔌 مولد</span><span>⚡ لوحة كهرباء</span><span>📝 ملاحظة</span><span style="margin-right:8px">👆 اسحب أي عنصر لتحريكه — 🔍 كبّر للمخطط للدقة</span>
     </div>
     <div style="display:flex;gap:8px">
       <button id="layout-save-btn" class="save-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#059669,#047857)">💾 حفظ المخطط</button>
@@ -6969,6 +6977,9 @@ var LAYOUT_ICONS = {
     note:      { emoji: '📝', color: 'linear-gradient(135deg,#84cc16,#65a30d)', flat: '#65a30d', defaultLabel: 'ملاحظة جديدة' }
 };
 
+var LAYOUT_BASE_W = 700, LAYOUT_BASE_H = 525; // نسبة 4:3 تقريبًا كأساس قبل التكبير
+var currentLayoutZoom = 1;
+
 function openSiteLayoutModal(siteName) {
     currentLayoutSite = siteName;
     var key = siteKeyOf(siteName);
@@ -6976,28 +6987,54 @@ function openSiteLayoutModal(siteName) {
     currentLayoutItems = saved && Array.isArray(saved.items) ? JSON.parse(JSON.stringify(saved.items)) : [];
     currentLayoutBackground = (saved && saved.background) || null;
     selectedLayoutItemId = null;
+    currentLayoutZoom = 1;
     document.getElementById('site-layout-title').textContent = '🗺️ مخطط الموقع — ' + siteName;
     document.getElementById('site-layout-item-toolbar').style.display = 'none';
     document.getElementById('layout-bg-status').style.display = 'none';
     applyLayoutBackground();
+    applyLayoutZoom();
     renderLayoutCanvas();
     document.getElementById('site-layout-modal').classList.add('active');
 }
 
-function applyLayoutBackground() {
+function applyLayoutZoom() {
+    var content = document.getElementById('site-layout-zoom-content');
+    var label = document.getElementById('layout-zoom-level');
+    if (!content) return;
+    content.style.width = Math.round(LAYOUT_BASE_W * currentLayoutZoom) + 'px';
+    content.style.height = Math.round(LAYOUT_BASE_H * currentLayoutZoom) + 'px';
+    if (label) label.textContent = Math.round(currentLayoutZoom * 100) + '%';
+}
+
+function zoomLayoutIn() {
+    currentLayoutZoom = Math.min(3, Math.round((currentLayoutZoom + 0.25) * 100) / 100);
+    applyLayoutZoom();
+}
+function zoomLayoutOut() {
+    currentLayoutZoom = Math.max(0.5, Math.round((currentLayoutZoom - 0.25) * 100) / 100);
+    applyLayoutZoom();
+}
+function zoomLayoutReset() {
+    currentLayoutZoom = 1;
+    applyLayoutZoom();
     var wrap = document.getElementById('site-layout-canvas-wrap');
-    if (!wrap) return;
+    if (wrap) { wrap.scrollLeft = 0; wrap.scrollTop = 0; }
+}
+
+function applyLayoutBackground() {
+    var content = document.getElementById('site-layout-zoom-content');
+    if (!content) return;
     if (currentLayoutBackground) {
-        wrap.style.backgroundImage = 'url(' + currentLayoutBackground + ')';
-        wrap.style.backgroundSize = 'contain';
-        wrap.style.backgroundRepeat = 'no-repeat';
-        wrap.style.backgroundPosition = 'center';
-        wrap.style.backgroundColor = '#ffffff';
+        content.style.backgroundImage = 'url(' + currentLayoutBackground + ')';
+        content.style.backgroundSize = 'contain';
+        content.style.backgroundRepeat = 'no-repeat';
+        content.style.backgroundPosition = 'center';
+        content.style.backgroundColor = '#ffffff';
     } else {
-        wrap.style.backgroundImage =
+        content.style.backgroundImage =
             'repeating-linear-gradient(0deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px), ' +
             'repeating-linear-gradient(90deg, #f1f5f9, #f1f5f9 24px, #e2e8f0 24px, #e2e8f0 25px)';
-        wrap.style.backgroundColor = '';
+        content.style.backgroundColor = '';
     }
 }
 
@@ -7023,10 +7060,10 @@ function renderLayoutCanvas() {
 }
 
 function wireLayoutItemDrag(el, item) {
-    var wrap = document.getElementById('site-layout-canvas-wrap');
     var dragging = false;
     el.addEventListener('pointerdown', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         dragging = true;
         el.setPointerCapture(e.pointerId);
         el.style.cursor = 'grabbing';
@@ -7034,7 +7071,10 @@ function wireLayoutItemDrag(el, item) {
     });
     el.addEventListener('pointermove', function(e) {
         if (!dragging) return;
-        var rect = wrap.getBoundingClientRect();
+        e.preventDefault();
+        // نستخدم أبعاد عنصر المحتوى الفعلية (بعد التكبير) لحساب النسبة المئوية الصحيحة لأي مستوى تكبير
+        var content = document.getElementById('site-layout-zoom-content');
+        var rect = content.getBoundingClientRect();
         var x = ((e.clientX - rect.left) / rect.width) * 100;
         var y = ((e.clientY - rect.top) / rect.height) * 100;
         x = Math.max(3, Math.min(97, x));
@@ -8385,8 +8425,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (layoutExportBtn) layoutExportBtn.onclick = function() { exportSiteLayoutPDF(); };
     var layoutCanvasWrap = document.getElementById('site-layout-canvas-wrap');
     if (layoutCanvasWrap) layoutCanvasWrap.addEventListener('pointerdown', function(e) {
-        if (e.target === layoutCanvasWrap || e.target.id === 'site-layout-canvas') selectLayoutItem(null);
+        if (e.target === layoutCanvasWrap || e.target.id === 'site-layout-canvas' || e.target.id === 'site-layout-zoom-content') selectLayoutItem(null);
     });
+    var layoutZoomInBtn = document.getElementById('layout-zoom-in-btn');
+    if (layoutZoomInBtn) layoutZoomInBtn.onclick = function() { zoomLayoutIn(); };
+    var layoutZoomOutBtn = document.getElementById('layout-zoom-out-btn');
+    if (layoutZoomOutBtn) layoutZoomOutBtn.onclick = function() { zoomLayoutOut(); };
+    var layoutZoomResetBtn = document.getElementById('layout-zoom-reset-btn');
+    if (layoutZoomResetBtn) layoutZoomResetBtn.onclick = function() { zoomLayoutReset(); };
     
     // تحميل وضع الدخول من Firebase إن وُجد
     var fbCfgForMode = null;
