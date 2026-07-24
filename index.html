@@ -1631,7 +1631,7 @@ function performFullBackup() {
         var blob = new Blob([jsonStr], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
-        var stamp = new Date().toISOString().split('T')[0];
+        var stamp = localDateStr(new Date());
         a.href = url; a.download = 'hacpmv_backup_' + stamp + '.json';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
@@ -2079,6 +2079,22 @@ function escapeHtml(str) {
     });
 }
 
+// تنسيق التاريخ بالتوقيت المحلي للجهاز (YYYY-MM-DD) بدون التحويل لتوقيت UTC
+// استخدام toISOString() مباشرة لاستخراج التاريخ يسبب رجوع التاريخ يوم كامل في مصر
+// (توقيت UTC+2/+3) خصوصًا في ساعات الفجر - لازم نستخدم هذه الدالة بدلًا منه دائمًا
+function localDateStr(d) {
+    d = d || new Date();
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+}
+// نفس الفكرة لكن لصيغة الشهر فقط (YYYY-MM)
+function localMonthStr(d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
 function hoursRemaining(equipment) {
     return (equipment.nextHours || 0) - (equipment.hours || 0);
 }
@@ -2147,7 +2163,7 @@ function parseDateFromExcel(dateValue) {
         const excelEpoch = new Date(1899, 11, 30);
         const msPerDay = 86400000;
         const date = new Date(excelEpoch.getTime() + dateValue * msPerDay);
-        if (!isNaN(date.getTime())) return date.toISOString().split('T')[0];
+        if (!isNaN(date.getTime())) return localDateStr(date);
         return '';
     }
     const dateStr = dateValue.toString();
@@ -3948,7 +3964,7 @@ function openTransferEquipmentModal(eqId) {
         '<div class="form-field"><label class="form-label">🏗️ المشروع (اختياري)</label>' +
         '<input class="form-input" id="transfer-new-project" value="' + escapeHtml(equipment.projectSite || '') + '"></div>' +
         '<div class="form-field"><label class="form-label">تاريخ النقل</label>' +
-        '<input class="form-input" type="date" id="transfer-date" value="' + new Date().toISOString().split('T')[0] + '"></div>' +
+        '<input class="form-input" type="date" id="transfer-date" value="' + localDateStr(new Date()) + '"></div>' +
         '<div class="form-field"><label class="form-label">ملاحظات</label>' +
         '<textarea class="form-textarea" id="transfer-notes" placeholder="سبب النقل، حالة المعدة عند النقل...إلخ"></textarea></div>' +
         '<button class="save-btn" onclick="confirmTransferEquipment(\'' + equipment.id + '\')">✅ تأكيد النقل</button>' +
@@ -3965,7 +3981,7 @@ function confirmTransferEquipment(eqId) {
 
     var newLocation = (document.getElementById('transfer-new-location').value || '').trim();
     var newProject = (document.getElementById('transfer-new-project').value || '').trim();
-    var transferDate = document.getElementById('transfer-date').value || new Date().toISOString().split('T')[0];
+    var transferDate = document.getElementById('transfer-date').value || localDateStr();
     var notes = (document.getElementById('transfer-notes').value || '').trim();
 
     if (!newLocation) {
@@ -4050,7 +4066,7 @@ function exportHoursHistoryToExcel(eqId) {
     var ws = XLSX.utils.json_to_sheet(wsData);
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'تاريخ_عداد_' + equipment.code);
-    XLSX.writeFile(wb, 'عداد_' + equipment.code + '_' + new Date().toISOString().split('T')[0] + '.xlsx');
+    XLSX.writeFile(wb, 'عداد_' + equipment.code + '_' + localDateStr(new Date()) + '.xlsx');
     showToast('تم التصدير');
 }
 
@@ -4182,7 +4198,7 @@ function openAddFuelModal() {
     document.getElementById('fuel-amount').value = '';
     document.getElementById('fuel-cost').value = '';
     document.getElementById('fuel-hours').value = '';
-    document.getElementById('fuel-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('fuel-date').value = localDateStr(new Date());
     document.getElementById('fuel-notes').value = '';
     document.getElementById('fuel-modal').classList.add('active');
 }
@@ -4265,10 +4281,10 @@ function deleteFuelRecord() {
 
 // ==================== دوال تقارير الوقود المتقدمة ====================
 function openDateRangeModal() {
-    var today = new Date().toISOString().split('T')[0];
+    var today = localDateStr(new Date());
     var thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    var fromDate = thirtyDaysAgo.toISOString().split('T')[0];
+    var fromDate = localDateStr(thirtyDaysAgo);
     document.getElementById('report-date-from').value = fromDate;
     document.getElementById('report-date-to').value = today;
     var equipFilter = document.getElementById('report-equipment-filter');
@@ -4528,7 +4544,7 @@ function exportFuelReportExcel() {
         XLSX.utils.book_append_sheet(wb, ws1, 'استهلاك شهري');
         XLSX.utils.book_append_sheet(wb, ws2, 'مقترح الطلب');
         XLSX.utils.book_append_sheet(wb, ws3, 'تفاصيل السجلات');
-        XLSX.writeFile(wb, 'Fuel_Report_' + new Date().toISOString().substring(0, 10) + '.xlsx');
+        XLSX.writeFile(wb, 'Fuel_Report_' + localDateStr(new Date()) + '.xlsx');
         showToast('✅ تم تصدير تقرير الوقود الكامل - ' + fuelData.length + ' سجل');
     } catch (e) {
         showToast('خطأ في التصدير: ' + e.message, true);
@@ -4546,7 +4562,7 @@ function openAddMaintenanceModal() {
     select.innerHTML = '<option value="">اختر المعدة</option>' +
         equipmentData.map(function(e) { return '<option value="' + escapeHtml(e.id) + '">' + escapeHtml(e.name) + '</option>'; }).join('');
     document.getElementById('maint-type').value = 'صيانة دورية';
-    document.getElementById('maint-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('maint-date').value = localDateStr(new Date());
     document.getElementById('maint-hours').value = '';
     document.getElementById('maint-cost').value = '';
     document.getElementById('maint-notes').value = '';
@@ -4591,7 +4607,7 @@ function autoScheduleMaintenance(equipment) {
     var newSchedule = {
         equipmentId: equipment.id,
         type: 'صيانة دورية تلقائية',
-        date: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+        date: localDateStr(new Date(Date.now() + 7 * 86400000)),
         targetHours: newNext,
         estimatedCost: 0,
         notes: 'تم إنشاؤها تلقائياً بعد تجاوز موعد الصيانة',
@@ -5372,7 +5388,7 @@ function exportOrderToExcel() {
     var ws = XLSX.utils.json_to_sheet(data);
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'طلبيه');
-    XLSX.writeFile(wb, 'طلبيه_' + new Date().toISOString().split('T')[0] + '.xlsx');
+    XLSX.writeFile(wb, 'طلبيه_' + localDateStr(new Date()) + '.xlsx');
     showToast('تم التصدير');
 }
 
@@ -5425,7 +5441,7 @@ function updateSingleMeter(eid) {
             equipment.hours = newHours;
             if (newHours >= equipment.nextHours) autoScheduleMaintenance(equipment);
             equipment.hoursLog = (equipment.hoursLog || []).concat([{
-                date: new Date().toISOString().split('T')[0],
+                date: localDateStr(new Date()),
                 hours: newHours,
                 updatedBy: currentUser ? currentUser.name : 'مستخدم'
             }]);
@@ -5445,7 +5461,7 @@ function saveAllMeters() {
                 eq.hours = newHours;
                 if (newHours >= eq.nextHours) autoScheduleMaintenance(eq);
                 eq.hoursLog = (eq.hoursLog || []).concat([{
-                    date: new Date().toISOString().split('T')[0],
+                    date: localDateStr(new Date()),
                     hours: newHours,
                     updatedBy: currentUser ? currentUser.name : 'مستخدم'
                 }]);
@@ -5480,7 +5496,7 @@ function updateSingleMeterFromHome(eid) {
         equipment.hours = newHours;
         if (newHours >= equipment.nextHours) autoScheduleMaintenance(equipment);
         equipment.hoursLog = (equipment.hoursLog || []).concat([{
-            date: new Date().toISOString().split('T')[0],
+            date: localDateStr(new Date()),
             hours: newHours,
             updatedBy: currentUser ? currentUser.name : 'مستخدم'
         }]);
@@ -5855,7 +5871,7 @@ function exportAllHoursExcel() {
         ws2['!cols'] = [{ wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 16 }];
         XLSX.utils.book_append_sheet(wb, ws1, 'العدادات الحالية');
         XLSX.utils.book_append_sheet(wb, ws2, 'السجل التاريخي');
-        XLSX.writeFile(wb, 'Equipment_Hours_' + new Date().toISOString().substring(0, 10) + '.xlsx');
+        XLSX.writeFile(wb, 'Equipment_Hours_' + localDateStr(new Date()) + '.xlsx');
         showToast('✅ تم تصدير سجل العدادات - ' + equipmentData.length + ' معدة');
     } catch (e) {
         showToast('خطأ في التصدير: ' + e.message, true);
@@ -5923,7 +5939,7 @@ function exportOwnedEquipmentHoursExcel() {
             XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(eq.code || eq.name || 'معدة', usedNames));
         });
 
-        XLSX.writeFile(wb, 'ساعات_معدات_الملك_' + new Date().toISOString().split('T')[0] + '.xlsx');
+        XLSX.writeFile(wb, 'ساعات_معدات_الملك_' + localDateStr(new Date()) + '.xlsx');
         showToast('✅ تم تصدير ' + owned.length + ' معدة ملك (شيت لكل معدة)');
     } catch (e) {
         showToast('خطأ في التصدير: ' + e.message, true);
@@ -5947,7 +5963,7 @@ function exportInventoryExcel() {
         ws['!cols'] = [{ wch: 22 }, { wch: 40 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 14 }];
         var wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'المخزون');
-        XLSX.writeFile(wb, 'Inventory_' + new Date().toISOString().substring(0, 10) + '.xlsx');
+        XLSX.writeFile(wb, 'Inventory_' + localDateStr(new Date()) + '.xlsx');
         showToast('✅ تم تصدير ' + inventoryItems.length + ' صنف');
     } catch (e) {
         showToast('خطأ في التصدير: ' + e.message, true);
@@ -6205,7 +6221,7 @@ function importEquipmentData() {
         
         if (existingEquipment) {
             var existingLog = existingEquipment.hoursLog || [];
-            var today = new Date().toISOString().split('T')[0];
+            var today = localDateStr(new Date());
             var alreadyLogged = existingLog.some(function(l) { return l.hours === currentHours && l.date === today; });
             var newLog = alreadyLogged ? existingLog : existingLog.concat([{ date: today, hours: currentHours, updatedBy: 'استيراد ملف' }]);
             
@@ -6259,7 +6275,7 @@ function importEquipmentData() {
                 notes: notes,
                 filters: {},
                 maintenanceLogs: [],
-                hoursLog: [{ date: new Date().toISOString().split('T')[0], hours: currentHours, updatedBy: 'استيراد ملف' }],
+                hoursLog: [{ date: localDateStr(new Date()), hours: currentHours, updatedBy: 'استيراد ملف' }],
                 fuelRecords: [],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -7194,7 +7210,7 @@ function getPeriodRange(monthStr) {
     var ref = new Date(monthStr + '-01T00:00:00');
     var to = new Date(ref.getFullYear(), ref.getMonth(), 20);
     var from = new Date(ref.getFullYear(), ref.getMonth() - 1, 21);
-    function fmt(d) { return d.toISOString().split('T')[0]; }
+    function fmt(d) { return localDateStr(d); }
     return { from: fmt(from), to: fmt(to) };
 }
 
@@ -7204,9 +7220,9 @@ function getCurrentCycleMonthStr() {
     var now = new Date();
     if (now.getDate() >= 21) {
         var next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-        return next.toISOString().slice(0, 7);
+        return localMonthStr(next);
     }
-    return now.toISOString().slice(0, 7);
+    return localMonthStr(now);
 }
 
 function getMonthlyRentalHours(eq, monthStr) {
@@ -7344,7 +7360,7 @@ function renderAnalytics() {
     var periodsBack = [];
     for (var i = 5; i >= 0; i--) {
         var refM = new Date(month + '-01T00:00:00');
-        var pm = new Date(refM.getFullYear(), refM.getMonth() - i, 1).toISOString().slice(0, 7);
+        var pm = localMonthStr(new Date(refM.getFullYear(), refM.getMonth() - i, 1));
         periodsBack.push(pm);
     }
     var maintByMonth = periodsBack.map(function(mo) {
@@ -7822,7 +7838,7 @@ function refreshUI() {
         var visibleMaintenance = maintenanceSchedules.filter(function(m) { return !m.equipmentId || visibleEqIdsM.indexOf(m.equipmentId) !== -1; });
         document.getElementById('maintenance-list').innerHTML = visibleMaintenance.filter(function(m) { return m.status === 'مجدول'; }).map(function(m) {
             var eq = equipmentData.find(function(e) { return e.id === m.equipmentId; });
-            var isToday = m.date === new Date().toISOString().split('T')[0];
+            var isToday = m.date === localDateStr(new Date());
             return '<div class="maintenance-card" onclick="showMaintenanceDetail(\'' + m.id + '\')">' +
                 '<div class="card-header">' +
                 '<div><div class="card-title">🔧 ' + escapeHtml(m.type) + '</div>' +
@@ -8142,8 +8158,8 @@ function openFuelReportModal() {
             equipmentData.map(function(e) { return '<option value="' + escapeHtml(e.id) + '">' + escapeHtml(e.code) + ' - ' + escapeHtml(e.name) + '</option>'; }).join('');
     }
     var now = new Date();
-    var firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    var firstDay = localDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
+    var lastDay = localDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0));
     var fromEl = document.getElementById('fuel-report-from');
     var toEl = document.getElementById('fuel-report-to');
     if (fromEl) fromEl.value = firstDay;
@@ -8509,7 +8525,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addRentalDailyBtn) addRentalDailyBtn.onclick = function() { openAddDailyModal(''); };
     var rentalDailyDateEl = document.getElementById('rental-daily-date');
     if (rentalDailyDateEl) {
-        rentalDailyDateEl.value = new Date().toISOString().split('T')[0];
+        rentalDailyDateEl.value = localDateStr(new Date());
         rentalDailyDateEl.onchange = renderRentalDailyView;
     }
     
@@ -8699,7 +8715,7 @@ function openAddWorkOrder() {
     document.getElementById('wo-modal-title').textContent = '➕ إضافة أمر عمل';
     document.getElementById('wo-eq-select').innerHTML = '<option value="">-- اختر المعدة --</option>' +
         equipmentData.map(function(e){ return '<option value="'+e.id+'">'+escapeHtml(e.code+' — '+e.name)+'</option>'; }).join('');
-    document.getElementById('wo-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('wo-date').value = localDateStr(new Date());
     document.getElementById('wo-project').value = '';
     document.getElementById('wo-desc').value = '';
     document.getElementById('wo-notes').value = '';
@@ -8978,7 +8994,7 @@ function renderRentalEquipment() {
     if (!rentalData.length) { c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray)">🚧 لا توجد عقود إيجار</div>'; return; }
     var now = new Date();
     var month = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-    var todayStr = now.toISOString().split('T')[0];
+    var todayStr = localDateStr(now);
     var html = '';
     rentalData.forEach(function(r) {
         var eq  = equipmentData.find(function(e){ return e.id===r.equipmentId; });
@@ -9111,7 +9127,7 @@ function openAddRentalModal() {
     }).join('');
     document.getElementById('rental-eq-type-display').value='';
     document.getElementById('rental-company').value='';
-    document.getElementById('rental-start-date').value=new Date().toISOString().split('T')[0];
+    document.getElementById('rental-start-date').value=localDateStr(new Date());
     document.getElementById('rental-end-date').value='';
     document.getElementById('rental-notes').value='';
     document.getElementById('rental-modal').classList.add('active');
@@ -9165,7 +9181,7 @@ function openAddDailyModal(rentalId) {
         return '<option value="'+r.id+'"'+(r.id===rentalId?' selected':'')+'>'+escapeHtml(label)+'</option>';
     }).join('');
     document.getElementById('rental-daily-modal-title').textContent='📋 تسجيل يوم عمل';
-    document.getElementById('rental-daily-date-input').value=new Date().toISOString().split('T')[0];
+    document.getElementById('rental-daily-date-input').value=localDateStr(new Date());
     document.getElementById('rental-daily-in').value='08:00';
     document.getElementById('rental-daily-out').value='17:00';
     document.getElementById('rental-daily-break').checked=false;
@@ -9361,7 +9377,7 @@ function buildRentalDayEntries(rentalId, dateFrom, dateTo) {
     var recMap = {};
     records.forEach(function(r) { recMap[r.date] = r; });
     var now = new Date();
-    var todayStr = now.toISOString().split('T')[0];
+    var todayStr = localDateStr(now);
     var endBound = effectiveTo < todayStr ? effectiveTo : todayStr;
 
     var days = [];
@@ -9369,7 +9385,7 @@ function buildRentalDayEntries(rentalId, dateFrom, dateTo) {
         var d = new Date(effectiveFrom + 'T00:00:00');
         var endD = new Date(endBound + 'T00:00:00');
         while (d <= endD) {
-            var ds = d.toISOString().split('T')[0];
+            var ds = localDateStr(d);
             var rec = recMap[ds];
             if (rec) {
                 days.push({ date: ds, record: rec, status: 'recorded' });
@@ -9627,7 +9643,7 @@ function exportSingleRentalPDF(rentalId) {
 
 function sendRentalWhatsApp() {
     var dateEl = document.getElementById('rental-daily-date');
-    var dateFilter = dateEl ? dateEl.value : new Date().toISOString().split('T')[0];
+    var dateFilter = dateEl ? dateEl.value : localDateStr(new Date());
     var filtered = rentalDailyData.filter(function(d){ return d.date===dateFilter; });
 
     var msg = '*حسن علام القابضة*%0A';
@@ -9678,9 +9694,9 @@ function sendDriverWhatsApp(rentalId) {
     var overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center';
     var now = new Date();
-    var defTo = now.toISOString().split('T')[0];
+    var defTo = localDateStr(now);
     var prev = new Date(now.getFullYear(), now.getMonth(), 1);
-    var defFrom = prev.toISOString().split('T')[0];
+    var defFrom = localDateStr(prev);
     var eqLabel = eq ? (eq.type + ' — ' + (eq.name||eq.code)) : (rental.equipmentCode||'—');
     var drvName = drv ? drv.name : '—';
     var drvPhone = drv ? (drv.phone||'') : '';
@@ -9773,7 +9789,7 @@ function exportRentalToExcel() {
         rows.push([r.date,eq?eq.name:'',eq?eq.code:'',eq?eq.type:'',drv?drv.name:'',rental?rental.company||'':'',r.inTime||'',r.outTime||'',(r.basicHours||0).toFixed(2),(r.breakHours||0).toFixed(2),(r.extraHours||0).toFixed(2),rowTotal.toFixed(2),r.notes||'']);
     });
     var ws=XLSX.utils.aoa_to_sheet(rows);var wb2=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb2,ws,'السجل');
-    XLSX.writeFile(wb2,'rental_full_'+new Date().toISOString().split('T')[0]+'.xlsx');
+    XLSX.writeFile(wb2,'rental_full_'+localDateStr(new Date())+'.xlsx');
 }
 
 
