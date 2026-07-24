@@ -7198,6 +7198,17 @@ function getPeriodRange(monthStr) {
     return { from: fmt(from), to: fmt(to) };
 }
 
+// يحدد شهر المرجع (YYYY-MM) الذي يمثّل الدورة النشطة الآن (21 → 20) لتمريره إلى getPeriodRange
+// لو النهاردة يوم 21 أو بعده، الدورة النشطة بتاعة الشهر القادم (21 هذا الشهر → 20 الشهر القادم)
+function getCurrentCycleMonthStr() {
+    var now = new Date();
+    if (now.getDate() >= 21) {
+        var next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        return next.toISOString().slice(0, 7);
+    }
+    return now.toISOString().slice(0, 7);
+}
+
 function getMonthlyRentalHours(eq, monthStr) {
     var range = getPeriodRange(monthStr);
     var contracts = rentalData.filter(function(r) { return r.equipmentId === eq.id; });
@@ -7249,7 +7260,7 @@ function renderAnalytics() {
     var body = document.getElementById('analytics-body');
     var monthInput = document.getElementById('analytics-month');
     if (!body || !monthInput) return;
-    if (!monthInput.value) monthInput.value = new Date().toISOString().slice(0, 7);
+    if (!monthInput.value) monthInput.value = getCurrentCycleMonthStr();
     var month = monthInput.value;
     var period = getPeriodRange(month);
     var periodLabel = period.from + ' \u2192 ' + period.to;
@@ -9291,10 +9302,10 @@ function showRentalReport(rentalId) {
     var eq=equipmentData.find(function(e){ return e.id===rental.equipmentId; });
     var drv=driversData.find(function(d){ return d.id===rental.driverId; });
     var now=new Date();
-    // افتراضي: من 21 الشهر الماضي إلى 20 الشهر الحالي
-    var defTo   = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-20';
-    var prevMonth = new Date(now.getFullYear(), now.getMonth()-1, 21);
-    var defFrom = prevMonth.getFullYear()+'-'+String(prevMonth.getMonth()+1).padStart(2,'0')+'-21';
+    // افتراضي: الدورة النشطة الآن (21 → 20)، تتحدث تلقائيًا بمجرد دخول يوم 21 من كل شهر
+    var activeCycle = getPeriodRange(getCurrentCycleMonthStr());
+    var defFrom = activeCycle.from;
+    var defTo   = activeCycle.to;
     var title=eq?(eq.type+' — '+eq.code):(rental.equipmentCode||'—');
     window._currentRentalReportId=rentalId;
     document.getElementById('detail-title').innerHTML='📋 تقرير: '+escapeHtml(title);
@@ -9340,15 +9351,22 @@ function buildRentalDayEntries(rentalId, dateFrom, dateTo) {
         return { days: records.map(function(r){ return {date:r.date, record:r, status:'recorded'}; }), records: records };
     }
 
+    // لا نعتبر أي يوم قبل بداية عقد الإيجار (أو بعد نهايته) "غيابًا" لأن المعدة لم تكن موجودة بالموقع أصلاً
+    var rental = rentalData.find(function(r) { return r.id === rentalId; });
+    var effectiveFrom = dateFrom;
+    if (rental && rental.startDate && rental.startDate > effectiveFrom) effectiveFrom = rental.startDate;
+    var effectiveTo = dateTo;
+    if (rental && rental.endDate && rental.endDate < effectiveTo) effectiveTo = rental.endDate;
+
     var recMap = {};
     records.forEach(function(r) { recMap[r.date] = r; });
     var now = new Date();
     var todayStr = now.toISOString().split('T')[0];
-    var endBound = dateTo < todayStr ? dateTo : todayStr;
+    var endBound = effectiveTo < todayStr ? effectiveTo : todayStr;
 
     var days = [];
-    if (dateFrom <= endBound) {
-        var d = new Date(dateFrom + 'T00:00:00');
+    if (effectiveFrom <= endBound) {
+        var d = new Date(effectiveFrom + 'T00:00:00');
         var endD = new Date(endBound + 'T00:00:00');
         while (d <= endD) {
             var ds = d.toISOString().split('T')[0];
