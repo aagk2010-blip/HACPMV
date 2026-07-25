@@ -3233,6 +3233,7 @@ function proceedToApp() {
     setTimeout(function() { switchView(startView); }, 100);
 
     if (isAdmin) {
+        loadReportScheduleState().then(function(){ runSmartAlertsRefresh(); });
         setTimeout(function() {
             checkOnlineAndWarn();
             checkDriverLicenses();
@@ -5785,6 +5786,49 @@ function checkRentalExpiryAlerts() {
 }
 
 // يجمع كل أنواع التنبيهات في مكان واحد
+// ==================== تذكير إرسال التقارير الدورية (شهري موحّد، صيانة، إيجار) ====================
+var reportScheduleState = {}; // { unified: {lastSentCycle,...}, maintenance: {...}, rental: {...} } - محمّلة من Firebase
+function loadReportScheduleState() {
+    if (!fbDb) return Promise.resolve();
+    return fbDb.ref('appSettings/reportSchedule').once('value').then(function(snap) {
+        reportScheduleState = snap.val() || {};
+    }).catch(function(){});
+}
+
+// التقارير المستحقة الإرسال لآخر دورة مكتملة (نافذة تذكير 5 أيام بعد إغلاق الدورة يوم 20)
+function getPendingScheduledReports() {
+    var now = new Date();
+    if (now.getDate() < 21 || now.getDate() > 25) return [];
+    var justCompleted = getPreviousCycleMonthStr(getCurrentCycleMonthStr());
+    var items = [
+        { key: 'unified', label: '📊 التقرير الشهري الموحّد', send: function(){ exportUnifiedMonthlyReport(); } },
+        { key: 'maintenance', label: '🔧 تقرير الصيانة (واتساب)', send: function(){ sendWhatsAppMaintenanceAlert(); } },
+        { key: 'rental', label: '📋 تقرير الإيجار (واتساب)', send: function(){ sendRentalWhatsApp(); } }
+    ];
+    return items.filter(function(it) {
+        var st = reportScheduleState[it.key];
+        return !st || st.lastSentCycle !== justCompleted;
+    }).map(function(it) {
+        it.period = justCompleted;
+        return it;
+    });
+}
+
+function markScheduledReportSent(key, period) {
+    reportScheduleState[key] = { lastSentCycle: period, sentAt: new Date().toISOString() };
+    if (fbDb) fbDb.ref('appSettings/reportSchedule/' + key).set(reportScheduleState[key]).catch(function(){});
+}
+
+function sendScheduledReportNow(key) {
+    var pending = getPendingScheduledReports();
+    var item = pending.find(function(it) { return it.key === key; });
+    if (!item) return;
+    item.send();
+    markScheduledReportSent(item.key, item.period);
+    runSmartAlertsRefresh();
+    showToast('✅ تم إرسال ' + item.label.replace(/^[^\u0600-\u06FF]*/, ''));
+}
+
 function getAllSmartAlerts() {
     loadNotifSettings();
     loadNotifPrefs();
@@ -5812,7 +5856,9 @@ function getAllSmartAlerts() {
     }) : [];
 
     var totalCount = maintOverdue.length + maintSoon.length + licExpired.length + licSoon.length + lowStock.length + rentExpired.length + rentSoon.length;
-    return { maintOverdue:maintOverdue, maintSoon:maintSoon, licExpired:licExpired, licSoon:licSoon, lowStock:lowStock, rentExpired:rentExpired, rentSoon:rentSoon, totalCount:totalCount };
+    var pendingReports = getPendingScheduledReports();
+    totalCount += pendingReports.length;
+    return { maintOverdue:maintOverdue, maintSoon:maintSoon, licExpired:licExpired, licSoon:licSoon, lowStock:lowStock, rentExpired:rentExpired, rentSoon:rentSoon, pendingReports:pendingReports, totalCount:totalCount };
 }
 
 function showSmartAlertBar() {
@@ -5825,6 +5871,7 @@ function showSmartAlertBar() {
     if (a.licExpired.length || a.licSoon.length) parts.push('📜 ' + (a.licExpired.length + a.licSoon.length) + ' رخصة سائق منتهية/قريبة');
     if (a.lowStock.length) parts.push('📦 ' + a.lowStock.length + ' صنف مخزون منخفض');
     if (a.rentExpired.length || a.rentSoon.length) parts.push('📄 ' + (a.rentExpired.length + a.rentSoon.length) + ' عقد إيجار منتهي/قريب');
+    if (a.pendingReports.length) parts.push('📤 ' + a.pendingReports.length + ' تقرير دوري لسه ما اتبعتش');
     if (!parts.length) { alertDiv.style.display = 'none'; return; }
     var msg = parts.join(' | ') + ' — <button onclick="openNotifCenter()" style="background:rgba(0,0,0,.15);border:none;color:inherit;border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">عرض التفاصيل</button>';
     alertDiv.innerHTML = '<div class="smart-alert-bar"><span>' + msg + '</span><button class="close-alert" onclick="document.getElementById(\'alert-bar\').style.display=\'none\'">✕</button></div>';
@@ -5878,6 +5925,15 @@ function openNotifCenter() {
     html += section('📄 عقود إيجار قريبة الانتهاء', '#d97706', a.rentSoon, function(r) {
         return row((r.equipmentType||'') + ' — ' + (r.equipmentCode||''), 'ينتهي في ' + r.endDate + (r.company?' | '+r.company:''));
     });
+    if (a.pendingReports.length) {
+        html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#7c3aed;margin-bottom:6px">📤 تقارير الدورة المكتملة (' + a.pendingReports.length + ')</div>' +
+            a.pendingReports.map(function(it) {
+                return '<div style="background:var(--light);border-radius:10px;padding:8px 10px;margin-bottom:5px;font-size:12px;display:flex;justify-content:space-between;align-items:center">' +
+                    '<div><div style="font-weight:600">' + escapeHtml(it.label) + '</div><div style="color:var(--gray);font-size:11px">للدورة المنتهية: ' + it.period + '</div></div>' +
+                    '<button onclick="sendScheduledReportNow(\'' + it.key + '\')" style="background:#7c3aed;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">📤 إرسال الآن</button>' +
+                    '</div>';
+            }).join('') + '</div>';
+    }
     if (!a.totalCount) html = '<div style="text-align:center;padding:30px;color:var(--gray)">✅ لا توجد تنبيهات حالياً — كل شيء تمام</div>';
     html += '<button class="save-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);margin-top:6px" onclick="closeModal(\'notif-center-modal\');openNotifSettings()">⚙️ إعدادات الإشعارات</button>';
     body.innerHTML = html;
@@ -7348,6 +7404,13 @@ function getCurrentCycleMonthStr() {
     return localMonthStr(now);
 }
 
+// يرجع شهر المرجع (YYYY-MM) للدورة اللي قبل الدورة المحددة، لاستخدامه مع getPeriodRange في المقارنات
+function getPreviousCycleMonthStr(monthStr) {
+    var d = new Date(monthStr + '-01T00:00:00');
+    var prev = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+    return localMonthStr(prev);
+}
+
 function getMonthlyRentalHours(eq, monthStr) {
     var range = getPeriodRange(monthStr);
     var contracts = rentalData.filter(function(r) { return r.equipmentId === eq.id; });
@@ -7427,6 +7490,30 @@ function renderAnalytics() {
     var ownedWorking = usage.filter(function(u) { return u.eq.ownership !== 'إيجار' && u.eq.status !== 'متوقف'; }).sort(function(a,b){ return (b.hours||0)-(a.hours||0); });
     var rentalWorking = usage.filter(function(u) { return u.eq.ownership === 'إيجار' && u.eq.status !== 'متوقف'; }).sort(function(a,b){ return (b.hours||0)-(a.hours||0); });
 
+    // مقارنة بالفترة السابقة (نفس المدة، الدورة اللي قبلها)
+    var prevMonth = getPreviousCycleMonthStr(month);
+    var prevUsage = eqList.map(function(eq) {
+        var m = (eq.ownership === 'إيجار') ? getMonthlyRentalHours(eq, prevMonth) : getMonthlyHoursForEquipment(eq, prevMonth);
+        return { hours: m ? m.hours : 0, fuel: getMonthlyFuelForEquipment(eq, prevMonth) };
+    });
+    var currentTotalHours = withData.reduce(function(s,u){ return s+u.hours; },0);
+    var prevTotalHours = prevUsage.reduce(function(s,u){ return s+(u.hours||0); },0);
+    var currentTotalFuel = usage.reduce(function(s,u){ return s+(u.fuel||0); },0);
+    var prevTotalFuel = prevUsage.reduce(function(s,u){ return s+(u.fuel||0); },0);
+    function pctChange(cur, prev) {
+        if (!prev) return null;
+        return Math.round(((cur - prev) / prev) * 100);
+    }
+    function changeBadgeHtml(pct, positiveIsGood) {
+        if (pct === null) return '<span style="font-size:10px;color:var(--gray)">لا بيانات سابقة للمقارنة</span>';
+        if (pct === 0) return '<span style="font-size:11px;color:var(--gray)">— بدون تغيير</span>';
+        var isUp = pct > 0;
+        var good = positiveIsGood ? isUp : !isUp;
+        var color = good ? '#059669' : '#dc2626';
+        var arrow = isUp ? '▲' : '▼';
+        return '<span style="font-size:11px;font-weight:700;color:' + color + '">' + arrow + ' ' + Math.abs(pct) + '% عن الفترة السابقة</span>';
+    }
+
     function fuelFlagHtml(u) {
         if (u.fuel > 0 && (!u.hours || u.hours === 0)) {
             return '<span style="background:#fee2e2;color:#991b1b;padding:1px 7px;border-radius:8px;font-size:9.5px;font-weight:700">⚠️ وقود بدون ساعات عمل</span>';
@@ -7501,9 +7588,15 @@ function renderAnalytics() {
     html += '<div style="text-align:center;background:var(--light);border-radius:10px;padding:6px 10px;margin-bottom:10px;font-size:12px;font-weight:700;color:var(--primary)">📅 الفترة: ' + periodLabel + '</div>';
 
     // بطاقات ملخص
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">' +
-        '<div class="stat-card"><div class="stat-number">' + withData.reduce(function(s,u){return s+u.hours;},0).toFixed(0) + '</div><div class="stat-label">إجمالي ساعات العمل (الفترة) ⏱️</div></div>' +
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">' +
+        '<div class="stat-card"><div class="stat-number">' + currentTotalHours.toFixed(0) + '</div><div class="stat-label">إجمالي ساعات العمل (الفترة) ⏱️</div></div>' +
         '<div class="stat-card"><div class="stat-number" style="color:' + (idle.length?'var(--danger)':'var(--success)') + '">' + idle.length + '</div><div class="stat-label">معدة بدون استخدام ⚠️</div></div>' +
+        '</div>';
+
+    // مقارنة بالفترة السابقة
+    html += '<div style="background:white;border-radius:12px;padding:10px 14px;margin-bottom:14px;box-shadow:var(--shadow-sm);display:flex;justify-content:space-around;flex-wrap:wrap;gap:6px">' +
+        '<div style="text-align:center"><div style="font-size:10.5px;color:var(--gray);margin-bottom:2px">⏱️ ساعات العمل</div>' + changeBadgeHtml(pctChange(currentTotalHours, prevTotalHours), true) + '</div>' +
+        '<div style="text-align:center"><div style="font-size:10.5px;color:var(--gray);margin-bottom:2px">⛽ استهلاك الوقود</div>' + changeBadgeHtml(pctChange(currentTotalFuel, prevTotalFuel), false) + '</div>' +
         '</div>';
 
     // معدل الاستخدام مبوّبة (ملك / إيجار / لا تعمل) + استهلاك الوقود
