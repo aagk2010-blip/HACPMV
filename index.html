@@ -491,6 +491,10 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
       <button id="sites-mode-kpi-btn" class="big-btn" style="margin:0;flex:1;font-size:12px;padding:8px;background:linear-gradient(135deg,var(--purple),var(--info))">📊 مقارنة الأداء</button>
     </div>
     <button id="sites-report-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#16a34a,#15803d);font-size:13px;padding:9px">📤 إرسال تقرير دوري لكل المواقع</button>
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <input type="month" id="unified-report-month" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:9px 14px;font-size:12.5px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+      <button id="unified-report-btn" class="big-btn" style="margin:0;flex:1.4;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📋 تقرير شهري موحّد (PDF)</button>
+    </div>
     <div id="sites-summary-row" style="display:flex;gap:8px;margin-bottom:12px"></div>
     <div id="sites-dashboard-list"></div>
   </div></div>
@@ -2102,6 +2106,67 @@ function localMonthStr(d) {
     d = d || new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
 }
+
+// ==================== هوية الشركة (شعار حسن علام) ====================
+var COMPANY_LOGO_DATA_URI = null;   // شعار الشركة الأصلي (مستخرج من صفحة الدخول)
+var COMPANY_ICON_SQUARE_URI = null; // نسخة مربعة من الشعار لاستخدامها كأيقونة تطبيق
+
+function setupBrandedAppIcon() {
+    var logoImg = document.querySelector('#login-screen img[alt="Hassan Allam Holding"]');
+    if (!logoImg || !logoImg.src) return;
+    COMPANY_LOGO_DATA_URI = logoImg.src;
+
+    function build() {
+        try {
+            var size = 512;
+            var c = document.createElement('canvas');
+            c.width = size; c.height = size;
+            var ctx = c.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+            var pad = size * 0.14;
+            var maxW = size - pad * 2, maxH = size - pad * 2;
+            var scale = Math.min(maxW / logoImg.naturalWidth, maxH / logoImg.naturalHeight);
+            var w = logoImg.naturalWidth * scale, h = logoImg.naturalHeight * scale;
+            ctx.drawImage(logoImg, (size - w) / 2, (size - h) / 2, w, h);
+            COMPANY_ICON_SQUARE_URI = c.toDataURL('image/png');
+
+            var appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+            if (appleIcon) appleIcon.href = COMPANY_ICON_SQUARE_URI;
+
+            var manifest = {
+                name: 'Equipment Maintenance Service - Hassan Allam',
+                short_name: 'HACPMV',
+                start_url: '.',
+                display: 'standalone',
+                background_color: '#0d1b2a',
+                theme_color: '#0d1b2a',
+                icons: [
+                    { src: COMPANY_ICON_SQUARE_URI, sizes: '512x512', type: 'image/png' },
+                    { src: COMPANY_ICON_SQUARE_URI, sizes: '192x192', type: 'image/png' }
+                ]
+            };
+            var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+            var manifestLink = document.querySelector('link[rel="manifest"]');
+            if (manifestLink) manifestLink.href = URL.createObjectURL(blob);
+        } catch (e) { console.warn('تعذّر تجهيز أيقونة التطبيق:', e); }
+    }
+
+    if (logoImg.complete && logoImg.naturalWidth) build();
+    else logoImg.addEventListener('load', build);
+}
+
+// يبني ترويسة (هيدر) موحّدة بشعار الشركة لكل التقارير المصدّرة PDF
+function reportHeaderHtml(titleAr, subtitleAr) {
+    var logoTag = COMPANY_LOGO_DATA_URI ? '<img src="' + COMPANY_LOGO_DATA_URI + '" style="height:52px;width:auto">' : '';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #e8a020;padding-bottom:10px;margin-bottom:16px">' +
+        '<div>' + logoTag + '</div>' +
+        '<div style="text-align:left">' +
+        '<div style="font-size:17px;font-weight:800;color:#0d1b2a">' + escapeHtml(titleAr) + '</div>' +
+        (subtitleAr ? '<div style="font-size:11px;color:#64748b">' + escapeHtml(subtitleAr) + '</div>' : '') +
+        '</div></div>';
+}
+
 
 function hoursRemaining(equipment) {
     return (equipment.nextHours || 0) - (equipment.hours || 0);
@@ -7253,7 +7318,7 @@ function exportSiteLayoutPDF() {
         '.canvas{position:relative;width:100%;padding-top:' + paddingTopPct + '%;border:2px solid #94a3b8;border-radius:8px;' + bgStyle + '}' +
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
-        '<h2>🗺️ مخطط الموقع — ' + escapeHtml(currentLayoutSite) + '</h2>' +
+        reportHeaderHtml('مخطط الموقع', currentLayoutSite) +
         '<div class="info">📅 تاريخ التصدير: ' + new Date().toLocaleDateString('ar-EG') + '&nbsp;&nbsp; 🔌 مولدات: ' + genCount + '&nbsp;&nbsp; ⚡ لوحات: ' + panelCount + '&nbsp;&nbsp; 📝 ملاحظات: ' + noteCount + '</div>' +
         '<div class="legend"><span>🔌 مولد</span><span>⚡ لوحة كهرباء</span><span>📝 ملاحظة</span></div>' +
         '<div class="canvas">' + itemsHtml + '</div>' +
@@ -7489,6 +7554,110 @@ function renderAnalytics() {
     html += '<button class="big-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="switchView(\'sites\')">🏢 مقارنة تفصيلية بين المواقع</button>';
 
     body.innerHTML = html;
+}
+
+
+// ==================== التقرير الشهري الموحّد (كل الأقسام + كل المواقع) ====================
+function exportUnifiedMonthlyReport() {
+    var monthInput = document.getElementById('unified-report-month');
+    var monthStr = (monthInput && monthInput.value) || getCurrentCycleMonthStr();
+    var range = getPeriodRange(monthStr);
+    var periodLabel = range.from + ' → ' + range.to;
+
+    var eqList = getVisibleEquipment();
+    var sitesMap = computeSitesStats(eqList);
+    var sites = Object.values(sitesMap).sort(function(a, b) { return b.total - a.total; });
+
+    // إجمالي الأسطول
+    var totalEq = eqList.length;
+    var working = eqList.filter(function(e){ return e.status === 'يعمل'; }).length;
+    var stopped = eqList.filter(function(e){ return e.status === 'متوقف'; }).length;
+    var overdue = eqList.filter(function(e){ return e.status !== 'متوقف' && hoursRemaining(e) <= 0; }).length;
+
+    // الوقود في الفترة
+    var fuelInPeriod = (fuelData || []).filter(function(f){ return f.date && f.date >= range.from && f.date <= range.to; });
+    var totalFuelLiters = fuelInPeriod.reduce(function(s,f){ return s+(f.amount||0); }, 0);
+    var totalFuelCost = fuelInPeriod.reduce(function(s,f){ return s+(f.cost||0); }, 0);
+
+    // الصيانة في الفترة
+    var maintCompleted = (maintenanceSchedules||[]).filter(function(m){ return m.status==='مكتمل' && m.completedAt && m.completedAt.slice(0,10) >= range.from && m.completedAt.slice(0,10) <= range.to; }).length;
+
+    // ساعات الإيجار في الفترة (كل معدات الإيجار)
+    var rentalEq = eqList.filter(function(e){ return e.ownership === 'إيجار'; });
+    var rentalTotalHours = 0, rentalTotalAbsent = 0;
+    rentalEq.forEach(function(eq) {
+        var contracts = rentalData.filter(function(r){ return r.equipmentId === eq.id; });
+        contracts.forEach(function(rc) {
+            var dd = buildRentalDayEntries(rc.id, range.from, range.to);
+            dd.records.forEach(function(r){ rentalTotalHours += (r.basicHours||0)+(r.breakHours||0)+(r.extraHours||0); });
+            rentalTotalAbsent += dd.days.filter(function(d){ return d.status==='absent'; }).length;
+        });
+    });
+
+    // جدول تفصيلي لكل موقع: عدد المعدات، حالتها، وقود الفترة، صيانة مكتملة بالفترة
+    var siteRows = sites.map(function(s) {
+        var siteFuel = fuelInPeriod.filter(function(f){
+            var eq = eqList.find(function(e){ return e.id === f.equipmentId; });
+            return eq && ((eq.location && eq.location.trim()) || 'غير محدد') === s.name;
+        }).reduce(function(sum,f){ return sum+(f.amount||0); }, 0);
+        return '<tr><td>'+escapeHtml(s.name)+'</td><td>'+s.total+'</td><td style="color:#059669">'+s.working+'</td>' +
+            '<td style="color:#dc2626">'+s.overdue+'</td><td style="color:#64748b">'+s.stopped+'</td>' +
+            '<td>'+siteFuel.toFixed(0)+' لتر</td></tr>';
+    }).join('');
+
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>التقرير الشهري الموحّد</title><style>' +
+        'body{font-family:Arial;padding:20px;direction:rtl}' +
+        '.info{background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:16px;font-size:13px}' +
+        '.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}' +
+        '.sbox{border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center}' +
+        '.snum{font-size:22px;font-weight:800;color:#0d1b2a}.slbl{font-size:11px;color:#64748b}' +
+        'h3{color:#0d1b2a;border-bottom:2px solid #e8a020;padding-bottom:4px;margin-top:22px}' +
+        'table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}' +
+        'th{background:#0d1b2a;color:white;padding:8px;text-align:center}' +
+        'td{padding:7px;border-bottom:1px solid #e2e8f0;text-align:center}' +
+        '.footer{margin-top:26px;font-size:10px;color:#999;text-align:center}' +
+        '@media print{ .no-print{display:none} }' +
+        '</style></head><body>' +
+        reportHeaderHtml('التقرير الشهري الموحّد', 'كل الأقسام وكل المواقع') +
+        '<div class="info">📅 <b>الفترة:</b> ' + periodLabel + '&nbsp;&nbsp; 🖨️ <b>تاريخ الطباعة:</b> ' + new Date().toLocaleDateString('ar-EG') + '</div>' +
+
+        '<h3>🚜 الأسطول</h3>' +
+        '<div class="summary">' +
+        '<div class="sbox"><div class="snum">' + totalEq + '</div><div class="slbl">إجمالي المعدات</div></div>' +
+        '<div class="sbox"><div class="snum" style="color:#059669">' + working + '</div><div class="slbl">تعمل</div></div>' +
+        '<div class="sbox"><div class="snum" style="color:#dc2626">' + overdue + '</div><div class="slbl">صيانة متأخرة</div></div>' +
+        '</div>' +
+
+        '<h3>⛽ الوقود (خلال الفترة)</h3>' +
+        '<div class="summary">' +
+        '<div class="sbox"><div class="snum">' + totalFuelLiters.toFixed(0) + '</div><div class="slbl">لتر</div></div>' +
+        '<div class="sbox"><div class="snum">' + totalFuelCost.toFixed(0) + '</div><div class="slbl">تكلفة (ج.م)</div></div>' +
+        '<div class="sbox"><div class="snum">' + fuelInPeriod.length + '</div><div class="slbl">عدد عمليات التزود</div></div>' +
+        '</div>' +
+
+        '<h3>🔧 الصيانة (خلال الفترة)</h3>' +
+        '<div class="summary">' +
+        '<div class="sbox"><div class="snum" style="color:#059669">' + maintCompleted + '</div><div class="slbl">صيانة مكتملة</div></div>' +
+        '<div class="sbox"><div class="snum" style="color:#dc2626">' + overdue + '</div><div class="slbl">متأخرة حاليًا</div></div>' +
+        '<div class="sbox"><div class="snum">' + stopped + '</div><div class="slbl">معدات متوقفة</div></div>' +
+        '</div>' +
+
+        '<h3>📋 الإيجار (خلال الفترة)</h3>' +
+        '<div class="summary">' +
+        '<div class="sbox"><div class="snum">' + rentalEq.length + '</div><div class="slbl">معدات إيجار</div></div>' +
+        '<div class="sbox"><div class="snum">' + rentalTotalHours.toFixed(0) + '</div><div class="slbl">إجمالي ساعات العمل</div></div>' +
+        '<div class="sbox"><div class="snum" style="color:#dc2626">' + rentalTotalAbsent + '</div><div class="slbl">أيام غياب</div></div>' +
+        '</div>' +
+
+        '<h3>🏢 تفصيل حسب الموقع</h3>' +
+        '<table><thead><tr><th>الموقع</th><th>الإجمالي</th><th>تعمل</th><th>متأخرة</th><th>متوقفة</th><th>وقود الفترة</th></tr></thead>' +
+        '<tbody>' + siteRows + '</tbody></table>' +
+
+        '<div class="footer">Hassan Allam Holding | التقرير الشهري الموحّد | ' + periodLabel + '</div>' +
+        '</body></html>');
+    w.document.close();
+    setTimeout(function() { w.print(); }, 500);
 }
 
 
@@ -8391,6 +8560,7 @@ function initOfflineDetector() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('تم تحميل الصفحة - جاري تهيئة التطبيق');
     preloadLoginData();
+    setupBrandedAppIcon();
     
     // أزرار صفحة الدخول
     var directLoginBtn = document.getElementById('direct-login-btn');
@@ -8563,6 +8733,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sitesModeKpiBtn) sitesModeKpiBtn.onclick = function() { sitesViewMode = 'kpi'; renderSitesDashboard(); };
     var sitesReportBtn = document.getElementById('sites-report-btn');
     if (sitesReportBtn) sitesReportBtn.onclick = function() { sendSitesPeriodicReport(); };
+    var unifiedReportBtn = document.getElementById('unified-report-btn');
+    var unifiedReportMonthEl = document.getElementById('unified-report-month');
+    if (unifiedReportMonthEl && !unifiedReportMonthEl.value) unifiedReportMonthEl.value = getCurrentCycleMonthStr();
+    if (unifiedReportBtn) unifiedReportBtn.onclick = function() { exportUnifiedMonthlyReport(); };
     var analyticsMonthEl = document.getElementById('analytics-month');
     if (analyticsMonthEl) analyticsMonthEl.onchange = function() { renderAnalytics(); };
     if (searchDriver) searchDriver.oninput = function() { debouncedRefresh(); };
@@ -9690,7 +9864,7 @@ function exportSingleRentalPDF(rentalId) {
     }).join('');
     var w=window.open('','_blank');
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial;padding:20px;direction:rtl}h2{color:#7c3aed}.info{background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:15px;font-size:13px}.summary{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;margin-bottom:15px}.sum-box{background:#7c3aed;color:white;padding:12px;border-radius:8px;text-align:center}.sum-box .num{font-size:22px;font-weight:bold}.sum-box .lbl{font-size:11px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#7c3aed;color:white;padding:7px;text-align:center}td{padding:6px 7px;border-bottom:1px solid #e2e8f0;text-align:center}tfoot td{background:#f1f5f9;font-weight:bold}</style></head><body>'+
-        '<h2>📋 تقرير معدة إيجار</h2>'+
+        reportHeaderHtml('تقرير معدة إيجار', (eq?eq.name:'') )+
         '<div class="info"><b>المعدة:</b> '+(eq?eq.type+' — '+eq.name:'—')+'&nbsp;&nbsp;<b>الكود:</b> '+(eq?eq.code:'—')+'&nbsp;&nbsp;<b>السائق:</b> '+(drv?drv.name:'—')+'<br>'+
         '<b>الشركة:</b> '+(rental?rental.company||'—':'—')+'&nbsp;&nbsp;<b>الفترة:</b> '+periodLabel+'&nbsp;&nbsp;<b>الطباعة:</b> '+new Date().toLocaleDateString('ar-EG')+'</div>'+
         '<div class="summary"><div class="sum-box"><div class="num">'+records.length+'</div><div class="lbl">يوم عمل</div></div>'+
