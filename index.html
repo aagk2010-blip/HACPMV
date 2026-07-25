@@ -6965,6 +6965,7 @@ var siteLayoutsData = {};      // { siteKey: { items: [...], background: 'data:.
 var currentLayoutSite = null;  // اسم الموقع الحالي المفتوح
 var currentLayoutItems = [];   // نسخة قابلة للتعديل من عناصر الموقع الحالي
 var currentLayoutBackground = null; // صورة المخطط المرفوعة (data URL) أو null
+var currentLayoutBgRatio = null;    // نسبة عرض:ارتفاع صورة المخطط الأصلية (لعرضها بجودتها ونسبتها الحقيقية)
 var selectedLayoutItemId = null;
 
 function siteKeyOf(siteName) {
@@ -6986,24 +6987,28 @@ function openSiteLayoutModal(siteName) {
     var saved = siteLayoutsData[key];
     currentLayoutItems = saved && Array.isArray(saved.items) ? JSON.parse(JSON.stringify(saved.items)) : [];
     currentLayoutBackground = (saved && saved.background) || null;
+    currentLayoutBgRatio = (saved && saved.bgRatio) || null;
     selectedLayoutItemId = null;
     currentLayoutZoom = 1;
     document.getElementById('site-layout-title').textContent = '🗺️ مخطط الموقع — ' + siteName;
     document.getElementById('site-layout-item-toolbar').style.display = 'none';
     document.getElementById('layout-bg-status').style.display = 'none';
+    document.getElementById('site-layout-modal').classList.add('active');
     applyLayoutBackground();
     applyLayoutZoom();
-    renderLayoutCanvas();
-    document.getElementById('site-layout-modal').classList.add('active');
 }
 
+// حجم أساسي أعرض لعرض أوضح، ونسبة العرض:الارتفاع تتبع صورة المخطط الحقيقية لو مرفوعة (بدل 4:3 ثابتة)
 function applyLayoutZoom() {
     var content = document.getElementById('site-layout-zoom-content');
     var label = document.getElementById('layout-zoom-level');
     if (!content) return;
-    content.style.width = Math.round(LAYOUT_BASE_W * currentLayoutZoom) + 'px';
-    content.style.height = Math.round(LAYOUT_BASE_H * currentLayoutZoom) + 'px';
+    var baseW = LAYOUT_BASE_W;
+    var baseH = currentLayoutBgRatio ? Math.round(baseW / currentLayoutBgRatio) : LAYOUT_BASE_H;
+    content.style.width = Math.round(baseW * currentLayoutZoom) + 'px';
+    content.style.height = Math.round(baseH * currentLayoutZoom) + 'px';
     if (label) label.textContent = Math.round(currentLayoutZoom * 100) + '%';
+    renderLayoutCanvas();
 }
 
 function zoomLayoutIn() {
@@ -7042,6 +7047,12 @@ function renderLayoutCanvas() {
     var canvas = document.getElementById('site-layout-canvas');
     if (!canvas) return;
     canvas.innerHTML = '';
+    // حجم العلامة يتناسب مع حجم المخطط الحالي (يكبر مع التكبير بدل ما يفضل ثابت)
+    var content = document.getElementById('site-layout-zoom-content');
+    var contentW = content ? content.getBoundingClientRect().width : LAYOUT_BASE_W;
+    var markerSize = Math.max(26, Math.min(64, Math.round(contentW * 0.055)));
+    var fontSize = Math.max(12, Math.round(markerSize * 0.45));
+    var labelSize = Math.max(9.5, Math.round(markerSize * 0.26));
     currentLayoutItems.forEach(function(item) {
         var cfg = LAYOUT_ICONS[item.type] || LAYOUT_ICONS.note;
         var el = document.createElement('div');
@@ -7050,10 +7061,10 @@ function renderLayoutCanvas() {
         el.style.cssText = 'position:absolute;left:' + item.x + '%;top:' + item.y + '%;transform:translate(-50%,-50%);' +
             'display:flex;flex-direction:column;align-items:center;cursor:grab;user-select:none;touch-action:none;z-index:' + (item.id === selectedLayoutItemId ? 5 : 2) + ';';
         el.innerHTML =
-            '<div style="width:38px;height:38px;border-radius:50%;background:' + cfg.color + ';' +
-            'display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,.3);' +
+            '<div style="width:' + markerSize + 'px;height:' + markerSize + 'px;border-radius:50%;background:' + cfg.color + ';' +
+            'display:flex;align-items:center;justify-content:center;font-size:' + fontSize + 'px;box-shadow:0 2px 8px rgba(0,0,0,.3);' +
             (item.id === selectedLayoutItemId ? 'outline:3px solid #059669;outline-offset:2px;' : '') + '">' + cfg.emoji + '</div>' +
-            '<div style="background:white;border-radius:6px;padding:1px 6px;font-size:9.5px;font-weight:700;margin-top:2px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.2);max-width:100px;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(item.label || cfg.defaultLabel) + '</div>';
+            '<div style="background:white;border-radius:6px;padding:1px 6px;font-size:' + labelSize + 'px;font-weight:700;margin-top:2px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.2);max-width:' + Math.round(markerSize*2.6) + 'px;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(item.label || cfg.defaultLabel) + '</div>';
         canvas.appendChild(el);
         wireLayoutItemDrag(el, item);
     });
@@ -7136,7 +7147,7 @@ function compressImageDataUrl(sourceDataUrl, maxDim, quality) {
             var ctx = c.getContext('2d');
             ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
             ctx.drawImage(img, 0, 0, w, h);
-            resolve(c.toDataURL('image/jpeg', quality || 0.75));
+            resolve({ dataUrl: c.toDataURL('image/jpeg', quality || 0.92), width: w, height: h });
         };
         img.onerror = reject;
         img.src = sourceDataUrl;
@@ -7148,13 +7159,15 @@ function handleLayoutBgUpload(file) {
     if (!file) return;
     status.style.display = 'block';
     status.style.color = 'var(--gray)';
-    status.textContent = '⏳ جاري معالجة الملف...';
+    status.textContent = '⏳ جاري معالجة الملف بأعلى جودة ممكنة...';
 
-    function finish(dataUrl) {
-        currentLayoutBackground = dataUrl;
+    function finish(result) {
+        currentLayoutBackground = result.dataUrl;
+        currentLayoutBgRatio = result.width / result.height;
         applyLayoutBackground();
+        applyLayoutZoom();
         status.style.color = 'var(--success)';
-        status.textContent = '✅ تم رفع المخطط — لا تنسَ الضغط على "حفظ المخطط"';
+        status.textContent = '✅ تم رفع المخطط بجودة عالية — لا تنسَ الضغط على "حفظ المخطط"';
     }
     function fail(err) {
         status.style.color = 'var(--danger)';
@@ -7168,14 +7181,14 @@ function handleLayoutBgUpload(file) {
             pdfjsLib.getDocument({ data: new Uint8Array(reader.result) }).promise.then(function(pdf) {
                 return pdf.getPage(1);
             }).then(function(page) {
-                var viewport = page.getViewport({ scale: 2 });
+                var viewport = page.getViewport({ scale: 3 }); // دقة عالية عند تحويل صفحة الـ PDF لصورة
                 var c = document.createElement('canvas');
                 c.width = viewport.width; c.height = viewport.height;
                 return page.render({ canvasContext: c.getContext('2d'), viewport: viewport }).promise.then(function() {
                     return c.toDataURL('image/png');
                 });
             }).then(function(rawDataUrl) {
-                return compressImageDataUrl(rawDataUrl, 1400, 0.8);
+                return compressImageDataUrl(rawDataUrl, 2200, 0.93);
             }).then(finish).catch(fail);
         };
         reader.onerror = function() { fail('فشل قراءة الملف'); };
@@ -7183,7 +7196,7 @@ function handleLayoutBgUpload(file) {
     } else if (file.type.indexOf('image/') === 0) {
         var reader2 = new FileReader();
         reader2.onload = function() {
-            compressImageDataUrl(reader2.result, 1400, 0.8).then(finish).catch(fail);
+            compressImageDataUrl(reader2.result, 2200, 0.93).then(finish).catch(fail);
         };
         reader2.onerror = function() { fail('فشل قراءة الملف'); };
         reader2.readAsDataURL(file);
@@ -7194,7 +7207,9 @@ function handleLayoutBgUpload(file) {
 
 function removeLayoutBackground() {
     currentLayoutBackground = null;
+    currentLayoutBgRatio = null;
     applyLayoutBackground();
+    applyLayoutZoom();
     var status = document.getElementById('layout-bg-status');
     status.style.display = 'block';
     status.style.color = 'var(--gray)';
@@ -7204,7 +7219,7 @@ function removeLayoutBackground() {
 function saveSiteLayout() {
     if (!currentLayoutSite) return;
     var key = siteKeyOf(currentLayoutSite);
-    var payload = { siteName: currentLayoutSite, items: currentLayoutItems, background: currentLayoutBackground || null, updatedAt: new Date().toISOString(), updatedBy: (currentUser && currentUser.name) || '' };
+    var payload = { siteName: currentLayoutSite, items: currentLayoutItems, background: currentLayoutBackground || null, bgRatio: currentLayoutBgRatio || null, updatedAt: new Date().toISOString(), updatedBy: (currentUser && currentUser.name) || '' };
     fbDb.ref('siteLayouts/' + key).set(payload).then(function() {
         showToast('✅ تم حفظ المخطط');
     }).catch(function(e) {
@@ -7217,22 +7232,25 @@ function exportSiteLayoutPDF() {
     var genCount = currentLayoutItems.filter(function(i){ return i.type === 'generator'; }).length;
     var panelCount = currentLayoutItems.filter(function(i){ return i.type === 'panel'; }).length;
     var noteCount = currentLayoutItems.filter(function(i){ return i.type === 'note'; }).length;
+    var printMarkerSize = 44;
     var itemsHtml = currentLayoutItems.map(function(item) {
         var cfg = LAYOUT_ICONS[item.type] || LAYOUT_ICONS.note;
         return '<div style="position:absolute;left:' + item.x + '%;top:' + item.y + '%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center">' +
-            '<div style="width:40px;height:40px;border-radius:50%;background:' + cfg.flat + ';color:white;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 6px rgba(0,0,0,.3)">' + cfg.emoji + '</div>' +
-            '<div style="background:white;border:1px solid #cbd5e1;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:700;margin-top:3px;white-space:nowrap">' + escapeHtml(item.label || '') + '</div>' +
+            '<div style="width:' + printMarkerSize + 'px;height:' + printMarkerSize + 'px;border-radius:50%;background:' + cfg.flat + ';color:white;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 6px rgba(0,0,0,.3)">' + cfg.emoji + '</div>' +
+            '<div style="background:white;border:1px solid #cbd5e1;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;margin-top:3px;white-space:nowrap">' + escapeHtml(item.label || '') + '</div>' +
             '</div>';
     }).join('');
     var bgStyle = currentLayoutBackground
         ? ('background-image:url(' + currentLayoutBackground + ');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;')
         : ('background-image:repeating-linear-gradient(0deg,#f8fafc,#f8fafc 24px,#e2e8f0 24px,#e2e8f0 25px),repeating-linear-gradient(90deg,#f8fafc,#f8fafc 24px,#e2e8f0 24px,#e2e8f0 25px);');
+    // نسبة الصندوق تتبع نسبة صورة المخطط الحقيقية (بدل نسبة ثابتة) عشان يطبع بنفس تناسق الأصل
+    var paddingTopPct = currentLayoutBgRatio ? (100 / currentLayoutBgRatio) : 70;
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>مخطط الموقع - ' + escapeHtml(currentLayoutSite) + '</title><style>' +
         'body{font-family:Arial;padding:20px;direction:rtl}h2{color:#0369a1;margin-bottom:4px}' +
         '.info{background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px}' +
         '.legend{display:flex;gap:18px;margin-bottom:14px;font-size:13px}' +
-        '.canvas{position:relative;width:100%;padding-top:70%;border:2px solid #94a3b8;border-radius:8px;' + bgStyle + '}' +
+        '.canvas{position:relative;width:100%;padding-top:' + paddingTopPct + '%;border:2px solid #94a3b8;border-radius:8px;' + bgStyle + '}' +
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
         '<h2>🗺️ مخطط الموقع — ' + escapeHtml(currentLayoutSite) + '</h2>' +
