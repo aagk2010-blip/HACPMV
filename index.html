@@ -9740,12 +9740,19 @@ function calcRentalHours(inTime, outTime, breakWorked) {
     var extraMins = Math.max(0, outMins - RENTAL_STANDARD_END_MINS);
     var extra = Math.round(extraMins/60*100)/100;
 
-    var breakVal = breakWorked ? 1 : 0;
-    var workBeforeExtra = total - extra; // الوقت حتى نهاية الدوام الرسمي (5م) أو حتى وقت الانصراف لو أبكر
-    var basicRaw = workBeforeExtra - (breakWorked ? 0 : 1); // خصم ساعة راحة غير مدفوعة لو لم تُستخدم في العمل
-    var basic = Math.max(0, Math.min(basicRaw, 8));
+    var spanBeforeExtra = total - extra; // الوقت حتى نهاية الدوام الرسمي (5م) أو حتى وقت الانصراف لو أبكر
+    var basic, breakVal;
+    if (breakWorked) {
+        // ساعة الراحة تُحسب فقط لو فعلاً كان فيه وقت يستحقها ضمن الفترة المسجّلة (لا تُضاف كساعة وهمية على يوم قصير)
+        var paidBeforeExtra = Math.min(spanBeforeExtra, 9);
+        basic = Math.max(0, Math.min(paidBeforeExtra, 8));
+        breakVal = Math.max(0, paidBeforeExtra - basic);
+    } else {
+        basic = Math.max(0, Math.min(spanBeforeExtra - 1, 8)); // خصم ساعة راحة غير مدفوعة
+        breakVal = 0;
+    }
 
-    return { total:total, basic:Math.round(basic*100)/100, break:breakVal, extra:extra };
+    return { total:total, basic:Math.round(basic*100)/100, break:Math.round(breakVal*100)/100, extra:extra };
 }
 
 function switchRentalTab(tab) {
@@ -9768,20 +9775,21 @@ function renderRentalEquipment() {
     if (delBtn) delBtn.style.display = isAdmin ? '' : 'none';
     if (!rentalData.length) { c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray)">🚧 لا توجد عقود إيجار</div>'; return; }
     var now = new Date();
-    var month = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    var cycleRange = getPeriodRange(getCurrentCycleMonthStr());
+    var cycleDayCount = Math.round((new Date(cycleRange.to) - new Date(cycleRange.from)) / 86400000) + 1;
     var todayStr = localDateStr(now);
     var html = '';
     rentalData.forEach(function(r) {
         var eq  = equipmentData.find(function(e){ return e.id===r.equipmentId; });
         var drv = driversData.find(function(d){ return d.id===r.driverId; });
         var allDays   = rentalDailyData.filter(function(d){ return d.equipmentId===r.id; });
-        var monthDays = allDays.filter(function(d){ return (d.date||'').startsWith(month); });
+        var monthDays = allDays.filter(function(d){ return d.date && d.date >= cycleRange.from && d.date <= cycleRange.to; });
         var todayRec  = allDays.find(function(d){ return d.date===todayStr; });
         var daysCount = monthDays.length;
         var sumBasic  = monthDays.reduce(function(s,d){ return s+(d.basicHours||0); },0);
         var sumBreak  = monthDays.reduce(function(s,d){ return s+(d.breakHours||0); },0);
         var sumExtra  = monthDays.reduce(function(s,d){ return s+(d.extraHours||0); },0);
-        var pct   = Math.min(daysCount/30,1);
+        var pct   = Math.min(daysCount/cycleDayCount,1);
         var color = daysCount>=25?'#059669':daysCount>=15?'#0e7490':daysCount>=7?'#d97706':'#7c3aed';
         var angle = (pct*360-90)*Math.PI/180;
         var x2=44+38*Math.cos(angle), y2=44+38*Math.sin(angle);
@@ -9807,7 +9815,7 @@ function renderRentalEquipment() {
         '</svg>'+
         '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;line-height:1.1">'+
         '<div style="font-size:20px;font-weight:800;color:'+color+'">'+daysCount+'</div>'+
-        '<div style="font-size:9px;color:var(--gray)">يوم/30</div></div></div>'+
+        '<div style="font-size:9px;color:var(--gray)">يوم/'+cycleDayCount+'</div></div></div>'+
         '<div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:5px">'+
         '<div style="background:var(--light);border-radius:9px;padding:7px;text-align:center"><div style="font-size:17px;font-weight:700;color:#0e7490">'+sumBasic.toFixed(1)+'</div><div style="font-size:9px;color:var(--gray)">أساسية</div></div>'+
         '<div style="background:'+((sumExtra+sumBreak)>0?'#fef3c7':'var(--light)')+';border-radius:9px;padding:7px;text-align:center"><div style="font-size:17px;font-weight:700;color:'+((sumExtra+sumBreak)>0?'#d97706':'var(--gray)')+'">'+(sumExtra+sumBreak).toFixed(1)+'</div><div style="font-size:9px;color:var(--gray)">إضافية'+(sumBreak>0?' (منها '+sumBreak.toFixed(1)+'راحة)':'')+'</div></div>'+
@@ -10172,7 +10180,10 @@ function buildRentalDayEntries(rentalId, dateFrom, dateTo) {
             d.setDate(d.getDate() + 1);
         }
     }
-    return { days: days, records: records };
+    // نبني قائمة السجلات المستخدمة في التجميع من نفس أيام الجدول المعروض بالظبط
+    // (بدل فلترة منفصلة) حتى لا يظهر أي فرق بين المجموع الكلي والصفوف الظاهرة فعليًا
+    var visibleRecords = days.filter(function(dd) { return dd.record; }).map(function(dd) { return dd.record; });
+    return { days: days, records: visibleRecords };
 }
 
 function renderRentalReportContent(rentalId, dateFrom, dateTo) {
