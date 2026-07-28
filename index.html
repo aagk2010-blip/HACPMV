@@ -9748,22 +9748,25 @@ function calcRentalHours(inTime, outTime, breakWorked) {
     if (outMins <= inMins) outMins += 1440;
     var total = Math.round((outMins - inMins)/60*100)/100;
 
-    var extraMins = Math.max(0, outMins - RENTAL_STANDARD_END_MINS);
-    var extra = Math.round(extraMins/60*100)/100;
-
-    var spanBeforeExtra = total - extra; // الوقت حتى نهاية الدوام الرسمي (5م) أو حتى وقت الانصراف لو أبكر
-    var basic, breakVal;
+    // بدل ما كنا بنحسب "الإضافي" كوقت بعد 5 المساء بس، وده كان بيضيع أي ساعات
+    // زيادة عن الأساسي (8س) لو الحضور كان قبل الوقت القياسي (زي حضور 6ص بدل 8ص) -
+    // دلوقتي بنحسب كل الوقت الفعلي المشتغل: أول 8 ساعات = أساسي، بعد كده لحد ساعة
+    // (لو اشتغلت) = راحة، والباقي كله = إضافي - أيًا كان معاد الحضور أو الانصراف
+    var basic, breakVal, extra;
     if (breakWorked) {
         // ساعة الراحة تُحسب فقط لو فعلاً كان فيه وقت يستحقها ضمن الفترة المسجّلة (لا تُضاف كساعة وهمية على يوم قصير)
-        var paidBeforeExtra = Math.min(spanBeforeExtra, 9);
-        basic = Math.max(0, Math.min(paidBeforeExtra, 8));
-        breakVal = Math.max(0, paidBeforeExtra - basic);
+        basic = Math.max(0, Math.min(total, 8));
+        var afterBasic = total - basic;
+        breakVal = Math.max(0, Math.min(afterBasic, 1));
+        extra = Math.max(0, afterBasic - breakVal);
     } else {
-        basic = Math.max(0, Math.min(spanBeforeExtra - 1, 8)); // خصم ساعة راحة غير مدفوعة
+        var payable = Math.max(0, total - 1); // خصم ساعة راحة غير مدفوعة
+        basic = Math.max(0, Math.min(payable, 8));
         breakVal = 0;
+        extra = Math.max(0, payable - basic);
     }
 
-    return { total:total, basic:Math.round(basic*100)/100, break:Math.round(breakVal*100)/100, extra:extra };
+    return { total:total, basic:Math.round(basic*100)/100, break:Math.round(breakVal*100)/100, extra:Math.round(extra*100)/100 };
 }
 
 function switchRentalTab(tab) {
