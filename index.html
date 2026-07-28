@@ -2139,6 +2139,17 @@ function localDateStr(d) {
     var day = String(d.getDate()).padStart(2, '0');
     return y + '-' + m + '-' + day;
 }
+// "يوم العمل" الخاص بشاشة الإضافة السريعة لمعدات الإيجار: يبدأ الساعة 5 صباحًا
+// وليس منتصف الليل، عشان لو حد بيسهر بعد 12 بالليل يقدر يسجل ساعاته
+// ضمن نفس يوم العمل اللي سبقه (لحد الساعة 5 صباحًا يعتبر لسه نفس اليوم القديم)
+function businessDateStr(d) {
+    d = d || new Date();
+    var dt = new Date(d.getTime());
+    if (dt.getHours() < 5) {
+        dt.setDate(dt.getDate() - 1);
+    }
+    return localDateStr(dt);
+}
 // نفس الفكرة لكن لصيغة الشهر فقط (YYYY-MM)
 function localMonthStr(d) {
     d = d || new Date();
@@ -9777,7 +9788,7 @@ function renderRentalEquipment() {
     var now = new Date();
     var cycleRange = getPeriodRange(getCurrentCycleMonthStr());
     var cycleDayCount = Math.round((new Date(cycleRange.to) - new Date(cycleRange.from)) / 86400000) + 1;
-    var todayStr = localDateStr(now);
+    var todayStr = businessDateStr(now);
     var html = '';
     rentalData.forEach(function(r) {
         var eq  = equipmentData.find(function(e){ return e.id===r.equipmentId; });
@@ -9964,7 +9975,7 @@ function openAddDailyModal(rentalId) {
         return '<option value="'+r.id+'"'+(r.id===rentalId?' selected':'')+'>'+escapeHtml(label)+'</option>';
     }).join('');
     document.getElementById('rental-daily-modal-title').textContent='📋 تسجيل يوم عمل';
-    document.getElementById('rental-daily-date-input').value=localDateStr(new Date());
+    document.getElementById('rental-daily-date-input').value=businessDateStr(new Date());
     document.getElementById('rental-daily-in').value='08:00';
     document.getElementById('rental-daily-out').value='17:00';
     document.getElementById('rental-daily-break').checked=false;
