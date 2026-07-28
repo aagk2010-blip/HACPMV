@@ -2044,6 +2044,21 @@ function canAdd(section)    { var p=sectionPerm(section); return p==='add'||p===
 function canEdit(section)   { var p=sectionPerm(section); return p==='edit'||p==='full'; }
 function canFull(section)   { return sectionPerm(section)==='full'; }
 
+// هل المستخدم الحالي في وضع "مشاهدة فقط" بشكل عام (سواء كان دوره "زائر"،
+// أو مستخدم مخصّص كل أقسامه إما "عرض" أو بدون صلاحية إطلاقًا)؟
+// تُستخدم لإخفاء كل أزرار الأوامر (إضافة/تعديل/حذف/تصدير/إرسال...) في كامل البرنامج.
+function isViewOnlyUser() {
+    if (!currentUser) return false;
+    if (currentUser.role === 'admin') return false;
+    if (currentUser.role === 'viewer') return true;
+    var secs = ['home','equipment','fuel','maintenance','inventory','rental','drivers','sites','analytics'];
+    var sections = currentUser.sections || {};
+    return secs.every(function(k) {
+        var v = sections[k] || 'none';
+        return v === 'view' || v === 'none';
+    });
+}
+
 // صلاحية الوصول لموقع معين (لمستخدمي المركز الرئيسي مقابل مسؤولي المواقع)
 function userCanAccessSite(siteName) {
     if (!currentUser) return false;
@@ -3277,6 +3292,15 @@ function proceedToApp() {
         if (!canAdd('rental'))      css += '#add-rental-btn,#add-rental-daily-btn,#delete-all-rental-btn{display:none!important}';
         if (!canEdit('rental'))     css += '#rental-wa-btn{display:none!important}';
         css += '#admin-panel-btn,#notif-settings-btn{display:none!important}';
+
+        // مستخدم "مشاهدة فقط" بالكامل: نخفي كل زرار أمر/إجراء في البرنامج كله
+        // (إضافة، تعديل، حذف، تصدير، إرسال تقرير...الخ)، ونسيب بس أزرار التنقل والفلترة
+        if (isViewOnlyUser()) {
+            css += '.save-btn,.big-btn,.add-btn,.edit-btn,.delete-btn,.danger-btn,' +
+                   '.fab-section,#fab-btn,.edit-equipment-btn,.fuel-edit-btn,.qty-btn' +
+                   '{display:none!important}';
+        }
+
         var st = document.createElement('style');
         st.id = 'perm-style';
         st.textContent = css;
