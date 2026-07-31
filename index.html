@@ -8155,34 +8155,41 @@ function exportUnifiedMonthlyReport() {
     var totalFuelLiters = fuelInPeriod.reduce(function(s,f){ return s+(f.amount||0); }, 0);
     var totalFuelCost = fuelInPeriod.reduce(function(s,f){ return s+(f.cost||0); }, 0);
 
-    // الصيانة في الفترة — تُقرأ من سجل الصيانات الفعلي لكل معدة (pmHistory)
+    // الصيانة في الفترة — تُقرأ من داخل كارت كل معدة (سجل الصيانات: pmHistory) بنفس منطق مطابقة الكود المستخدم في شاشة "📋 سجل الصيانات"
     // بمجرد تسجيل قطع/زيت مصروفة على المعدة في تاريخ داخل الفترة، تُحتسب عملية الصيانة كأنها تمت
-    var codeToEquipment = {};
-    eqList.forEach(function(e){ if (e.code) codeToEquipment[(e.code+'').replace(/\s+/g,'').toUpperCase()] = e; });
+    function findPmSessionsForEquipment(eq) {
+        var code = (eq.code || '').replace(/\s+/g, '');
+        var safeCode = code.replace(/[.#$\/\[\]]/g, '_');
+        for (var k in pmHistory) {
+            var entry = pmHistory[k];
+            var entryCode = (entry.originalCode || k).replace(/\s+/g, '');
+            var safeK = k.replace(/[.#$\/\[\]]/g, '_');
+            if (entryCode.toUpperCase() === code.toUpperCase() || safeK.toUpperCase() === safeCode.toUpperCase()) {
+                return entry.sessions || entry || [];
+            }
+        }
+        return [];
+    }
     var maintCompleted = 0;
     var maintPartsCount = 0, maintOilCount = 0;
     var maintEquipmentSet = {};
     var maintDetailRows = [];
-    for (var pmKey in pmHistory) {
-        var pmEntry = pmHistory[pmKey];
-        var pmCode = ((pmEntry.originalCode || pmKey) + '').replace(/\s+/g,'').toUpperCase();
-        var pmEq = codeToEquipment[pmCode];
-        if (!pmEq) continue;
-        var pmSessions = pmEntry.sessions || pmEntry || [];
-        pmSessions.forEach(function(s){
+    eqList.forEach(function(eq) {
+        var pmSessions = findPmSessionsForEquipment(eq);
+        pmSessions.forEach(function(s) {
             var d = parsePMHistoryDate(s.date);
             if (d && d >= range.from && d <= range.to) {
                 maintCompleted++;
-                maintEquipmentSet[pmCode] = true;
+                maintEquipmentSet[eq.id] = true;
                 var oilsInSession = 0, partsInSession = 0;
                 (s.items||[]).forEach(function(it){
                     if ((it.name||'').toLowerCase().indexOf('oil') !== -1) { maintOilCount++; oilsInSession++; }
                     else { maintPartsCount++; partsInSession++; }
                 });
                 maintDetailRows.push({
-                    equipmentName: pmEq.name || pmCode,
-                    equipmentCode: pmEq.code || pmCode,
-                    location: (pmEq.location && pmEq.location.trim()) || 'غير محدد',
+                    equipmentName: eq.name || eq.code,
+                    equipmentCode: eq.code || '',
+                    location: (eq.location && eq.location.trim()) || 'غير محدد',
                     date: d,
                     dateDisplay: s.date || d,
                     hours: s.hours,
@@ -8191,7 +8198,7 @@ function exportUnifiedMonthlyReport() {
                 });
             }
         });
-    }
+    });
     var maintEquipmentCount = Object.keys(maintEquipmentSet).length;
     maintDetailRows.sort(function(a, b){ return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0); });
 
