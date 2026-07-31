@@ -8117,6 +8117,23 @@ function renderAnalytics() {
 
 
 // ==================== التقرير الشهري الموحّد (كل الأقسام + كل المواقع) ====================
+// تحويل تاريخ سجل الصيانة (كما يُقرأ من ملف الإكسل، مثل D/M/YYYY) إلى صيغة YYYY-MM-DD للمقارنة مع الفترة
+function parsePMHistoryDate(dateStr) {
+    if (!dateStr) return null;
+    var s = String(dateStr).trim();
+    var m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+    if (m) {
+        var dd = parseInt(m[1], 10), mm = parseInt(m[2], 10), yyyy = parseInt(m[3], 10);
+        if (yyyy < 100) yyyy += 2000;
+        if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+            return yyyy + '-' + String(mm).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
+        }
+    }
+    var m2 = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m2) return m2[0];
+    return null;
+}
+
 function exportUnifiedMonthlyReport() {
     var monthInput = document.getElementById('unified-report-month');
     var monthStr = (monthInput && monthInput.value) || getCurrentCycleMonthStr();
@@ -8138,8 +8155,45 @@ function exportUnifiedMonthlyReport() {
     var totalFuelLiters = fuelInPeriod.reduce(function(s,f){ return s+(f.amount||0); }, 0);
     var totalFuelCost = fuelInPeriod.reduce(function(s,f){ return s+(f.cost||0); }, 0);
 
-    // الصيانة في الفترة
-    var maintCompleted = (maintenanceSchedules||[]).filter(function(m){ return m.status==='مكتمل' && m.completedAt && m.completedAt.slice(0,10) >= range.from && m.completedAt.slice(0,10) <= range.to; }).length;
+    // الصيانة في الفترة — تُقرأ من سجل الصيانات الفعلي لكل معدة (pmHistory)
+    // بمجرد تسجيل قطع/زيت مصروفة على المعدة في تاريخ داخل الفترة، تُحتسب عملية الصيانة كأنها تمت
+    var codeToEquipment = {};
+    eqList.forEach(function(e){ if (e.code) codeToEquipment[(e.code+'').replace(/\s+/g,'').toUpperCase()] = e; });
+    var maintCompleted = 0;
+    var maintPartsCount = 0, maintOilCount = 0;
+    var maintEquipmentSet = {};
+    var maintDetailRows = [];
+    for (var pmKey in pmHistory) {
+        var pmEntry = pmHistory[pmKey];
+        var pmCode = ((pmEntry.originalCode || pmKey) + '').replace(/\s+/g,'').toUpperCase();
+        var pmEq = codeToEquipment[pmCode];
+        if (!pmEq) continue;
+        var pmSessions = pmEntry.sessions || pmEntry || [];
+        pmSessions.forEach(function(s){
+            var d = parsePMHistoryDate(s.date);
+            if (d && d >= range.from && d <= range.to) {
+                maintCompleted++;
+                maintEquipmentSet[pmCode] = true;
+                var oilsInSession = 0, partsInSession = 0;
+                (s.items||[]).forEach(function(it){
+                    if ((it.name||'').toLowerCase().indexOf('oil') !== -1) { maintOilCount++; oilsInSession++; }
+                    else { maintPartsCount++; partsInSession++; }
+                });
+                maintDetailRows.push({
+                    equipmentName: pmEq.name || pmCode,
+                    equipmentCode: pmEq.code || pmCode,
+                    location: (pmEq.location && pmEq.location.trim()) || 'غير محدد',
+                    date: d,
+                    dateDisplay: s.date || d,
+                    hours: s.hours,
+                    parts: partsInSession,
+                    oils: oilsInSession
+                });
+            }
+        });
+    }
+    var maintEquipmentCount = Object.keys(maintEquipmentSet).length;
+    maintDetailRows.sort(function(a, b){ return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0); });
 
     // ساعات الإيجار في الفترة (كل معدات الإيجار)
     var rentalEq = eqList.filter(function(e){ return e.ownership === 'إيجار'; });
@@ -8162,6 +8216,13 @@ function exportUnifiedMonthlyReport() {
         return '<tr><td>'+escapeHtml(s.name)+'</td><td>'+s.total+'</td><td style="color:#059669">'+s.working+'</td>' +
             '<td style="color:#dc2626">'+s.overdue+'</td><td style="color:#64748b">'+s.stopped+'</td>' +
             '<td>'+siteFuel.toFixed(0)+' لتر</td></tr>';
+    }).join('');
+
+    var maintRows = maintDetailRows.map(function(r) {
+        return '<tr><td style="text-align:right">' + escapeHtml(r.equipmentName) + '</td><td>' + escapeHtml(r.equipmentCode) + '</td>' +
+            '<td>' + escapeHtml(r.location) + '</td><td>' + escapeHtml(r.dateDisplay) + '</td>' +
+            '<td>' + (r.hours ? r.hours.toLocaleString() : '—') + '</td>' +
+            '<td>' + r.parts + '</td><td>' + r.oils + '</td></tr>';
     }).join('');
 
     var w = window.open('', '_blank');
@@ -8198,9 +8259,18 @@ function exportUnifiedMonthlyReport() {
         '<h3>🔧 الصيانة (خلال الفترة)</h3>' +
         '<div class="summary">' +
         '<div class="sbox"><div class="snum" style="color:#059669">' + maintCompleted + '</div><div class="slbl">صيانة مكتملة</div></div>' +
+        '<div class="sbox"><div class="snum">' + maintEquipmentCount + '</div><div class="slbl">عدد المعدات المصانة</div></div>' +
         '<div class="sbox"><div class="snum" style="color:#dc2626">' + overdue + '</div><div class="slbl">متأخرة حاليًا</div></div>' +
+        '</div>' +
+        '<div class="summary">' +
+        '<div class="sbox"><div class="snum">' + maintPartsCount + '</div><div class="slbl">قطع غيار مصروفة</div></div>' +
+        '<div class="sbox"><div class="snum">' + maintOilCount + '</div><div class="slbl">أصناف زيوت مصروفة</div></div>' +
         '<div class="sbox"><div class="snum">' + stopped + '</div><div class="slbl">معدات متوقفة</div></div>' +
         '</div>' +
+        (maintDetailRows.length ?
+            '<table><thead><tr><th>المعدة</th><th>الكود</th><th>الموقع</th><th>تاريخ الصيانة</th><th>الساعات</th><th>قطع</th><th>زيوت</th></tr></thead>' +
+            '<tbody>' + maintRows + '</tbody></table>'
+            : '<div style="text-align:center;padding:14px;color:#94a3b8;font-size:12.5px">لا توجد صيانات مسجّلة في الفترة</div>') +
 
         '<h3>📋 الإيجار (خلال الفترة)</h3>' +
         '<div class="summary">' +
