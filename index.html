@@ -29,7 +29,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .stats-row{display:flex;gap:10px;padding:14px;overflow-x:auto;scrollbar-width:none}.stats-row::-webkit-scrollbar{display:none}.stat-card{background:var(--white);border-radius:20px;padding:12px 16px;min-width:85px;text-align:center;box-shadow:var(--shadow-sm)}.stat-number{font-size:26px;font-weight:800}.stat-label{font-size:11px;color:var(--gray);margin-top:4px}
 .section{padding:0 14px;margin-top:20px}.section-title{font-size:13px;font-weight:700;color:var(--gray);margin-bottom:12px;display:flex;justify-content:space-between}
 .equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{background:var(--white);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.2s}.equipment-card{border-right:3px solid var(--accent)}.driver-card{border-right:3px solid var(--info)}.fuel-card{border-right:3px solid var(--success)}.maintenance-card{border-right:3px solid var(--warning)}.inventory-item-card{border-right:3px solid var(--purple)}.card-header{display:flex;justify-content:space-between;align-items:flex-start}.card-title{font-size:15px;font-weight:700;color:var(--primary)}.card-code{font-size:11px;color:var(--gray)}.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}.badge-working{background:#d1fae5;color:#065f46}.badge-maintenance{background:#fef3c7;color:#78350f}.badge-stopped{background:#fee2e2;color:#7f1d1d}.badge-active{background:#dbeafe;color:#1e40af}.progress-bar{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden}.progress-fill{height:100%;border-radius:4px;transition:width 0.5s ease}
-.employee-card{background:var(--white);border-radius:12px;padding:8px 12px;margin-bottom:0;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.2s;border-right:3px solid var(--info);display:flex;align-items:center;justify-content:space-between;gap:8px}.employee-card:hover{transform:translateY(-1px)}.employee-card .emp-name{font-size:13px;font-weight:700;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.employee-card .emp-title{font-size:10.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.employee-card .emp-meta{font-size:10px;color:var(--gray);white-space:nowrap}.employee-card .emp-badge{padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.employee-card{background:var(--white);border-radius:12px;padding:8px 12px;margin-bottom:0;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.2s;border-right:3px solid var(--info);display:flex;align-items:center;justify-content:space-between;gap:8px}.employee-card .emp-name{font-size:13px;font-weight:700;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.employee-card .emp-title{font-size:10.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.employee-card .emp-meta{font-size:10px;color:var(--gray);white-space:nowrap}.employee-card .emp-badge{padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;white-space:nowrap;flex-shrink:0}
 #employees-list{display:flex;flex-direction:column;gap:6px;max-width:720px}
 @media (min-width:1024px){ #employees-list{gap:7px} }
 .driver-card{border-radius:12px;padding:8px 12px;margin-bottom:0;display:flex;flex-direction:column;gap:2px}
@@ -220,14 +220,21 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 .section-title{position:relative;padding-right:12px;font-size:13.5px;letter-spacing:.2px}
 .section-title::before{content:'';position:absolute;right:0;top:1px;bottom:1px;width:4px;border-radius:4px;background:linear-gradient(180deg,var(--accent),var(--accent-dark))}
 
-/* --- الكروت: ظل متعدد الطبقات + دخول ناعم --- */
-.equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{
+/* --- الكروت: ظل متعدد الطبقات + دخول ناعم + رفعة + لمعة عند الوقوف (كل صفحات التطبيق) --- */
+.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.maintenance-card,.inventory-item-card,.rental-card{
+  position:relative;overflow:hidden;
   box-shadow:0 1px 2px rgba(13,27,42,.04),0 1px 6px rgba(13,27,42,.05);
   border:1px solid rgba(13,27,42,.04);
   transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease,border-color .18s ease}
-.equipment-card:hover,.driver-card:hover,.fuel-card:hover,.maintenance-card:hover,.inventory-item-card:hover{
-  transform:translateY(-3px);box-shadow:0 14px 30px rgba(13,27,42,.13);border-color:rgba(13,27,42,.06)}
-.equipment-card:active,.driver-card:active,.fuel-card:active,.maintenance-card:active,.inventory-item-card:active{transform:translateY(-1px) scale(.995)}
+.equipment-card:hover,.driver-card:hover,.employee-card:hover,.fuel-card:hover,.fuel-card-compact:hover,.maintenance-card:hover,.inventory-item-card:hover,.rental-card:hover{
+  transform:translateY(-3px) scale(1.008);box-shadow:0 14px 30px rgba(13,27,42,.13);border-color:rgba(13,27,42,.06)}
+.equipment-card:active,.driver-card:active,.employee-card:active,.fuel-card:active,.fuel-card-compact:active,.maintenance-card:active,.inventory-item-card:active,.rental-card:active{transform:translateY(-1px) scale(.995)}
+.equipment-card::before,.driver-card::before,.employee-card::before,.fuel-card::before,.fuel-card-compact::before,.maintenance-card::before,.inventory-item-card::before,.rental-card::before{
+  content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
+  background:linear-gradient(115deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+  transform:skewX(-20deg);pointer-events:none}
+.equipment-card:hover::before,.driver-card:hover::before,.employee-card:hover::before,.fuel-card:hover::before,.fuel-card-compact:hover::before,.maintenance-card:hover::before,.inventory-item-card:hover::before,.rental-card:hover::before{
+  animation:eqCardShine 0.85s ease}
 .card-title{letter-spacing:.1px}
 
 /* --- الشارات (Badges): نقطة حالة + ظل ناعم --- */
