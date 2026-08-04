@@ -65,6 +65,11 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .close-alert{cursor:pointer;font-weight:bold;background:none;border:none;font-size:16px}
 .loading-spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite;margin-left:8px}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes cardIconPop{0%{transform:scale(1) rotate(0deg)}30%{transform:scale(1.3) rotate(-12deg)}60%{transform:scale(1.05) rotate(8deg)}100%{transform:scale(1) rotate(0deg)}}
+.c-ico{display:inline-block;transform-origin:center}
+.equipment-card:hover .c-ico,.driver-card:hover .c-ico,.employee-card:hover .c-ico,.fuel-card-compact:hover .c-ico,
+.maintenance-card:hover .c-ico,.inventory-item-card:hover .c-ico,.rental-card:hover .c-ico,.site-dashboard-card:hover .c-ico{
+  animation:cardIconPop 0.6s ease}
 .admin-panel-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:100%;background:var(--light);z-index:500;overflow-y:auto;display:none}.admin-panel-overlay.active{display:block}
 .user-row{background:white;border-radius:14px;padding:12px;margin-bottom:8px;box-shadow:var(--shadow-sm)}.user-row-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.user-email{font-size:13px;font-weight:700;color:var(--primary)}.user-meta{font-size:11px;color:var(--gray)}.user-controls{display:flex;gap:6px;flex-wrap:wrap}.role-badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;cursor:pointer}.role-admin{background:#fef3c7;color:#92400e}.role-manager{background:#dbeafe;color:#1e40af}.role-editor{background:#d1fae5;color:#065f46}.role-viewer{background:#f3f4f6;color:#374151}.plan-badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;cursor:pointer}.plan-free{background:#f1f5f9;color:#475569}.plan-basic{background:#dbeafe;color:#1e40af}.plan-premium{background:#fef3c7;color:#92400e}
 
@@ -5668,7 +5673,7 @@ function renderInventory() {
         return '<div class="inventory-item-card" onclick="showInventoryItemDetail(\'' + item.id + '\')">' +
             '<div class="card-header">' +
             '<div>' +
-            '<div class="card-title">' + (item.category === 'oil' ? '🛢️ ' : filterAlternatives.find(function(a){return a.alternativeFilterId===item.id;}) ? '🔄 ' : item.category === 'filter' ? '🔧 ' : '📦 ') + escapeHtml(item.name) + '</div>' +
+            '<div class="card-title"><span class="c-ico">' + (item.category === 'oil' ? '🛢️' : filterAlternatives.find(function(a){return a.alternativeFilterId===item.id;}) ? '🔄' : item.category === 'filter' ? '🔧' : '📦') + '</span> ' + escapeHtml(item.name) + '</div>' +
             '<div class="card-code">' + escapeHtml(item.partNo) + ' ' + getItemBadgeWithAltStatus(item) + '</div>' +
             (item.fullMaterial ? '<div class="card-code" style="font-size:9px;color:var(--info);margin-top:3px">📋 ' + escapeHtml(item.fullMaterial.substring(0, 50)) + (item.fullMaterial.length > 50 ? '...' : '') + '</div>' : '') +
             '<div style="font-size:10px;color:var(--info)">🔄 دورة ' + (item.interval || 250) + ' س</div>' +
@@ -7710,7 +7715,7 @@ function renderSitesDashboard() {
 
         html += '<div class="equipment-card site-dashboard-card" data-site="' + escapeHtml(s.name) + '" style="cursor:pointer;margin-bottom:10px;padding:14px;border-right:4px solid ' + statusColor + '">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
-            '<div style="font-weight:800;font-size:15px;color:var(--primary)">' + statusDot + ' ' + escapeHtml(s.name) + '</div>' +
+            '<div style="font-weight:800;font-size:15px;color:var(--primary)"><span class="c-ico">' + statusDot + '</span> ' + escapeHtml(s.name) + '</div>' +
             '<span style="font-size:11px;color:' + statusColor + ';font-weight:700">' + statusText + '</span>' +
             '</div>' +
             '<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#475569;margin-bottom:8px">' +
@@ -8675,9 +8680,9 @@ function refreshUI() {
             else if (rem <= 100) gaugeColor = '#f59e0b';
             else gaugeColor = '#10b981';
             
-            var remLabel = rem <= 0 ? '⚠️ تجاوز ' + Math.abs(rem) + ' س' : 
-                           rem <= 50 ? '🔴 ' + rem + ' س' : 
-                           rem <= 100 ? '🟡 ' + rem + ' س' : '🟢 ' + rem + ' س';
+            var remLabel = rem <= 0 ? '<span class="c-ico">⚠️</span> تجاوز ' + Math.abs(rem) + ' س' : 
+                           rem <= 50 ? '<span class="c-ico">🔴</span> ' + rem + ' س' : 
+                           rem <= 100 ? '<span class="c-ico">🟡</span> ' + rem + ' س' : '<span class="c-ico">🟢</span> ' + rem + ' س';
             
             var sBadge = '<span class="badge ' + (eq.status === 'يعمل' ? 'badge-working' : eq.status === 'صيانة' ? 'badge-maintenance' : 'badge-stopped') + '" style="font-size:10px;padding:2px 6px">' + eq.status + '</span>';
             
@@ -8794,7 +8799,7 @@ function refreshUI() {
             metaParts.push('🏗️ ' + (projects.length ? escapeHtml(projects.join(', ')) : 'عام'));
             if (d.licenseExpiry) metaParts.push('📜 ' + (expired ? '<span style="color:var(--danger)">' : '') + escapeHtml(d.licenseExpiry) + (expired ? '</span>' : ''));
             return '<div class="driver-card" onclick="openDriverDetail(\'' + d.id + '\')">' +
-                '<div class="drv-row1"><span class="drv-name">👨‍✈️ ' + escapeHtml(d.name) + '</span>' +
+                '<div class="drv-row1"><span class="drv-name"><span class="c-ico">👨‍✈️</span> ' + escapeHtml(d.name) + '</span>' +
                 '<span class="badge drv-badge ' + statusColor + '">' + escapeHtml(d.status) + '</span></div>' +
                 '<div class="drv-meta">' + metaParts.join(' · ') + '</div>' +
                 '</div>';
@@ -8893,7 +8898,7 @@ function refreshUI() {
             var statusDot = e.status === 'منتهي الخدمة' ? '⚫' : '🟢';
             return '<div class="employee-card" onclick="openEmployeeDetail(\'' + e.id + '\')">' +
                 '<div style="min-width:0;flex:1">' +
-                '<div class="emp-name">' + statusDot + ' ' + escapeHtml(e.name) + '</div>' +
+                '<div class="emp-name"><span class="c-ico">' + statusDot + '</span> ' + escapeHtml(e.name) + '</div>' +
                 '<div class="emp-title">' + escapeHtml(e.title || '—') + (e.phone ? ' · 📱 ' + escapeHtml(e.phone) : '') + '</div>' +
                 '</div>' +
                 '<span class="badge emp-badge ' + typeColor + '">' + escapeHtml(e.employmentType || '—') + '</span>' +
@@ -9020,7 +9025,7 @@ function refreshUI() {
             if (dr) metaParts.push('👨‍✈️ ' + escapeHtml(dr.name));
             return '<div class="fuel-card-compact">' +
                 '<div style="min-width:0;flex:1">' +
-                '<div class="fc-name">⛽ ' + (eq ? escapeHtml(eq.name) : 'معدة') + '</div>' +
+                '<div class="fc-name"><span class="c-ico">⛽</span> ' + (eq ? escapeHtml(eq.name) : 'معدة') + '</div>' +
                 '<div class="fc-meta">' + metaParts.join(' · ') + '</div>' +
                 '</div>' +
                 '<span class="badge fc-badge badge-working">' + (f.amount || 0) + ' لتر</span>' +
@@ -9081,7 +9086,7 @@ function refreshUI() {
             var isToday = m.date === localDateStr(new Date());
             return '<div class="maintenance-card" onclick="showMaintenanceDetail(\'' + m.id + '\')">' +
                 '<div class="card-header">' +
-                '<div><div class="card-title">🔧 ' + escapeHtml(m.type) + '</div>' +
+                '<div><div class="card-title"><span class="c-ico">🔧</span> ' + escapeHtml(m.type) + '</div>' +
                 '<div class="card-code">' + (eq ? escapeHtml(eq.name) : 'معدة') + '</div></div>' +
                 '<span class="badge ' + (isToday ? 'badge-maintenance' : 'badge-active') + '">' + (isToday ? 'اليوم' : escapeHtml(m.date)) + '</span>' +
                 '</div>' +
@@ -10300,9 +10305,9 @@ function renderRentalEquipment() {
         var todayStatusColor = todayRec ? '#065f46' : '#92400e';
         var todayStatus = todayRec ? '✅ مسجّل اليوم' : '⏳ لم يسجّل اليوم';
         html +=
-        '<div style="background:white;border-radius:16px;border:1px solid #e2e8f0;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)">'+
+        '<div class="rental-card" style="background:white;border-radius:16px;border:1px solid #e2e8f0;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)">'+
         '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:9px 12px;color:white;display:flex;justify-content:space-between;align-items:center">'+
-        '<div><div style="font-weight:700;font-size:14px">🚧 '+escapeHtml(eqLabel)+'</div>'+
+        '<div><div style="font-weight:700;font-size:14px"><span class="c-ico">🚧</span> '+escapeHtml(eqLabel)+'</div>'+
         '<div style="font-size:11px;opacity:.8">'+(r.company?'🏢 '+escapeHtml(r.company)+(drv?' · ':''):'' )+(drv?'👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>'+
         (isAdmin?'<div style="display:flex;gap:4px">'+
         '<button data-action="edit-rental" data-id="'+rid+'" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px">✏️</button>'+
@@ -10572,9 +10577,9 @@ function renderRentalDailyView() {
             var eq=rental?equipmentData.find(function(e){ return e.id===rental.equipmentId; }):null;
             var drv=rental?driversData.find(function(d){ return d.id===rental.driverId; }):null;
             var label=eq?(eq.type+' — '+eq.code):(r.equipmentCode||'—');
-            html+='<div style="background:white;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:8px;overflow:hidden"><div style="padding:10px 14px">'+
+            html+='<div class="rental-card" style="background:white;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:8px;overflow:hidden"><div style="padding:10px 14px">'+
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
-                '<div><div style="font-weight:700;font-size:14px">🚧 '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:12px;color:var(--gray)">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+'</div>'+
+                '<div><div style="font-weight:700;font-size:14px"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:12px;color:var(--gray)">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+'</div>'+
                 (isAdmin?'<div style="display:flex;gap:5px">'+
                 '<button data-action="edit-daily" data-id="'+r.id+'" style="background:#e0e7ff;color:#4338ca;border:none;border-radius:8px;padding:4px 9px;font-size:12px;cursor:pointer">✏️</button>'+
                 '<button data-action="del-daily" data-id="'+r.id+'" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 9px;font-size:12px;cursor:pointer">🗑️</button></div>':'')+'</div>'+
