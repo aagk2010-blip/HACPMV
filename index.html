@@ -32,6 +32,20 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .employee-card{background:var(--white);border-radius:12px;padding:8px 12px;margin-bottom:0;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.2s;border-right:3px solid var(--info);display:flex;align-items:center;justify-content:space-between;gap:8px}.employee-card:hover{transform:translateY(-1px)}.employee-card .emp-name{font-size:13px;font-weight:700;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.employee-card .emp-title{font-size:10.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.employee-card .emp-meta{font-size:10px;color:var(--gray);white-space:nowrap}.employee-card .emp-badge{padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;white-space:nowrap;flex-shrink:0}
 #employees-list{display:flex;flex-direction:column;gap:6px;max-width:720px}
 @media (min-width:1024px){ #employees-list{gap:7px} }
+.driver-card{border-radius:12px;padding:8px 12px;margin-bottom:0;display:flex;flex-direction:column;gap:2px}
+.driver-card .drv-row1{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.driver-card .drv-name{font-size:13px;font-weight:700;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.driver-card .drv-meta{font-size:10.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.driver-card .drv-badge{padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;white-space:nowrap;flex-shrink:0}
+#drivers-list{display:flex;flex-direction:column;gap:6px;max-width:720px}
+@media (min-width:1024px){ #drivers-list{gap:7px} }
+.fuel-card-compact{background:var(--white);border-radius:12px;padding:8px 12px;margin-bottom:0;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;gap:8px;border-right:3px solid var(--success)}
+.fuel-card-compact .fc-name{font-size:13px;font-weight:700;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fuel-card-compact .fc-meta{font-size:10.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fuel-card-compact .fc-badge{padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.fuel-card-compact .fc-edit{border:none;background:#f1f5f9;color:var(--accent);border-radius:8px;padding:4px 7px;font-size:11px;cursor:pointer;flex-shrink:0}
+#fuel-list{display:flex;flex-direction:column;gap:6px;max-width:720px}
+@media (min-width:1024px){ #fuel-list{gap:7px} }
 .status-bar{background:var(--primary);color:white;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-top:24px}
 .tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.05);display:flex;justify-content:space-around;padding:8px 0 20px;z-index:100;overflow-x:auto}.tab-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;font-family:inherit;cursor:pointer;font-size:10px;color:var(--gray);min-width:60px}.tab-btn.active{color:var(--accent);font-weight:600}.tab-icon{font-size:20px}
 .fab{position:fixed;bottom:85px;right:20px;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border:none;color:var(--primary);font-size:26px;cursor:pointer;box-shadow:0 4px 15px rgba(232,160,32,0.4);z-index:150;display:flex;align-items:center;justify-content:center}
@@ -137,7 +151,7 @@ button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
   #alert-bar,.smart-alert-bar{margin-right:28px;margin-left:28px}
 
   /* كل القوائم عمود واحد تحت بعض، بعرض مريح للقراءة على الشاشات الكبيرة */
-  #equipment-list-home,#equipment-list,#drivers-list,#fuel-list,#maintenance-list,#inv-list,
+  #equipment-list-home,#equipment-list,#maintenance-list,#inv-list,
   #sites-dashboard-list,#rental-equipment-list,#rental-daily-list{
     display:flex;flex-direction:column;gap:12px;max-width:720px}
   .equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{margin-bottom:0}
@@ -302,11 +316,11 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
    كل الكروت (معدات، سائقين، وقود، صيانة، مخزن، إيجار، مواقع) عمود واحد
    تحت بعض على كل الشاشات، بعرض مريح للقراءة على الشاشات الكبيرة.
    ======================================================================= */
-#equipment-list-home,#equipment-list,#drivers-list,#fuel-list,#maintenance-list,#inv-list,
+#equipment-list-home,#equipment-list,#maintenance-list,#inv-list,
 #sites-dashboard-list,#rental-equipment-list,#rental-daily-list{
   display:flex !important;flex-direction:column !important;gap:12px}
 @media (min-width:1024px){
-  #equipment-list-home,#equipment-list,#drivers-list,#fuel-list,#maintenance-list,#inv-list,
+  #equipment-list-home,#equipment-list,#maintenance-list,#inv-list,
   #sites-dashboard-list,#rental-equipment-list,#rental-daily-list{max-width:720px;gap:14px}
 }
 /* كارت المعدة في صفحة التحليلات - رفع + لمعة + حركة عند الوقوف (hover) */
@@ -3318,7 +3332,7 @@ function proceedToApp() {
         // إخفاء عام لأزرار التعديل إذا لم تكن للمستخدم صلاحية تعديل المعدات
         if (!canEdit('equipment')) css += '.edit-equipment-btn{display:none!important}';
         if (!canEdit('fuel'))      css += '.fuel-edit-btn{display:none!important}';
-        if (!canAdd('equipment') && !canAdd('fuel') && !canAdd('maintenance') && !canAdd('inventory') && !canAdd('rental') && !canAdd('drivers'))
+        if (!canAdd('equipment') && !canAdd('fuel') && !canAdd('maintenance') && !canAdd('inventory') && !canAdd('rental') && !canAdd('drivers') && !canAdd('employees'))
             css += '#fab-btn{display:none!important}';
         if (!canFull('equipment')) css += '#delete-all-equipment-btn,#delete-all-equipment-global-btn{display:none!important}';
         if (!canFull('fuel'))      css += '#delete-all-fuel-btn{display:none!important}';
@@ -8774,18 +8788,16 @@ function refreshUI() {
             });
             var expired = d.licenseExpiry && new Date(d.licenseExpiry) < new Date();
             var statusColor = d.status === 'نشط' ? 'badge-active' : d.status === 'في إجازة' ? 'badge-maintenance' : 'badge-stopped';
+            var metaParts = [];
+            if (d.phone) metaParts.push('📱 ' + escapeHtml(d.phone));
+            metaParts.push('🚜 ' + (assigned.map(function(e){ return escapeHtml(e.name); }).join(', ') || '—'));
+            metaParts.push('🏗️ ' + (projects.length ? escapeHtml(projects.join(', ')) : 'عام'));
+            if (d.licenseExpiry) metaParts.push('📜 ' + (expired ? '<span style="color:var(--danger)">' : '') + escapeHtml(d.licenseExpiry) + (expired ? '</span>' : ''));
             return '<div class="driver-card" onclick="openDriverDetail(\'' + d.id + '\')">' +
-                '<div class="card-header">' +
-                '<div><div class="card-title">👨‍✈️ ' + escapeHtml(d.name) + '</div>' +
-                '<div class="card-code">' + escapeHtml(d.phone || '') + '</div></div>' +
-                '<span class="badge ' + statusColor + '">' + escapeHtml(d.status) + '</span>' +
-                '</div>' +
-                '<div class="grid-2">' +
-                '<div><span class="detail-label">🚜 معدة</span><br><span class="detail-value">' + (assigned.map(function(e){ return escapeHtml(e.name); }).join(', ') || '—') + '</span></div>' +
-                '<div><span class="detail-label">🏗️ المشروع</span><br><span class="detail-value">' + (projects.length ? projects.join(', ') : '<span style="color:#94a3b8">عام</span>') + '</span></div>' +
-                '</div>' +
-                '<div style="margin-top:6px"><span class="detail-label">📜 الرخصة: </span><span class="detail-value" style="color:' + (expired ? 'var(--danger)' : 'var(--success)') + '">' + escapeHtml(d.licenseExpiry || '—') + '</span></div>' +
-                getLicenseWarningBadge(d) + '</div>';
+                '<div class="drv-row1"><span class="drv-name">👨‍✈️ ' + escapeHtml(d.name) + '</span>' +
+                '<span class="badge drv-badge ' + statusColor + '">' + escapeHtml(d.status) + '</span></div>' +
+                '<div class="drv-meta">' + metaParts.join(' · ') + '</div>' +
+                '</div>';
         }
 
         if (filtered.length === 0) {
@@ -9002,17 +9014,18 @@ function refreshUI() {
             var eq = _allEquip.find(function(e) { return e.id === f.equipmentId; });
             var dr = driversData.find(function(d) { return d.id === f.driverId; });
             var proj = eq ? (eq.projectSite || eq.location || '').trim() : '';
-            return '<div class="fuel-card">' +
-                '<div class="card-header">' +
-                '<div><div class="card-title">⛽ ' + (eq ? escapeHtml(eq.name) : 'معدة') + '</div>' +
-                '<div class="card-code">' + escapeHtml(f.date || '') + (proj ? ' · ' + escapeHtml(proj) : ' · <span style="color:#94a3b8">عام</span>') + '</div></div>' +
-                '<span class="badge badge-working">' + (f.amount || 0) + ' لتر</span>' +
+            var metaParts = [escapeHtml(f.date || ''), (proj ? escapeHtml(proj) : 'عام')];
+            metaParts.push('💰 ' + formatNumber(f.cost || 0) + ' ج.م');
+            metaParts.push('⏱️ ' + (f.hours || 0) + ' س');
+            if (dr) metaParts.push('👨‍✈️ ' + escapeHtml(dr.name));
+            return '<div class="fuel-card-compact">' +
+                '<div style="min-width:0;flex:1">' +
+                '<div class="fc-name">⛽ ' + (eq ? escapeHtml(eq.name) : 'معدة') + '</div>' +
+                '<div class="fc-meta">' + metaParts.join(' · ') + '</div>' +
                 '</div>' +
-                '<div class="grid-2">' +
-                '<div><span class="detail-label">💰 ' + formatNumber(f.cost || 0) + ' ج.م</span></div>' +
-                '<div><span class="detail-label">⏱️ ' + (f.hours || 0) + ' س</span></div>' +
-                '<div><span class="detail-label">👨‍✈️ ' + (dr ? escapeHtml(dr.name) : '—') + '</span></div>' +
-                '</div>' + (hasPermission('all') ? '<button class="fuel-edit-btn" onclick="event.stopPropagation();openEditFuelModal(\'' + f.id + '\')">✏️ تعديل</button>' : '') + '</div>';
+                '<span class="badge fc-badge badge-working">' + (f.amount || 0) + ' لتر</span>' +
+                (hasPermission('all') ? '<button class="fc-edit fuel-edit-btn" onclick="event.stopPropagation();openEditFuelModal(\'' + f.id + '\')">✏️</button>' : '') +
+                '</div>';
         }
 
         // قائمة السجلات
