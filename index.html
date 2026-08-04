@@ -29,6 +29,9 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .stats-row{display:flex;gap:10px;padding:14px;overflow-x:auto;scrollbar-width:none}.stats-row::-webkit-scrollbar{display:none}.stat-card{background:var(--white);border-radius:20px;padding:12px 16px;min-width:85px;text-align:center;box-shadow:var(--shadow-sm)}.stat-number{font-size:26px;font-weight:800}.stat-label{font-size:11px;color:var(--gray);margin-top:4px}
 .section{padding:0 14px;margin-top:20px}.section-title{font-size:13px;font-weight:700;color:var(--gray);margin-bottom:12px;display:flex;justify-content:space-between}
 .equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{background:var(--white);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.2s}.equipment-card{border-right:3px solid var(--accent)}.driver-card{border-right:3px solid var(--info)}.fuel-card{border-right:3px solid var(--success)}.maintenance-card{border-right:3px solid var(--warning)}.inventory-item-card{border-right:3px solid var(--purple)}.card-header{display:flex;justify-content:space-between;align-items:flex-start}.card-title{font-size:15px;font-weight:700;color:var(--primary)}.card-code{font-size:11px;color:var(--gray)}.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}.badge-working{background:#d1fae5;color:#065f46}.badge-maintenance{background:#fef3c7;color:#78350f}.badge-stopped{background:#fee2e2;color:#7f1d1d}.badge-active{background:#dbeafe;color:#1e40af}.progress-bar{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden}.progress-fill{height:100%;border-radius:4px;transition:width 0.5s ease}
+.employee-card{background:var(--white);border-radius:12px;padding:8px 12px;margin-bottom:0;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.2s;border-right:3px solid var(--info);display:flex;align-items:center;justify-content:space-between;gap:8px}.employee-card:hover{transform:translateY(-1px)}.employee-card .emp-name{font-size:13px;font-weight:700;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.employee-card .emp-title{font-size:10.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.employee-card .emp-meta{font-size:10px;color:var(--gray);white-space:nowrap}.employee-card .emp-badge{padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;white-space:nowrap;flex-shrink:0}
+#employees-list{display:flex;flex-direction:column;gap:6px;max-width:720px}
+@media (min-width:1024px){ #employees-list{gap:7px} }
 .status-bar{background:var(--primary);color:white;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-top:24px}
 .tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.05);display:flex;justify-content:space-around;padding:8px 0 20px;z-index:100;overflow-x:auto}.tab-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;font-family:inherit;cursor:pointer;font-size:10px;color:var(--gray);min-width:60px}.tab-btn.active{color:var(--accent);font-weight:600}.tab-icon{font-size:20px}
 .fab{position:fixed;bottom:85px;right:20px;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border:none;color:var(--primary);font-size:26px;cursor:pointer;box-shadow:0 4px 15px rgba(232,160,32,0.4);z-index:150;display:flex;align-items:center;justify-content:center}
@@ -134,7 +137,7 @@ button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
   #alert-bar,.smart-alert-bar{margin-right:28px;margin-left:28px}
 
   /* كل القوائم عمود واحد تحت بعض، بعرض مريح للقراءة على الشاشات الكبيرة */
-  #equipment-list-home,#equipment-list,#drivers-list,#employees-list,#fuel-list,#maintenance-list,#inv-list,
+  #equipment-list-home,#equipment-list,#drivers-list,#fuel-list,#maintenance-list,#inv-list,
   #sites-dashboard-list,#rental-equipment-list,#rental-daily-list{
     display:flex;flex-direction:column;gap:12px;max-width:720px}
   .equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{margin-bottom:0}
@@ -299,11 +302,11 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
    كل الكروت (معدات، سائقين، وقود، صيانة، مخزن، إيجار، مواقع) عمود واحد
    تحت بعض على كل الشاشات، بعرض مريح للقراءة على الشاشات الكبيرة.
    ======================================================================= */
-#equipment-list-home,#equipment-list,#drivers-list,#employees-list,#fuel-list,#maintenance-list,#inv-list,
+#equipment-list-home,#equipment-list,#drivers-list,#fuel-list,#maintenance-list,#inv-list,
 #sites-dashboard-list,#rental-equipment-list,#rental-daily-list{
   display:flex !important;flex-direction:column !important;gap:12px}
 @media (min-width:1024px){
-  #equipment-list-home,#equipment-list,#drivers-list,#employees-list,#fuel-list,#maintenance-list,#inv-list,
+  #equipment-list-home,#equipment-list,#drivers-list,#fuel-list,#maintenance-list,#inv-list,
   #sites-dashboard-list,#rental-equipment-list,#rental-daily-list{max-width:720px;gap:14px}
 }
 /* كارت المعدة في صفحة التحليلات - رفع + لمعة + حركة عند الوقوف (hover) */
@@ -542,6 +545,10 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
       </select>
     </div>
     <div id="employees-stats-bar" style="display:flex;gap:8px;margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#059669,#047857)" onclick="exportEmployeesExcel()">📊 تصدير Excel</button>
+      <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#dc2626,#991b1b)" onclick="exportEmployeesPDF()">📄 تصدير PDF</button>
+    </div>
     <div id="employees-list"></div>
   </div></div>
   
@@ -4513,6 +4520,85 @@ function editEmployee(id) {
     document.getElementById('employee-modal').classList.add('active');
 }
 
+function getFilteredEmployeesForExport() {
+    var empSearch = (document.getElementById('search-employee') ? document.getElementById('search-employee').value : '').trim();
+    var empProjectFilter = document.getElementById('employee-project-filter') ? document.getElementById('employee-project-filter').value : '';
+    var empTypeFilter = document.getElementById('employee-type-filter') ? document.getElementById('employee-type-filter').value : '';
+    return employeesData.filter(function(e) {
+        if (empSearch && !(e.name && e.name.includes(empSearch))) return false;
+        if (empTypeFilter && e.employmentType !== empTypeFilter) return false;
+        if (empProjectFilter && (e.projectSite || '').trim() !== empProjectFilter) return false;
+        return true;
+    });
+}
+
+function exportEmployeesExcel() {
+    var list = getFilteredEmployeesForExport();
+    if (!list.length) {
+        showToast('لا يوجد موظفون لتصديرهم');
+        return;
+    }
+    try {
+        var rows = [['م', 'اسم الموظف', 'المهنة', 'الموقع / المشروع', 'رقم الموبايل', 'الكود الوظيفي', 'معين / سركي', 'الحالة', 'ملاحظات']];
+        list.slice().sort(function(a, b) {
+            return (a.projectSite || '').localeCompare(b.projectSite || '') || (a.name || '').localeCompare(b.name || '');
+        }).forEach(function(e, i) {
+            rows.push([i + 1, e.name || '', e.title || '', e.projectSite || '', e.phone || '', e.jobCode || '', e.employmentType || '', e.status || '', e.notes || '']);
+        });
+        var ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 22 }, { wch: 20 }, { wch: 15 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 30 }];
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'الموظفين');
+        XLSX.writeFile(wb, 'قائمة_الموظفين_' + localDateStr(new Date()) + '.xlsx');
+        showToast('✅ تم تصدير ' + list.length + ' موظف');
+    } catch (e) {
+        showToast('خطأ في التصدير: ' + e.message, true);
+    }
+}
+
+function exportEmployeesPDF() {
+    var list = getFilteredEmployeesForExport();
+    if (!list.length) {
+        showToast('لا يوجد موظفون لتصديرهم');
+        return;
+    }
+    var groups = {};
+    list.forEach(function(e) {
+        var p = (e.projectSite || '').trim() || 'غير محدد';
+        if (!groups[p]) groups[p] = [];
+        groups[p].push(e);
+    });
+    var bodyHtml = Object.keys(groups).sort().map(function(site) {
+        var rows = groups[site].map(function(e, i) {
+            return '<tr><td>' + (i + 1) + '</td><td style="text-align:right">' + escapeHtml(e.name || '') + '</td>' +
+                '<td>' + escapeHtml(e.title || '') + '</td><td>' + escapeHtml(e.phone || '') + '</td>' +
+                '<td>' + escapeHtml(e.jobCode || '') + '</td><td>' + escapeHtml(e.employmentType || '') + '</td></tr>';
+        }).join('');
+        return '<h3>🏗️ ' + escapeHtml(site) + ' <span style="font-size:11px;color:#64748b;font-weight:400">(' + groups[site].length + ' موظف)</span></h3>' +
+            '<table><thead><tr><th>م</th><th>اسم الموظف</th><th>المهنة</th><th>الموبايل</th><th>الكود الوظيفي</th><th>معين/سركي</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody></table>';
+    }).join('');
+
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>قائمة الموظفين</title><style>' +
+        'body{font-family:Arial;padding:20px;direction:rtl}' +
+        '.info{background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:16px;font-size:13px}' +
+        'h3{color:#0d1b2a;border-bottom:2px solid #e8a020;padding-bottom:4px;margin-top:22px}' +
+        'table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}' +
+        'th{background:#0d1b2a;color:white;padding:8px;text-align:center}' +
+        'td{padding:7px;border-bottom:1px solid #e2e8f0;text-align:center}' +
+        '.footer{margin-top:26px;font-size:10px;color:#999;text-align:center}' +
+        '@media print{ .no-print{display:none} }' +
+        '</style></head><body>' +
+        reportHeaderHtml('قائمة الموظفين', 'حصر فنيين الصيانة والمشغلين') +
+        '<div class="info">📅 <b>تاريخ التصدير:</b> ' + new Date().toLocaleDateString('ar-EG') + '&nbsp;&nbsp; 👥 <b>إجمالي:</b> ' + list.length + ' موظف</div>' +
+        bodyHtml +
+        '<div class="footer">Hassan Allam Holding | قائمة الموظفين</div>' +
+        '</body></html>');
+    w.document.close();
+    setTimeout(function() { w.print(); }, 500);
+}
+
 // ==================== دوال الوقود ====================
 function openAddFuelModal() {
     if (!hasPermission('all')) {
@@ -8388,6 +8474,25 @@ function exportUnifiedMonthlyReport() {
             '<td>' + r.parts + '</td><td>' + r.oils + '</td></tr>';
     }).join('');
 
+    // الموظفين — إجمالي وتفصيل حسب الموقع
+    var totalEmployees = employeesData.length;
+    var hiredEmployees = employeesData.filter(function(e){ return e.employmentType === 'معين'; }).length;
+    var casualEmployees = employeesData.filter(function(e){ return e.employmentType === 'سركي'; }).length;
+    var employeesBySite = {};
+    employeesData.forEach(function(e) {
+        var p = (e.projectSite || '').trim() || 'غير محدد';
+        if (!employeesBySite[p]) employeesBySite[p] = { total: 0, hired: 0, casual: 0 };
+        employeesBySite[p].total++;
+        if (e.employmentType === 'معين') employeesBySite[p].hired++;
+        else if (e.employmentType === 'سركي') employeesBySite[p].casual++;
+    });
+    var employeeSiteRows = Object.keys(employeesBySite)
+        .sort(function(a, b) { return employeesBySite[b].total - employeesBySite[a].total; })
+        .map(function(name) {
+            var d = employeesBySite[name];
+            return '<tr><td>' + escapeHtml(name) + '</td><td>' + d.total + '</td><td style="color:#1e40af">' + d.hired + '</td><td style="color:#3730a3">' + d.casual + '</td></tr>';
+        }).join('');
+
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>التقرير الشهري الموحّد</title><style>' +
         'body{font-family:Arial;padding:20px;direction:rtl}' +
@@ -8441,6 +8546,16 @@ function exportUnifiedMonthlyReport() {
         '<div class="sbox"><div class="snum">' + rentalTotalHours.toFixed(0) + '</div><div class="slbl">إجمالي ساعات العمل</div></div>' +
         '<div class="sbox"><div class="snum" style="color:#dc2626">' + rentalTotalAbsent + '</div><div class="slbl">أيام غياب</div></div>' +
         '</div>' +
+
+        '<h3>👥 الموظفين</h3>' +
+        '<div class="summary">' +
+        '<div class="sbox"><div class="snum">' + totalEmployees + '</div><div class="slbl">إجمالي الموظفين</div></div>' +
+        '<div class="sbox"><div class="snum" style="color:#1e40af">' + hiredEmployees + '</div><div class="slbl">📌 معين</div></div>' +
+        '<div class="sbox"><div class="snum" style="color:#3730a3">' + casualEmployees + '</div><div class="slbl">🧾 سركي</div></div>' +
+        '</div>' +
+        (employeeSiteRows ?
+            '<table><thead><tr><th>الموقع</th><th>الإجمالي</th><th>معين</th><th>سركي</th></tr></thead><tbody>' + employeeSiteRows + '</tbody></table>'
+            : '<div style="text-align:center;padding:14px;color:#94a3b8;font-size:12.5px">لا يوجد موظفون مسجّلون</div>') +
 
         '<h3>🏢 تفصيل حسب الموقع</h3>' +
         '<table><thead><tr><th>الموقع</th><th>الإجمالي</th><th>تعمل</th><th>متأخرة</th><th>متوقفة</th><th>وقود الفترة</th></tr></thead>' +
@@ -8763,18 +8878,13 @@ function refreshUI() {
 
         function renderEmployeeCard(e) {
             var typeColor = e.employmentType === 'معين' ? 'badge-active' : 'badge-maintenance';
-            var statusColor = e.status === 'منتهي الخدمة' ? 'var(--danger)' : 'var(--success)';
-            return '<div class="driver-card" onclick="openEmployeeDetail(\'' + e.id + '\')">' +
-                '<div class="card-header">' +
-                '<div><div class="card-title">👤 ' + escapeHtml(e.name) + '</div>' +
-                '<div class="card-code">' + escapeHtml(e.title || '') + '</div></div>' +
-                '<span class="badge ' + typeColor + '">' + escapeHtml(e.employmentType || '—') + '</span>' +
+            var statusDot = e.status === 'منتهي الخدمة' ? '⚫' : '🟢';
+            return '<div class="employee-card" onclick="openEmployeeDetail(\'' + e.id + '\')">' +
+                '<div style="min-width:0;flex:1">' +
+                '<div class="emp-name">' + statusDot + ' ' + escapeHtml(e.name) + '</div>' +
+                '<div class="emp-title">' + escapeHtml(e.title || '—') + (e.phone ? ' · 📱 ' + escapeHtml(e.phone) : '') + '</div>' +
                 '</div>' +
-                '<div class="grid-2">' +
-                '<div><span class="detail-label">📱 الموبايل</span><br><span class="detail-value">' + escapeHtml(e.phone || '—') + '</span></div>' +
-                '<div><span class="detail-label">🔢 الكود الوظيفي</span><br><span class="detail-value">' + escapeHtml(e.jobCode || '—') + '</span></div>' +
-                '</div>' +
-                '<div style="margin-top:6px"><span class="detail-label">🏗️ الحالة: </span><span class="detail-value" style="color:' + statusColor + '">' + escapeHtml(e.status || '—') + '</span></div>' +
+                '<span class="badge emp-badge ' + typeColor + '">' + escapeHtml(e.employmentType || '—') + '</span>' +
                 '</div>';
         }
 
