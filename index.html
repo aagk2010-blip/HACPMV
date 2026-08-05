@@ -68,7 +68,9 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 @keyframes cardIconPop{0%{transform:scale(1) rotate(0deg)}30%{transform:scale(1.3) rotate(-12deg)}60%{transform:scale(1.05) rotate(8deg)}100%{transform:scale(1) rotate(0deg)}}
 .c-ico{display:inline-block;transform-origin:center}
 .equipment-card:hover .c-ico,.driver-card:hover .c-ico,.employee-card:hover .c-ico,.fuel-card-compact:hover .c-ico,
-.maintenance-card:hover .c-ico,.inventory-item-card:hover .c-ico,.rental-card:hover .c-ico,.site-dashboard-card:hover .c-ico{
+.maintenance-card:hover .c-ico,.inventory-item-card:hover .c-ico,.rental-card:hover .c-ico,.site-dashboard-card:hover .c-ico,
+.equipment-card.touch-active .c-ico,.driver-card.touch-active .c-ico,.employee-card.touch-active .c-ico,.fuel-card-compact.touch-active .c-ico,
+.maintenance-card.touch-active .c-ico,.inventory-item-card.touch-active .c-ico,.rental-card.touch-active .c-ico,.site-dashboard-card.touch-active .c-ico{
   animation:cardIconPop 0.6s ease}
 .admin-panel-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:100%;background:var(--light);z-index:500;overflow-y:auto;display:none}.admin-panel-overlay.active{display:block}
 .user-row{background:white;border-radius:14px;padding:12px;margin-bottom:8px;box-shadow:var(--shadow-sm)}.user-row-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.user-email{font-size:13px;font-weight:700;color:var(--primary)}.user-meta{font-size:11px;color:var(--gray)}.user-controls{display:flex;gap:6px;flex-wrap:wrap}.role-badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;cursor:pointer}.role-admin{background:#fef3c7;color:#92400e}.role-manager{background:#dbeafe;color:#1e40af}.role-editor{background:#d1fae5;color:#065f46}.role-viewer{background:#f3f4f6;color:#374151}.plan-badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;cursor:pointer}.plan-free{background:#f1f5f9;color:#475569}.plan-basic{background:#dbeafe;color:#1e40af}.plan-premium{background:#fef3c7;color:#92400e}
@@ -226,14 +228,16 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   box-shadow:0 1px 2px rgba(13,27,42,.04),0 1px 6px rgba(13,27,42,.05);
   border:1px solid rgba(13,27,42,.04);
   transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease,border-color .18s ease}
-.equipment-card:hover,.driver-card:hover,.employee-card:hover,.fuel-card:hover,.fuel-card-compact:hover,.maintenance-card:hover,.inventory-item-card:hover,.rental-card:hover{
+.equipment-card:hover,.driver-card:hover,.employee-card:hover,.fuel-card:hover,.fuel-card-compact:hover,.maintenance-card:hover,.inventory-item-card:hover,.rental-card:hover,
+.equipment-card.touch-active,.driver-card.touch-active,.employee-card.touch-active,.fuel-card.touch-active,.fuel-card-compact.touch-active,.maintenance-card.touch-active,.inventory-item-card.touch-active,.rental-card.touch-active{
   transform:translateY(-3px) scale(1.008);box-shadow:0 14px 30px rgba(13,27,42,.13);border-color:rgba(13,27,42,.06)}
 .equipment-card:active,.driver-card:active,.employee-card:active,.fuel-card:active,.fuel-card-compact:active,.maintenance-card:active,.inventory-item-card:active,.rental-card:active{transform:translateY(-1px) scale(.995)}
 .equipment-card::before,.driver-card::before,.employee-card::before,.fuel-card::before,.fuel-card-compact::before,.maintenance-card::before,.inventory-item-card::before,.rental-card::before{
   content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
   background:linear-gradient(115deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
   transform:skewX(-20deg);pointer-events:none}
-.equipment-card:hover::before,.driver-card:hover::before,.employee-card:hover::before,.fuel-card:hover::before,.fuel-card-compact:hover::before,.maintenance-card:hover::before,.inventory-item-card:hover::before,.rental-card:hover::before{
+.equipment-card:hover::before,.driver-card:hover::before,.employee-card:hover::before,.fuel-card:hover::before,.fuel-card-compact:hover::before,.maintenance-card:hover::before,.inventory-item-card:hover::before,.rental-card:hover::before,
+.equipment-card.touch-active::before,.driver-card.touch-active::before,.employee-card.touch-active::before,.fuel-card.touch-active::before,.fuel-card-compact.touch-active::before,.maintenance-card.touch-active::before,.inventory-item-card.touch-active::before,.rental-card.touch-active::before{
   animation:eqCardShine 0.85s ease}
 .card-title{letter-spacing:.1px}
 .emp-subtab-btn{flex:1;border:none;background:transparent;padding:9px 10px;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer;transition:all .18s ease}
@@ -3711,14 +3715,14 @@ function openEquipmentDetail(id) {
         var filterItem = inventoryItems.find(function(i) { return i && i.partNo === link.filterPartNo; });
         if (!filterItem) return '';
         var need = calculateNeededFor1000Hours(equipment, filterItem);
-        return '<div style="padding:6px 0;border-bottom:1px solid #eef2f6"><div style="font-weight:600">🔧 ' + escapeHtml(filterItem.name) + '</div><div>' + (link.quantityPerChange || 1) + '/صيانة | المطلوب: ' + need + '</div></div>';
+        return '<div style="padding:6px 0;border-bottom:1px solid #eef2f6"><div style="font-weight:600">🔧 ' + escapeHtml(filterItem.name) + '</div><div>' + (link.quantityPerChange || 1) + '/صيانة | تقدير التخزين لكل 1000 ساعة: ' + need + '</div></div>';
     }).join('');
     
     var oilsHtml = eqOils.map(function(link) {
         var oilItem = inventoryItems.find(function(i) { return i && i.partNo === link.oilPartNo; });
         if (!oilItem) return '';
         var need = calculateNeededFor1000Hours(equipment, oilItem);
-        return '<div style="padding:6px 0;border-bottom:1px solid #eef2f6"><div style="font-weight:600">🛢️ ' + escapeHtml(oilItem.name) + '</div><div>' + (link.quantityPerChange || 1) + ' لتر/صيانة | المطلوب: ' + need + ' لتر</div></div>';
+        return '<div style="padding:6px 0;border-bottom:1px solid #eef2f6"><div style="font-weight:600">🛢️ ' + escapeHtml(oilItem.name) + '</div><div>' + (link.quantityPerChange || 1) + ' لتر/صيانة | تقدير التخزين لكل 1000 ساعة: ' + need + ' لتر</div></div>';
     }).join('');
     
     var contentHtml = '<div class="detail-section"><div class="grid-2">' +
@@ -4095,7 +4099,7 @@ function generateEquipmentMaintenanceOrder(eqId) {
         return filterItem ? {
             name: filterItem.name,
             partNo: filterItem.partNo,
-            needed: calculateNeededFor1000Hours(equipment, filterItem),
+            needed: link.quantityPerChange || 1,
             qty: link.quantityPerChange || 1
         } : null;
     }).filter(Boolean);
@@ -4105,7 +4109,7 @@ function generateEquipmentMaintenanceOrder(eqId) {
         return oilItem ? {
             name: oilItem.name,
             partNo: oilItem.partNo,
-            needed: calculateNeededFor1000Hours(equipment, oilItem),
+            needed: link.quantityPerChange || 1,
             qty: link.quantityPerChange || 1
         } : null;
     }).filter(Boolean);
@@ -11151,6 +11155,35 @@ function exportRentalToExcel() {
     var ws=XLSX.utils.aoa_to_sheet(rows);var wb2=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb2,ws,'السجل');
     XLSX.writeFile(wb2,'rental_full_'+localDateStr(new Date())+'.xlsx');
 }
+
+// ==================== محاكاة حركة الكروت (hover) عند اللمس على الموبايل ====================
+// شاشات اللمس مفيهاش "hover" حقيقي زي الماوس، فبنضيف كلاس touch-active يدوياً عند اللمس
+// نفس قواعد الـ CSS بتاعة :hover مربوطة بالكلاس ده كمان، فالحركة (رفعة + لمعة + حركة الأيقونة) تشتغل بنفس الشكل على الموبايل
+(function() {
+    var CARD_SELECTOR = '.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.maintenance-card,.inventory-item-card,.rental-card,.site-dashboard-card';
+    var activeTouchCard = null;
+
+    function clearTouchActive() {
+        if (activeTouchCard) {
+            activeTouchCard.classList.remove('touch-active');
+            activeTouchCard = null;
+        }
+    }
+
+    document.addEventListener('touchstart', function(e) {
+        var card = e.target.closest ? e.target.closest(CARD_SELECTOR) : null;
+        if (!card) return;
+        clearTouchActive();
+        card.classList.add('touch-active');
+        activeTouchCard = card;
+    }, { passive: true });
+
+    document.addEventListener('touchend', function() {
+        setTimeout(clearTouchActive, 180);
+    }, { passive: true });
+
+    document.addEventListener('touchcancel', clearTouchActive, { passive: true });
+})();
 
 
 </script>
