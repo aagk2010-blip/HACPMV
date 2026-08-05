@@ -236,6 +236,8 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 .equipment-card:hover::before,.driver-card:hover::before,.employee-card:hover::before,.fuel-card:hover::before,.fuel-card-compact:hover::before,.maintenance-card:hover::before,.inventory-item-card:hover::before,.rental-card:hover::before{
   animation:eqCardShine 0.85s ease}
 .card-title{letter-spacing:.1px}
+.emp-subtab-btn{flex:1;border:none;background:transparent;padding:9px 10px;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer;transition:all .18s ease}
+.emp-subtab-btn.active{background:white;color:var(--primary);box-shadow:0 2px 6px rgba(13,27,42,.12)}
 
 /* --- الشارات (Badges): نقطة حالة + ظل ناعم --- */
 .badge{position:relative;padding-right:18px;box-shadow:0 1px 2px rgba(0,0,0,.04);letter-spacing:.1px}
@@ -500,7 +502,6 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
       <button class="tab-btn sidebar-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span>التحليلات</span></button>
       <button class="tab-btn sidebar-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span>المعدات</span></button>
       <button class="tab-btn sidebar-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span>الإيجار</span></button>
-      <button class="tab-btn sidebar-btn" data-view="drivers"><span class="tab-icon"><svg class="icon"><use href="#ic-drivers"/></svg></span><span>السائقين</span></button>
       <button class="tab-btn sidebar-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span>الموظفين</span></button>
       <button class="tab-btn sidebar-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span>الوقود</span></button>
       <button class="tab-btn sidebar-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span>الصيانة</span></button>
@@ -541,41 +542,48 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   
   <div id="view-equipment" style="display:none"><div style="padding:14px"><div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div><div style="margin-bottom:10px;display:flex;gap:8px"><select id="location-filter" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">🏢 كل المواقع</option></select><select id="project-site-filter" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">📍 كل المشاريع</option></select><select id="ownership-filter" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">🏷️ ملك وإيجار</option><option value="ملك">🔑 ملك فقط</option><option value="إيجار">📋 إيجار فقط</option></select></div><div style="display:flex;gap:10px;margin-bottom:10px"><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات</button><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ حذف الكل</button></div><button id="export-owned-daily-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📆 تصدير ساعات معدات الملك (شيت لكل معدة)</button><div id="equipment-list"></div></div></div>
   
-  <div id="view-drivers" style="display:none"><div style="padding:14px">
-    <div class="search-box"><span>🔍</span><input type="text" id="search-driver" placeholder="بحث باسم السائق..." oninput="debouncedRefresh()"></div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <select id="driver-project-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
-        <option value="">🏗️ كل المشاريع</option>
-      </select>
-      <select id="driver-status-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
-        <option value="">👤 كل الحالات</option>
-        <option value="نشط">✅ نشط</option>
-        <option value="في إجازة">🏖️ في إجازة</option>
-        <option value="منتهي العقد">❌ منتهي العقد</option>
-      </select>
-    </div>
-    <div id="drivers-stats-bar" style="display:flex;gap:8px;margin-bottom:10px"></div>
-    <div id="drivers-list"></div>
-  </div></div>
-
   <div id="view-employees" style="display:none"><div style="padding:14px">
-    <div class="search-box"><span>🔍</span><input type="text" id="search-employee" placeholder="بحث باسم الموظف..." oninput="debouncedRefresh()"></div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <select id="employee-project-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
-        <option value="">🏗️ كل المواقع</option>
-      </select>
-      <select id="employee-type-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
-        <option value="">👤 معين وسركي</option>
-        <option value="معين">📌 معين</option>
-        <option value="سركي">🧾 سركي</option>
-      </select>
+    <div id="employees-subtabs" style="display:flex;gap:8px;margin-bottom:12px;background:#eef1f5;padding:4px;border-radius:14px">
+      <button class="emp-subtab-btn active" data-subtab="employees" onclick="switchEmployeesSubTab('employees')">👥 الموظفين</button>
+      <button class="emp-subtab-btn" data-subtab="drivers" onclick="switchEmployeesSubTab('drivers')">👨‍✈️ السائقين</button>
     </div>
-    <div id="employees-stats-bar" style="display:flex;gap:8px;margin-bottom:10px"></div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#059669,#047857)" onclick="exportEmployeesExcel()">📊 تصدير Excel</button>
-      <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#dc2626,#991b1b)" onclick="exportEmployeesPDF()">📄 تصدير PDF</button>
+
+    <div id="emp-panel-employees">
+      <div class="search-box"><span>🔍</span><input type="text" id="search-employee" placeholder="بحث باسم الموظف..." oninput="debouncedRefresh()"></div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <select id="employee-project-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
+          <option value="">🏗️ كل المواقع</option>
+        </select>
+        <select id="employee-type-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
+          <option value="">👤 معين وسركي</option>
+          <option value="معين">📌 معين</option>
+          <option value="سركي">🧾 سركي</option>
+        </select>
+      </div>
+      <div id="employees-stats-bar" style="display:flex;gap:8px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#059669,#047857)" onclick="exportEmployeesExcel()">📊 تصدير Excel</button>
+        <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#dc2626,#991b1b)" onclick="exportEmployeesPDF()">📄 تصدير PDF</button>
+      </div>
+      <div id="employees-list"></div>
     </div>
-    <div id="employees-list"></div>
+
+    <div id="emp-panel-drivers" style="display:none">
+      <div class="search-box"><span>🔍</span><input type="text" id="search-driver" placeholder="بحث باسم السائق..." oninput="debouncedRefresh()"></div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <select id="driver-project-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
+          <option value="">🏗️ كل المشاريع</option>
+        </select>
+        <select id="driver-status-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
+          <option value="">👤 كل الحالات</option>
+          <option value="نشط">✅ نشط</option>
+          <option value="في إجازة">🏖️ في إجازة</option>
+          <option value="منتهي العقد">❌ منتهي العقد</option>
+        </select>
+      </div>
+      <div id="drivers-stats-bar" style="display:flex;gap:8px;margin-bottom:10px"></div>
+      <div id="drivers-list"></div>
+    </div>
   </div></div>
   
   <div id="view-fuel" style="display:none">
@@ -663,7 +671,7 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   </div>
   
   </div><!-- /.app-main -->
-  <div class="tab-bar"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span>الرئيسية</span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span>المواقع</span></button><button class="tab-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span>التحليلات</span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span>المعدات</span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span>الإيجار</span></button><button class="tab-btn" data-view="drivers"><span class="tab-icon"><svg class="icon"><use href="#ic-drivers"/></svg></span><span>السائقين</span></button><button class="tab-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span>الموظفين</span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span>الوقود</span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span>الصيانة</span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span>المخزن</span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span>استيراد</span></button></div>
+  <div class="tab-bar"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span>الرئيسية</span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span>المواقع</span></button><button class="tab-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span>التحليلات</span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span>المعدات</span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span>الإيجار</span></button><button class="tab-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span>الموظفين</span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span>الوقود</span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span>الصيانة</span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span>المخزن</span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span>استيراد</span></button></div>
   <button class="fab" id="fab-btn">+</button>
 </div>
 
@@ -3298,7 +3306,7 @@ function proceedToApp() {
     var sectionToView = {
         home: 'home', equipment: 'equipment', fuel: 'fuel',
         maintenance: 'maintenance', inventory: 'inventory',
-        rental: 'rental', drivers: 'drivers', employees: 'employees', sites: 'sites', analytics: 'analytics'
+        rental: 'rental', sites: 'sites', analytics: 'analytics'
     };
 
     var firstAllowedView = null;
@@ -3306,18 +3314,21 @@ function proceedToApp() {
     // إخفاء التبويبات غير المسموح بها
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
         var view = btn.dataset.view;
-        // إيجاد القسم المقابل
-        var sectionKey = null;
-        for (var k in sectionToView) { if (sectionToView[k] === view) { sectionKey = k; break; } }
-
-        if (isAdmin) {
-            btn.style.display = 'flex';
-            if (!firstAllowedView) firstAllowedView = view;
-        } else if (!sectionKey || !canView(sectionKey)) {
-            btn.style.display = 'none';
+        var allowed;
+        if (view === 'employees') {
+            // زرار "الموظفين" المدمج يظهر لو عند المستخدم صلاحية على قسم الموظفين أو السائقين (أيهما)
+            allowed = canView('employees') || canView('drivers');
         } else {
+            var sectionKey = null;
+            for (var k in sectionToView) { if (sectionToView[k] === view) { sectionKey = k; break; } }
+            allowed = sectionKey && canView(sectionKey);
+        }
+
+        if (isAdmin || allowed) {
             btn.style.display = 'flex';
             if (!firstAllowedView) firstAllowedView = view;
+        } else {
+            btn.style.display = 'none';
         }
     });
 
@@ -8737,7 +8748,7 @@ function refreshUI() {
             });
         }, 100);
     }
-    if (activeView === 'drivers') {
+    if (activeView === 'employees') {
         var search = (document.getElementById('search-driver') ? document.getElementById('search-driver').value : '').trim();
         var projectFilter = document.getElementById('driver-project-filter') ? document.getElementById('driver-project-filter').value : '';
         var statusFilter = document.getElementById('driver-status-filter') ? document.getElementById('driver-status-filter').value : '';
@@ -9330,17 +9341,64 @@ function globalSearch(query) {
     res.style.display = 'block';
 }
 
+// ==================== صفحة "الموظفين والسائقين" المدمجة — تبويبات داخلية بصلاحيات مستقلة ====================
+let employeesActiveSubTab = 'employees';
+
+// إخفاء تبويب "السائقين" الداخلي لو المستخدم مالوش صلاحية عرض عليه، وإرجاعه لتبويب الموظفين لو كان واقف عليه
+function updateEmployeesSubTabVisibility() {
+    var driversTabBtn = document.querySelector('.emp-subtab-btn[data-subtab="drivers"]');
+    var employeesTabBtn = document.querySelector('.emp-subtab-btn[data-subtab="employees"]');
+    var canSeeDrivers = hasPermission('all') || canView('drivers');
+    var canSeeEmployees = hasPermission('all') || canView('employees');
+    if (driversTabBtn) driversTabBtn.style.display = canSeeDrivers ? '' : 'none';
+    if (employeesTabBtn) employeesTabBtn.style.display = canSeeEmployees ? '' : 'none';
+    if (employeesActiveSubTab === 'drivers' && !canSeeDrivers) employeesActiveSubTab = 'employees';
+    if (employeesActiveSubTab === 'employees' && !canSeeEmployees) employeesActiveSubTab = 'drivers';
+}
+
+function switchEmployeesSubTab(tab) {
+    if (tab === 'drivers' && !hasPermission('all') && !canView('drivers')) { showToast('غير مصرح بعرض السائقين', true); return; }
+    if (tab === 'employees' && !hasPermission('all') && !canView('employees')) { showToast('غير مصرح بعرض الموظفين', true); return; }
+    employeesActiveSubTab = tab;
+    document.getElementById('emp-panel-employees').style.display = tab === 'employees' ? 'block' : 'none';
+    document.getElementById('emp-panel-drivers').style.display = tab === 'drivers' ? 'block' : 'none';
+    document.querySelectorAll('.emp-subtab-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.subtab === tab);
+    });
+    document.getElementById('header-title').innerHTML = tab === 'drivers' ? '👨‍✈️ السائقين' : '👥 الموظفين';
+    updateEmployeesFab();
+    debouncedRefresh();
+}
+
+function updateEmployeesFab() {
+    var fabButton = document.getElementById('fab-btn');
+    if (!fabButton) return;
+    var section = employeesActiveSubTab === 'drivers' ? 'drivers' : 'employees';
+    if (hasPermission('all') || canAdd(section)) {
+        fabButton.style.display = 'flex';
+        fabButton.onclick = employeesActiveSubTab === 'drivers'
+            ? function() { openAddDriverModal(); }
+            : function() { openAddEmployeeModal(); };
+    } else {
+        fabButton.style.display = 'none';
+        fabButton.onclick = null;
+    }
+}
+
 function switchView(view) {
     // التحقق من صلاحية الوصول للقسم
     if (currentUser && currentUser.role !== 'admin') {
-        var sectionMap = { home:'home', sites:'sites', analytics:'analytics', equipment:'equipment', fuel:'fuel', maintenance:'maintenance', inventory:'inventory', rental:'rental', drivers:'drivers', employees:'employees' };
-        if (sectionMap[view] && !canView(sectionMap[view])) return;
+        if (view === 'employees') {
+            if (!canView('employees') && !canView('drivers')) return;
+        } else {
+            var sectionMap = { home:'home', sites:'sites', analytics:'analytics', equipment:'equipment', fuel:'fuel', maintenance:'maintenance', inventory:'inventory', rental:'rental' };
+            if (sectionMap[view] && !canView(sectionMap[view])) return;
+        }
     }
     document.getElementById('view-home').style.display = view === 'home' ? 'block' : 'none';
     document.getElementById('view-sites').style.display = view === 'sites' ? 'block' : 'none';
     document.getElementById('view-analytics').style.display = view === 'analytics' ? 'block' : 'none';
     document.getElementById('view-equipment').style.display = view === 'equipment' ? 'block' : 'none';
-    document.getElementById('view-drivers').style.display = view === 'drivers' ? 'block' : 'none';
     document.getElementById('view-employees').style.display = view === 'employees' ? 'block' : 'none';
     document.getElementById('view-fuel').style.display = view === 'fuel' ? 'block' : 'none';
     document.getElementById('view-maintenance').style.display = view === 'maintenance' ? 'block' : 'none';
@@ -9356,18 +9414,25 @@ function switchView(view) {
         sites: '🏢 لوحة المواقع',
         analytics: '📈 التحليلات والتقارير',
         equipment: '🏗️ المعدات',
-        drivers: '👨‍✈️ السائقين',
-        employees: '👥 الموظفين',
+        employees: '👥 الموظفين والسائقين',
         fuel: '⛽ الوقود',
         maintenance: '🔧 الصيانة',
         inventory: '📦 المخزن',
         import: '📂 استيراد البيانات'
     };
     document.getElementById('header-title').innerHTML = titles[view];
+
+    // صفحة "الموظفين والسائقين" المدمجة لها منطق صلاحيات وتبويبات داخلية خاص بها
+    if (view === 'employees') {
+        updateEmployeesSubTabVisibility();
+        switchEmployeesSubTab(employeesActiveSubTab);
+        return;
+    }
+
     var fabButton = document.getElementById('fab-btn');
     if (!fabButton) { debouncedRefresh(); return; }
     // إظهار/إخفاء زر الإضافة حسب صلاحية القسم الحالي
-    var fabViewPermMap = { equipment:'equipment', drivers:'drivers', employees:'employees', fuel:'fuel', inventory:'inventory', maintenance:'maintenance' };
+    var fabViewPermMap = { equipment:'equipment', fuel:'fuel', inventory:'inventory', maintenance:'maintenance' };
     var fabSection = fabViewPermMap[view];
     if (fabSection && canAdd(fabSection)) {
         fabButton.style.display = 'flex';
@@ -9380,10 +9445,6 @@ function switchView(view) {
     }
     if (view === 'equipment') {
         fabButton.onclick = function() { openAddEquipmentModal(); };
-    } else if (view === 'drivers') {
-        fabButton.onclick = function() { openAddDriverModal(); };
-    } else if (view === 'employees') {
-        fabButton.onclick = function() { openAddEmployeeModal(); };
     } else if (view === 'fuel') {
         fabButton.onclick = function() { openAddFuelModal(); };
     } else if (view === 'inventory') {
