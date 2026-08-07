@@ -1099,7 +1099,7 @@ var currentUserRole = 'viewer';
 var currentUserPlan = 'free';
 var currentUserStatus = 'active';
 // صلاحيات وضع "الزائر" (دخول مباشر بدون حساب) — يتحكم فيها المدير من لوحة التحكم
-var VIEWER_SECTIONS = { home:'view', equipment:'none', fuel:'none', maintenance:'none', inventory:'none', rental:'view', drivers:'view', employees:'none', sites:'none', analytics:'none' };
+var VIEWER_SECTIONS = { home:'view', equipment:'none', fuel:'none', maintenance:'none', inventory:'none', rental:'view', drivers:'view', employees:'none', equipmentChecks:'none', sites:'none', analytics:'none' };
 
 function initFirestoreUsers() {
     try {
@@ -1268,7 +1268,7 @@ function openAddUserModal() {
 function openEditUserModal(idx) {
     var isNew = idx === null;
     var user = isNew ? { id: 'u_' + Date.now(), username: '', password: '', name: '', role: 'custom', active: true,
-        sections: { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view', employees:'view', sites:'none', analytics:'none' }, sites: [] } : APP_USERS[idx];
+        sections: { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none' }, sites: [] } : APP_USERS[idx];
 
     var old = document.getElementById('user-edit-modal');
     if (old) old.remove();
@@ -1300,7 +1300,7 @@ function openEditUserModal(idx) {
         '<div id="uem-permissions-section" style="border-top:1px solid #f1f5f9;padding-top:10px">' +
         '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">\u{1F511} \u0635\u0644\u0627\u062D\u064A\u0627\u062A \u0627\u0644\u0623\u0642\u0633\u0627\u0645</div>' +
         (function() {
-            var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646'],['employees','\u0627\u0644\u0645\u0648\u0638\u0641\u064a\u0646'],['sites','\u0627\u0644\u0645\u0648\u0627\u0642\u0639'],['analytics','\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a']];
+            var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646'],['employees','\u0627\u0644\u0645\u0648\u0638\u0641\u064a\u0646'],['equipmentChecks','\u0645\u0631\u0627\u062c\u0639\u0629 \u0627\u0644\u0645\u0639\u062f\u0627\u062a \u0627\u0644\u0633\u0631\u064a\u0639\u0629'],['sites','\u0627\u0644\u0645\u0648\u0627\u0642\u0639'],['analytics','\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a']];
             return SECS.map(function(s) {
                 var key = s[0], label = s[1];
                 var cur = (user.sections || {})[key] || 'none';
@@ -1359,7 +1359,7 @@ function openEditUserModal(idx) {
     }
 
     // ==== تبديل نوع الحساب: مدير / مستخدم عادي / مشاهدة فقط ====
-    var SECS_ALL = ['home','equipment','fuel','maintenance','inventory','rental','drivers','employees','sites','analytics'];
+    var SECS_ALL = ['home','equipment','fuel','maintenance','inventory','rental','drivers','employees','equipmentChecks','sites','analytics'];
     var roleAdminBtn = document.getElementById('uem-role-admin');
     var roleUserBtn = document.getElementById('uem-role-user');
     var roleViewerBtn = document.getElementById('uem-role-viewer');
@@ -1367,7 +1367,7 @@ function openEditUserModal(idx) {
     var selectedRole = (user.role === 'admin') ? 'admin' : 'custom';
     // نحفظ آخر صلاحيات مخصّصة كي نرجع لها لو رجع لـ"مستخدم عادي"
     var lastCustomSections = (user.role === 'admin')
-        ? { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view', employees:'view', sites:'view', analytics:'view' }
+        ? { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view', employees:'view', equipmentChecks:'view', sites:'view', analytics:'view' }
         : Object.assign({}, user.sections || {});
     // هل المستخدم في وضع "مشاهدة فقط" (كل الأقسام عرض فقط أو مخفية، بدون أي صلاحية إضافة/تعديل)؟
     function sectionsAreViewOnly(sections) {
@@ -1478,7 +1478,7 @@ function openEditUserModal(idx) {
         });
         if (dup) { showToast('\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645 \u0645\u0648\u062C\u0648\u062F \u0645\u0633\u0628\u0642\u0627\u064B', true); return; }
 
-        var SECS = ['home','equipment','fuel','maintenance','inventory','rental','drivers','employees','sites','analytics'];
+        var SECS = ['home','equipment','fuel','maintenance','inventory','rental','drivers','employees','equipmentChecks','sites','analytics'];
         var sections = {};
         if (selectedRole === 'admin') {
             SECS.forEach(function(k) { sections[k] = 'full'; });
@@ -1614,13 +1614,13 @@ function createUserByAdmin() {
     // تحديد الصلاحيات حسب الدور
     var defaultSections;
     if (role === 'admin') {
-        defaultSections = { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', sites:'full', analytics:'full' };
+        defaultSections = { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', equipmentChecks:'full', sites:'full', analytics:'full' };
     } else if (role === 'manager') {
-        defaultSections = { home:'full', equipment:'edit', fuel:'edit', maintenance:'edit', inventory:'edit', rental:'edit', drivers:'edit', employees:'edit', sites:'view', analytics:'view' };
+        defaultSections = { home:'full', equipment:'edit', fuel:'edit', maintenance:'edit', inventory:'edit', rental:'edit', drivers:'edit', employees:'edit', equipmentChecks:'add', sites:'view', analytics:'view' };
     } else if (role === 'editor') {
-        defaultSections = { home:'view', equipment:'add', fuel:'add', maintenance:'add', inventory:'add', rental:'add', drivers:'add', employees:'add', sites:'none', analytics:'none' };
+        defaultSections = { home:'view', equipment:'add', fuel:'add', maintenance:'add', inventory:'add', rental:'add', drivers:'add', employees:'add', equipmentChecks:'add', sites:'none', analytics:'none' };
     } else {
-        defaultSections = { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view', employees:'view', sites:'none', analytics:'none' };
+        defaultSections = { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none' };
     }
 
     // إضافة المستخدم في APP_USERS
@@ -2016,7 +2016,7 @@ var APP_USERS = [
         name: 'المدير',
         role: 'admin',
         active: true,
-        sections: { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', sites:'full', analytics:'full' }
+        sections: { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', equipmentChecks:'full', sites:'full', analytics:'full' }
     },
     {
         id: 'user_mohamed',
@@ -2177,7 +2177,7 @@ function isViewOnlyUser() {
     if (!currentUser) return false;
     if (currentUser.role === 'admin') return false;
     if (currentUser.role === 'viewer') return true;
-    var secs = ['home','equipment','fuel','maintenance','inventory','rental','drivers','employees','sites','analytics'];
+    var secs = ['home','equipment','fuel','maintenance','inventory','rental','drivers','employees','equipmentChecks','sites','analytics'];
     var sections = currentUser.sections || {};
     return secs.every(function(k) {
         var v = sections[k] || 'none';
@@ -3296,7 +3296,7 @@ function approveAccountRequest(id) {
         name: req.name,
         role: 'custom',
         active: true,
-        sections: { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view', employees:'view', sites:'none', analytics:'none' },
+        sections: { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none' },
         sites: []
     });
     saveAppUsers().then(function() {
@@ -3406,7 +3406,7 @@ function proceedToApp() {
     if (!isAdmin) {
         // CSS ديناميكي بحسب صلاحيات كل قسم
         var css = '';
-        var sections = ['home','equipment','fuel','maintenance','inventory','rental','drivers','employees'];
+        var sections = ['home','equipment','fuel','maintenance','inventory','rental','drivers','employees','equipmentChecks'];
         sections.forEach(function(sec) {
             if (!canAdd(sec)) {
                 css += '[data-section="' + sec + '"] .add-btn,' +
@@ -3838,7 +3838,7 @@ function openEquipmentDetail(id) {
             : (lastIssues.length ? '<span style="color:var(--danger);font-weight:700">⚠️ ' + lastIssues.join(' · ') + '</span>' : '<span style="color:var(--success);font-weight:700">✓ سليمة</span>');
         contentHtml += '<div class="detail-section"><div class="detail-label">🔍 آخر مراجعة موظف</div>' +
             '<div class="detail-value">' + lastStatusHtml + '</div>' +
-            '<div style="font-size:11px;color:var(--gray);margin-top:4px">📅 ' + escapeHtml((lastCheck.checkedAt || '').slice(0, 10)) + ' — 👤 ' + escapeHtml(lastCheck.checkedByName || '—') + '</div>' +
+            '<div style="font-size:11px;color:var(--gray);margin-top:4px">📅 ' + escapeHtml((lastCheck.checkedAt || '').slice(0, 10)) + ' — 👤 ' + escapeHtml(lastCheck.checkedByName || '—') + (lastCheck.performedByEmployeeName ? ' · 🧑‍🔧 ' + escapeHtml(lastCheck.performedByEmployeeName) : '') + '</div>' +
             '</div>';
     }
     if (fuelRecords.length) {
@@ -3862,8 +3862,8 @@ function openEquipmentDetail(id) {
         '<button class="save-btn" style="margin:0;background:#475569" onclick="showTransferHistory(\'' + equipment.id + '\')">🗺️ سجل النقل</button>' +
         '<button class="save-btn" style="margin:0;background:#334155" onclick="showEquipmentChangeLog(\'' + equipment.id + '\')">📜 سجل التعديلات</button>' +
         '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#dc2626,#991b1b)" onclick="openFaultReportModal(\'' + equipment.id + '\')">🚨 الإبلاغ عن عطل</button>' +
-        '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0891b2,#0e7490)" onclick="openQuickCheckModal(\'' + equipment.id + '\')">🔍 مراجعة سريعة</button>' +
-        '<button class="save-btn" style="margin:0;background:#0f766e" onclick="showEquipmentCheckHistory(\'' + equipment.id + '\')">📋 سجل المراجعات</button>' +
+        ((hasPermission('all') || canAdd('equipmentChecks')) ? '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0891b2,#0e7490)" onclick="openQuickCheckModal(\'' + equipment.id + '\')">🔍 مراجعة سريعة</button>' : '') +
+        ((hasPermission('all') || canView('equipmentChecks')) ? '<button class="save-btn" style="margin:0;background:#0f766e" onclick="showEquipmentCheckHistory(\'' + equipment.id + '\')">📋 سجل المراجعات</button>' : '') +
         '</div>';
     
     document.getElementById('detail-title').innerHTML = '🏗️ ' + escapeHtml(equipment.name);
@@ -6348,16 +6348,17 @@ function getLatestEquipmentCheckStatus(eqId) {
 function quickPassEquipment(eqId, ev) {
     if (ev) ev.stopPropagation();
     if (!currentUser) { showToast('سجّل الدخول أولاً', true); return; }
+    if (!hasPermission('all') && !canAdd('equipmentChecks')) { showToast('⛔ غير مصرح لك بتسجيل المراجعات', true); return; }
     var eq = equipmentData.find(function(e) { return e.id === eqId; });
     if (!eq) return;
     var check = {
         equipmentId: eq.id, equipmentCode: eq.code || '', equipmentName: eq.name || '', projectSite: eq.projectSite || '',
         oilLow: false, waterLow: false, airFilterDirty: false, notes: '',
-        checkedById: null, checkedByName: (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم',
+        checkedById: null, checkedByName: (currentUser.name || currentUser.username || 'مستخدم'),
         checkedAt: new Date().toISOString(), status: 'ok'
     };
     fbDb.ref('equipmentChecks').push(check).then(function() {
-        showToast('✅ تمام، تم تسجيل المراجعة');
+        showToast('✅ تمام، تم تسجيل المراجعة باسم ' + check.checkedByName);
         debouncedRefresh();
     }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
 }
@@ -6370,6 +6371,7 @@ function quickFailEquipment(eqId, ev) {
 
 function openQuickCheckModal(eqId) {
     if (!currentUser) { showToast('سجّل الدخول أولاً', true); return; }
+    if (!hasPermission('all') && !canAdd('equipmentChecks')) { showToast('⛔ غير مصرح لك بتسجيل المراجعات', true); return; }
     var eq = equipmentData.find(function(e) { return e.id === eqId; });
     if (!eq) return;
     currentCheckEqId = eqId;
@@ -6410,6 +6412,8 @@ function updateCheckChipUI(key) {
 }
 
 function submitEquipmentCheck() {
+    if (!currentUser) { showToast('سجّل الدخول أولاً', true); return; }
+    if (!hasPermission('all') && !canAdd('equipmentChecks')) { showToast('⛔ غير مصرح لك بتسجيل المراجعات', true); return; }
     var eq = equipmentData.find(function(e) { return e.id === currentCheckEqId; });
     if (!eq) { showToast('خطأ: المعدة غير موجودة', true); return; }
     var empSel = document.getElementById('eq-check-employee');
@@ -6420,8 +6424,11 @@ function submitEquipmentCheck() {
         equipmentId: eq.id, equipmentCode: eq.code || '', equipmentName: eq.name || '', projectSite: eq.projectSite || '',
         oilLow: currentCheckState.oilLow, waterLow: currentCheckState.waterLow, airFilterDirty: currentCheckState.airFilterDirty,
         notes: (document.getElementById('eq-check-notes').value || '').trim(),
-        checkedById: emp ? emp.id : null,
-        checkedByName: emp ? emp.name : ((currentUser && (currentUser.name || currentUser.username)) || 'مستخدم'),
+        // اسم المستخدم اللي سجّل علامة صح/غلط فعليًا في النظام (لتتبّع المسؤولية)
+        checkedByName: (currentUser.name || currentUser.username || 'مستخدم'),
+        // الموظف الميداني المختار (اختياري) — لو مختلف عن المستخدم المسجّل بالنظام
+        performedByEmployeeId: emp ? emp.id : null,
+        performedByEmployeeName: emp ? emp.name : null,
         checkedAt: new Date().toISOString(),
         status: hasIssue ? 'pending' : 'ok'
     };
@@ -6441,6 +6448,7 @@ function getPendingEquipmentChecks() {
 }
 
 function resolveEquipmentCheck(id) {
+    if (!hasPermission('all') && !canEdit('equipmentChecks')) { showToast('⛔ غير مصرح', true); return; }
     fbDb.ref('equipmentChecks/' + id).update({
         status: 'resolved', resolvedBy: (currentUser && currentUser.name) || '', resolvedAt: new Date().toISOString()
     }).then(function() {
@@ -6473,10 +6481,10 @@ function showEquipmentCheckHistory(eqId) {
                 '<span style="font-size:12px;font-weight:700">📅 ' + escapeHtml((c.checkedAt || '').slice(0, 10)) + '</span>' +
                 statusBadge +
                 '</div>' +
-                '<div style="font-size:11px;color:var(--gray);margin-bottom:4px">👤 ' + escapeHtml(c.checkedByName || '—') + '</div>' +
+                '<div style="font-size:11px;color:var(--gray);margin-bottom:4px">👤 سجّلها: ' + escapeHtml(c.checkedByName || '—') + (c.performedByEmployeeName ? ' · 🧑‍🔧 نفّذها: ' + escapeHtml(c.performedByEmployeeName) : '') + '</div>' +
                 (badges.length ? '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">' + badges.join('') + '</div>' : '<div style="font-size:11px;color:var(--success);font-weight:700">✓ كل شيء سليم</div>') +
                 (c.notes ? '<div style="font-size:11.5px;color:#475569;margin-top:4px">' + escapeHtml(c.notes) + '</div>' : '') +
-                (c.status === 'pending' && (hasPermission('all') || canEdit('maintenance')) ? '<button class="save-btn" style="margin:6px 0 0;padding:6px;font-size:11px;background:var(--success)" onclick="resolveEquipmentCheck(\'' + c.id + '\')">✅ تحديد كمُعالج</button>' : '') +
+                (c.status === 'pending' && (hasPermission('all') || canEdit('equipmentChecks')) ? '<button class="save-btn" style="margin:6px 0 0;padding:6px;font-size:11px;background:var(--success)" onclick="resolveEquipmentCheck(\'' + c.id + '\')">✅ تحديد كمُعالج</button>' : '') +
                 '</div>';
         }).join('');
     }
@@ -6777,7 +6785,7 @@ function openNotifCenter() {
                     '<div style="font-weight:700;margin-bottom:2px">' + escapeHtml(c.equipmentName||'') + ' (' + escapeHtml(c.equipmentCode||'') + ')</div>' +
                     '<div style="margin-bottom:3px;color:#0e7490;font-weight:700">' + issues.join(' · ') + '</div>' +
                     (c.notes ? '<div style="margin-bottom:3px">' + escapeHtml(c.notes) + '</div>' : '') +
-                    '<div style="color:var(--gray);font-size:10.5px;margin:6px 0">بواسطة: ' + escapeHtml(c.checkedByName||'') + ' — ' + when + '</div>' +
+                    '<div style="color:var(--gray);font-size:10.5px;margin:6px 0">سجّلها: ' + escapeHtml(c.checkedByName||'') + (c.performedByEmployeeName ? ' · نفّذها: ' + escapeHtml(c.performedByEmployeeName) : '') + ' — ' + when + '</div>' +
                     '<button onclick="resolveEquipmentCheck(\'' + c.id + '\')" style="width:100%;background:var(--success);color:white;border:none;border-radius:8px;padding:6px;font-size:11px;cursor:pointer;font-family:inherit">✅ تحديد كمُعالج</button>' +
                     '</div>';
             }).join('') + '</div>';
@@ -8979,8 +8987,10 @@ function refreshUI() {
             var pendingCheckDot = hasPendingCheck ? '<span class="eq-check-alert-dot" title="فيه مراجعة محتاجة متابعة"></span>' : '';
             var checkStatus = getLatestEquipmentCheckStatus(eq.id);
             var checkStatusClass = checkStatus === 'good' ? ' eq-check-ok' : checkStatus === 'bad' ? ' eq-check-bad' : '';
-            var quickCheckBtns = '<button class="eq-quick-btn eq-quick-pass" title="تمام" onclick="quickPassEquipment(\'' + eq.id + '\',event)">✔</button>' +
-                '<button class="eq-quick-btn eq-quick-fail" title="فيه مشكلة" onclick="quickFailEquipment(\'' + eq.id + '\',event)">✘</button>';
+            var quickCheckBtns = (hasPermission('all') || canAdd('equipmentChecks'))
+                ? '<button class="eq-quick-btn eq-quick-pass" title="تمام" onclick="quickPassEquipment(\'' + eq.id + '\',event)">✔</button>' +
+                  '<button class="eq-quick-btn eq-quick-fail" title="فيه مشكلة" onclick="quickFailEquipment(\'' + eq.id + '\',event)">✘</button>'
+                : '';
 
             if (isRental) {
                 // للمعدات المستأجرة: عرض مبسط بدون شريط عداد الساعات (غير مهم لمعدات الإيجار)
