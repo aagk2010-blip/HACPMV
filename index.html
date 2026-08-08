@@ -10614,12 +10614,15 @@ function renderRentalEquipment() {
         '<div style="position:relative;flex-shrink:0;width:70px;height:70px">'+
         '<svg viewBox="0 0 88 88" style="width:70px;height:70px">'+
         '<circle cx="44" cy="44" r="38" fill="none" stroke="#f1f5f9" stroke-width="9"/>'+
-        (pct>0?'<path d="'+arcPath+'" fill="none" stroke="'+color+'" stroke-width="9" stroke-linecap="round" transform="scale(-1,1) translate(-88,0)"/>':'')+
+        (pct>0?'<path d="'+arcPath+'" fill="none" stroke="'+color+'" stroke-linecap="round" stroke-width="9" transform="scale(-1,1) translate(-88,0)"/>':'')+
         '</svg>'+
         '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;line-height:1.1">'+
         '<div style="font-size:18px;font-weight:800;color:'+color+'">'+daysCount+'</div>'+
         '<div style="font-size:8px;color:var(--gray)">يوم/'+cycleDayCount+'</div></div></div>'+
-        '<div style="flex:1;background:'+(todayRec?'#d1fae5':'#fef9c3')+';border-radius:9px;padding:9px;text-align:center;font-size:12px;font-weight:600;color:'+todayStatusColor+'">'+todayStatus+'</div>'+
+        '<div style="flex:1;display:flex;flex-direction:column;gap:5px">'+
+        '<div style="background:'+(todayRec?'#d1fae5':'#fef9c3')+';border-radius:9px;padding:9px;text-align:center;font-size:12px;font-weight:600;color:'+todayStatusColor+'">'+todayStatus+'</div>'+
+        '<input type="text" value="'+(todayRec?escapeHtml(todayRec.notes||'').replace(/"/g,'&quot;'):'')+'" placeholder="'+(todayRec?'📝 ملاحظة اليوم...':'📝 سجّل الحضور والانصراف أولاً')+'"'+(todayRec?'':' disabled')+' onblur="saveRentalInlineNotes(\''+rid+'\',\''+todayStr+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" style="width:100%;box-sizing:border-box;background:'+(todayRec?'var(--light)':'#f1f5f9')+';border-radius:9px;padding:9px;text-align:center;font-size:12px;font-weight:600;color:var(--gray);border:1px solid transparent;font-family:inherit" onfocus="this.style.borderColor=\'#c4b5fd\'">'+
+        '</div>'+
         '</div>'+
         '<div style="margin:0 12px 8px;background:'+(todayRec?'#f0fdf4':'#fef3c7')+';border:1px solid '+(todayRec?'#bbf7d0':'#fde68a')+';border-radius:11px;padding:8px">'+
         '<div style="font-size:10px;color:'+todayStatusColor+';margin-bottom:5px;font-weight:600">⚡ '+(todayRec?'تعديل اليوم '+todayStr:'تسجيل اليوم '+todayStr)+'</div>'+
@@ -10633,11 +10636,6 @@ function renderRentalEquipment() {
         '<input type="checkbox" id="quick-brk-'+rid+'" '+(todayRec&&todayRec.breakWorked?'checked':'')+' style="width:16px;height:16px">'+
         '<label for="quick-brk-'+rid+'" style="font-size:11px;color:'+todayStatusColor+'">☕ اشتغلت ساعة الراحة (تُحسب إضافي)</label>'+
         '</div></div>'+
-        ((isAdmin || canEdit('rental')) ?
-        '<div style="margin:0 12px 8px">'+
-        '<input type="text" value="'+escapeHtml(r.notes||'').replace(/"/g,'&quot;')+'" placeholder="📝 اكتب ملاحظة..." onblur="saveRentalInlineNotes(\''+rid+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" style="width:100%;box-sizing:border-box;font-size:11px;color:var(--gray);background:var(--light);border:1px solid transparent;padding:5px 10px;border-radius:8px;font-family:inherit" onfocus="this.style.borderColor=\'#c4b5fd\'" >'+
-        '</div>'
-        : '<div style="margin:0 12px 8px;font-size:11px;color:'+(r.notes?'var(--gray)':'#c3cad4')+';background:var(--light);padding:5px 10px;border-radius:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 '+(r.notes?escapeHtml(r.notes):'لا توجد ملاحظات')+'</div>')+
         (isAdmin?
         '<div style="padding:0 12px 10px;display:flex;gap:6px">'+
         '<button data-action="add-daily" data-id="'+rid+'" style="flex:1;padding:7px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">➕ يوم آخر</button>'+
@@ -10676,11 +10674,12 @@ function quickSaveRentalDay(rentalId,date,existingId,inTime,outTime,brk) {
     if (!rental) return;
     var alreadyExists=rentalDailyData.find(function(d){ return d.equipmentId===rentalId&&d.date===date; });
     var targetId=existingId||(alreadyExists?alreadyExists.id:null);
+    var existingRecord = targetId ? rentalDailyData.find(function(d){ return d.id===targetId; }) : null;
     var h=calcRentalHours(inTime,outTime,brk);
     var record={ equipmentId:rentalId, equipmentCode:rental.equipmentCode||'', equipmentType:rental.equipmentType||'',
         driverId:rental.driverId||'', company:rental.company||'', date:date,
         inTime:inTime, outTime:outTime, totalHours:h.total, basicHours:h.basic, breakWorked:!!brk, breakHours:h.break, extraHours:h.extra,
-        notes:'', updatedAt:new Date().toISOString() };
+        notes:(existingRecord?existingRecord.notes||'':''), updatedAt:new Date().toISOString() };
     var ref=targetId?fbDb.ref('rentalDaily/'+targetId):fbDb.ref('rentalDaily').push();
     ref.set(record).then(function(){ showToast(targetId?'✅ تم تحديث اليوم':'✅ تم حفظ اليوم'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
 }
@@ -10759,15 +10758,14 @@ function deleteRentalEquipment(id) {
     Promise.all(ps).then(function(){ return fbDb.ref('rental/'+id).remove(); }).then(function(){ showToast('تم الحذف'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
 }
 
-// حفظ ملاحظة عقد الإيجار مباشرة من الكارت (بدون فتح نافذة تعديل)
-function saveRentalInlineNotes(id, value) {
-    if (!hasPermission('all') && !canEdit('rental')) return;
-    var r = rentalData.find(function(x) { return x.id === id; });
-    if (!r) return;
+// حفظ ملاحظة اليوم المسجَّل من الكارت مباشرة (كل يوم له ملاحظاته الخاصة) — متاحة لأي مستخدم يقدر يشوف صفحة الإيجار
+function saveRentalInlineNotes(rentalId, dateStr, value) {
+    var rec = rentalDailyData.find(function(d) { return d.equipmentId === rentalId && d.date === dateStr; });
+    if (!rec) { showToast('سجّل الحضور والانصراف أولاً', true); return; }
     var trimmed = (value || '').trim();
-    if ((r.notes || '') === trimmed) return; // مفيش تغيير فعلي
-    fbDb.ref('rental/' + id).update({ notes: trimmed, updatedAt: new Date().toISOString() }).then(function() {
-        showToast('📝 تم حفظ الملاحظة');
+    if ((rec.notes || '') === trimmed) return; // مفيش تغيير فعلي
+    fbDb.ref('rentalDaily/' + rec.id).update({ notes: trimmed, updatedAt: new Date().toISOString() }).then(function() {
+        showToast('📝 تم حفظ ملاحظة اليوم');
     }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
 }
 
