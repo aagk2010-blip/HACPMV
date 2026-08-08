@@ -10633,7 +10633,11 @@ function renderRentalEquipment() {
         '<input type="checkbox" id="quick-brk-'+rid+'" '+(todayRec&&todayRec.breakWorked?'checked':'')+' style="width:16px;height:16px">'+
         '<label for="quick-brk-'+rid+'" style="font-size:11px;color:'+todayStatusColor+'">☕ اشتغلت ساعة الراحة (تُحسب إضافي)</label>'+
         '</div></div>'+
-        '<div style="margin:0 12px 8px;font-size:11px;color:'+(r.notes?'var(--gray)':'#c3cad4')+';background:var(--light);padding:5px 10px;border-radius:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 '+(r.notes?escapeHtml(r.notes):'لا توجد ملاحظات')+'</div>'+
+        ((isAdmin || canEdit('rental')) ?
+        '<div style="margin:0 12px 8px">'+
+        '<input type="text" value="'+escapeHtml(r.notes||'').replace(/"/g,'&quot;')+'" placeholder="📝 اكتب ملاحظة..." onblur="saveRentalInlineNotes(\''+rid+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" style="width:100%;box-sizing:border-box;font-size:11px;color:var(--gray);background:var(--light);border:1px solid transparent;padding:5px 10px;border-radius:8px;font-family:inherit" onfocus="this.style.borderColor=\'#c4b5fd\'" >'+
+        '</div>'
+        : '<div style="margin:0 12px 8px;font-size:11px;color:'+(r.notes?'var(--gray)':'#c3cad4')+';background:var(--light);padding:5px 10px;border-radius:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 '+(r.notes?escapeHtml(r.notes):'لا توجد ملاحظات')+'</div>')+
         (isAdmin?
         '<div style="padding:0 12px 10px;display:flex;gap:6px">'+
         '<button data-action="add-daily" data-id="'+rid+'" style="flex:1;padding:7px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">➕ يوم آخر</button>'+
@@ -10753,6 +10757,18 @@ function deleteRentalEquipment(id) {
     if (!confirm('حذف هذا العقد وجميع سجلاته؟')) return;
     var ps=rentalDailyData.filter(function(d){ return d.equipmentId===id; }).map(function(d){ return fbDb.ref('rentalDaily/'+d.id).remove(); });
     Promise.all(ps).then(function(){ return fbDb.ref('rental/'+id).remove(); }).then(function(){ showToast('تم الحذف'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
+}
+
+// حفظ ملاحظة عقد الإيجار مباشرة من الكارت (بدون فتح نافذة تعديل)
+function saveRentalInlineNotes(id, value) {
+    if (!hasPermission('all') && !canEdit('rental')) return;
+    var r = rentalData.find(function(x) { return x.id === id; });
+    if (!r) return;
+    var trimmed = (value || '').trim();
+    if ((r.notes || '') === trimmed) return; // مفيش تغيير فعلي
+    fbDb.ref('rental/' + id).update({ notes: trimmed, updatedAt: new Date().toISOString() }).then(function() {
+        showToast('📝 تم حفظ الملاحظة');
+    }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
 }
 
 function openAddDailyModal(rentalId) {
