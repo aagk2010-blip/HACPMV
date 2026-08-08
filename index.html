@@ -6339,9 +6339,11 @@ var currentCheckState = { oilLow: false, waterLow: false, airFilterDirty: false 
 
 // حالة آخر مراجعة على المعدة لتلوين الكارت: 'good' (أخضر) / 'bad' (أحمر) / null (لسه محدش راجعها)
 function getLatestEquipmentCheckStatus(eqId) {
-    var checks = equipmentChecksData.filter(function(c) { return c.equipmentId === eqId; })
-        .sort(function(a, b) { return new Date(b.checkedAt) - new Date(a.checkedAt); });
-    if (!checks.length) return null;
+    var today = localDateStr(new Date());
+    var checks = equipmentChecksData.filter(function(c) {
+        return c.equipmentId === eqId && c.checkedAt && localDateStr(new Date(c.checkedAt)) === today;
+    }).sort(function(a, b) { return new Date(b.checkedAt) - new Date(a.checkedAt); });
+    if (!checks.length) return null; // مفيش مراجعة اليوم — الكارت بلونه الطبيعي في انتظار المراجعة
     return checks[0].status === 'pending' ? 'bad' : 'good';
 }
 
