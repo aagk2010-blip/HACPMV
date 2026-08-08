@@ -159,10 +159,11 @@ button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
 
   /* كل القوائم عمود واحد تحت بعض، بعرض مريح للقراءة على الشاشات الكبيرة */
   #equipment-list,#maintenance-list,#inv-list,
-  #sites-dashboard-list,#rental-equipment-list{
+  #sites-dashboard-list{
     display:flex;flex-direction:column;gap:12px;max-width:720px}
   .equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{margin-bottom:0}
 #rental-daily-list{display:flex;flex-direction:column;gap:5px;max-width:520px}
+#rental-equipment-list{display:flex;flex-direction:column;gap:6px;max-width:460px}
 
   .search-box{max-width:420px}
   #view-equipment>div>div[style*="margin-bottom:10px;display:flex;gap:8px"]{max-width:900px}
@@ -361,11 +362,11 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
    تحت بعض على كل الشاشات، بعرض مريح للقراءة على الشاشات الكبيرة.
    ======================================================================= */
 #equipment-list,#maintenance-list,#inv-list,
-#sites-dashboard-list,#rental-equipment-list{
+#sites-dashboard-list{
   display:flex !important;flex-direction:column !important;gap:12px}
 @media (min-width:1024px){
   #equipment-list,#maintenance-list,#inv-list,
-  #sites-dashboard-list,#rental-equipment-list{max-width:720px;gap:14px}
+  #sites-dashboard-list{max-width:720px;gap:14px}
 }
 /* كارت المعدة في صفحة التحليلات - رفع + لمعة + حركة عند الوقوف (hover) */
 .eq-usage-card{
@@ -10594,56 +10595,57 @@ function renderRentalEquipment() {
         var pct   = Math.min(daysCount/cycleDayCount,1);
         var color = daysCount>=25?'#059669':daysCount>=15?'#0e7490':daysCount>=7?'#d97706':'#7c3aed';
         var angle = (pct*360-90)*Math.PI/180;
-        var x2=44+38*Math.cos(angle), y2=44+38*Math.sin(angle);
-        var arcPath = pct>=1 ? 'M 44 6 A 38 38 0 1 1 43.99 6' : 'M 44 6 A 38 38 0 '+(pct>0.5?1:0)+' 1 '+x2.toFixed(2)+' '+y2.toFixed(2);
         var eqLabel  = eq ? (eq.type+' — '+(eq.name||eq.code)) : (r.equipmentCode||'—');
         var rid = r.id;
         var todayStatusColor = todayRec ? '#065f46' : '#92400e';
         var todayStatus = todayRec ? '✅ مسجّل اليوم' : '⏳ لم يسجّل اليوم';
+        var x2s=31+26*Math.cos(angle), y2s=31+26*Math.sin(angle);
+        var arcPathSmall = pct>=1 ? 'M 31 5 A 26 26 0 1 1 30.99 5' : 'M 31 5 A 26 26 0 '+(pct>0.5?1:0)+' 1 '+x2s.toFixed(2)+' '+y2s.toFixed(2);
         html +=
-        '<div class="rental-card" style="background:white;border-radius:16px;border:1px solid #e2e8f0;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)">'+
-        '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:9px 12px;color:white;display:flex;justify-content:space-between;align-items:center">'+
-        '<div><div style="font-weight:700;font-size:14px"><span class="c-ico">🚧</span> '+escapeHtml(eqLabel)+'</div>'+
-        '<div style="font-size:11px;opacity:.8">'+(r.company?'🏢 '+escapeHtml(r.company)+(drv?' · ':''):'' )+(drv?'👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>'+
-        (isAdmin?'<div style="display:flex;gap:4px">'+
-        '<button data-action="edit-rental" data-id="'+rid+'" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px">✏️</button>'+
-        '<button data-action="del-rental"  data-id="'+rid+'" style="background:rgba(255,0,0,.3);color:white;border:none;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px">🗑️</button></div>':'')+
+        '<div class="rental-card" style="background:white;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);max-width:460px">'+
+        '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:6px 9px;color:white;display:flex;justify-content:space-between;align-items:center">'+
+        '<div><div style="font-weight:700;font-size:12px"><span class="c-ico">🚧</span> '+escapeHtml(eqLabel)+'</div>'+
+        '<div style="font-size:9.5px;opacity:.8">'+(r.company?'🏢 '+escapeHtml(r.company)+(drv?' · ':''):'' )+(drv?'👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>'+
+        (isAdmin?'<div style="display:flex;gap:3px">'+
+        '<button data-action="edit-rental" data-id="'+rid+'" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:6px;padding:3px 6px;cursor:pointer;font-size:10px">✏️</button>'+
+        '<button data-action="del-rental"  data-id="'+rid+'" style="background:rgba(255,0,0,.3);color:white;border:none;border-radius:6px;padding:3px 6px;cursor:pointer;font-size:10px">🗑️</button></div>':'')+
         '</div>'+
-        '<div style="padding:10px 12px;display:flex;gap:10px;align-items:center">'+
-        '<div style="position:relative;flex-shrink:0;width:88px;height:88px">'+
-        '<svg viewBox="0 0 88 88" style="width:88px;height:88px">'+
-        '<circle cx="44" cy="44" r="38" fill="none" stroke="#f1f5f9" stroke-width="9"/>'+
-        (pct>0?'<path d="'+arcPath+'" fill="none" stroke="'+color+'" stroke-width="9" stroke-linecap="round" transform="scale(-1,1) translate(-88,0)"/>':'')+
+        '<div style="padding:7px 9px;display:flex;gap:7px;align-items:center">'+
+        '<div style="position:relative;flex-shrink:0;width:62px;height:62px">'+
+        '<svg viewBox="0 0 62 62" style="width:62px;height:62px">'+
+        '<circle cx="31" cy="31" r="26" fill="none" stroke="#f1f5f9" stroke-width="6"/>'+
+        (pct>0?'<path d="'+arcPathSmall+'" fill="none" stroke="'+color+'" stroke-width="6" stroke-linecap="round" transform="scale(-1,1) translate(-62,0)"/>':'')+
         '</svg>'+
         '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;line-height:1.1">'+
-        '<div style="font-size:20px;font-weight:800;color:'+color+'">'+daysCount+'</div>'+
-        '<div style="font-size:9px;color:var(--gray)">يوم/'+cycleDayCount+'</div></div></div>'+
-        '<div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:5px">'+
-        '<div style="background:var(--light);border-radius:9px;padding:7px;text-align:center"><div style="font-size:17px;font-weight:700;color:#0e7490">'+sumBasic.toFixed(1)+'</div><div style="font-size:9px;color:var(--gray)">أساسية</div></div>'+
-        '<div style="background:'+((sumExtra+sumBreak)>0?'#fef3c7':'var(--light)')+';border-radius:9px;padding:7px;text-align:center"><div style="font-size:17px;font-weight:700;color:'+((sumExtra+sumBreak)>0?'#d97706':'var(--gray)')+'">'+(sumExtra+sumBreak).toFixed(1)+'</div><div style="font-size:9px;color:var(--gray)">إضافية'+(sumBreak>0?' (منها '+sumBreak.toFixed(1)+'راحة)':'')+'</div></div>'+
-        '<div style="grid-column:1/-1;background:'+(todayRec?'#d1fae5':'#fef9c3')+';border-radius:9px;padding:5px 8px;text-align:center;font-size:11px;font-weight:600;color:'+todayStatusColor+'">'+todayStatus+'</div>'+
+        '<div style="font-size:14px;font-weight:800;color:'+color+'">'+daysCount+'</div>'+
+        '<div style="font-size:7px;color:var(--gray)">يوم/'+cycleDayCount+'</div></div></div>'+
+        '<div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:4px">'+
+        '<div style="background:var(--light);border-radius:6px;padding:5px;text-align:center"><div style="font-size:12px;font-weight:700;color:#0e7490">'+sumBasic.toFixed(1)+'</div><div style="font-size:7.5px;color:var(--gray)">أساسية</div></div>'+
+        '<div style="background:'+((sumExtra+sumBreak)>0?'#fef3c7':'var(--light)')+';border-radius:6px;padding:5px;text-align:center"><div style="font-size:12px;font-weight:700;color:'+((sumExtra+sumBreak)>0?'#d97706':'var(--gray)')+'">'+(sumExtra+sumBreak).toFixed(1)+'</div><div style="font-size:7.5px;color:var(--gray)">إضافية'+(sumBreak>0?' ('+sumBreak.toFixed(1)+'راحة)':'')+'</div></div>'+
+        '<div style="grid-column:1/-1;background:'+(todayRec?'#d1fae5':'#fef9c3')+';border-radius:6px;padding:3px 6px;text-align:center;font-size:9.5px;font-weight:600;color:'+todayStatusColor+'">'+todayStatus+'</div>'+
         '</div></div>'+
-        '<div style="margin:0 10px 10px;background:'+(todayRec?'#f0fdf4':'#fef3c7')+';border:1px solid '+(todayRec?'#bbf7d0':'#fde68a')+';border-radius:11px;padding:8px">'+
-        '<div style="font-size:10px;color:'+todayStatusColor+';margin-bottom:5px;font-weight:600">⚡ '+(todayRec?'تعديل اليوم '+todayStr:'تسجيل اليوم '+todayStr)+'</div>'+
-        '<div style="display:flex;gap:5px;align-items:center">'+
-        '<input type="time" id="quick-in-'+rid+'" value="'+(todayRec?todayRec.inTime||'':'08:00')+'" style="flex:1;padding:6px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:12px">'+
-        '<span style="color:var(--gray);font-size:11px">→</span>'+
-        '<input type="time" id="quick-out-'+rid+'" value="'+(todayRec?todayRec.outTime||'':'17:00')+'" style="flex:1;padding:6px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:12px">'+
-        '<button data-action="quick-save" data-id="'+rid+'" data-today="'+todayStr+'" data-existing="'+(todayRec?todayRec.id:'')+'" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:8px;padding:6px 11px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">✅</button>'+
+        '<div style="margin:0 9px 7px;background:'+(todayRec?'#f0fdf4':'#fef3c7')+';border:1px solid '+(todayRec?'#bbf7d0':'#fde68a')+';border-radius:9px;padding:6px">'+
+        '<div style="font-size:9px;color:'+todayStatusColor+';margin-bottom:4px;font-weight:600">⚡ '+(todayRec?'تعديل اليوم '+todayStr:'تسجيل اليوم '+todayStr)+'</div>'+
+        '<div style="display:flex;gap:4px;align-items:center">'+
+        '<input type="time" id="quick-in-'+rid+'" value="'+(todayRec?todayRec.inTime||'':'08:00')+'" style="flex:1;padding:4px;border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;font-size:10.5px">'+
+        '<span style="color:var(--gray);font-size:10px">→</span>'+
+        '<input type="time" id="quick-out-'+rid+'" value="'+(todayRec?todayRec.outTime||'':'17:00')+'" style="flex:1;padding:4px;border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;font-size:10.5px">'+
+        '<button data-action="quick-save" data-id="'+rid+'" data-today="'+todayStr+'" data-existing="'+(todayRec?todayRec.id:'')+'" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:6px;padding:4px 9px;font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer">✅</button>'+
         '</div>'+
-        '<div style="display:flex;align-items:center;gap:6px;margin-top:5px">'+
-        '<input type="checkbox" id="quick-brk-'+rid+'" '+(todayRec&&todayRec.breakWorked?'checked':'')+' style="width:16px;height:16px">'+
-        '<label for="quick-brk-'+rid+'" style="font-size:11px;color:'+todayStatusColor+'">☕ اشتغلت ساعة الراحة (تُحسب إضافي)</label>'+
+        '<div style="display:flex;align-items:center;gap:5px;margin-top:4px">'+
+        '<input type="checkbox" id="quick-brk-'+rid+'" '+(todayRec&&todayRec.breakWorked?'checked':'')+' style="width:13px;height:13px">'+
+        '<label for="quick-brk-'+rid+'" style="font-size:9.5px;color:'+todayStatusColor+'">☕ اشتغلت ساعة الراحة (تُحسب إضافي)</label>'+
         '</div></div>'+
+        '<div style="margin:0 9px 7px;font-size:9.5px;color:'+(r.notes?'var(--gray)':'#c3cad4')+';background:var(--light);padding:4px 8px;border-radius:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 '+(r.notes?escapeHtml(r.notes):'لا توجد ملاحظات')+'</div>'+
         (isAdmin?
-        '<div style="padding:0 10px 10px;display:flex;gap:6px">'+
-        '<button data-action="add-daily" data-id="'+rid+'" style="flex:1;padding:7px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">➕ يوم آخر</button>'+
-        '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:7px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">📋 التقرير</button>'+
-        '<button data-action="wa-driver" data-id="'+rid+'" style="padding:7px 12px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:9px;font-family:inherit;font-size:14px;cursor:pointer">📲</button>'+
+        '<div style="padding:0 9px 9px;display:flex;gap:4px">'+
+        '<button data-action="add-daily" data-id="'+rid+'" style="flex:1;padding:5px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:7px;font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer">➕ يوم</button>'+
+        '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:5px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:7px;font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer">📋 التقرير</button>'+
+        '<button data-action="wa-driver" data-id="'+rid+'" style="padding:5px 9px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:7px;font-family:inherit;font-size:12px;cursor:pointer">📲</button>'+
         '</div>':
-        '<div style="padding:0 10px 10px;display:flex;gap:6px">'+
-        '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:7px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">📋 عرض التقرير</button>'+
-        '<button data-action="wa-driver" data-id="'+rid+'" style="padding:7px 12px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:9px;font-family:inherit;font-size:14px;cursor:pointer">📲</button>'+
+        '<div style="padding:0 9px 9px;display:flex;gap:4px">'+
+        '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:5px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:7px;font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer">📋 عرض التقرير</button>'+
+        '<button data-action="wa-driver" data-id="'+rid+'" style="padding:5px 9px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:7px;font-family:inherit;font-size:12px;cursor:pointer">📲</button>'+
         '</div>')+
         '</div>';
     });
