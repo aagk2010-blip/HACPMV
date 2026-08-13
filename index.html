@@ -9742,10 +9742,13 @@ function renderHomeAppGrid(stats) {
         { view: 'maintenance',icon: '🔧', label: 'الصيانة',  color: 'linear-gradient(135deg,#ef4444,#b91c1c)', section: 'maintenance', badge: stats.scheduled > 0 ? stats.scheduled : null },
         { view: 'inventory',  icon: '📦', label: 'المخزن',   color: 'linear-gradient(135deg,#0d1b2a,#6d28d9)', section: 'inventory', badge: stats.shortagesCount > 0 ? stats.shortagesCount : null },
         { view: 'rental',     icon: '🚧', label: 'الإيجار',  color: 'linear-gradient(135deg,#7c3aed,#4f46e5)', section: 'rental' },
+        { view: 'map',        icon: '🗺️', label: 'خريطة المعدات', color: 'linear-gradient(135deg,#0891b2,#155e75)', section: 'map' },
         { view: 'sites',      icon: '🏢', label: 'لوحة المواقع', color: 'linear-gradient(135deg,#0d1b2a,#334155)', section: 'sites' },
-        { view: 'analytics',  icon: '📈', label: 'التحليلات', color: 'linear-gradient(135deg,#06b6d4,#0e7490)', section: 'analytics' }
+        { view: 'analytics',  icon: '📈', label: 'التحليلات', color: 'linear-gradient(135deg,#06b6d4,#0e7490)', section: 'analytics' },
+        { view: 'import',     icon: '📥', label: 'استيراد',  color: 'linear-gradient(135deg,#334155,#0f172a)', adminOnly: true }
     ];
     var html = apps.filter(function(app) {
+        if (app.adminOnly) return isAdmin;
         if (isAdmin) return true;
         if (app.sectionOr) return app.sectionOr.some(function(s) { return canView(s); });
         return canView(app.section);
