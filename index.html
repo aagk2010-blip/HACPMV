@@ -6148,11 +6148,47 @@ function openNotifSettings() {
 }
 
 // ==================== خريطة تتبع المعدات (GPS عبر السائقين) — Leaflet + OpenStreetMap (مجاني، بدون مفتاح API) ====================
+var equipmentMapColorTimer = null;
+
 function refreshMapView() {
     var contentCard = document.getElementById('map-content-card');
     if (!contentCard) return;
     contentCard.style.display = 'block';
     renderEquipmentMap();
+    startMapColorTimer();
+}
+
+function stopMapColorTimer() {
+    if (equipmentMapColorTimer) {
+        clearInterval(equipmentMapColorTimer);
+        equipmentMapColorTimer = null;
+    }
+}
+
+function startMapColorTimer() {
+    stopMapColorTimer();
+    // يحدّث لون كل نقطة كل 15 ثانية اعتمادًا على وقت آخر تحديث GPS،
+    // حتى لو مفيش بيانات جديدة واصلة من السائق (يعني لو الـ GPS اتقفل هيتحول للون رمادي تلقائيًا)
+    equipmentMapColorTimer = setInterval(function() {
+        if (activeView !== 'map' || !equipmentMapInstance) { stopMapColorTimer(); return; }
+        updateMapMarkerColors();
+    }, 15000);
+}
+
+function gpsStatusColor(updatedAt) {
+    var minsAgo = (new Date() - new Date(updatedAt)) / 60000;
+    if (minsAgo <= 3) return '#10b981';   // متصل الآن (أخضر)
+    if (minsAgo <= 15) return '#f59e0b';  // تأخر بسيط (أصفر)
+    return '#9ca3af';                     // منقطع/متوقف (رمادي)
+}
+
+function updateMapMarkerColors() {
+    if (!equipmentMapInstance || !equipmentMapInstance._markers) return;
+    equipmentMapInstance._markers.forEach(function(m) {
+        if (!m._locUpdatedAt) return;
+        var color = gpsStatusColor(m._locUpdatedAt);
+        m.setStyle({ fillColor: color });
+    });
 }
 
 function renderEquipmentMap() {
@@ -6206,7 +6242,7 @@ function renderEquipmentMap() {
     var bounds = [];
     points.forEach(function(p) {
         var minsAgo = (new Date() - new Date(p.loc.updatedAt)) / 60000;
-        var color = minsAgo <= 15 ? '#10b981' : minsAgo <= 120 ? '#f59e0b' : '#9ca3af';
+        var color = gpsStatusColor(p.loc.updatedAt);
         var marker = L.circleMarker([p.loc.lat, p.loc.lng], {
             radius: 9,
             fillColor: color,
@@ -6214,6 +6250,7 @@ function renderEquipmentMap() {
             weight: 2,
             fillOpacity: 1
         }).addTo(equipmentMapInstance);
+        marker._locUpdatedAt = p.loc.updatedAt;
         var timeAgoText = minsAgo < 1 ? 'الآن' : minsAgo < 60 ? Math.round(minsAgo) + ' دقيقة' : Math.round(minsAgo / 60) + ' ساعة';
         marker.bindPopup(
             '<div style="font-family:Cairo,sans-serif;text-align:right;min-width:160px">' +
@@ -9859,6 +9896,7 @@ function switchView(view) {
         else btn.classList.remove('active');
     });
     if (view === 'map') refreshMapView();
+    else stopMapColorTimer();
     var titles = {
         home: '📊 لوحة القيادة',
         sites: '🏢 لوحة المواقع',
