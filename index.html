@@ -6256,6 +6256,7 @@ function renderEquipmentMap() {
             '<div style="font-family:Cairo,sans-serif;text-align:right;min-width:160px">' +
                 '<div style="font-weight:800;font-size:13px;margin-bottom:3px">🏗️ ' + (p.eq.name || '') + '</div>' +
                 '<div style="font-size:11.5px;color:#555">👨‍✈️ ' + (p.drv ? p.drv.name : '—') + '</div>' +
+                (p.loc.meter !== undefined && p.loc.meter !== null ? '<div style="font-size:11.5px;color:#555">⏱️ العداد: ' + p.loc.meter + ' س</div>' : '') +
                 '<div style="font-size:11px;color:#888;margin-top:3px">🕐 آخر تحديث: منذ ' + timeAgoText + '</div>' +
                 '</div>'
         );
@@ -6300,6 +6301,10 @@ function initShareLocationPage(driverId) {
         '<div style="font-size:12.5px;color:#6b7a8d;margin-bottom:18px">مشاركة موقعك بتساعد فريق العمل يتابع المعدة أول بأول</div>' +
         '<div id="share-status" style="font-size:13px;font-weight:700;color:#f59e0b;background:#fef3c7;border-radius:10px;padding:9px;margin-bottom:8px">⏳ لسه ما بدأتش الشغل</div>' +
         '<div id="share-queue-info" style="font-size:11px;color:#9ca3af;margin-bottom:12px;display:none"></div>' +
+        '<div style="text-align:right;margin-bottom:12px">' +
+            '<label style="font-size:12px;font-weight:700;color:#0d1b2a;display:block;margin-bottom:5px">⏱️ قراءة العداد الحالية (ساعات)</label>' +
+            '<input type="number" id="share-meter-input" placeholder="مثال: 1250" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;box-sizing:border-box">' +
+        '</div>' +
         '<button id="share-toggle-btn" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
         '<div style="font-size:10.5px;color:#9ca3af;margin-top:14px">هيطلب المتصفح إذن الوصول للموقع — اضغط "سماح"<br>الصفحة بتشتغل حتى لو النت اتقطع، وهتزامن أول ما يرجع</div>' +
         '</div></div>';
@@ -6328,7 +6333,9 @@ function initShareLocationPage(driverId) {
     var btn = document.getElementById('share-toggle-btn');
     var statusEl = document.getElementById('share-status');
     var queueInfoEl = document.getElementById('share-queue-info');
+    var meterInput = document.getElementById('share-meter-input');
     var sharing = false;
+    var startMeter = null;
 
     function getQueue() {
         try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); }
@@ -6354,7 +6361,7 @@ function initShareLocationPage(driverId) {
         fbDb.ref('driverLocations/' + driverId).set({
             driverId: driverId, driverName: driverName,
             lat: last.lat, lng: last.lng, accuracy: last.accuracy,
-            updatedAt: last.updatedAt
+            updatedAt: last.updatedAt, meter: last.meter
         }).then(function() {
             // نرفع باقي النقاط كسجل مسار (اختياري لعرض المسار لاحقًا) من غير ما نستنى كل واحدة
             var updates = {};
@@ -6377,7 +6384,7 @@ function initShareLocationPage(driverId) {
     function pushLocation(pos) {
         var point = {
             lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy,
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(), meter: startMeter
         };
 
         if (!navigator.onLine) {
@@ -6389,7 +6396,7 @@ function initShareLocationPage(driverId) {
 
         fbDb.ref('driverLocations/' + driverId).set({
             driverId: driverId, driverName: driverName,
-            lat: point.lat, lng: point.lng, accuracy: point.accuracy, updatedAt: point.updatedAt
+            lat: point.lat, lng: point.lng, accuracy: point.accuracy, updatedAt: point.updatedAt, meter: point.meter
         }).then(function() {
             statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
             statusEl.innerHTML = '🟢 شغّال دلوقتي — آخر تحديث الآن';
@@ -6407,8 +6414,14 @@ function initShareLocationPage(driverId) {
 
     btn.onclick = function() {
         if (!navigator.geolocation) { statusEl.innerHTML = '❌ الجهاز مش بيدعم تحديد الموقع'; return; }
+        if (!sharing) {
+            var meterVal = parseFloat(meterInput.value);
+            if (isNaN(meterVal)) { showToastLike('من فضلك اكتب قراءة العداد الحالية'); meterInput.focus(); return; }
+            startMeter = meterVal;
+        }
         sharing = !sharing;
         if (sharing) {
+            meterInput.disabled = true;
             shareWatchId = navigator.geolocation.watchPosition(pushLocation, function(err) {
                 statusEl.style.color = '#dc2626'; statusEl.style.background = '#fee2e2';
                 statusEl.innerHTML = '❌ ' + (err.code === 1 ? 'رفضت إذن الموقع' : 'تعذّر تحديد الموقع');
@@ -6418,12 +6431,18 @@ function initShareLocationPage(driverId) {
         } else {
             if (shareWatchId !== null) navigator.geolocation.clearWatch(shareWatchId);
             tryFlushQueue();
+            meterInput.disabled = false;
             statusEl.style.color = '#f59e0b'; statusEl.style.background = '#fef3c7';
             statusEl.innerHTML = '⏸️ تم إنهاء العمل';
             btn.textContent = '▶️ بدء العمل';
             btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
         }
     };
+
+    function showToastLike(text) {
+        statusEl.style.color = '#dc2626'; statusEl.style.background = '#fee2e2';
+        statusEl.innerHTML = '⚠️ ' + text;
+    }
 }
 
 
