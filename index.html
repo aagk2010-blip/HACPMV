@@ -4610,7 +4610,63 @@ function openQRLabelsWindow(html) {
 function printSingleQRLabel(eqId) {
     var equipment = equipmentData.find(function(e) { return e.id === eqId; });
     if (!equipment) { showToast('لم يتم العثور على المعدة', true); return; }
-    openQRLabelsWindow(buildQRLabelsPage([equipment]));
+    if (equipment.ownership === 'إيجار') {
+        openQRLabelsWindow(buildQRLabelsPage([equipment]));
+    } else {
+        openQRLabelsWindow(buildOwnedEquipmentQRSheet(equipment));
+    }
+}
+
+function buildOwnedEquipmentQRSheet(eq) {
+    var printedBy = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username) ? currentUser.username : '';
+    var qrUrl = generateEquipmentQRUrl(eq);
+
+    var maintList = (maintenanceSchedules || []).filter(function(m) { return m.equipmentId === eq.id; })
+        .slice().sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+    var fuelList = (fuelData || []).filter(function(f) { return f.equipmentId === eq.id; })
+        .slice().sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+
+    var maintRows = maintList.length ? maintList.map(function(m) {
+        return '<tr><td>' + escapeHtml(m.date || '—') + '</td><td>' + escapeHtml(m.type || '—') + '</td><td>' + (m.targetHours || '—') + '</td><td>' + escapeHtml(m.status || '—') + '</td><td>' + (m.cost ? formatNumber(m.cost) + ' ج.م' : '—') + '</td><td>' + escapeHtml(m.notes || '') + '</td></tr>';
+    }).join('') : '<tr><td colspan="6" style="color:#94a3b8;padding:14px">لا يوجد سجل صيانات</td></tr>';
+
+    var fuelRows = fuelList.length ? fuelList.map(function(f) {
+        var drv = driversData.find(function(d) { return d.id === f.driverId; });
+        return '<tr><td>' + escapeHtml(f.date || '—') + '</td><td>' + (f.amount || 0) + ' لتر</td><td>' + formatNumber(f.cost || 0) + ' ج.م</td><td>' + (f.hours || '—') + '</td><td>' + escapeHtml(drv ? drv.name : '—') + '</td><td>' + escapeHtml(f.notes || '') + '</td></tr>';
+    }).join('') : '<tr><td colspan="6" style="color:#94a3b8;padding:14px">لا يوجد سجل تزوّد بالوقود</td></tr>';
+
+    var html = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + escapeHtml(eq.name || '') + '</title>' +
+        '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>' +
+        '<style>' +
+        'body{font-family:Arial,Tahoma,sans-serif;margin:0;padding:20px;background:#f1f5f9;direction:rtl}' +
+        '.print-bar{text-align:center;margin-bottom:16px}' +
+        '.print-bar button{padding:10px 22px;border:none;border-radius:10px;background:#0891b2;color:white;font-size:14px;font-weight:700;cursor:pointer}' +
+        '.header{background:white;border-radius:14px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}' +
+        '.header-info h2{margin:0 0 4px;color:#0d1b2a;font-size:18px}' +
+        '.header-info div{font-size:12.5px;color:#64748b;margin-top:2px}' +
+        '.header-qr{text-align:center}' +
+        '.header-qr .lbl{font-size:9px;color:#94a3b8;margin-top:4px}' +
+        'h3{color:#7c3aed;font-size:14px;margin:18px 0 8px}' +
+        'table{width:100%;border-collapse:collapse;font-size:12px;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}' +
+        'th{background:#7c3aed;color:white;padding:8px;text-align:center}' +
+        'td{padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:center}' +
+        '@media print{.print-bar{display:none}body{background:white;padding:0}}' +
+        '</style></head><body>' +
+        '<div class="print-bar"><button onclick="window.print()">🖨️ طباعة</button></div>' +
+        '<div class="header">' +
+        '<div class="header-info"><h2>' + escapeHtml(eq.name || '') + '</h2>' +
+        '<div>الكود: ' + escapeHtml(eq.code || '') + '</div>' +
+        '<div>مدير الحساب: ' + escapeHtml(printedBy) + '</div></div>' +
+        '<div class="header-qr"><div id="pdfQrBox"></div><div class="lbl">📱 امسح للتفاصيل</div></div>' +
+        '</div>' +
+        '<h3>🔧 سجل الصيانة</h3>' +
+        '<table><thead><tr><th>التاريخ</th><th>النوع</th><th>عند ساعة</th><th>الحالة</th><th>التكلفة</th><th>ملاحظات</th></tr></thead><tbody>' + maintRows + '</tbody></table>' +
+        '<h3>⛽ سجل الوقود</h3>' +
+        '<table><thead><tr><th>التاريخ</th><th>الكمية</th><th>التكلفة</th><th>العداد</th><th>السائق</th><th>ملاحظات</th></tr></thead><tbody>' + fuelRows + '</tbody></table>' +
+        '<script>window.addEventListener("load", function() { new QRCode(document.getElementById("pdfQrBox"), { text: ' + JSON.stringify(qrUrl) + ', width: 90, height: 90, correctLevel: QRCode.CorrectLevel.M }); });<\/script>' +
+        '</body></html>';
+
+    return html;
 }
 
 function openQRLabelsModal() {
