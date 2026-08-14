@@ -4279,7 +4279,7 @@ function initEquipmentPublicViewPage(eqId) {
 
     Promise.all([
         fbDb.ref('equipment/' + eqId).once('value'),
-        safeRead('maintenanceSchedules'),
+        safeRead('pmHistory'),
         safeRead('drivers'),
         safeRead('rental'),
         safeRead('rentalDaily'),
@@ -4330,17 +4330,16 @@ function initEquipmentPublicViewPage(eqId) {
             return;
         }
 
-        // معدات الملك: التفاصيل الكاملة + آخر 4 صيانات
-        var maintList = [];
-        var maintVal = results[1].value;
-        if (maintVal) {
-            Object.keys(maintVal).forEach(function(k) {
-                var m = maintVal[k];
-                if (m && m.equipmentId === eqId) maintList.push(m);
-            });
+        // معدات الملك: التفاصيل الكاملة + آخر 4 صيانات (من pmHistory بنفس منطق شاشة "سجل الصيانات")
+        var pmHistoryVal = results[1].value || {};
+        var eqCode = (eq.code || '').replace(/\s+/g, '');
+        var sessions = null;
+        for (var k in pmHistoryVal) {
+            var entry = pmHistoryVal[k];
+            var entryCode = (entry.originalCode || k).replace(/\s+/g, '');
+            if (entryCode.toUpperCase() === eqCode.toUpperCase()) { sessions = entry.sessions || entry; break; }
         }
-        maintList.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
-        var last4 = maintList.slice(0, 4);
+        var last4 = (sessions || []).slice().reverse().slice(0, 4);
 
         var fuelList = [];
         var fuelVal = results[5].value;
@@ -4503,15 +4502,25 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last
     if (maintDenied) {
         maintHtml = '<div style="text-align:center;padding:16px;color:#b45309;background:#fef3c7;border-radius:10px;font-size:12px">⚠️ سجل الصيانات غير متاح للعرض العام حاليًا (صلاحيات القراءة في Firebase)</div>';
     } else if (last4Maint.length) {
-        maintHtml = last4Maint.map(function(m) {
-            var statusColor = m.status === 'مكتمل' ? '#10b981' : (m.status === 'مجدول' ? '#f59e0b' : '#94a3b8');
-            return '<div style="background:#f8fafc;border-radius:12px;padding:10px 12px;margin-bottom:8px;border-right:3px solid ' + statusColor + '">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">' +
-                '<span style="font-weight:700;font-size:13px;color:#0d1b2a">' + escapeHtml(m.type || 'صيانة') + '</span>' +
-                '<span style="font-size:11px;color:' + statusColor + ';font-weight:700">' + escapeHtml(m.status || '') + '</span>' +
+        maintHtml = last4Maint.map(function(s) {
+            var items = s.items || [];
+            var oils = items.filter(function(i) { return (i.name || '').toLowerCase().indexOf('oil') !== -1; });
+            var filters = items.filter(function(i) { return (i.name || '').toLowerCase().indexOf('filter') !== -1; });
+            var others = items.filter(function(i) { return oils.indexOf(i) < 0 && filters.indexOf(i) < 0; });
+
+            function itemsLine(list) {
+                return list.map(function(it) { return escapeHtml(it.name) + (it.qty ? ' (' + it.qty + ')' : ''); }).join('، ');
+            }
+
+            return '<div style="background:#f8fafc;border-radius:12px;padding:10px 12px;margin-bottom:8px;border-right:3px solid #d97706">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">' +
+                '<span style="font-weight:700;font-size:13px;color:#0d1b2a">🔧 صيانة عند ' + (s.hours ? s.hours.toLocaleString() : '—') + ' س</span>' +
+                '<span style="font-size:11px;color:#64748b">📅 ' + escapeHtml(s.date || '—') + '</span>' +
                 '</div>' +
-                '<div style="font-size:11.5px;color:#64748b">📅 ' + escapeHtml(m.date || '—') + (m.targetHours ? ' | ⏱️ ' + m.targetHours + ' س' : '') + '</div>' +
-                (m.notes ? '<div style="font-size:11.5px;color:#64748b;margin-top:3px">' + escapeHtml(m.notes) + '</div>' : '') +
+                (oils.length ? '<div style="font-size:11.5px;color:#64748b;margin-top:3px">🛢️ الزيوت: ' + itemsLine(oils) + '</div>' : '') +
+                (filters.length ? '<div style="font-size:11.5px;color:#64748b;margin-top:3px">🔩 الفلاتر: ' + itemsLine(filters) + '</div>' : '') +
+                (others.length ? '<div style="font-size:11.5px;color:#64748b;margin-top:3px">📋 أخرى: ' + itemsLine(others) + '</div>' : '') +
+                (!items.length ? '<div style="font-size:11.5px;color:#94a3b8;margin-top:3px">لا توجد تفاصيل</div>' : '') +
                 '</div>';
         }).join('');
     } else {
