@@ -4398,7 +4398,7 @@ function buildRentalDayEntriesLocal(dailyList, rentalContract, dateFrom, dateTo)
             d.setDate(d.getDate() + 1);
         }
     }
-    days.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); }); // الأحدث أولاً
+    days.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); }); // الأقدم أولاً، آخر يوم في نهاية الصفحة
     var records = days.filter(function(dd) { return dd.record; }).map(function(dd) { return dd.record; });
     return { days: days, records: records };
 }
