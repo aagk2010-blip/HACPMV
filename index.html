@@ -4282,7 +4282,8 @@ function initEquipmentPublicViewPage(eqId) {
         safeRead('maintenanceSchedules'),
         safeRead('drivers'),
         safeRead('rental'),
-        safeRead('rentalDaily')
+        safeRead('rentalDaily'),
+        safeRead('fuelRecords')
     ]).then(function(results) {
         var eq = results[0].val();
         if (!eq) {
@@ -4341,7 +4342,18 @@ function initEquipmentPublicViewPage(eqId) {
         maintList.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
         var last4 = maintList.slice(0, 4);
 
-        renderEquipmentPublicView(eq, last4, driverName, results[1].denied);
+        var fuelList = [];
+        var fuelVal = results[5].value;
+        if (fuelVal) {
+            Object.keys(fuelVal).forEach(function(k) {
+                var f = fuelVal[k];
+                if (f && f.equipmentId === eqId) fuelList.push(f);
+            });
+        }
+        fuelList.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+        var last5Fuel = fuelList.slice(0, 5);
+
+        renderEquipmentPublicView(eq, last4, driverName, results[1].denied, last5Fuel, results[5].denied);
     }).catch(function(err) {
         document.getElementById('eqpv-content').innerHTML = eqpvErrorCard('❌ تعذّر تحميل البيانات — تأكد من اتصال الإنترنت');
     });
@@ -4482,7 +4494,7 @@ function renderEquipmentPublicAttendanceView(eq, rentalContract, days, driverNam
     document.getElementById('eqpv-content').innerHTML = html;
 }
 
-function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied) {
+function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last5Fuel, fuelDenied) {
     var remaining = hoursRemaining(eq);
     var percent = getRemainingPercent(eq);
     var barColor = getBarColor(remaining);
@@ -4504,6 +4516,24 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied) {
         }).join('');
     } else {
         maintHtml = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12.5px">لا يوجد سجل صيانات لهذه المعدة</div>';
+    }
+
+    var fuelHtml = '';
+    if (fuelDenied) {
+        fuelHtml = '<div style="text-align:center;padding:16px;color:#b45309;background:#fef3c7;border-radius:10px;font-size:12px">⚠️ سجل الوقود غير متاح للعرض العام حاليًا (صلاحيات القراءة في Firebase)</div>';
+    } else if (last5Fuel && last5Fuel.length) {
+        fuelHtml = last5Fuel.map(function(f) {
+            return '<div style="background:#f8fafc;border-radius:12px;padding:10px 12px;margin-bottom:8px;border-right:3px solid #0891b2">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">' +
+                '<span style="font-weight:700;font-size:13px;color:#0d1b2a">⛽ ' + (f.amount || 0) + ' لتر</span>' +
+                '<span style="font-size:12px;color:#0891b2;font-weight:700">' + formatNumber(f.cost || 0) + ' ج.م</span>' +
+                '</div>' +
+                '<div style="font-size:11.5px;color:#64748b">📅 ' + escapeHtml(f.date || '—') + (f.hours ? ' | ⏱️ العداد: ' + f.hours + ' س' : '') + '</div>' +
+                (f.notes ? '<div style="font-size:11.5px;color:#64748b;margin-top:3px">' + escapeHtml(f.notes) + '</div>' : '') +
+                '</div>';
+        }).join('');
+    } else {
+        fuelHtml = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12.5px">لا يوجد سجل تزوّد بالوقود لهذه المعدة</div>';
     }
 
     var html =
@@ -4539,6 +4569,11 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied) {
         '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
         '<div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:8px">🔧 آخر 4 صيانات</div>' +
         maintHtml +
+        '</div>' +
+
+        '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        '<div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:8px">⛽ آخر 5 تزويدات وقود</div>' +
+        fuelHtml +
         '</div>' +
 
         (eq.notes ? '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:4px">📝 ملاحظات</div><div style="font-size:13px;color:#334155">' + escapeHtml(eq.notes) + '</div></div>' : '') +
@@ -4610,63 +4645,7 @@ function openQRLabelsWindow(html) {
 function printSingleQRLabel(eqId) {
     var equipment = equipmentData.find(function(e) { return e.id === eqId; });
     if (!equipment) { showToast('لم يتم العثور على المعدة', true); return; }
-    if (equipment.ownership === 'إيجار') {
-        openQRLabelsWindow(buildQRLabelsPage([equipment]));
-    } else {
-        openQRLabelsWindow(buildOwnedEquipmentQRSheet(equipment));
-    }
-}
-
-function buildOwnedEquipmentQRSheet(eq) {
-    var printedBy = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username) ? currentUser.username : '';
-    var qrUrl = generateEquipmentQRUrl(eq);
-
-    var maintList = (maintenanceSchedules || []).filter(function(m) { return m.equipmentId === eq.id; })
-        .slice().sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
-    var fuelList = (fuelData || []).filter(function(f) { return f.equipmentId === eq.id; })
-        .slice().sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
-
-    var maintRows = maintList.length ? maintList.map(function(m) {
-        return '<tr><td>' + escapeHtml(m.date || '—') + '</td><td>' + escapeHtml(m.type || '—') + '</td><td>' + (m.targetHours || '—') + '</td><td>' + escapeHtml(m.status || '—') + '</td><td>' + (m.cost ? formatNumber(m.cost) + ' ج.م' : '—') + '</td><td>' + escapeHtml(m.notes || '') + '</td></tr>';
-    }).join('') : '<tr><td colspan="6" style="color:#94a3b8;padding:14px">لا يوجد سجل صيانات</td></tr>';
-
-    var fuelRows = fuelList.length ? fuelList.map(function(f) {
-        var drv = driversData.find(function(d) { return d.id === f.driverId; });
-        return '<tr><td>' + escapeHtml(f.date || '—') + '</td><td>' + (f.amount || 0) + ' لتر</td><td>' + formatNumber(f.cost || 0) + ' ج.م</td><td>' + (f.hours || '—') + '</td><td>' + escapeHtml(drv ? drv.name : '—') + '</td><td>' + escapeHtml(f.notes || '') + '</td></tr>';
-    }).join('') : '<tr><td colspan="6" style="color:#94a3b8;padding:14px">لا يوجد سجل تزوّد بالوقود</td></tr>';
-
-    var html = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + escapeHtml(eq.name || '') + '</title>' +
-        '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>' +
-        '<style>' +
-        'body{font-family:Arial,Tahoma,sans-serif;margin:0;padding:20px;background:#f1f5f9;direction:rtl}' +
-        '.print-bar{text-align:center;margin-bottom:16px}' +
-        '.print-bar button{padding:10px 22px;border:none;border-radius:10px;background:#0891b2;color:white;font-size:14px;font-weight:700;cursor:pointer}' +
-        '.header{background:white;border-radius:14px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}' +
-        '.header-info h2{margin:0 0 4px;color:#0d1b2a;font-size:18px}' +
-        '.header-info div{font-size:12.5px;color:#64748b;margin-top:2px}' +
-        '.header-qr{text-align:center}' +
-        '.header-qr .lbl{font-size:9px;color:#94a3b8;margin-top:4px}' +
-        'h3{color:#7c3aed;font-size:14px;margin:18px 0 8px}' +
-        'table{width:100%;border-collapse:collapse;font-size:12px;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}' +
-        'th{background:#7c3aed;color:white;padding:8px;text-align:center}' +
-        'td{padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:center}' +
-        '@media print{.print-bar{display:none}body{background:white;padding:0}}' +
-        '</style></head><body>' +
-        '<div class="print-bar"><button onclick="window.print()">🖨️ طباعة</button></div>' +
-        '<div class="header">' +
-        '<div class="header-info"><h2>' + escapeHtml(eq.name || '') + '</h2>' +
-        '<div>الكود: ' + escapeHtml(eq.code || '') + '</div>' +
-        '<div>مدير الحساب: ' + escapeHtml(printedBy) + '</div></div>' +
-        '<div class="header-qr"><div id="pdfQrBox"></div><div class="lbl">📱 امسح للتفاصيل</div></div>' +
-        '</div>' +
-        '<h3>🔧 سجل الصيانة</h3>' +
-        '<table><thead><tr><th>التاريخ</th><th>النوع</th><th>عند ساعة</th><th>الحالة</th><th>التكلفة</th><th>ملاحظات</th></tr></thead><tbody>' + maintRows + '</tbody></table>' +
-        '<h3>⛽ سجل الوقود</h3>' +
-        '<table><thead><tr><th>التاريخ</th><th>الكمية</th><th>التكلفة</th><th>العداد</th><th>السائق</th><th>ملاحظات</th></tr></thead><tbody>' + fuelRows + '</tbody></table>' +
-        '<script>window.addEventListener("load", function() { new QRCode(document.getElementById("pdfQrBox"), { text: ' + JSON.stringify(qrUrl) + ', width: 90, height: 90, correctLevel: QRCode.CorrectLevel.M }); });<\/script>' +
-        '</body></html>';
-
-    return html;
+    openQRLabelsWindow(buildQRLabelsPage([equipment]));
 }
 
 function openQRLabelsModal() {
