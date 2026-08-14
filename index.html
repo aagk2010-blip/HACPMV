@@ -4271,10 +4271,18 @@ function initEquipmentPublicViewPage(eqId) {
         return;
     }
 
+    function safeRead(path) {
+        return fbDb.ref(path).once('value')
+            .then(function(s) { return { value: s.val(), denied: false }; })
+            .catch(function(e) { return { value: null, denied: true }; });
+    }
+
     Promise.all([
         fbDb.ref('equipment/' + eqId).once('value'),
-        fbDb.ref('maintenanceSchedules').once('value'),
-        fbDb.ref('drivers').once('value')
+        safeRead('maintenanceSchedules'),
+        safeRead('drivers'),
+        safeRead('rental'),
+        safeRead('rentalDaily')
     ]).then(function(results) {
         var eq = results[0].val();
         if (!eq) {
@@ -4283,8 +4291,44 @@ function initEquipmentPublicViewPage(eqId) {
         }
         eq.id = eqId;
 
+        var driversVal = results[2].value || {};
+        var driverName = '';
+        Object.keys(driversVal).forEach(function(k) {
+            if (k === eq.assignedDriver && driversVal[k]) driverName = driversVal[k].name || '';
+        });
+
+        // معدات الإيجار: نعرض ملف الحضور والانصراف بس (مفيش أي تفاصيل تانية)
+        if (eq.ownership === 'إيجار') {
+            var rentalVal = results[3].value || {};
+            var rentalContract = null, rentalContractId = null;
+            Object.keys(rentalVal).forEach(function(k) {
+                if (rentalVal[k] && rentalVal[k].equipmentId === eqId) { rentalContract = rentalVal[k]; rentalContractId = k; }
+            });
+
+            var dailyList = [];
+            var dailyVal = results[4].value;
+            if (dailyVal && rentalContractId) {
+                Object.keys(dailyVal).forEach(function(k) {
+                    var d = dailyVal[k];
+                    if (d && d.equipmentId === rentalContractId) dailyList.push(d);
+                });
+            }
+            dailyList.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+
+            var rentalDriverName = '';
+            if (rentalContract && rentalContract.driverId) {
+                Object.keys(driversVal).forEach(function(k) {
+                    if (k === rentalContract.driverId && driversVal[k]) rentalDriverName = driversVal[k].name || '';
+                });
+            }
+
+            renderEquipmentPublicAttendanceView(eq, rentalContract, dailyList, rentalDriverName, results[4].denied || results[3].denied);
+            return;
+        }
+
+        // معدات الملك: التفاصيل الكاملة + آخر 4 صيانات
         var maintList = [];
-        var maintVal = results[1].val();
+        var maintVal = results[1].value;
         if (maintVal) {
             Object.keys(maintVal).forEach(function(k) {
                 var m = maintVal[k];
@@ -4294,13 +4338,7 @@ function initEquipmentPublicViewPage(eqId) {
         maintList.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
         var last4 = maintList.slice(0, 4);
 
-        var driversVal = results[2].val() || {};
-        var driverName = '';
-        Object.keys(driversVal).forEach(function(k) {
-            if (k === eq.assignedDriver && driversVal[k]) driverName = driversVal[k].name || '';
-        });
-
-        renderEquipmentPublicView(eq, last4, driverName);
+        renderEquipmentPublicView(eq, last4, driverName, results[1].denied);
     }).catch(function(err) {
         document.getElementById('eqpv-content').innerHTML = eqpvErrorCard('❌ تعذّر تحميل البيانات — تأكد من اتصال الإنترنت');
     });
@@ -4326,13 +4364,77 @@ function eqpvRow(label, value) {
         '<span style="color:#64748b">' + label + '</span><span style="font-weight:700;color:#0d1b2a">' + value + '</span></div>';
 }
 
-function renderEquipmentPublicView(eq, last4Maint, driverName) {
+function renderEquipmentPublicAttendanceView(eq, rentalContract, dailyList, driverName, dataDenied) {
+    var sb = dailyList.reduce(function(s, d) { return s + (d.basicHours || 0); }, 0);
+    var sk = dailyList.reduce(function(s, d) { return s + (d.breakHours || 0); }, 0);
+    var se = dailyList.reduce(function(s, d) { return s + (d.extraHours || 0); }, 0);
+    var st = sb + sk + se;
+
+    var rowsHtml = '';
+    if (dataDenied) {
+        rowsHtml = '<div style="text-align:center;padding:20px;color:#b45309;background:#fef3c7;font-size:12px">⚠️ سجل الحضور والانصراف غير متاح للعرض العام حاليًا (صلاحيات القراءة في Firebase)</div>';
+    } else if (dailyList.length) {
+        rowsHtml = dailyList.map(function(r, i) {
+            var rowTotal = (r.basicHours || 0) + (r.breakHours || 0) + (r.extraHours || 0);
+            return '<div style="background:' + (i % 2 ? '#f8fafc' : 'white') + ';padding:9px 10px;display:grid;grid-template-columns:66px 46px 46px 40px 34px 40px 44px;gap:3px;font-size:11px;border-top:1px solid #f1f5f9;align-items:center;text-align:center">' +
+                '<span style="text-align:right">' + escapeHtml(r.date || '—') + '</span>' +
+                '<span>' + escapeHtml(r.inTime || '—') + '</span>' +
+                '<span>' + escapeHtml(r.outTime || '—') + '</span>' +
+                '<span>' + (r.basicHours || 0).toFixed(1) + '</span>' +
+                '<span style="color:' + (r.breakHours > 0 ? '#d97706' : '#94a3b8') + '">' + (r.breakHours || 0).toFixed(1) + '</span>' +
+                '<span style="color:' + (r.extraHours > 0 ? '#d97706' : '#94a3b8') + '">' + (r.extraHours || 0).toFixed(1) + '</span>' +
+                '<span style="font-weight:800">' + rowTotal.toFixed(1) + '</span>' +
+                '</div>';
+        }).join('');
+    } else {
+        rowsHtml = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:12.5px">لا يوجد سجل حضور وانصراف مسجّل بعد</div>';
+    }
+
+    var html =
+        '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border-radius:18px;padding:22px 18px;text-align:center;color:white;margin-bottom:14px">' +
+        '<div style="font-size:34px;margin-bottom:6px">📋</div>' +
+        '<div style="font-size:18px;font-weight:800;margin-bottom:3px">' + escapeHtml(eq.name || '') + '</div>' +
+        '<div style="font-size:12.5px;opacity:.8;direction:ltr">' + escapeHtml(eq.code || '') + '</div>' +
+        '<div style="font-size:12px;opacity:.9;margin-top:6px">📄 سجل الحضور والانصراف</div>' +
+        '</div>' +
+
+        (rentalContract ?
+        '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        eqpvRow('الشركة المالكة', escapeHtml(rentalContract.company || '—')) +
+        eqpvRow('السائق', escapeHtml(driverName || '—')) +
+        '</div>' : '') +
+
+        '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">' +
+        '<div style="background:#ede9fe;padding:10px;border-radius:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#5b21b6">' + dailyList.length + '</div><div style="font-size:11px;color:#5b21b6">يوم عمل</div></div>' +
+        '<div style="background:#ede9fe;padding:10px;border-radius:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#5b21b6">' + st.toFixed(1) + '</div><div style="font-size:11px;color:#5b21b6">إجمالي الساعات</div></div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">' +
+        '<div style="background:#f1f5f9;padding:8px;border-radius:8px;text-align:center"><div style="font-size:15px;font-weight:800;color:#0d1b2a">' + sb.toFixed(1) + '</div><div style="font-size:10px;color:#64748b">أساسي</div></div>' +
+        '<div style="background:#f1f5f9;padding:8px;border-radius:8px;text-align:center"><div style="font-size:15px;font-weight:800;color:#d97706">' + sk.toFixed(1) + '</div><div style="font-size:10px;color:#64748b">راحة</div></div>' +
+        '<div style="background:#f1f5f9;padding:8px;border-radius:8px;text-align:center"><div style="font-size:15px;font-weight:800;color:#d97706">' + se.toFixed(1) + '</div><div style="font-size:10px;color:#64748b">إضافي</div></div>' +
+        '</div></div>' +
+
+        '<div style="background:white;border-radius:16px;padding:0;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden">' +
+        '<div style="background:#f8fafc;padding:9px 10px;display:grid;grid-template-columns:66px 46px 46px 40px 34px 40px 44px;gap:3px;font-size:10.5px;font-weight:800;color:#475569;text-align:center">' +
+        '<span style="text-align:right">التاريخ</span><span>حضور</span><span>انصراف</span><span>أساسي</span><span>راحة</span><span>إضافي</span><span>المجموع</span>' +
+        '</div>' + rowsHtml +
+        '</div>' +
+
+        '<div style="text-align:center;font-size:10.5px;color:#94a3b8;margin-top:10px">📄 عرض للقراءة فقط عبر رمز QR</div>';
+
+    document.getElementById('eqpv-content').innerHTML = html;
+}
+
+function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied) {
     var remaining = hoursRemaining(eq);
     var percent = getRemainingPercent(eq);
     var barColor = getBarColor(remaining);
 
     var maintHtml = '';
-    if (last4Maint.length) {
+    if (maintDenied) {
+        maintHtml = '<div style="text-align:center;padding:16px;color:#b45309;background:#fef3c7;border-radius:10px;font-size:12px">⚠️ سجل الصيانات غير متاح للعرض العام حاليًا (صلاحيات القراءة في Firebase)</div>';
+    } else if (last4Maint.length) {
         maintHtml = last4Maint.map(function(m) {
             var statusColor = m.status === 'مكتمل' ? '#10b981' : (m.status === 'مجدول' ? '#f59e0b' : '#94a3b8');
             return '<div style="background:#f8fafc;border-radius:12px;padding:10px 12px;margin-bottom:8px;border-right:3px solid ' + statusColor + '">' +
@@ -4396,6 +4498,8 @@ function generateEquipmentQRUrl(eq) {
 }
 
 function buildQRLabelsPage(eqList) {
+    var printedBy = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username) ? currentUser.username : '';
+
     var labelsData = eqList.map(function(eq) {
         return { id: 'qrlbl_' + eq.id, url: generateEquipmentQRUrl(eq), name: eq.name || '', code: eq.code || '' };
     });
@@ -4403,8 +4507,8 @@ function buildQRLabelsPage(eqList) {
     var labelsHtml = labelsData.map(function(l) {
         return '<div class="qr-label">' +
             '<div class="qr-box" id="' + l.id + '"></div>' +
-            '<div class="qr-name">' + escapeHtml(l.name) + '</div>' +
             '<div class="qr-code">' + escapeHtml(l.code) + '</div>' +
+            '<div class="qr-printedby">مدير الحساب: ' + escapeHtml(printedBy) + '</div>' +
             '</div>';
     }).join('');
 
@@ -4416,9 +4520,9 @@ function buildQRLabelsPage(eqList) {
         '.print-bar button{padding:10px 22px;border:none;border-radius:10px;background:#0891b2;color:white;font-size:14px;font-weight:700;cursor:pointer}' +
         '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}' +
         '.qr-label{background:white;border:1px solid #cbd5e1;border-radius:10px;padding:10px;text-align:center;page-break-inside:avoid}' +
-        '.qr-box{display:flex;align-items:center;justify-content:center;margin-bottom:6px}' +
-        '.qr-name{font-size:12px;font-weight:800;color:#0d1b2a;margin-top:4px}' +
-        '.qr-code{font-size:11px;color:#64748b;direction:ltr}' +
+        '.qr-box{display:flex;align-items:center;justify-content:center;margin-bottom:8px}' +
+        '.qr-code{font-size:12px;font-weight:800;color:#0d1b2a;direction:ltr;margin-bottom:4px}' +
+        '.qr-printedby{font-size:10px;color:#94a3b8;margin-top:4px;border-top:1px dashed #e2e8f0;padding-top:4px}' +
         '@media print{.print-bar{display:none}body{background:white;padding:0}.grid{gap:8px}}' +
         '</style></head><body>' +
         '<div class="print-bar"><button onclick="window.print()">🖨️ طباعة الملصقات</button></div>' +
