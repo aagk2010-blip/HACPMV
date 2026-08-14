@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
 :root{color-scheme:light only;--primary:#0d1b2a;--secondary:#1b2838;--accent:#e8a020;--accent-dark:#c88a18;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#0e7490;--purple:#8b5cf6;--pink:#ec4899;--light:#f0f4f8;--white:#ffffff;--gray:#6b7a8d;--shadow:0 4px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 3px rgba(0,0,0,0.05);--mono:'IBM Plex Mono',ui-monospace,monospace;--sidebar-w:268px}
@@ -9349,7 +9350,21 @@ function renderAnalytics() {
         }).length;
         return { month: mo, count: count };
     });
-    var maxMaint = Math.max.apply(null, maintByMonth.map(function(m) { return m.count; }).concat([1]));
+
+    // 4) اتجاه استهلاك الوقود (لتر + تكلفة) آخر 6 فترات — للوحة التحكم التفاعلية
+    var fuelTrend = periodsBack.map(function(mo) {
+        var r = getPeriodRange(mo);
+        var recs = fuelData.filter(function(f) { return f.date >= r.from && f.date <= r.to; });
+        return {
+            month: mo,
+            liters: recs.reduce(function(s, f) { return s + (f.amount || 0); }, 0),
+            cost: recs.reduce(function(s, f) { return s + (f.cost || 0); }, 0)
+        };
+    });
+
+    // 5) أعلى 10 معدات استخدامًا (ساعات) في الفترة الحالية — للوحة التحكم التفاعلية
+    var top10Usage = usage.filter(function(u) { return u.hours !== null && u.hours > 0; })
+        .sort(function(a, b) { return b.hours - a.hours; }).slice(0, 10);
 
     var html = '';
 
@@ -9387,37 +9402,130 @@ function renderAnalytics() {
             }).join('') + '</div>';
     }
 
-    // توزيع حالة الأسطول (دونات)
+    // ==================== لوحة تحكم تفاعلية (Chart.js) ====================
+    html += '<div style="text-align:center;font-weight:800;font-size:14px;color:var(--primary);margin:18px 0 10px">📊 لوحة تحكم تفاعلية</div>';
+
+    // توزيع حالة الأسطول (Doughnut تفاعلي)
     html += '<div style="background:white;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)">' +
         '<div style="font-weight:700;font-size:13px;color:var(--primary);margin-bottom:10px">🥯 توزيع حالة الأسطول</div>' +
-        '<div style="display:flex;align-items:center;gap:16px">' +
-        '<div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(' + gradientParts + ');flex-shrink:0"></div>' +
-        '<div style="flex:1;font-size:12px">' +
-        '<div style="margin-bottom:4px"><span style="display:inline-block;width:10px;height:10px;background:#059669;border-radius:3px;margin-left:5px"></span>سليمة: <b>' + healthy + '</b></div>' +
-        '<div style="margin-bottom:4px"><span style="display:inline-block;width:10px;height:10px;background:#d97706;border-radius:3px;margin-left:5px"></span>قريبة الصيانة: <b>' + soon + '</b></div>' +
-        '<div style="margin-bottom:4px"><span style="display:inline-block;width:10px;height:10px;background:#dc2626;border-radius:3px;margin-left:5px"></span>متأخرة: <b>' + overdue + '</b></div>' +
-        '<div><span style="display:inline-block;width:10px;height:10px;background:#64748b;border-radius:3px;margin-left:5px"></span>متوقفة: <b>' + stopped + '</b></div>' +
-        '</div></div></div>';
+        '<div style="max-width:260px;margin:0 auto"><canvas id="chart-fleet-status" height="220"></canvas></div>' +
+        '</div>';
 
-    // اتجاه الصيانة المكتملة
+    // الصيانات المكتملة آخر 6 فترات (Bar تفاعلي)
     html += '<div style="background:white;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)">' +
-        '<div style="font-weight:700;font-size:13px;color:var(--primary);margin-bottom:10px">🔧 الصيانات المكتملة آخر 6 شهور</div>' +
-        '<div style="display:flex;align-items:flex-end;gap:8px;height:110px">' +
-        maintByMonth.map(function(m) {
-            var h = Math.max(4, Math.round((m.count / maxMaint) * 90));
-            return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">' +
-                '<div style="font-size:10px;font-weight:700;color:#0e7490;margin-bottom:3px">' + m.count + '</div>' +
-                '<div style="width:100%;max-width:34px;height:' + h + 'px;background:linear-gradient(180deg,#0e7490,#0369a1);border-radius:6px 6px 0 0"></div>' +
-                '<div style="font-size:9px;color:var(--gray);margin-top:4px">' + m.month.slice(5) + '/' + m.month.slice(2,4) + '</div>' +
-                '</div>';
-        }).join('') +
-        '</div></div>';
+        '<div style="font-weight:700;font-size:13px;color:var(--primary);margin-bottom:10px">🔧 الصيانات المكتملة آخر 6 فترات</div>' +
+        '<canvas id="chart-maint-trend" height="180"></canvas>' +
+        '</div>';
+
+    // اتجاه استهلاك الوقود (Line تفاعلي مزدوج المحور)
+    html += '<div style="background:white;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)">' +
+        '<div style="font-weight:700;font-size:13px;color:var(--primary);margin-bottom:10px">⛽ اتجاه استهلاك الوقود آخر 6 فترات</div>' +
+        '<canvas id="chart-fuel-trend" height="180"></canvas>' +
+        '</div>';
+
+    // أعلى 10 معدات استخدامًا (Bar أفقي تفاعلي)
+    if (top10Usage.length) {
+        html += '<div style="background:white;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)">' +
+            '<div style="font-weight:700;font-size:13px;color:var(--primary);margin-bottom:10px">🏆 أعلى 10 معدات استخدامًا (ساعات — ' + periodLabel + ')</div>' +
+            '<canvas id="chart-top-equipment" height="' + Math.max(180, top10Usage.length * 32) + '"></canvas>' +
+            '</div>';
+    }
 
     html += '<button class="big-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="switchView(\'sites\')">🏢 مقارنة تفصيلية بين المواقع</button>';
 
     body.innerHTML = html;
+
+    renderAnalyticsCharts({
+        fleet: { healthy: healthy, soon: soon, overdue: overdue, stopped: stopped },
+        maintByMonth: maintByMonth,
+        fuelTrend: fuelTrend,
+        top10Usage: top10Usage
+    });
 }
 
+// رسم/تحديث كل الشارتات التفاعلية الخاصة بلوحة التحكم — بيدمّر أي نسخة قديمة أولاً لتفادي تعارض الكانفاس
+var analyticsChartInstances = {};
+function renderAnalyticsCharts(data) {
+    if (!window.Chart) return; // لو المكتبة لسه بتتحمّل من الـ CDN، منسيبش الصفحة توقع
+    Object.keys(analyticsChartInstances).forEach(function(k) {
+        if (analyticsChartInstances[k]) { analyticsChartInstances[k].destroy(); analyticsChartInstances[k] = null; }
+    });
+
+    var fleetCanvas = document.getElementById('chart-fleet-status');
+    if (fleetCanvas) {
+        analyticsChartInstances.fleet = new Chart(fleetCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: ['سليمة', 'قريبة الصيانة', 'متأخرة', 'متوقفة'],
+                datasets: [{
+                    data: [data.fleet.healthy, data.fleet.soon, data.fleet.overdue, data.fleet.stopped],
+                    backgroundColor: ['#059669', '#d97706', '#dc2626', '#64748b'],
+                    borderWidth: 2, borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, padding: 12 } } }
+            }
+        });
+    }
+
+    var maintCanvas = document.getElementById('chart-maint-trend');
+    if (maintCanvas) {
+        analyticsChartInstances.maint = new Chart(maintCanvas, {
+            type: 'bar',
+            data: {
+                labels: data.maintByMonth.map(function(m) { return m.month.slice(5) + '/' + m.month.slice(2, 4); }),
+                datasets: [{ label: 'صيانات مكتملة', data: data.maintByMonth.map(function(m) { return m.count; }), backgroundColor: '#0e7490', borderRadius: 6 }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    var fuelCanvas = document.getElementById('chart-fuel-trend');
+    if (fuelCanvas) {
+        analyticsChartInstances.fuel = new Chart(fuelCanvas, {
+            type: 'line',
+            data: {
+                labels: data.fuelTrend.map(function(m) { return m.month.slice(5) + '/' + m.month.slice(2, 4); }),
+                datasets: [
+                    { label: 'لتر', data: data.fuelTrend.map(function(m) { return m.liters; }), borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,.12)', fill: true, tension: .3, yAxisID: 'y' },
+                    { label: 'تكلفة (ج.م)', data: data.fuelTrend.map(function(m) { return m.cost; }), borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,.12)', fill: true, tension: .3, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 } } } },
+                scales: {
+                    y: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: 'لتر' } },
+                    y1: { type: 'linear', position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, title: { display: true, text: 'ج.م' } }
+                }
+            }
+        });
+    }
+
+    var topCanvas = document.getElementById('chart-top-equipment');
+    if (topCanvas && data.top10Usage.length) {
+        analyticsChartInstances.top = new Chart(topCanvas, {
+            type: 'bar',
+            data: {
+                labels: data.top10Usage.map(function(u) { return u.eq.name; }),
+                datasets: [{ label: 'ساعات العمل', data: data.top10Usage.map(function(u) { return u.hours; }), backgroundColor: '#7c3aed', borderRadius: 6 }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true } }
+            }
+        });
+    }
+}
 
 // ==================== التقرير الشهري الموحّد (كل الأقسام + كل المواقع) ====================
 // تحويل تاريخ سجل الصيانة (كما يُقرأ من ملف الإكسل، مثل D/M/YYYY) إلى صيغة YYYY-MM-DD للمقارنة مع الفترة
