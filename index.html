@@ -11955,10 +11955,15 @@ function exportSingleRentalPDF(rentalId) {
         return '<tr style="background:'+(i%2?'#f8fafc':'white')+'"><td>'+r.date+'</td><td>'+(r.inTime||'—')+'</td><td>'+(r.outTime||'—')+'</td><td>'+(r.basicHours||0).toFixed(2)+'</td><td style="color:'+(r.breakHours>0?'#d97706':'#666')+'">'+(r.breakHours||0).toFixed(2)+'</td><td style="color:'+(r.extraHours>0?'#d97706':'#666')+'">'+(r.extraHours||0).toFixed(2)+'</td><td style="font-weight:bold">'+rowTotal.toFixed(2)+'</td><td>'+notesCell+'</td></tr>';
     }).join('');
     var w=window.open('','_blank');
-    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial;padding:20px;direction:rtl}h2{color:#7c3aed}.info{background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:15px;font-size:13px}.summary{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;margin-bottom:15px}.sum-box{background:#7c3aed;color:white;padding:12px;border-radius:8px;text-align:center}.sum-box .num{font-size:22px;font-weight:bold}.sum-box .lbl{font-size:11px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#7c3aed;color:white;padding:7px;text-align:center}td{padding:6px 7px;border-bottom:1px solid #e2e8f0;text-align:center}tfoot td{background:#f1f5f9;font-weight:bold}</style></head><body>'+
+    var qrUrl = eq ? generateEquipmentQRUrl(eq) : '';
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">'+
+        '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>'+
+        '<style>body{font-family:Arial;padding:20px;direction:rtl}h2{color:#7c3aed}.info{background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:15px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px}.info-text{flex:1}.info-qr{text-align:center;flex-shrink:0}.info-qr .lbl{font-size:9px;color:#64748b;margin-top:3px}.summary{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;margin-bottom:15px}.sum-box{background:#7c3aed;color:white;padding:12px;border-radius:8px;text-align:center}.sum-box .num{font-size:22px;font-weight:bold}.sum-box .lbl{font-size:11px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#7c3aed;color:white;padding:7px;text-align:center}td{padding:6px 7px;border-bottom:1px solid #e2e8f0;text-align:center}tfoot td{background:#f1f5f9;font-weight:bold}</style></head><body>'+
         reportHeaderHtml('تقرير معدة إيجار', (eq?eq.name:'') )+
-        '<div class="info"><b>المعدة:</b> '+(eq?eq.type+' — '+eq.name:'—')+'&nbsp;&nbsp;<b>الكود:</b> '+(eq?eq.code:'—')+'&nbsp;&nbsp;<b>السائق:</b> '+(drv?drv.name:'—')+'<br>'+
+        '<div class="info"><div class="info-text"><b>المعدة:</b> '+(eq?eq.type+' — '+eq.name:'—')+'&nbsp;&nbsp;<b>الكود:</b> '+(eq?eq.code:'—')+'&nbsp;&nbsp;<b>السائق:</b> '+(drv?drv.name:'—')+'<br>'+
         '<b>الشركة:</b> '+(rental?rental.company||'—':'—')+'&nbsp;&nbsp;<b>الفترة:</b> '+periodLabel+'&nbsp;&nbsp;<b>الطباعة:</b> '+new Date().toLocaleDateString('ar-EG')+'</div>'+
+        (qrUrl ? '<div class="info-qr"><div id="pdfQrBox"></div><div class="lbl">📱 امسح للتفاصيل</div></div>' : '')+
+        '</div>'+
         '<div class="summary"><div class="sum-box"><div class="num">'+records.length+'</div><div class="lbl">يوم عمل</div></div>'+
         '<div class="sum-box"><div class="num">'+sb.toFixed(1)+'</div><div class="lbl">ساعة أساسية</div></div>'+
         '<div class="sum-box" style="background:#d97706"><div class="num">'+sk.toFixed(1)+'</div><div class="lbl">ساعة راحة</div></div>'+
@@ -11967,8 +11972,10 @@ function exportSingleRentalPDF(rentalId) {
         '<table><thead><tr><th>التاريخ</th><th>حضور</th><th>انصراف</th><th>أساسي</th><th>راحة</th><th>إضافي</th><th>المجموع</th><th>ملاحظات</th></tr></thead>'+
         '<tbody>'+rows+'</tbody>'+
         '<tfoot><tr><td colspan="3">الإجمالي</td><td>'+sb.toFixed(2)+'</td><td>'+sk.toFixed(2)+'</td><td>'+se.toFixed(2)+'</td><td>'+(sb+sk+se).toFixed(2)+'</td><td></td></tr></tfoot>'+
-        '</table></body></html>');
-    w.document.close();setTimeout(function(){ w.print(); },500);
+        '</table>'+
+        (qrUrl ? '<script>window.addEventListener("load",function(){ new QRCode(document.getElementById("pdfQrBox"),{text:'+JSON.stringify(qrUrl)+',width:64,height:64,correctLevel:QRCode.CorrectLevel.M}); });<\/script>' : '')+
+        '</body></html>');
+    w.document.close();setTimeout(function(){ w.print(); },qrUrl?900:500);
 }
 
 function sendRentalWhatsApp() {
