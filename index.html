@@ -724,7 +724,29 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 </div>
 
 <!-- النوافذ المنبثقة (نفسها كما كانت) -->
-<div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">🏗️ اسم المشروع</label><input class="form-input" id="eq-project-site" placeholder="مثال: مشروع القاهرة الجديدة"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">🔄 دورة الصيانة</label><select class="form-select" id="eq-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="750">كل 750 ساعة</option><option value="1000">كل 1000 ساعة</option><option value="1250">كل 1250 ساعة</option><option value="1500">كل 1500 ساعة</option><option value="1750">كل 1750 ساعة</option><option value="2000">كل 2000 ساعة</option></select></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">🏷️ نوع الملكية</label><select class="form-select" id="eq-ownership"><option value="ملك">🔑 ملك</option><option value="إيجار">📋 إيجار</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div></div><button class="save-btn" onclick="saveEquipment()">✅ حفظ المعدة</button></div></div>
+<div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div>
+
+<div id="eq-wizard-steps" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 10px 4px">
+<div class="eq-step-dot" data-step="1" style="display:flex;flex-direction:column;align-items:center;gap:4px"><div class="eq-step-circle" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:var(--primary);color:#fff">1</div><span style="font-size:10px;color:var(--gray)">البيانات الأساسية</span></div>
+<div style="flex:1;height:2px;background:#e2e8f0;margin-top:-16px"></div>
+<div class="eq-step-dot" data-step="2" style="display:flex;flex-direction:column;align-items:center;gap:4px"><div class="eq-step-circle" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#e2e8f0;color:var(--gray)">2</div><span style="font-size:10px;color:var(--gray)">العداد</span></div>
+<div style="flex:1;height:2px;background:#e2e8f0;margin-top:-16px"></div>
+<div class="eq-step-dot" data-step="3" style="display:flex;flex-direction:column;align-items:center;gap:4px"><div class="eq-step-circle" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#e2e8f0;color:var(--gray)">3</div><span style="font-size:10px;color:var(--gray)">المرفقات</span></div>
+</div>
+
+<div id="eq-step-1" class="eq-wizard-step"><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">🏗️ اسم المشروع</label><input class="form-input" id="eq-project-site" placeholder="مثال: مشروع القاهرة الجديدة"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">🏷️ نوع الملكية</label><select class="form-select" id="eq-ownership"><option value="ملك">🔑 ملك</option><option value="إيجار">📋 إيجار</option></select></div></div>
+<button class="save-btn" style="margin:0" onclick="eqWizardNext(1)">التالي: العداد ⬅️</button>
+</div>
+
+<div id="eq-step-2" class="eq-wizard-step" style="display:none"><div class="form-group"><div class="form-field"><label class="form-label">⏱️ العداد الحالي</label><input class="form-input" type="number" id="eq-hours" value="0"></div><div class="form-field"><label class="form-label">🔧 عداد الصيانة القادمة</label><input class="form-input" type="number" id="eq-next-hours" value="250"></div><div class="form-field"><label class="form-label">🔄 دورة الصيانة</label><select class="form-select" id="eq-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="750">كل 750 ساعة</option><option value="1000">كل 1000 ساعة</option><option value="1250">كل 1250 ساعة</option><option value="1500">كل 1500 ساعة</option><option value="1750">كل 1750 ساعة</option><option value="2000">كل 2000 ساعة</option></select></div><div class="form-field"><label class="form-label">موديل المحرك</label><input class="form-input" id="eq-engine-model" placeholder="موديل المحرك"></div><div class="form-field"><label class="form-label">رقم المحرك</label><input class="form-input" id="eq-engine-sn" placeholder="رقم المحرك"></div><div class="form-field"><label class="form-label">تاريخ الوصول</label><input class="form-input" type="date" id="eq-arrival-date"></div><div class="form-field"><label class="form-label">العداد عند الوصول</label><input class="form-input" type="number" id="eq-arrival-hours" value="0"></div><div class="form-field"><label class="form-label">تاريخ آخر صيانة</label><input class="form-input" type="date" id="eq-last-maintenance-date"></div><div class="form-field"><label class="form-label">العداد عند آخر صيانة</label><input class="form-input" type="number" id="eq-last-maintenance-hours" value="0"></div></div>
+<div style="display:flex;gap:8px"><button class="save-btn" style="margin:0;background:var(--light);color:var(--dark);flex:1" onclick="eqWizardBack(2)">➡️ رجوع</button><button class="save-btn" style="margin:0;flex:2" onclick="eqWizardNext(2)">التالي: المرفقات ⬅️</button></div>
+</div>
+
+<div id="eq-step-3" class="eq-wizard-step" style="display:none"><div class="form-group"><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="eq-notes"></textarea></div><div class="form-field"><label class="form-label">📎 مرفقات (صور أو PDF)</label><input type="file" id="eq-attachment-input" accept="image/*,application/pdf" multiple style="display:none" onchange="handleEquipmentAttachments(this.files)"><button type="button" class="save-btn" style="margin:0;padding:8px;background:var(--info)" onclick="document.getElementById('eq-attachment-input').click()">📎 رفع مرفق</button><div id="eq-attachment-preview" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px"></div></div></div>
+<div style="display:flex;gap:8px"><button class="save-btn" style="margin:0;background:var(--light);color:var(--dark);flex:1" onclick="eqWizardBack(3)">➡️ رجوع</button><button class="save-btn" style="margin:0;flex:2" onclick="saveEquipment()">✅ حفظ المعدة</button></div>
+</div>
+
+</div></div>
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الاسم الكامل *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label">رقم الهاتف</label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label">رقم رخصة القيادة</label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label">تاريخ انتهاء الرخصة</label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label">ملاحظات</label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
 
@@ -3594,6 +3616,91 @@ window.addEventListener('pagehide', function() {
 });
 
 
+// ==================== Wizard إضافة/تعديل معدة ====================
+var eqWizardCurrentStep = 1;
+var currentEquipmentAttachments = [];
+
+function eqWizardShowStep(n) {
+    eqWizardCurrentStep = n;
+    [1, 2, 3].forEach(function(s) {
+        var stepEl = document.getElementById('eq-step-' + s);
+        if (stepEl) stepEl.style.display = (s === n) ? 'block' : 'none';
+        var dot = document.querySelector('.eq-step-dot[data-step="' + s + '"] .eq-step-circle');
+        if (dot) {
+            if (s < n) { dot.style.background = 'var(--success)'; dot.style.color = '#fff'; dot.innerHTML = '✓'; }
+            else if (s === n) { dot.style.background = 'var(--primary)'; dot.style.color = '#fff'; dot.innerHTML = s; }
+            else { dot.style.background = '#e2e8f0'; dot.style.color = 'var(--gray)'; dot.innerHTML = s; }
+        }
+    });
+    var modalBody = document.querySelector('#equipment-modal .modal-header');
+    if (modalBody) modalBody.scrollIntoView({ block: 'start' });
+}
+
+function eqWizardNext(fromStep) {
+    if (fromStep === 1) {
+        var code = document.getElementById('eq-code').value.trim();
+        var name = document.getElementById('eq-name').value.trim();
+        if (!code || !name) { showToast('أدخل كود واسم المعدة أولاً', true); return; }
+    }
+    eqWizardShowStep(fromStep + 1);
+}
+
+function eqWizardBack(fromStep) {
+    eqWizardShowStep(fromStep - 1);
+}
+
+function handleEquipmentAttachments(files) {
+    if (!files || !files.length) return;
+    var preview = document.getElementById('eq-attachment-preview');
+    Array.prototype.forEach.call(files, function(file) {
+        var placeholderId = 'eq-att-loading-' + Date.now() + Math.random().toString(36).slice(2);
+        var loadingEl = document.createElement('div');
+        loadingEl.id = placeholderId;
+        loadingEl.style.cssText = 'font-size:11px;color:var(--gray);padding:6px 10px;background:var(--light);border-radius:8px';
+        loadingEl.textContent = '⏳ جاري رفع ' + file.name;
+        preview.appendChild(loadingEl);
+
+        if (file.type === 'application/pdf') {
+            var reader = new FileReader();
+            reader.onload = function() {
+                currentEquipmentAttachments.push({ name: file.name, dataUrl: reader.result, type: 'pdf' });
+                renderEquipmentAttachmentsPreview();
+            };
+            reader.onerror = function() { showToast('تعذّر رفع ' + file.name, true); document.getElementById(placeholderId).remove(); };
+            reader.readAsDataURL(file);
+        } else {
+            var imgReader = new FileReader();
+            imgReader.onload = function() {
+                compressImageDataUrl(imgReader.result, 1000, 0.75).then(function(result) {
+                    currentEquipmentAttachments.push({ name: file.name, dataUrl: result.dataUrl, type: 'image' });
+                    renderEquipmentAttachmentsPreview();
+                }).catch(function() { showToast('تعذّر معالجة ' + file.name, true); document.getElementById(placeholderId).remove(); });
+            };
+            imgReader.readAsDataURL(file);
+        }
+    });
+    document.getElementById('eq-attachment-input').value = '';
+}
+
+function removeEquipmentAttachment(idx) {
+    currentEquipmentAttachments.splice(idx, 1);
+    renderEquipmentAttachmentsPreview();
+}
+
+function renderEquipmentAttachmentsPreview() {
+    var preview = document.getElementById('eq-attachment-preview');
+    if (!preview) return;
+    preview.innerHTML = currentEquipmentAttachments.map(function(att, idx) {
+        var thumb = att.type === 'pdf'
+            ? '<div style="width:64px;height:64px;border-radius:10px;background:#fee2e2;display:flex;align-items:center;justify-content:center;font-size:22px">📄</div>'
+            : '<img src="' + att.dataUrl + '" style="width:64px;height:64px;object-fit:cover;border-radius:10px">';
+        return '<div style="position:relative">' + thumb +
+            '<button type="button" onclick="removeEquipmentAttachment(' + idx + ')" style="position:absolute;top:-6px;left:-6px;width:20px;height:20px;border-radius:50%;background:var(--danger);color:white;border:none;font-size:11px;line-height:1;cursor:pointer">✕</button>' +
+            '<div style="font-size:9px;color:var(--gray);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;margin-top:2px">' + escapeHtml(att.name) + '</div>' +
+            '</div>';
+    }).join('');
+}
+
 // ==================== دوال المعدات ====================
 function openAddEquipmentModal() {
     if (!hasPermission('all')) {
@@ -3616,6 +3723,9 @@ function openAddEquipmentModal() {
     document.getElementById('eq-status').value = 'يعمل';
     document.getElementById('eq-ownership').value = 'ملك';
     updateDriverSelects();
+    currentEquipmentAttachments = [];
+    renderEquipmentAttachmentsPreview();
+    eqWizardShowStep(1);
     document.getElementById('equipment-modal').classList.add('active');
 }
 
@@ -3702,6 +3812,7 @@ function saveEquipment() {
         status: document.getElementById('eq-status').value,
         ownership: document.getElementById('eq-ownership').value || 'ملك',
         notes: document.getElementById('eq-notes').value,
+        attachments: currentEquipmentAttachments,
         updatedAt: new Date().toISOString()
     };
     
@@ -3778,6 +3889,9 @@ function editEquipment(id) {
     if (equipment.assignedDriver) {
         document.getElementById('eq-driver').value = equipment.assignedDriver;
     }
+    currentEquipmentAttachments = (equipment.attachments || []).slice();
+    renderEquipmentAttachmentsPreview();
+    eqWizardShowStep(1);
     closeModal('detail-modal');
     document.getElementById('equipment-modal').classList.add('active');
 }
@@ -3869,6 +3983,19 @@ function openEquipmentDetail(id) {
             fuelRecords.map(function(f) {
                 return '<div style="padding:6px 0;border-bottom:1px solid #eef2f6"><div>📅 ' + escapeHtml(f.date) + ' | ' + f.amount + ' لتر | ' + f.cost + ' ج.م</div></div>';
             }).join('') + '</div>';
+    }
+    if (equipment.attachments && equipment.attachments.length) {
+        contentHtml += '<div class="detail-section"><div class="detail-label">📎 المرفقات</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">' +
+            equipment.attachments.map(function(att) {
+                if (att.type === 'pdf') {
+                    return '<a href="' + att.dataUrl + '" download="' + escapeHtml(att.name) + '" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:3px">' +
+                        '<div style="width:60px;height:60px;border-radius:10px;background:#fee2e2;display:flex;align-items:center;justify-content:center;font-size:22px">📄</div>' +
+                        '<span style="font-size:9px;color:var(--gray);max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(att.name) + '</span></a>';
+                }
+                return '<a href="' + att.dataUrl + '" target="_blank" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:3px">' +
+                    '<img src="' + att.dataUrl + '" style="width:60px;height:60px;object-fit:cover;border-radius:10px">' +
+                    '<span style="font-size:9px;color:var(--gray);max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(att.name) + '</span></a>';
+            }).join('') + '</div></div>';
     }
     if (equipment.notes) {
         contentHtml += '<div class="detail-section"><div class="detail-label">ملاحظات</div><div class="detail-value">' + escapeHtml(equipment.notes) + '</div></div>';
@@ -8642,7 +8769,7 @@ function renderKioskFleetSlide() {
         return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span>' + escapeHtml(u.eq.name) + '</span><span style="font-weight:700;color:#e8a020">' + u.hours.toFixed(1) + ' س</span></div>' +
             '<div style="background:rgba(255,255,255,.1);border-radius:8px;height:12px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#7c3aed,#4f46e5);border-radius:8px"></div></div></div>';
     }).join('');
-    return '<div style="font-size:22px;font-weight:800;margin-bottom:18px">📈 أداء الأسطول (الفترة الحالية)</div>' +
+    return '<div style="font-size:22px;font-weight:800;margin-bottom:18px">📈 أداء المعدات (الفترة الحالية)</div>' +
         '<div style="display:flex;gap:16px;margin-bottom:24px">' +
         '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#4ade80">' + healthy + '</div><div style="font-size:13px;color:#94a3b8">سليمة</div></div>' +
         '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#f87171">' + overdue + '</div><div style="font-size:13px;color:#94a3b8">متأخرة</div></div>' +
@@ -9317,7 +9444,7 @@ function renderAnalytics() {
             '<div style="font-weight:700;font-size:13px;color:var(--primary);margin-bottom:10px">' + title + ' (' + list.length + ')</div>' + rows + '</div>';
     }
 
-    // 2) توزيع حالة الأسطول (كل المعدات المرئية الآن، بغض النظر عن الشهر)
+    // 2) توزيع حالة المعدات (كل المعدات المرئية الآن، بغض النظر عن الشهر)
     var working = eqList.filter(function(e) { return e.status === 'يعمل'; }).length;
     var stopped = eqList.filter(function(e) { return e.status === 'متوقف'; }).length;
     var overdue = eqList.filter(function(e) { return e.status !== 'متوقف' && hoursRemaining(e) <= 0; }).length;
@@ -9366,6 +9493,30 @@ function renderAnalytics() {
     var top10Usage = usage.filter(function(u) { return u.hours !== null && u.hours > 0; })
         .sort(function(a, b) { return b.hours - a.hours; }).slice(0, 10);
 
+    // 6) مقارنة استهلاك الوقود بين معدات نفس النوع — لاكتشاف المعدات المتهالكة
+    var typeGroups = {};
+    usage.forEach(function(u) {
+        if (u.rate === null) return;
+        var t = u.eq.type || 'غير محدد';
+        if (!typeGroups[t]) typeGroups[t] = [];
+        typeGroups[t].push(u);
+    });
+    var comparableTypes = Object.keys(typeGroups).filter(function(t) { return typeGroups[t].length >= 2; })
+        .map(function(t) {
+            var group = typeGroups[t].slice().sort(function(a, b) { return b.rate - a.rate; });
+            var typeAvg = group.reduce(function(s, u) { return s + u.rate; }, 0) / group.length;
+            return { type: t, group: group, avg: typeAvg };
+        });
+    var wornList = [];
+    comparableTypes.forEach(function(g) {
+        g.group.forEach(function(u) {
+            if (u.rate > g.avg * 1.3) {
+                wornList.push({ eq: u.eq, type: g.type, rate: u.rate, avg: g.avg, pct: Math.round((u.rate / g.avg - 1) * 100) });
+            }
+        });
+    });
+    wornList.sort(function(a, b) { return b.pct - a.pct; });
+
     var html = '';
 
     // شريط الفترة (21 الشهر السابق إلى 20 الشهر المختار)
@@ -9386,7 +9537,7 @@ function renderAnalytics() {
     // معدل الاستخدام مبوّبة (ملك / إيجار / لا تعمل) + استهلاك الوقود
     if (avgRate) {
         html += '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:9px 12px;margin-bottom:10px;font-size:11px;color:#1e40af">' +
-            '⛽ متوسط استهلاك الأسطول في هذه الفترة: <b>' + avgRate.toFixed(2) + ' لتر/ساعة</b> — أي معدة تتخطى ' + (avgRate*1.3).toFixed(2) + ' لتر/ساعة تُعتبر "استهلاك مرتفع"' +
+            '⛽ متوسط استهلاك المعدات في هذه الفترة: <b>' + avgRate.toFixed(2) + ' لتر/ساعة</b> — أي معدة تتخطى ' + (avgRate*1.3).toFixed(2) + ' لتر/ساعة تُعتبر "استهلاك مرتفع"' +
             '</div>';
     }
     html += usageGroupHtml('🔑 معدات الملك (' + periodLabel + ')', '#7c3aed', ownedWorking, overallMaxHours);
@@ -9405,9 +9556,9 @@ function renderAnalytics() {
     // ==================== لوحة تحكم تفاعلية (Chart.js) ====================
     html += '<div style="text-align:center;font-weight:800;font-size:14px;color:var(--primary);margin:18px 0 10px">📊 لوحة تحكم تفاعلية</div>';
 
-    // توزيع حالة الأسطول (Doughnut تفاعلي)
+    // توزيع حالة المعدات (Doughnut تفاعلي)
     html += '<div style="background:white;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)">' +
-        '<div style="font-weight:700;font-size:13px;color:var(--primary);margin-bottom:10px">🥯 توزيع حالة الأسطول</div>' +
+        '<div style="font-weight:700;font-size:13px;color:var(--primary);margin-bottom:10px">🥯 توزيع حالة المعدات</div>' +
         '<div style="max-width:260px;margin:0 auto"><canvas id="chart-fleet-status" height="220"></canvas></div>' +
         '</div>';
 
@@ -9431,6 +9582,29 @@ function renderAnalytics() {
             '</div>';
     }
 
+    // معدات محتمل تهالكها (استهلاك أعلى من متوسط نوعها بـ30%+)
+    if (wornList.length) {
+        html += '<div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:14px;padding:14px;margin-bottom:14px">' +
+            '<div style="font-weight:800;font-size:13px;color:#991b1b;margin-bottom:8px">🚨 معدات محتمل تهالكها (استهلاك أعلى من متوسط نوعها)</div>' +
+            wornList.map(function(w) {
+                return '<div style="background:white;border-radius:10px;padding:9px 12px;margin-bottom:6px;font-size:12px">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700">' + escapeHtml(w.eq.name) + '</span><span style="color:#dc2626;font-weight:800">+' + w.pct + '%</span></div>' +
+                    '<div style="color:var(--gray);font-size:11px;margin-top:2px">' + escapeHtml(w.type) + ' — ' + w.rate.toFixed(2) + ' لتر/س (متوسط النوع: ' + w.avg.toFixed(2) + ' لتر/س)</div>' +
+                    '</div>';
+            }).join('') + '</div>';
+    }
+
+    // رسوم مقارنة الاستهلاك بين معدات نفس النوع (نوع لكل رسمة)
+    if (comparableTypes.length) {
+        html += '<div style="text-align:center;font-weight:800;font-size:13px;color:var(--primary);margin:14px 0 10px">⚖️ مقارنة استهلاك الوقود حسب النوع (لتر/ساعة)</div>';
+        comparableTypes.forEach(function(g, idx) {
+            html += '<div style="background:white;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)">' +
+                '<div style="font-weight:700;font-size:12.5px;color:var(--primary);margin-bottom:10px">' + escapeHtml(g.type) + ' — متوسط النوع: ' + g.avg.toFixed(2) + ' لتر/س</div>' +
+                '<canvas id="chart-type-cmp-' + idx + '" height="' + Math.max(140, g.group.length * 28) + '"></canvas>' +
+                '</div>';
+        });
+    }
+
     html += '<button class="big-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="switchView(\'sites\')">🏢 مقارنة تفصيلية بين المواقع</button>';
 
     body.innerHTML = html;
@@ -9439,7 +9613,8 @@ function renderAnalytics() {
         fleet: { healthy: healthy, soon: soon, overdue: overdue, stopped: stopped },
         maintByMonth: maintByMonth,
         fuelTrend: fuelTrend,
-        top10Usage: top10Usage
+        top10Usage: top10Usage,
+        comparableTypes: comparableTypes
     });
 }
 
@@ -9525,6 +9700,42 @@ function renderAnalyticsCharts(data) {
             }
         });
     }
+
+    if (data.comparableTypes && data.comparableTypes.length) {
+        data.comparableTypes.forEach(function(g, idx) {
+            var cvs = document.getElementById('chart-type-cmp-' + idx);
+            if (!cvs) return;
+            analyticsChartInstances['type' + idx] = new Chart(cvs, {
+                data: {
+                    labels: g.group.map(function(u) { return u.eq.name; }),
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'لتر/ساعة',
+                            data: g.group.map(function(u) { return u.rate; }),
+                            backgroundColor: g.group.map(function(u) { return u.rate > g.avg * 1.3 ? '#dc2626' : '#0891b2'; }),
+                            borderRadius: 6
+                        },
+                        {
+                            type: 'line',
+                            label: 'متوسط النوع',
+                            data: g.group.map(function() { return g.avg; }),
+                            borderColor: '#94a3b8',
+                            borderDash: [6, 4],
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 } } } },
+                    scales: { x: { beginAtZero: true, title: { display: true, text: 'لتر/ساعة' } } }
+                }
+            });
+        });
+    }
 }
 
 // ==================== التقرير الشهري الموحّد (كل الأقسام + كل المواقع) ====================
@@ -9555,7 +9766,7 @@ function exportUnifiedMonthlyReport() {
     var sitesMap = computeSitesStats(eqList);
     var sites = Object.values(sitesMap).sort(function(a, b) { return b.total - a.total; });
 
-    // إجمالي الأسطول
+    // إجمالي المعدات
     var totalEq = eqList.length;
     var working = eqList.filter(function(e){ return e.status === 'يعمل'; }).length;
     var stopped = eqList.filter(function(e){ return e.status === 'متوقف'; }).length;
@@ -9679,7 +9890,7 @@ function exportUnifiedMonthlyReport() {
         reportHeaderHtml('التقرير الشهري الموحّد', 'كل الأقسام وكل المواقع') +
         '<div class="info">📅 <b>الفترة:</b> ' + periodLabel + '&nbsp;&nbsp; 🖨️ <b>تاريخ الطباعة:</b> ' + new Date().toLocaleDateString('ar-EG') + '</div>' +
 
-        '<h3>🚜 الأسطول</h3>' +
+        '<h3>🚜 المعدات</h3>' +
         '<div class="summary">' +
         '<div class="sbox"><div class="snum">' + totalEq + '</div><div class="slbl">إجمالي المعدات</div></div>' +
         '<div class="sbox"><div class="snum" style="color:#059669">' + working + '</div><div class="slbl">تعمل</div></div>' +
