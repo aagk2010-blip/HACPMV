@@ -159,28 +159,29 @@ button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
   .status-bar{padding:10px 28px}
   .header{padding:22px 28px 20px}
   .header-title{font-size:26px}
-  .section{padding:0 28px;max-width:1400px}
+  .section{padding:0 28px;max-width:1400px;margin-right:0;margin-left:auto}
   .stats-row{padding:18px 28px 4px;display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));overflow-x:visible}
   .stat-card{min-width:0}
   #alert-bar,.smart-alert-bar{margin-right:28px;margin-left:28px}
 
   /* كل القوائم عمود واحد تحت بعض، بعرض مريح للقراءة على الشاشات الكبيرة */
+  /* ...وبتبدأ من بعد القائمة الجانبية مباشرة (بلا فراغ)، والمساحة الزيادة بتتجمع أقصى الشمال */
   #equipment-list,#maintenance-list,#inv-list,
   #sites-dashboard-list{
-    display:flex;flex-direction:column;gap:12px;max-width:720px}
+    display:flex;flex-direction:column;gap:12px;max-width:720px;margin-right:0;margin-left:auto}
   .equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{margin-bottom:0}
-  /* صفحة الإيجار: القوائم وصف الأزرار فوقها بتتوسط المساحة المتاحة بدل ما تفضل ملزوقة على اليسار */
-#rental-daily-list{display:flex;flex-direction:column;gap:5px;max-width:520px;margin-left:auto;margin-right:auto}
-#rental-equipment-list{display:flex;flex-direction:column;gap:6px;max-width:720px;margin-left:auto;margin-right:auto}
-  #rental-section-equipment>div:first-child{max-width:720px;margin-left:auto;margin-right:auto}
-  #rental-section-daily>div:first-child{max-width:520px;margin-left:auto;margin-right:auto}
+  /* صفحة الإيجار: القوائم وصف الأزرار فوقها بتبدأ من بعد القائمة الجانبية مباشرة */
+#rental-daily-list{display:flex;flex-direction:column;gap:5px;max-width:520px;margin-right:0;margin-left:auto}
+#rental-equipment-list{display:flex;flex-direction:column;gap:6px;max-width:720px;margin-right:0;margin-left:auto}
+  #rental-section-equipment>div:first-child{max-width:720px;margin-right:0;margin-left:auto}
+  #rental-section-daily>div:first-child{max-width:520px;margin-right:0;margin-left:auto}
 
-  .search-box{max-width:420px}
-  #view-equipment>div>div[style*="margin-bottom:10px;display:flex;gap:8px"]{max-width:900px}
+  .search-box{max-width:420px;margin-right:0;margin-left:auto}
+  #view-equipment>div>div[style*="margin-bottom:10px;display:flex;gap:8px"]{max-width:900px;margin-right:0;margin-left:auto}
 
   /* الأزرار الكبيرة تبقى بعرض معقول بدل ما تمتد بلا داعي */
   .big-btn{max-width:1400px}
-  .save-btn{max-width:520px}
+  .save-btn{max-width:520px;margin-right:0;margin-left:auto}
 
   /* الأزرار العائمة والتنقل السفلي مش محتاجينهم في سطح المكتب */
   .tab-bar{display:none}
