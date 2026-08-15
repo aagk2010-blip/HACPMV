@@ -136,9 +136,7 @@ button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
 
   /* الشريط الجانبي */
   .sidebar-nav{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:var(--sidebar-w);
-    background:linear-gradient(180deg,var(--primary),#0a1420 75%);z-index:500;padding:22px 14px;gap:4px}
-  /* تأمين إضافي: مهما كان z-index الداخلي لطبقات وأدوات الخريطة (Leaflet)، متعديش أبداً فوق الشريط الجانبي */
-  #equipment-map,#equipment-map .leaflet-pane,#equipment-map .leaflet-control-container{z-index:1 !important}
+    background:linear-gradient(180deg,var(--primary),#0a1420 75%);z-index:120;padding:22px 14px;gap:4px}
   .sidebar-brand{display:flex;align-items:center;gap:12px;padding:6px 10px 22px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:14px}
   .sidebar-brand-mark{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--primary);background:var(--accent);
     width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
