@@ -137,9 +137,6 @@ button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
   /* الشريط الجانبي */
   .sidebar-nav{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:var(--sidebar-w);
     background:linear-gradient(180deg,var(--primary),#0a1420 75%);z-index:120;padding:22px 14px;gap:4px}
-  /* تأمين إضافي: مهما كان z-index الداخلي لطبقات وأدوات الخريطة (Leaflet)، متعديش أبداً فوق الشريط الجانبي */
-  #equipment-map,#equipment-map .leaflet-pane,#equipment-map .leaflet-control-container{z-index:1 !important}
-  .sidebar-nav{z-index:500}
   .sidebar-brand{display:flex;align-items:center;gap:12px;padding:6px 10px 22px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:14px}
   .sidebar-brand-mark{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--primary);background:var(--accent);
     width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -159,29 +156,25 @@ button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
   .status-bar{padding:10px 28px}
   .header{padding:22px 28px 20px}
   .header-title{font-size:26px}
-  .section{padding:0 28px;max-width:1400px;margin-right:0;margin-left:auto}
+  .section{padding:0 28px;max-width:1400px}
   .stats-row{padding:18px 28px 4px;display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));overflow-x:visible}
   .stat-card{min-width:0}
   #alert-bar,.smart-alert-bar{margin-right:28px;margin-left:28px}
 
   /* كل القوائم عمود واحد تحت بعض، بعرض مريح للقراءة على الشاشات الكبيرة */
-  /* ...وبتبدأ من بعد القائمة الجانبية مباشرة (بلا فراغ)، والمساحة الزيادة بتتجمع أقصى الشمال */
   #equipment-list,#maintenance-list,#inv-list,
   #sites-dashboard-list{
-    display:flex;flex-direction:column;gap:12px;max-width:720px;margin-right:0;margin-left:auto}
+    display:flex;flex-direction:column;gap:12px;max-width:720px}
   .equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{margin-bottom:0}
-  /* صفحة الإيجار: القوائم وصف الأزرار فوقها بتبدأ من بعد القائمة الجانبية مباشرة */
-#rental-daily-list{display:flex;flex-direction:column;gap:5px;max-width:520px;margin-right:0;margin-left:auto}
-#rental-equipment-list{display:flex;flex-direction:column;gap:6px;max-width:720px;margin-right:0;margin-left:auto}
-  #rental-section-equipment>div:first-child{max-width:720px;margin-right:0;margin-left:auto}
-  #rental-section-daily>div:first-child{max-width:520px;margin-right:0;margin-left:auto}
+#rental-daily-list{display:flex;flex-direction:column;gap:5px;max-width:520px}
+#rental-equipment-list{display:flex;flex-direction:column;gap:6px;max-width:720px}
 
-  .search-box{max-width:420px;margin-right:0;margin-left:auto}
-  #view-equipment>div>div[style*="margin-bottom:10px;display:flex;gap:8px"]{max-width:900px;margin-right:0;margin-left:auto}
+  .search-box{max-width:420px}
+  #view-equipment>div>div[style*="margin-bottom:10px;display:flex;gap:8px"]{max-width:900px}
 
   /* الأزرار الكبيرة تبقى بعرض معقول بدل ما تمتد بلا داعي */
   .big-btn{max-width:1400px}
-  .save-btn{max-width:520px;margin-right:0;margin-left:auto}
+  .save-btn{max-width:520px}
 
   /* الأزرار العائمة والتنقل السفلي مش محتاجينهم في سطح المكتب */
   .tab-bar{display:none}
@@ -694,7 +687,7 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
         <button onclick="clearDriverRoute()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">✖️ مسح</button>
       </div>
       <div id="route-info" style="display:none;margin:0 14px 8px;font-size:11.5px;color:#64748b"></div>
-      <div id="equipment-map" style="height:calc(100vh - 220px);min-height:380px;width:100%;box-sizing:border-box;margin:0 14px 14px;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);position:relative;z-index:1"></div>
+      <div id="equipment-map" style="height:calc(100vh - 220px);min-height:380px;margin:0 14px 14px;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)"></div>
     </div>
   </div>
 
@@ -6874,9 +6867,6 @@ function renderEquipmentMap() {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(equipmentMapInstance);
         equipmentMapInstance._markers = [];
-        // الخريطة أحياناً بتتنشئ قبل ما تكتمل حسابات مقاس الشريط الجانبي على الشاشات الكبيرة،
-        // فبنجبرها تعيد حساب حجمها فور إنشائها عشان متعديش على مساحة القائمة الجانبية
-        setTimeout(function() { equipmentMapInstance.invalidateSize(); }, 150);
     } else {
         // إعادة ضبط حجم الخريطة في حال كانت مخفية وقت الإنشاء
         setTimeout(function() { equipmentMapInstance.invalidateSize(); }, 100);
@@ -11901,10 +11891,11 @@ function renderRentalEquipment() {
         var arcPath = pct>=1 ? 'M 44 6 A 38 38 0 1 1 43.99 6' : 'M 44 6 A 38 38 0 '+(pct>0.5?1:0)+' 1 '+x2.toFixed(2)+' '+y2.toFixed(2);
         html +=
         '<div class="rental-card" style="background:white;border-radius:16px;border:1px solid #e2e8f0;margin-bottom:6px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)">'+
-        '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:9px 12px;color:white;display:flex;justify-content:space-between;align-items:center">'+
-        '<div><div style="font-weight:700;font-size:14px"><span class="c-ico">🚧</span> '+escapeHtml(eqLabel)+'</div>'+
-        '<div style="font-size:11px;opacity:.8">'+(r.company?'🏢 '+escapeHtml(r.company)+(drv?' · ':''):'' )+(drv?'👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>'+
-        (isAdmin?'<div style="display:flex;gap:4px">'+
+        '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:9px 12px;color:white;display:flex;justify-content:space-between;align-items:center;gap:8px">'+
+        '<div style="min-width:0;flex:1;overflow:hidden">'+
+        '<div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(eqLabel)+'"><span class="c-ico">🚧</span> '+escapeHtml(eqLabel)+'</div>'+
+        '<div style="font-size:11px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(r.company?'🏢 '+escapeHtml(r.company)+(drv?' · ':''):'' )+(drv?'👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>'+
+        (isAdmin?'<div style="display:flex;gap:4px;flex-shrink:0">'+
         '<button data-action="edit-rental" data-id="'+rid+'" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px">✏️</button>'+
         '<button data-action="del-rental"  data-id="'+rid+'" style="background:rgba(255,0,0,.3);color:white;border:none;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px">🗑️</button></div>':'')+
         '</div>'+
@@ -12190,9 +12181,9 @@ function renderRentalDailyView() {
             var drv=rental?driversData.find(function(d){ return d.id===rental.driverId; }):null;
             var label=eq?(eq.type+' — '+eq.code):(r.equipmentCode||'—');
             html+='<div class="rental-card" style="background:white;border-radius:11px;border:1px solid #e2e8f0;margin-bottom:5px;overflow:hidden;max-width:520px"><div style="padding:6px 9px">'+
-                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'+
-                '<div><div style="font-weight:700;font-size:11.5px"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:9.5px;color:var(--gray)">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:9px;color:#9ca3af">👤 سجّلها: '+escapeHtml(r.recordedByName)+'</div>':'')+'</div>'+
-                (isAdmin?'<div style="display:flex;gap:3px">'+
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;gap:6px">'+
+                '<div style="min-width:0;flex:1;overflow:hidden"><div style="font-weight:700;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(label)+'"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:9.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:9px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 سجّلها: '+escapeHtml(r.recordedByName)+'</div>':'')+'</div>'+
+                (isAdmin?'<div style="display:flex;gap:3px;flex-shrink:0">'+
                 '<button data-action="edit-daily" data-id="'+r.id+'" style="background:#e0e7ff;color:#4338ca;border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">✏️</button>'+
                 '<button data-action="del-daily" data-id="'+r.id+'" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">🗑️</button></div>':'')+'</div>'+
                 '<div style="display:grid;grid-template-columns:1fr 0.7fr 0.7fr'+(r.breakHours>0?' 0.7fr':'')+';gap:3px;font-size:9px">'+
