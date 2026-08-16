@@ -886,24 +886,14 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     </div>
     <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
 
-    <!-- أزرار التبويب الثلاثة -->
+    <!-- أزرار التبويب -->
     <div style="display:flex;gap:5px;margin-bottom:18px;background:rgba(255,255,255,0.05);border-radius:40px;padding:4px">
-      <button id="direct-login-btn" onclick="setLoginMode('direct')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:#e8a020;color:#0d1b2a;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🚪 زائر</button>
-      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🔐 دخول</button>
+      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:#e8a020;color:#0d1b2a;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🔐 دخول</button>
       <button id="register-login-btn" onclick="setLoginMode('register')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">✨ تسجيل</button>
     </div>
 
-    <!-- لوحة الدخول المباشر -->
-    <div id="direct-login-panel" style="display:block">
-      <div style="background:rgba(255,255,255,0.08);border-radius:16px;padding:14px;margin-bottom:16px;text-align:right">
-        <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:6px">👁 وضع المشاهدة</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.4)">يمكنك تصفح البيانات بدون تسجيل، لكن لا يمكنك الاضافة او التعديل.</div>
-      </div>
-      <button id="direct-login-submit" style="width:100%;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">🚀 دخول كمشاهد</button>
-    </div>
-
     <!-- لوحة الدخول الآمن -->
-    <div id="secure-login-panel" style="display:none">
+    <div id="secure-login-panel" style="display:block">
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">📧</span>
@@ -2799,7 +2789,7 @@ function saveNotifPrefs(prefs) {
     try { localStorage.setItem('notifPrefs', JSON.stringify(prefs)); } catch (e) {}
 }
 loadNotifPrefs();
-let SYSTEM_CONFIG = { loginMode: 'direct' };
+let SYSTEM_CONFIG = { loginMode: 'secure' };
 
 function showToast(message, isError = false) {
     const toast = document.getElementById('toast');
@@ -12013,14 +12003,13 @@ document.addEventListener('DOMContentLoaded', function() {
             var _tmpDb = firebase.database(_tmpApp);
             _tmpDb.ref('appSettings/loginMode').once('value').then(function(snap) {
                 var savedMode = snap.val();
-                if (savedMode === 'secure') setLoginMode('secure');
-                else if (savedMode === 'register') setLoginMode('register');
-                else setLoginMode('direct');
-            }).catch(function() { setLoginMode('direct'); });
+                if (savedMode === 'register') setLoginMode('register');
+                else setLoginMode('secure');
+            }).catch(function() { setLoginMode('secure'); });
             loadViewerSectionsFromFirebase();
-        } catch(e) { setLoginMode('direct'); }
+        } catch(e) { setLoginMode('secure'); }
     } else {
-        setLoginMode('direct');
+        setLoginMode('secure');
     }
     
     if (logoutBtn) logoutBtn.onclick = function() { logout(); };
