@@ -7077,13 +7077,13 @@ function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
         '<div style="font-size:10.5px;color:#9ca3af;margin-top:14px">تسجيلك بيتبعت للمشرف المسؤول للمراجعة والموافقة عليه — تقدر تعدّل وتبعت تاني قبل ما يراجعه</div>' +
         '</div>' +
         '<div style="background:white;border-radius:20px;padding:22px 22px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
-        '<div style="font-size:34px;margin-bottom:6px">📍</div>' +
-        '<div style="font-size:14px;font-weight:800;color:#0d1b2a;margin-bottom:2px">مشاركة الموقع</div>' +
-        '<div style="font-size:11.5px;color:#6b7a8d;margin-bottom:14px">مشاركة موقعك بتساعد فريق العمل يتابع المعدة أول بأول</div>' +
-        '<div id="loc-share-status" style="font-size:12.5px;font-weight:700;color:#f59e0b;background:#fef3c7;border-radius:10px;padding:9px;margin-bottom:8px">⏳ مشاركة الموقع متوقفة</div>' +
+        '<div style="font-size:34px;margin-bottom:6px">🛠️</div>' +
+        '<div style="font-size:14px;font-weight:800;color:#0d1b2a;margin-bottom:2px">حالة العمل</div>' +
+        '<div style="font-size:11.5px;color:#6b7a8d;margin-bottom:14px">سجّل بدء وانتهاء شغلك اليوم عشان فريق العمل يتابع المعدة أول بأول</div>' +
+        '<div id="loc-share-status" style="font-size:12.5px;font-weight:700;color:#f59e0b;background:#fef3c7;border-radius:10px;padding:9px;margin-bottom:8px">⏳ لم يبدأ العمل بعد</div>' +
         '<div id="loc-share-queue-info" style="font-size:10.5px;color:#9ca3af;margin-bottom:10px;display:none"></div>' +
-        '<button id="loc-share-toggle-btn" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء مشاركة الموقع</button>' +
-        '<div style="font-size:10px;color:#9ca3af;margin-top:12px">هيطلب المتصفح إذن الوصول للموقع — اضغط "سماح"<br>الصفحة بتسجّل مسارك حتى لو النت اتقطع، وترفعه تلقائي أول ما النت يرجع</div>' +
+        '<button id="loc-share-toggle-btn" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
+        '<div style="font-size:10px;color:#9ca3af;margin-top:12px">هيطلب المتصفح إذن الوصول — اضغط "سماح"<br>البيانات بتتسجّل حتى لو النت اتقطع، وترفع تلقائي أول ما النت يرجع</div>' +
         '</div>' +
         '</div></div>';
 
@@ -7237,7 +7237,7 @@ function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
                 flushInProgress = false;
                 if (sharing) {
                     locStatusEl.style.color = '#065f46'; locStatusEl.style.background = '#d1fae5';
-                    locStatusEl.innerHTML = '🟢 مشاركة الموقع شغّالة — تم رفع مسار اليوم كامل';
+                    locStatusEl.innerHTML = '🟢 شغّال دلوقتي — تم رفع بيانات اليوم كامل';
                 }
             }).catch(function() { flushInProgress = false; });
         }
@@ -7248,7 +7248,7 @@ function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
             if (!navigator.onLine) {
                 var q = getQueue(); q.push(point); setQueue(q); updateQueueBadge();
                 locStatusEl.style.color = '#92400e'; locStatusEl.style.background = '#fef3c7';
-                locStatusEl.innerHTML = '📴 من غير نت — بيتم تسجيل موقعك محليًا على الجهاز';
+                locStatusEl.innerHTML = '📴 من غير نت — بيتم تسجيل البيانات محليًا على الجهاز';
                 return;
             }
             var updates = {};
@@ -7257,12 +7257,12 @@ function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
             updates['driverLocations/' + driverId] = { driverId: driverId, driverName: driverNameForLoc, lat: point.lat, lng: point.lng, accuracy: point.accuracy, updatedAt: point.updatedAt };
             fbDb.ref().update(updates).then(function() {
                 locStatusEl.style.color = '#065f46'; locStatusEl.style.background = '#d1fae5';
-                locStatusEl.innerHTML = '🟢 مشاركة الموقع شغّالة — آخر تحديث الآن';
+                locStatusEl.innerHTML = '🟢 شغّال دلوقتي — آخر تحديث الآن';
                 tryFlushQueue();
             }).catch(function() {
                 var q = getQueue(); q.push(point); setQueue(q); updateQueueBadge();
                 locStatusEl.style.color = '#92400e'; locStatusEl.style.background = '#fef3c7';
-                locStatusEl.innerHTML = '📴 الشبكة ضعيفة — بيتم تسجيل موقعك محليًا';
+                locStatusEl.innerHTML = '📴 الشبكة ضعيفة — بيتم تسجيل البيانات محليًا';
             });
         }
 
@@ -7271,9 +7271,9 @@ function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
             saveLocState({ sharing: true });
             shareWatchId = navigator.geolocation.watchPosition(pushLocation, function(err) {
                 locStatusEl.style.color = '#dc2626'; locStatusEl.style.background = '#fee2e2';
-                locStatusEl.innerHTML = '❌ ' + (err.code === 1 ? 'رفضت إذن الموقع' : 'تعذّر تحديد الموقع');
+                locStatusEl.innerHTML = '❌ ' + (err.code === 1 ? 'رفضت الإذن المطلوب' : 'تعذّر بدء العمل');
             }, { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 });
-            locBtn.textContent = '⏹️ إيقاف مشاركة الموقع';
+            locBtn.textContent = '⏹️ انتهاء العمل';
             locBtn.style.background = 'linear-gradient(135deg,#dc2626,#991b1b)';
         }
         function stopLocSharing() {
@@ -7282,13 +7282,13 @@ function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
             tryFlushQueue();
             saveLocState({ sharing: false });
             locStatusEl.style.color = '#f59e0b'; locStatusEl.style.background = '#fef3c7';
-            locStatusEl.innerHTML = '⏸️ مشاركة الموقع متوقفة';
-            locBtn.textContent = '▶️ بدء مشاركة الموقع';
+            locStatusEl.innerHTML = '⏸️ تم إنهاء العمل';
+            locBtn.textContent = '▶️ بدء العمل';
             locBtn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
         }
 
         locBtn.onclick = function() {
-            if (!navigator.geolocation) { locStatusEl.innerHTML = '❌ الجهاز مش بيدعم تحديد الموقع'; return; }
+            if (!navigator.geolocation) { locStatusEl.innerHTML = '❌ الجهاز مش بيدعم العملية دي'; return; }
             if (!sharing) startLocSharing(); else stopLocSharing();
         };
 
@@ -7300,7 +7300,7 @@ function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
         if (savedLocState && savedLocState.sharing) {
             startLocSharing();
             locStatusEl.style.color = '#065f46'; locStatusEl.style.background = '#d1fae5';
-            locStatusEl.innerHTML = '🟢 مشاركة الموقع شغّالة — تم استكمال الجلسة تلقائيًا';
+            locStatusEl.innerHTML = '🟢 شغّال دلوقتي — تم استكمال الجلسة تلقائيًا';
         }
     })();
 }
