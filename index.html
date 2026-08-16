@@ -2651,6 +2651,9 @@ function preloadLoginData() {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
         var app = firebase.apps[0];
         var db = firebase.database(app);
+        // نُعيّن الاتصال في المتغيّر العام fbDb فورًا حتى تعمل نماذج ما قبل الدخول
+        // (مثل "طلب فتح حساب") بشكل صحيح دون انتظار تسجيل الدخول الفعلي
+        if (!fbDb) fbDb = db;
         Promise.all([
             db.ref('appUsers').once('value'),
             db.ref('appSettings/viewerSections').once('value')
