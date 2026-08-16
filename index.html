@@ -12210,50 +12210,50 @@ function renderRentalEquipment() {
         var x2=44+38*Math.cos(angle), y2=44+38*Math.sin(angle);
         var arcPath = pct>=1 ? 'M 44 6 A 38 38 0 1 1 43.99 6' : 'M 44 6 A 38 38 0 '+(pct>0.5?1:0)+' 1 '+x2.toFixed(2)+' '+y2.toFixed(2);
         html +=
-        '<div class="rental-card" style="background:white;border-radius:16px;border:1px solid #e2e8f0;margin-bottom:6px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)">'+
-        '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:9px 12px;color:white;display:flex;justify-content:space-between;align-items:center;gap:8px">'+
+        '<div class="rental-card" style="background:white;border-radius:13px;border:1px solid #e2e8f0;margin-bottom:5px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)">'+
+        '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:7px 10px;color:white;display:flex;justify-content:space-between;align-items:center;gap:6px">'+
         '<div style="min-width:0;flex:1;overflow:hidden">'+
-        '<div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(eqLabel)+'"><span class="c-ico">🚧</span> '+escapeHtml(eqLabel)+'</div>'+
-        '<div style="font-size:11px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(r.company?'🏢 '+escapeHtml(r.company)+(drv?' · ':''):'' )+(drv?'👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>'+
-        (isAdmin?'<div style="display:flex;gap:4px;flex-shrink:0">'+
-        '<button data-action="edit-rental" data-id="'+rid+'" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px">✏️</button>'+
-        '<button data-action="del-rental"  data-id="'+rid+'" style="background:rgba(255,0,0,.3);color:white;border:none;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px">🗑️</button></div>':'')+
+        '<div style="font-weight:700;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(eqLabel)+'"><span class="c-ico">🚧</span> '+escapeHtml(eqLabel)+'</div>'+
+        '<div style="font-size:10px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(r.company?'🏢 '+escapeHtml(r.company)+(drv?' · ':''):'' )+(drv?'👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>'+
+        (isAdmin?'<div style="display:flex;gap:3px;flex-shrink:0">'+
+        '<button data-action="edit-rental" data-id="'+rid+'" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:6px;padding:3px 6px;cursor:pointer;font-size:11px">✏️</button>'+
+        '<button data-action="del-rental"  data-id="'+rid+'" style="background:rgba(255,0,0,.3);color:white;border:none;border-radius:6px;padding:3px 6px;cursor:pointer;font-size:11px">🗑️</button></div>':'')+
         '</div>'+
-        '<div style="padding:10px 12px;display:flex;gap:10px;align-items:center">'+
-        '<div style="position:relative;flex-shrink:0;width:70px;height:70px">'+
-        '<svg viewBox="0 0 88 88" style="width:70px;height:70px">'+
+        '<div style="padding:8px 10px;display:flex;gap:8px;align-items:center">'+
+        '<div style="position:relative;flex-shrink:0;width:56px;height:56px">'+
+        '<svg viewBox="0 0 88 88" style="width:56px;height:56px">'+
         '<circle cx="44" cy="44" r="38" fill="none" stroke="#f1f5f9" stroke-width="9"/>'+
         (pct>0?'<path d="'+arcPath+'" fill="none" stroke="'+color+'" stroke-linecap="round" stroke-width="9" transform="scale(-1,1) translate(-88,0)"/>':'')+
         '</svg>'+
         '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;line-height:1.1">'+
-        '<div style="font-size:18px;font-weight:800;color:'+color+'">'+daysCount+'</div>'+
-        '<div style="font-size:8px;color:var(--gray)">يوم/'+cycleDayCount+'</div></div></div>'+
-        '<div style="flex:1;display:flex;flex-direction:column;gap:5px">'+
-        '<div style="background:'+(todayRec?'#d1fae5':'#fef9c3')+';border-radius:9px;padding:9px;text-align:center;font-size:12px;font-weight:600;color:'+todayStatusColor+'">'+todayStatus+'</div>'+
-        '<input type="text" value="'+(todayRec?escapeHtml(todayRec.notes||'').replace(/"/g,'&quot;'):'')+'" placeholder="'+(todayRec?'📝 ملاحظة اليوم...':'📝 سجّل الحضور والانصراف أولاً')+'"'+(todayRec?'':' disabled')+' onblur="saveRentalInlineNotes(\''+rid+'\',\''+todayStr+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" style="width:100%;box-sizing:border-box;background:'+(todayRec?'var(--light)':'#f1f5f9')+';border-radius:9px;padding:9px;text-align:center;font-size:12px;font-weight:600;color:var(--gray);border:1px solid transparent;font-family:inherit" onfocus="this.style.borderColor=\'#c4b5fd\'">'+
+        '<div style="font-size:15px;font-weight:800;color:'+color+'">'+daysCount+'</div>'+
+        '<div style="font-size:7px;color:var(--gray)">يوم/'+cycleDayCount+'</div></div></div>'+
+        '<div style="flex:1;display:flex;flex-direction:column;gap:4px">'+
+        '<div style="background:'+(todayRec?'#d1fae5':'#fef9c3')+';border-radius:8px;padding:7px;text-align:center;font-size:11px;font-weight:600;color:'+todayStatusColor+'">'+todayStatus+'</div>'+
+        '<input type="text" value="'+(todayRec?escapeHtml(todayRec.notes||'').replace(/"/g,'&quot;'):'')+'" placeholder="'+(todayRec?'📝 ملاحظة اليوم...':'📝 سجّل الحضور والانصراف أولاً')+'"'+(todayRec?'':' disabled')+' onblur="saveRentalInlineNotes(\''+rid+'\',\''+todayStr+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" style="width:100%;box-sizing:border-box;background:'+(todayRec?'var(--light)':'#f1f5f9')+';border-radius:8px;padding:7px;text-align:center;font-size:11px;font-weight:600;color:var(--gray);border:1px solid transparent;font-family:inherit" onfocus="this.style.borderColor=\'#c4b5fd\'">'+
         '</div>'+
         '</div>'+
-        '<div style="margin:0 12px 6px;background:'+(todayRec?'#f0fdf4':'#fef3c7')+';border:1px solid '+(todayRec?'#bbf7d0':'#fde68a')+';border-radius:9px;padding:6px">'+
-        '<div style="font-size:9px;color:'+todayStatusColor+';margin-bottom:4px;font-weight:600">⚡ '+(todayRec?'تعديل اليوم '+todayStr:'تسجيل اليوم '+todayStr)+'</div>'+
-        '<div style="display:flex;gap:4px;align-items:center">'+
-        '<input type="time" id="quick-in-'+rid+'" value="'+(todayRec?todayRec.inTime||'':'08:00')+'" style="flex:1;padding:4px;border:1px solid #e2e8f0;border-radius:7px;font-family:inherit;font-size:11px">'+
-        '<span style="color:var(--gray);font-size:10px">→</span>'+
-        '<input type="time" id="quick-out-'+rid+'" value="'+(todayRec?todayRec.outTime||'':'17:00')+'" style="flex:1;padding:4px;border:1px solid #e2e8f0;border-radius:7px;font-family:inherit;font-size:11px">'+
-        '<button data-action="quick-save" data-id="'+rid+'" data-today="'+todayStr+'" data-existing="'+(todayRec?todayRec.id:'')+'" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:7px;padding:4px 9px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer">✅</button>'+
+        '<div style="margin:0 10px 5px;background:'+(todayRec?'#f0fdf4':'#fef3c7')+';border:1px solid '+(todayRec?'#bbf7d0':'#fde68a')+';border-radius:8px;padding:5px">'+
+        '<div style="font-size:8px;color:'+todayStatusColor+';margin-bottom:3px;font-weight:600">⚡ '+(todayRec?'تعديل اليوم '+todayStr:'تسجيل اليوم '+todayStr)+'</div>'+
+        '<div style="display:flex;gap:3px;align-items:center">'+
+        '<input type="time" id="quick-in-'+rid+'" value="'+(todayRec?todayRec.inTime||'':'08:00')+'" style="flex:1;padding:3px;border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;font-size:10px">'+
+        '<span style="color:var(--gray);font-size:9px">→</span>'+
+        '<input type="time" id="quick-out-'+rid+'" value="'+(todayRec?todayRec.outTime||'':'17:00')+'" style="flex:1;padding:3px;border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;font-size:10px">'+
+        '<button data-action="quick-save" data-id="'+rid+'" data-today="'+todayStr+'" data-existing="'+(todayRec?todayRec.id:'')+'" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:6px;padding:3px 8px;font-family:inherit;font-size:10px;font-weight:600;cursor:pointer">✅</button>'+
         '</div>'+
-        '<div style="display:flex;align-items:center;gap:5px;margin-top:4px">'+
-        '<input type="checkbox" id="quick-brk-'+rid+'" '+(todayRec&&todayRec.breakWorked?'checked':'')+' style="width:14px;height:14px">'+
-        '<label for="quick-brk-'+rid+'" style="font-size:10px;color:'+todayStatusColor+'">☕ اشتغلت ساعة الراحة (تُحسب إضافي)</label>'+
+        '<div style="display:flex;align-items:center;gap:4px;margin-top:3px">'+
+        '<input type="checkbox" id="quick-brk-'+rid+'" '+(todayRec&&todayRec.breakWorked?'checked':'')+' style="width:12px;height:12px">'+
+        '<label for="quick-brk-'+rid+'" style="font-size:9px;color:'+todayStatusColor+'">☕ اشتغلت ساعة الراحة (تُحسب إضافي)</label>'+
         '</div></div>'+
         (isAdmin?
-        '<div style="padding:0 12px 10px;display:flex;gap:6px">'+
-        '<button data-action="add-daily" data-id="'+rid+'" style="flex:1;padding:7px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">➕ يوم آخر</button>'+
-        '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:7px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">📋 التقرير</button>'+
-        '<button data-action="wa-driver" data-id="'+rid+'" style="padding:7px 12px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:9px;font-family:inherit;font-size:14px;cursor:pointer">📲</button>'+
+        '<div style="padding:0 10px 8px;display:flex;gap:5px">'+
+        '<button data-action="add-daily" data-id="'+rid+'" style="flex:1;padding:6px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:8px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer">➕ يوم آخر</button>'+
+        '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:6px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:8px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer">📋 التقرير</button>'+
+        '<button data-action="wa-driver" data-id="'+rid+'" style="padding:6px 10px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer">📲</button>'+
         '</div>':
-        '<div style="padding:0 12px 10px;display:flex;gap:6px">'+
-        '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:7px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">📋 عرض التقرير</button>'+
-        '<button data-action="wa-driver" data-id="'+rid+'" style="padding:7px 12px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:9px;font-family:inherit;font-size:14px;cursor:pointer">📲</button>'+
+        '<div style="padding:0 10px 8px;display:flex;gap:5px">'+
+        '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:6px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:8px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer">📋 عرض التقرير</button>'+
+        '<button data-action="wa-driver" data-id="'+rid+'" style="padding:6px 10px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer">📲</button>'+
         '</div>')+
         '</div>';
     });
@@ -12594,24 +12594,24 @@ function renderRentalDailyView() {
         var sb=recs.reduce(function(s,r){ return s+(r.basicHours||0); },0);
         var sk=recs.reduce(function(s,r){ return s+(r.breakHours||0); },0);
         var se=recs.reduce(function(s,r){ return s+(r.extraHours||0); },0);
-        html+='<div style="background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border-radius:12px;padding:8px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center"><strong>📅 '+date+'</strong><span style="font-size:11px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px">'+recs.length+' معدة | أساسي '+sb.toFixed(1)+'س'+(sk>0?' | راحة '+sk.toFixed(1)+'س':'')+(se>0?' | إضافي '+se.toFixed(1)+'س':'')+'</span></div>';
+        html+='<div style="background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border-radius:12px;padding:9px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><strong>📅 '+date+'</strong><span style="font-size:12px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px">'+recs.length+' معدة | أساسي '+sb.toFixed(1)+'س'+(sk>0?' | راحة '+sk.toFixed(1)+'س':'')+(se>0?' | إضافي '+se.toFixed(1)+'س':'')+'</span></div>';
         recs.forEach(function(r){
             var rental=rentalData.find(function(x){ return x.id===r.equipmentId; });
             var eq=rental?equipmentData.find(function(e){ return e.id===rental.equipmentId; }):null;
             var drv=rental?driversData.find(function(d){ return d.id===rental.driverId; }):null;
             var label=eq?(eq.type+' — '+eq.code):(r.equipmentCode||'—');
-            html+='<div class="rental-card" style="background:white;border-radius:11px;border:1px solid #e2e8f0;margin-bottom:5px;overflow:hidden;max-width:520px"><div style="padding:6px 9px">'+
-                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;gap:6px">'+
-                '<div style="min-width:0;flex:1;overflow:hidden"><div style="font-weight:700;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(label)+'"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:9.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:9px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 سجّلها: '+escapeHtml(r.recordedByName)+'</div>':'')+'</div>'+
-                (isAdmin?'<div style="display:flex;gap:3px;flex-shrink:0">'+
-                '<button data-action="edit-daily" data-id="'+r.id+'" style="background:#e0e7ff;color:#4338ca;border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">✏️</button>'+
-                '<button data-action="del-daily" data-id="'+r.id+'" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">🗑️</button></div>':'')+'</div>'+
-                '<div style="display:grid;grid-template-columns:1fr 0.7fr 0.7fr'+(r.breakHours>0?' 0.7fr':'')+';gap:3px;font-size:9px">'+
-                '<div style="background:var(--light);padding:3px 4px;border-radius:6px;text-align:center">🟢 '+(r.inTime||'—')+'<br>🔴 '+(r.outTime||'—')+'</div>'+
-                '<div style="background:var(--light);padding:3px 4px;border-radius:6px;text-align:center">✅ أساسي<br><strong style="font-size:10px">'+(r.basicHours||0).toFixed(1)+'س</strong></div>'+
-                (r.breakHours>0?'<div style="background:#fef3c7;color:#92400e;padding:3px 4px;border-radius:6px;text-align:center">☕ راحة<br><strong style="font-size:10px">'+(r.breakHours||0).toFixed(1)+'س</strong></div>':'')+
-                '<div style="background:'+(r.extraHours>0?'#fef3c7':'var(--light)')+';color:'+(r.extraHours>0?'#92400e':'inherit')+';padding:3px 4px;border-radius:6px;text-align:center">⚡ إضافي<br><strong style="font-size:10px">'+(r.extraHours||0).toFixed(2)+'س</strong></div></div>'+
-                '<div style="margin-top:4px;font-size:10px;color:'+(r.notes?'var(--gray)':'#c3cad4')+';background:var(--light);padding:3px 8px;border-radius:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 '+(r.notes?escapeHtml(r.notes):'لا توجد ملاحظات')+'</div></div></div>';
+            html+='<div class="rental-card" style="background:white;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:9px;overflow:hidden;max-width:600px"><div style="padding:10px 14px">'+
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px">'+
+                '<div style="min-width:0;flex:1;overflow:hidden"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(label)+'"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:11.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:10.5px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 سجّلها: '+escapeHtml(r.recordedByName)+'</div>':'')+'</div>'+
+                (isAdmin?'<div style="display:flex;gap:5px;flex-shrink:0">'+
+                '<button data-action="edit-daily" data-id="'+r.id+'" style="background:#e0e7ff;color:#4338ca;border:none;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer">✏️</button>'+
+                '<button data-action="del-daily" data-id="'+r.id+'" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer">🗑️</button></div>':'')+'</div>'+
+                '<div style="display:grid;grid-template-columns:1fr 0.7fr 0.7fr'+(r.breakHours>0?' 0.7fr':'')+';gap:6px;font-size:11px">'+
+                '<div style="background:var(--light);padding:6px 8px;border-radius:8px;text-align:center">🟢 '+(r.inTime||'—')+'<br>🔴 '+(r.outTime||'—')+'</div>'+
+                '<div style="background:var(--light);padding:6px 8px;border-radius:8px;text-align:center">✅ أساسي<br><strong style="font-size:13px">'+(r.basicHours||0).toFixed(1)+'س</strong></div>'+
+                (r.breakHours>0?'<div style="background:#fef3c7;color:#92400e;padding:6px 8px;border-radius:8px;text-align:center">☕ راحة<br><strong style="font-size:13px">'+(r.breakHours||0).toFixed(1)+'س</strong></div>':'')+
+                '<div style="background:'+(r.extraHours>0?'#fef3c7':'var(--light)')+';color:'+(r.extraHours>0?'#92400e':'inherit')+';padding:6px 8px;border-radius:8px;text-align:center">⚡ إضافي<br><strong style="font-size:13px">'+(r.extraHours||0).toFixed(2)+'س</strong></div></div>'+
+                '<div style="margin-top:7px;font-size:11.5px;color:'+(r.notes?'var(--gray)':'#c3cad4')+';background:var(--light);padding:5px 10px;border-radius:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 '+(r.notes?escapeHtml(r.notes):'لا توجد ملاحظات')+'</div></div></div>';
         });
     });
     c.innerHTML=html;
