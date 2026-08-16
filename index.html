@@ -168,8 +168,6 @@ button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
   .equipment-card,.driver-card,.fuel-card,.maintenance-card,.inventory-item-card{margin-bottom:0}
 #rental-daily-list{display:flex;flex-direction:column;gap:8px;width:100%;max-width:640px;margin:0 auto!important}
 #rental-equipment-list{display:flex;flex-direction:column;gap:5px;width:100%;max-width:440px;margin:0 auto!important}
-  #view-rental,#view-rental>div,#rental-section-equipment,#rental-section-daily{margin-left:0!important;width:100%}
-  #view-map,#map-content-card{margin-left:0!important}
 
   .search-box{max-width:420px}
   #view-equipment>div>div[style*="margin-bottom:10px;display:flex;gap:8px"]{max-width:900px}
@@ -249,9 +247,21 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   animation:eqCardShine 0.85s ease}
 .card-title{letter-spacing:.1px}
 
-/* كروت الإيجار (المعدات والسجل اليومي): عمود واحد تحت بعض، وفي منتصف الصفحة */
+/* كروت الإيجار (المعدات والسجل اليومي): عمود واحد على الموبايل */
 #rental-equipment-list{display:flex!important;flex-direction:column;gap:5px;max-width:440px;margin:0 auto!important}
 #rental-daily-list{display:flex!important;flex-direction:column;gap:8px;max-width:640px;margin:0 auto!important}
+
+/* على الشاشات الكبيرة: شبكة كروت أنيقة بدل العمود الواحد الضيق، تستغل مساحة الصفحة بعد حجز الشريط الجانبي */
+@media (min-width:1024px){
+  #rental-equipment-list{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))!important;gap:16px!important;max-width:1320px!important;margin:0!important;align-items:start}
+  #rental-daily-list{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(370px,1fr))!important;gap:16px!important;max-width:1320px!important;margin:0!important;align-items:start}
+  #rental-daily-list .rental-date-header{grid-column:1/-1;margin-bottom:2px!important}
+}
+#rental-daily-list .rental-date-header{margin-bottom:8px}
+
+/* لمسة تصميم مميزة لكروت الإيجار: حواف أنعم وظل أرقى بلون العلامة الأرجواني الخاص بصفحة الإيجار */
+.rental-card{border-radius:16px!important;box-shadow:0 2px 10px rgba(13,27,42,.06),0 1px 2px rgba(13,27,42,.04)!important;border:1px solid rgba(124,58,237,.10)!important}
+.rental-card:hover,.rental-card.touch-active{box-shadow:0 18px 36px rgba(124,58,237,.18)!important;border-color:rgba(124,58,237,.22)!important}
 
 .emp-subtab-btn{flex:1;border:none;background:transparent;padding:9px 10px;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer;transition:all .18s ease}
 .emp-subtab-btn.active{background:white;color:var(--primary);box-shadow:0 2px 6px rgba(13,27,42,.12)}
@@ -654,7 +664,7 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   
   <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button><div id="maintenance-list"></div></div></div>
   
-  <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box" style="margin-bottom:8px"><span>🔍</span><input type="text" id="search-inventory" placeholder="بحث باسم أو رقم قطعة..."></div><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><button id="add-inventory-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,var(--purple),var(--pink))">📦 إضافة صنف جديد</button><button id="export-inventory-excel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير المخزون Excel</button><button id="order-report-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,var(--danger),var(--warning))">📋 إنشاء طلبية للنواقص (1000 ساعة)</button><button id="delete-all-inventory-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع أصناف المخزون</button><button id="fix-filter-category-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0891b2,#155e75)" onclick="fixMiscategorizedFilters()">🔍 فحص وتصحيح تصنيف الفلاتر المسجّلة كزيوت</button><div id="inv-list"></div></div></div></div>
+  <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box" style="margin-bottom:8px"><span>🔍</span><input type="text" id="search-inventory" placeholder="بحث باسم أو رقم قطعة..."></div><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><button id="add-inventory-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,var(--purple),var(--pink))">📦 إضافة صنف جديد</button><button id="export-inventory-excel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير المخزون Excel</button><button id="order-report-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,var(--danger),var(--warning))">📋 إنشاء طلبية للنواقص (1000 ساعة)</button><button id="delete-all-inventory-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع أصناف المخزون</button><button id="fix-filter-category-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0891b2,#155e75)" onclick="fixMiscategorizedFilters()">🔍 فحص وتصحيح تصنيف الفلاتر المسجّلة كزيوت</button><div id="inv-list"></div></div></div>
   
   <div id="view-rental" style="display:none">
     <div style="padding:14px">
@@ -12599,7 +12609,7 @@ function renderRentalDailyView() {
         var sb=recs.reduce(function(s,r){ return s+(r.basicHours||0); },0);
         var sk=recs.reduce(function(s,r){ return s+(r.breakHours||0); },0);
         var se=recs.reduce(function(s,r){ return s+(r.extraHours||0); },0);
-        html+='<div style="background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border-radius:12px;padding:9px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><strong>📅 '+date+'</strong><span style="font-size:12px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px">'+recs.length+' معدة | أساسي '+sb.toFixed(1)+'س'+(sk>0?' | راحة '+sk.toFixed(1)+'س':'')+(se>0?' | إضافي '+se.toFixed(1)+'س':'')+'</span></div>';
+        html+='<div class="rental-date-header" style="background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border-radius:12px;padding:9px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><strong>📅 '+date+'</strong><span style="font-size:12px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px">'+recs.length+' معدة | أساسي '+sb.toFixed(1)+'س'+(sk>0?' | راحة '+sk.toFixed(1)+'س':'')+(se>0?' | إضافي '+se.toFixed(1)+'س':'')+'</span></div>';
         recs.forEach(function(r){
             var rental=rentalData.find(function(x){ return x.id===r.equipmentId; });
             var eq=rental?equipmentData.find(function(e){ return e.id===rental.equipmentId; }):null;
