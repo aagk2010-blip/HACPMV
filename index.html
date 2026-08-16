@@ -897,7 +897,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">📧</span>
-          <input type="email" id="secure-username" placeholder="البريد الالكتروني" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
+          <input type="text" id="secure-username" placeholder="البريد الإلكتروني أو رقم الهاتف" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
         </div>
       </div>
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:14px">
@@ -924,7 +924,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">📧</span>
-          <input type="email" id="reg-email" placeholder="البريد الالكتروني" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+          <input type="text" id="reg-email" placeholder="البريد الإلكتروني أو رقم الهاتف" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
         </div>
       </div>
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
@@ -3755,15 +3755,18 @@ function registerNewUser() {
     }
 
     if (!name) { showErr('أدخل الاسم الكامل'); return; }
-    if (!email || !email.includes('@')) { showErr('أدخل بريد إلكتروني صحيح'); return; }
+    var isEmailContact = email.includes('@');
+    var isPhoneContact = /^[0-9+\s-]{8,15}$/.test(email);
+    if (!email || (!isEmailContact && !isPhoneContact)) { showErr('أدخل بريد إلكتروني صحيح أو رقم هاتف صحيح'); return; }
+    if (isEmailContact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('أدخل بريد إلكتروني صحيح'); return; }
     if (pass.length < 6) { showErr('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
     if (pass !== pass2) { showErr('كلمتا المرور غير متطابقتين'); return; }
 
     if (!fbDb) { showErr('لا يوجد اتصال بقاعدة البيانات، حاول مرة أخرى لاحقاً'); return; }
 
-    // تأكد عدم وجود حساب فعّال بنفس البريد مسبقاً
+    // تأكد عدم وجود حساب فعّال بنفس البريد/الهاتف مسبقاً
     var existingUser = APP_USERS.find(function(u) { return u.username.toLowerCase() === email.toLowerCase(); });
-    if (existingUser) { showErr('هذا البريد مسجل مسبقاً، حاول تسجيل الدخول.'); return; }
+    if (existingUser) { showErr('هذا البريد/الرقم مسجل مسبقاً، حاول تسجيل الدخول.'); return; }
 
     btn.innerHTML = 'جاري الإرسال... <span class="loading-spinner"></span>';
     btn.disabled = true;
@@ -3774,7 +3777,7 @@ function registerNewUser() {
             return r.username && r.username.toLowerCase() === email.toLowerCase();
         });
         if (alreadyPending) {
-            showErr('تم إرسال طلب بهذا البريد مسبقاً، انتظر موافقة المدير.');
+            showErr('تم إرسال طلب بهذا البريد/الرقم مسبقاً، انتظر موافقة المدير.');
             btn.innerHTML = '✨ انشاء حساب';
             btn.disabled = false;
             return;
@@ -3782,6 +3785,7 @@ function registerNewUser() {
         return fbDb.ref('accountRequests').push({
             name: name,
             username: email,
+            contactType: isEmailContact ? 'email' : 'phone',
             password: pass,
             requestedAt: new Date().toISOString()
         }).then(function() {
@@ -3804,6 +3808,41 @@ function registerNewUser() {
 // ==================== طلبات الحسابات الجديدة (موافقة / رفض) ====================
 var accountRequestsData = [];
 
+// نفس منطق الصلاحيات الافتراضية حسب الدور المستخدم في إنشاء المستخدمين من لوحة المدير
+function sectionsForRole(role) {
+    if (role === 'admin') {
+        return { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', equipmentChecks:'full', sites:'full', analytics:'full' };
+    } else if (role === 'manager') {
+        return { home:'full', equipment:'edit', fuel:'edit', maintenance:'edit', inventory:'edit', rental:'edit', drivers:'edit', employees:'edit', equipmentChecks:'add', sites:'view', analytics:'view' };
+    } else if (role === 'editor') {
+        return { home:'view', equipment:'add', fuel:'add', maintenance:'add', inventory:'add', rental:'add', drivers:'add', employees:'add', equipmentChecks:'add', sites:'none', analytics:'none' };
+    }
+    return { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', map:'none', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none' };
+}
+
+var ACCOUNT_ROLE_OPTIONS_HTML =
+    '<option value="viewer">👁️ مشاهد — عرض فقط</option>' +
+    '<option value="editor" selected>✏️ محرر — إضافة وتعديل</option>' +
+    '<option value="manager">🔧 مدير قسم</option>' +
+    '<option value="admin">👑 مدير النظام — صلاحيات كاملة</option>';
+
+function accountRequestCardHtml(r) {
+    var isPhone = r.contactType === 'phone' || !(r.username || '').includes('@');
+    var contactIcon = isPhone ? '📱' : '📧';
+    var when = r.requestedAt ? new Date(r.requestedAt).toLocaleString('ar-EG') : '';
+    return '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;margin-bottom:8px">' +
+        '<div style="font-weight:700;font-size:13px;color:#0d1b2a">' + escapeHtml(r.name) + '</div>' +
+        '<div style="font-size:11.5px;color:#64748b;margin-top:2px">' + contactIcon + ' ' + escapeHtml(r.username) + '</div>' +
+        (when ? '<div style="font-size:10.5px;color:#94a3b8;margin-top:1px">🕒 ' + when + '</div>' : '') +
+        '<div style="display:flex;gap:6px;align-items:center;margin-top:8px">' +
+        '<select id="req-role-' + r.id + '" style="flex:1;border:1px solid #fde68a;border-radius:8px;padding:6px 8px;font-size:11.5px;font-family:inherit;background:white">' + ACCOUNT_ROLE_OPTIONS_HTML + '</select>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;margin-top:6px">' +
+        '<button onclick="approveAccountRequest(\'' + r.id + '\')" style="flex:1;background:#10b981;color:white;border:none;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer">✅ قبول وتفعيل</button>' +
+        '<button onclick="rejectAccountRequest(\'' + r.id + '\')" style="flex:1;background:#ef4444;color:white;border:none;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer">❌ رفض</button>' +
+        '</div></div>';
+}
+
 function renderAccountRequests() {
     var listEl = document.getElementById('account-requests-list');
     if (!listEl) return;
@@ -3812,34 +3851,43 @@ function renderAccountRequests() {
         return;
     }
     listEl.innerHTML = '<div style="font-weight:800;font-size:13px;color:#92400e;margin-bottom:8px">📩 طلبات حسابات جديدة (' + accountRequestsData.length + ')</div>' +
-        accountRequestsData.map(function(r) {
-            return '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px">' +
-                '<div style="min-width:0;flex:1">' +
-                '<div style="font-weight:700;font-size:13px;color:#0d1b2a">' + escapeHtml(r.name) + '</div>' +
-                '<div style="font-size:11px;color:#64748b">' + escapeHtml(r.username) + '</div>' +
-                '</div>' +
-                '<div style="display:flex;gap:6px;flex-shrink:0">' +
-                '<button data-action="approve-request" data-id="' + r.id + '" style="background:#10b981;color:white;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">✅ قبول</button>' +
-                '<button data-action="reject-request" data-id="' + r.id + '" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">❌ رفض</button>' +
-                '</div></div>';
-        }).join('');
-
-    listEl.querySelectorAll('[data-action="approve-request"]').forEach(function(btn) {
-        btn.onclick = function() { approveAccountRequest(btn.dataset.id); };
-    });
-    listEl.querySelectorAll('[data-action="reject-request"]').forEach(function(btn) {
-        btn.onclick = function() { rejectAccountRequest(btn.dataset.id); };
-    });
+        accountRequestsData.map(accountRequestCardHtml).join('');
 }
 
+function getPendingAccountRequests() {
+    return accountRequestsData || [];
+}
+
+var _knownAccountRequestIds = null;
 function watchAccountRequests() {
     if (!fbDb) return;
     fbDb.ref('accountRequests').on('value', function(snap) {
         var data = snap.val();
+        var prevIds = _knownAccountRequestIds;
         accountRequestsData = data ? Object.entries(data).map(function(e) {
             var obj = Object.assign({}, e[1]); obj.id = e[0]; return obj;
         }) : [];
+        var newIds = accountRequestsData.map(function(r) { return r.id; });
+
+        // نبّه المدير بإشعار متصفح فعلي عند وصول طلب حساب جديد (وليس فقط عند أول تحميل للصفحة)
+        if (prevIds !== null && currentUser && currentUser.role === 'admin') {
+            var freshOnes = accountRequestsData.filter(function(r) { return prevIds.indexOf(r.id) === -1; });
+            if (freshOnes.length && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                freshOnes.forEach(function(r) {
+                    try {
+                        new Notification('👤 طلب حساب جديد', {
+                            body: escapeHtml(r.name) + ' — ' + r.username,
+                            icon: COMPANY_ICON_SQUARE_URI || undefined
+                        });
+                    } catch (e) {}
+                });
+            }
+            if (freshOnes.length) showToast('👤 طلب حساب جديد من: ' + freshOnes.map(function(r){ return r.name; }).join('، '));
+        }
+        _knownAccountRequestIds = newIds;
+
         renderAccountRequests();
+        if (currentUser && currentUser.role === 'admin') runSmartAlertsRefresh();
     });
 }
 
@@ -3850,21 +3898,25 @@ function approveAccountRequest(id) {
         showToast('⛔ يوجد مستخدم بنفس اسم الدخول مسبقاً', true);
         return;
     }
+    var roleSel = document.getElementById('req-role-' + id);
+    var role = roleSel ? roleSel.value : 'viewer';
+    var roleLabels = { viewer:'👁️ مشاهد', editor:'✏️ محرر', manager:'🔧 مدير قسم', admin:'👑 مدير النظام' };
     APP_USERS.push({
         id: 'user_' + Date.now(),
         username: req.username,
         password: req.password,
         name: req.name,
-        role: 'custom',
+        role: role === 'admin' ? 'admin' : 'custom',
         active: true,
-        sections: { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', map:'none', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none' },
+        sections: sectionsForRole(role),
         sites: []
     });
     saveAppUsers().then(function() {
         return fbDb.ref('accountRequests/' + id).remove();
     }).then(function() {
-        showToast('✅ تم قبول الطلب وإنشاء الحساب');
+        showToast('✅ تم قبول الطلب — الحساب مفعّل بصلاحية ' + (roleLabels[role] || role));
         loadAdminUsers();
+        runSmartAlertsRefresh();
     }).catch(function(e) {
         showToast('❌ فشل قبول الطلب: ' + e.message, true);
     });
@@ -3874,6 +3926,7 @@ function rejectAccountRequest(id) {
     if (!confirm('هل تريد رفض هذا الطلب؟ لن يتمكن المتقدّم من الدخول.')) return;
     fbDb.ref('accountRequests/' + id).remove().then(function() {
         showToast('🚫 تم رفض الطلب');
+        runSmartAlertsRefresh();
     }).catch(function(e) {
         showToast('❌ فشل رفض الطلب: ' + e.message, true);
     });
@@ -8487,9 +8540,11 @@ function getAllSmartAlerts() {
     totalCount += pendingFaults.length;
     var pendingChecks = (currentUser && currentUser.role === 'admin') ? getPendingEquipmentChecks() : [];
     totalCount += pendingChecks.length;
+    var pendingAccountRequests = (currentUser && currentUser.role === 'admin') ? getPendingAccountRequests() : [];
+    totalCount += pendingAccountRequests.length;
     return {
         maintOverdue:maintOverdue, maintSoon:maintSoon, licExpired:licExpired, licSoon:licSoon, lowStock:lowStock, rentExpired:rentExpired, rentSoon:rentSoon,
-        pendingReports:pendingReports, pendingApprovals:pendingApprovals, pendingFaults:pendingFaults, pendingChecks:pendingChecks, totalCount:totalCount,
+        pendingReports:pendingReports, pendingApprovals:pendingApprovals, pendingFaults:pendingFaults, pendingChecks:pendingChecks, pendingAccountRequests:pendingAccountRequests, totalCount:totalCount,
         _raw: { maintOverdue:maintOverdueRaw, maintSoon:maintSoonRaw, licExpired:licExpiredRaw, licSoon:licSoonRaw, lowStock:lowStockRaw, rentExpired:rentExpiredRaw, rentSoon:rentSoonRaw }
     };
 }
@@ -8526,6 +8581,7 @@ function showSmartAlertBar() {
     if (a.pendingApprovals.length) parts.push('✅ ' + a.pendingApprovals.length + ' طلب بانتظار موافقتك');
     if (a.pendingFaults.length) parts.push('🚨 ' + a.pendingFaults.length + ' بلاغ عطل جديد');
     if (a.pendingChecks.length) parts.push('🔍 ' + a.pendingChecks.length + ' مراجعة معدة محتاجة متابعة');
+    if (a.pendingAccountRequests.length) parts.push('👤 ' + a.pendingAccountRequests.length + ' طلب حساب جديد بانتظار الموافقة');
     if (!parts.length) { alertDiv.style.display = 'none'; return; }
     var msg = parts.join(' | ') + ' — <button onclick="openNotifCenter()" style="background:rgba(0,0,0,.15);border:none;color:inherit;border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">عرض التفاصيل</button>';
     alertDiv.innerHTML = '<div class="smart-alert-bar"><span>' + msg + '</span><button class="close-alert" onclick="document.getElementById(\'alert-bar\').style.display=\'none\'">✕</button></div>';
@@ -8635,6 +8691,10 @@ function openNotifCenter() {
                     '<button onclick="sendScheduledReportNow(\'' + it.key + '\')" style="background:#7c3aed;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">📤 إرسال الآن</button>' +
                     '</div>';
             }).join('') + '</div>';
+    }
+    if (a.pendingAccountRequests.length) {
+        html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#92400e;margin-bottom:6px">👤 طلبات حسابات جديدة (' + a.pendingAccountRequests.length + ')</div>' +
+            a.pendingAccountRequests.map(accountRequestCardHtml).join('') + '</div>';
     }
     if (!a.totalCount) html = '<div style="text-align:center;padding:30px;color:var(--gray)">✅ لا توجد تنبيهات حالياً — كل شيء تمام</div>';
     var hasClearable = a.maintOverdue.length || a.maintSoon.length || a.licExpired.length || a.licSoon.length || a.lowStock.length || a.rentExpired.length || a.rentSoon.length;
