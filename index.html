@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta name="color-scheme" content="light only">
+<meta name="color-scheme" content="light dark">
+<script>(function(){try{var t=localStorage.getItem('ems-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -717,6 +718,122 @@ body::marker{content:none}
 /* --- شارات الحالة: نبضة توهج خفيفة للحالة النشطة/العاملة --- */
 @keyframes glassPulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.35)}50%{box-shadow:0 0 0 5px rgba(16,185,129,0)}}
 .badge-working{animation:glassPulse 2.4s ease-in-out infinite}
+
+/* =======================================================================
+   الوضع الليلي (Dark Mode) — زجاج داكن مطابق لنفس لغة Liquid Glass
+   يعمل بتفعيل html[data-theme="dark"]. أي عنصر مبني على متغيرات
+   --glass-* أو --gray يتلوّن تلقائيًا. باقي العناصر (التقارير/المعاينات
+   الداخلية التي لها خلفية فاتحة صريحة) تُترك كما هي عمدًا لسهولة القراءة.
+   ======================================================================= */
+html[data-theme="dark"]{color-scheme:dark}
+html:not([data-theme="dark"]){color-scheme:light}
+
+html[data-theme="dark"]{
+  --glass-bg:rgba(32,38,52,.55);
+  --glass-bg-soft:rgba(32,38,52,.38);
+  --glass-bg-strong:rgba(42,49,66,.75);
+  --glass-border:rgba(255,255,255,.16);
+  --glass-border-soft:rgba(255,255,255,.10);
+  --glass-highlight:inset 0 1px 0 rgba(255,255,255,.09),inset 0 0 0 1px rgba(255,255,255,.06);
+  --glass-shadow:0 8px 32px rgba(0,0,0,.38),0 1px 2px rgba(0,0,0,.25);
+  --glass-shadow-lg:0 20px 60px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.3);
+  --gray:#9aa7ba;
+}
+
+/* --- خلفية الصفحة: زجاج سائل داكن --- */
+html[data-theme="dark"]{background:#0b0f16}
+html[data-theme="dark"] body{
+  background:
+    radial-gradient(600px 500px at 8% -5%, rgba(232,160,32,.10), transparent 60%),
+    radial-gradient(560px 480px at 108% 12%, rgba(14,116,144,.12), transparent 60%),
+    radial-gradient(620px 520px at 20% 108%, rgba(139,92,246,.10), transparent 60%),
+    radial-gradient(500px 460px at 95% 100%, rgba(16,185,129,.07), transparent 60%),
+    linear-gradient(180deg,#0d1219,#0a0e14)!important;
+  color:#e8edf3;
+}
+html[data-theme="dark"] body::before{
+  background:
+    radial-gradient(480px 420px at 10% 15%, rgba(232,160,32,.10), transparent 60%),
+    radial-gradient(520px 440px at 90% 25%, rgba(14,116,144,.11), transparent 60%),
+    radial-gradient(460px 400px at 25% 90%, rgba(139,92,246,.09), transparent 60%);
+}
+
+/* --- التنقل السفلي والشريط الجانبي: زجاج داكن أعمق --- */
+html[data-theme="dark"] .tab-bar{
+  background:rgba(18,22,30,.62)!important;
+  border-top:1px solid rgba(255,255,255,.10)!important;
+  box-shadow:0 -8px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);
+}
+html[data-theme="dark"] .tab-bar::before{background:linear-gradient(180deg,transparent,rgba(11,15,22,.55))}
+html[data-theme="dark"] .tab-btn{color:var(--gray)}
+html[data-theme="dark"] .tab-btn.active{
+  background:rgba(255,255,255,.10)!important;
+  box-shadow:0 4px 14px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.12);
+}
+html[data-theme="dark"] .modal-overlay,html[data-theme="dark"] .admin-panel-overlay{
+  background:rgba(11,15,22,.90)!important;
+}
+@media (min-width:1024px){
+  html[data-theme="dark"] .modal-overlay,html[data-theme="dark"] .admin-panel-overlay{
+    box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 3000px rgba(0,0,0,.65)!important;
+    border-color:rgba(255,255,255,.12)!important;
+  }
+}
+
+/* --- النصوص الأساسية داخل الأسطح الزجاجية: تتحول للون فاتح --- */
+html[data-theme="dark"] .card-title,
+html[data-theme="dark"] .employee-card .emp-name,
+html[data-theme="dark"] .driver-card .drv-name,
+html[data-theme="dark"] .fuel-card-compact .fc-name,
+html[data-theme="dark"] .detail-value,
+html[data-theme="dark"] .user-email,
+html[data-theme="dark"] .form-input,
+html[data-theme="dark"] .form-select,
+html[data-theme="dark"] .form-textarea,
+html[data-theme="dark"] .app-tile-label,
+html[data-theme="dark"] .check-chip-label,
+html[data-theme="dark"] .stat-label,
+html[data-theme="dark"] .section-title{
+  color:#eef2f7!important;
+}
+html[data-theme="dark"] .form-input::placeholder,
+html[data-theme="dark"] .form-textarea::placeholder{color:rgba(232,237,243,.4)}
+html[data-theme="dark"] .form-field{border-bottom-color:rgba(255,255,255,.08)!important}
+html[data-theme="dark"] .stat-number{
+  background:linear-gradient(90deg,#ffffff,#f3d9a6)!important;
+  -webkit-background-clip:text;background-clip:text;
+}
+
+/* --- الشارات: ألوان أفتح لضمان التباين فوق الزجاج الداكن --- */
+html[data-theme="dark"] .badge-working{background:rgba(16,185,129,.22)!important;color:#6ee7b7!important}
+html[data-theme="dark"] .badge-maintenance{background:rgba(245,158,11,.22)!important;color:#fcd34d!important}
+html[data-theme="dark"] .badge-stopped{background:rgba(239,68,68,.22)!important;color:#fca5a5!important}
+html[data-theme="dark"] .badge-active{background:rgba(37,99,235,.22)!important;color:#93c5fd!important}
+
+/* --- شريط البحث والأزرار الكبيرة: حدود أوضح على الزجاج الداكن --- */
+html[data-theme="dark"] .search-box input,html[data-theme="dark"] .search-box select{color:#eef2f7}
+html[data-theme="dark"] .save-btn,html[data-theme="dark"] .big-btn{filter:brightness(.96)}
+html[data-theme="dark"] .empty-state{color:var(--gray)}
+
+/* --- خط اللمعان أعلى الكروت: أهدأ في الوضع الداكن --- */
+html[data-theme="dark"] .equipment-card::after,html[data-theme="dark"] .driver-card::after,
+html[data-theme="dark"] .employee-card::after,html[data-theme="dark"] .fuel-card::after,
+html[data-theme="dark"] .fuel-card-compact::after,html[data-theme="dark"] .maintenance-card::after,
+html[data-theme="dark"] .inventory-item-card::after,html[data-theme="dark"] .rental-card::after,
+html[data-theme="dark"] .user-row::after,html[data-theme="dark"] .stat-card::after{
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35) 45%,rgba(255,255,255,.35) 55%,transparent);
+}
+
+/* --- زر تبديل الوضع: تدوير ولمعان عند الضغط --- */
+#theme-toggle-btn{transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+#theme-toggle-btn:active{transform:rotate(25deg) scale(.9)}
+
+/* --- تمرير سلس عند التبديل بين الأوضاع --- */
+body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.maintenance-card,
+.inventory-item-card,.rental-card,.user-row,.detail-section,.stat-card,.form-group,.search-box,
+.tab-bar,.modal-overlay,.admin-panel-overlay{
+  transition:background .35s ease,color .35s ease,border-color .35s ease,box-shadow .35s ease;
+}
 </style>
 </head>
 <body>
@@ -871,7 +988,7 @@ body::marker{content:none}
   </nav>
   <div class="app-main">
   <div class="status-bar"><span>🏗️ Hassan Allam Holding</span><div><span id="user-name-display"></span><button id="logout-btn" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 12px; border-radius:20px; font-size:11px; cursor:pointer; margin-right:8px">خروج</button><button id="admin-panel-btn" style="display:none;background:rgba(232,160,32,0.3);border:none;color:white;border-radius:20px;padding:4px 12px;font-size:11px;cursor:pointer;margin-right:5px">⚙️ الضبط</button></div></div>
-  <div class="header"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:20px;font-weight:900;color:white;letter-spacing:2px;flex-shrink:0;font-family:serif">HAC</span><div class="header-title" id="header-title" style="margin-bottom:0">📊 لوحة القيادة</div></div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
+  <div class="header"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:20px;font-weight:900;color:white;letter-spacing:2px;flex-shrink:0;font-family:serif">HAC</span><div class="header-title" id="header-title" style="margin-bottom:0">📊 لوحة القيادة</div></div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="theme-toggle-btn" onclick="toggleAppTheme()" title="الوضع الليلي" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer;line-height:1">🌙</button><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
   <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title">لوحة القيادة</div><div class="dash-hero-sub">متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع.</div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))">🔄 تحديث البيانات يدوياً</button><div class="section" style="margin-top:14px"><div class="section-title">📂 الأقسام</div><div id="home-app-grid" class="app-grid"></div></div></div>
@@ -13517,5 +13634,22 @@ window.dismissInstall = function() {
     </div>
 </div>
 
+<script>
+function toggleAppTheme(){
+  var html = document.documentElement;
+  var current = html.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  var next = current === 'dark' ? 'light' : 'dark';
+  if(next === 'dark'){ html.setAttribute('data-theme','dark'); } else { html.removeAttribute('data-theme'); }
+  try{ localStorage.setItem('ems-theme', next); }catch(e){}
+  updateThemeToggleIcon(next);
+}
+function updateThemeToggleIcon(theme){
+  var btn = document.getElementById('theme-toggle-btn');
+  if(btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+document.addEventListener('DOMContentLoaded', function(){
+  updateThemeToggleIcon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+});
+</script>
 </body>
 </html>
