@@ -52,7 +52,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 #fuel-list{display:flex;flex-direction:column;gap:6px;max-width:720px}
 @media (min-width:1024px){ #fuel-list{gap:7px} }
 .status-bar{background:var(--primary);color:white;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-top:24px}
-.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.05);display:flex;justify-content:flex-start;padding:8px 0 20px;z-index:100;overflow-x:auto;-webkit-overflow-scrolling:touch}.tab-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;font-family:inherit;cursor:pointer;font-size:10px;color:var(--gray);min-width:60px;flex-shrink:0}.tab-btn.active{color:var(--accent);font-weight:600}.tab-icon{font-size:20px}
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:rgba(255,255,255,0.96);border-top:1px solid rgba(0,0,0,0.05);z-index:100;overflow:hidden}.tab-bar-scroll{display:flex;justify-content:flex-start;padding:8px 0 20px;overflow-x:auto;-webkit-overflow-scrolling:touch}.tab-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;font-family:inherit;cursor:pointer;font-size:10px;color:var(--gray);min-width:60px;flex-shrink:0}.tab-btn.active{color:var(--accent);font-weight:600}.tab-icon{font-size:20px}
 .fab{position:fixed;bottom:85px;right:20px;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border:none;color:var(--primary);font-size:26px;cursor:pointer;box-shadow:0 4px 15px rgba(232,160,32,0.4);z-index:150;display:flex;align-items:center;justify-content:center}
 .modal-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:100%;background:var(--light);z-index:200;overflow-y:auto;display:none}.modal-overlay.active{display:block}.modal-header{background:linear-gradient(135deg,var(--primary),var(--secondary));padding:50px 20px 24px;color:white;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.modal-title{font-size:20px;font-weight:800}.modal-close{background:rgba(255,255,255,0.2);border:none;color:white;width:36px;height:36px;border-radius:18px;font-size:20px;cursor:pointer}
 .form-group{background:var(--white);margin:12px 14px;border-radius:16px;overflow:hidden}.form-field{padding:12px 16px;border-bottom:1px solid #eef2f6}.form-field:last-child{border-bottom:none}.form-label{font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:5px}.form-input,.form-select,.form-textarea{width:100%;border:none;outline:none;font-size:14px;font-family:inherit;background:transparent;color:var(--primary)}.form-textarea{resize:vertical;min-height:60px}
@@ -494,21 +494,42 @@ body{background:
   border-color:rgba(255,255,255,.7)!important;
 }
 
-/* --- التنقل السفلي (Tab Bar): زجاج داكن عالي الجودة بطراز iOS 27 Liquid Glass ---
-   خلفية داكنة شفافة + ضبابية وتشبّع قويين + حافة علوية مضيئة + انعكاس زجاجي داخلي
-   يبان بوضوح فوق أي محتوى ملوّن خلفه (بدل الزجاج الفاتح اللي كان بياخد لون الخلفية البيضا) */
+/* --- التنقل السفلي (Tab Bar): زجاج داكن عالي الدقة بطراز iOS 27 Liquid Glass ---
+   طبقات متعددة تحاكي انكسار الضوء الحقيقي على سطح الزجاج: تشبّع وضبابية أقوى + تباين خفيف
+   + انعكاس ضوئي علوي منحني + حافة مضيئة رفيعة + نسيج حبيبي خفيف يمنع التسطح البلاستيكي.
+   العنصر ده أصبح ثابت (مش هو اللي بيتسحب) فمقدر أرفع فيه الجودة براحة من غير ما يأثر على أداء السحب. */
 .tab-bar{
+  position:relative;
   background:
-    linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,0) 40%),
-    linear-gradient(180deg,rgba(22,28,40,.78),rgba(8,12,20,.90))!important;
-  backdrop-filter:blur(26px) saturate(190%)!important;-webkit-backdrop-filter:blur(26px) saturate(190%)!important;
-  border-top:1px solid rgba(255,255,255,.16)!important;
+    radial-gradient(120% 180% at 50% -40%, rgba(255,255,255,.22), rgba(255,255,255,0) 55%),
+    linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.02) 22%, rgba(255,255,255,0) 45%),
+    linear-gradient(180deg, rgba(26,32,46,.74) 0%, rgba(14,18,28,.86) 55%, rgba(6,9,15,.92) 100%)!important;
+  backdrop-filter:blur(34px) saturate(220%) contrast(1.06) brightness(1.04)!important;
+  -webkit-backdrop-filter:blur(34px) saturate(220%) contrast(1.06) brightness(1.04)!important;
+  border-top:1px solid rgba(255,255,255,.22)!important;
   border-radius:28px 28px 0 0;
   box-shadow:
-    0 -14px 36px rgba(0,0,0,.38),
-    inset 0 1px 0 rgba(255,255,255,.20),
-    inset 0 0 0 1px rgba(255,255,255,.04);
+    0 -16px 40px rgba(0,0,0,.42),
+    0 -2px 8px rgba(0,0,0,.28),
+    inset 0 1.5px 0 rgba(255,255,255,.32),
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    inset 1px 0 0 rgba(255,255,255,.05),
+    inset -1px 0 0 rgba(255,255,255,.05);
+  isolation:isolate;
 }
+/* نسيج حبيبي دقيق جداً فوق الزجاج يعطي واقعية السطح المصنفر بدل المظهر البلاستيكي المسطح */
+.tab-bar::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:1;
+  opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* خط انعكاس ضوئي منحني رفيع أعلى الحافة، زي انكسار الضوء على حرف الزجاج الحقيقي */
+.tab-bar::after{
+  content:'';position:absolute;top:0;left:8%;right:8%;height:1px;pointer-events:none;z-index:1;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.65) 45%,rgba(255,255,255,.65) 55%,transparent);
+  filter:blur(.4px);
+}
+.tab-bar-scroll{position:relative;z-index:2}
 .tab-btn{color:rgba(235,240,248,.52)!important;-webkit-tap-highlight-color:transparent}
 .tab-btn .icon{filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
 
@@ -1148,7 +1169,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   </div>
   
   </div><!-- /.app-main -->
-  <div class="tab-bar"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span>الرئيسية</span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span>المعدات</span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span>الإيجار</span></button><button class="tab-btn" data-view="map"><span class="tab-icon"><svg class="icon"><use href="#ic-map"/></svg></span><span>الخريطة</span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span>المواقع</span></button><button class="tab-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span>التحليلات</span></button><button class="tab-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span>الموظفين</span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span>الوقود</span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span>الصيانة</span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span>المخزن</span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span>استيراد</span></button></div>
+  <div class="tab-bar"><div class="tab-bar-scroll"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span>الرئيسية</span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span>المعدات</span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span>الإيجار</span></button><button class="tab-btn" data-view="map"><span class="tab-icon"><svg class="icon"><use href="#ic-map"/></svg></span><span>الخريطة</span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span>المواقع</span></button><button class="tab-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span>التحليلات</span></button><button class="tab-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span>الموظفين</span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span>الوقود</span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span>الصيانة</span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span>المخزن</span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span>استيراد</span></button></div></div>
   <button class="fab" id="fab-btn">+</button>
 </div>
 
