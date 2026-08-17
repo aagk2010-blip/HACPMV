@@ -2839,6 +2839,30 @@ function localMonthStr(d) {
 var COMPANY_LOGO_DATA_URI = null;   // شعار الشركة الأصلي (مستخرج من صفحة الدخول)
 var COMPANY_ICON_SQUARE_URI = null; // نسخة مربعة من الشعار لاستخدامها كأيقونة تطبيق
 
+// رسالة "غير مسموح" تظهر لأي مستخدم يدخل على صفحة مالوش صلاحية عليها
+// (الصفحة تتقفل والتبويب يفضل ظاهر زي كل التبويبات، لكن محتواه محجوب)
+function showAccessDeniedModal() {
+    var existing = document.getElementById('access-denied-modal');
+    if (existing) existing.remove();
+    var overlay = document.createElement('div');
+    overlay.id = 'access-denied-modal';
+    overlay.className = 'modal-overlay';
+    overlay.style.cssText = 'display:flex;align-items:center;justify-content:center;z-index:99999;position:fixed;inset:0';
+    var logoHtml = COMPANY_LOGO_DATA_URI
+        ? '<img src="' + COMPANY_LOGO_DATA_URI + '" alt="Hassan Allam Holding" style="width:140px;height:auto;display:block;margin:0 auto 16px">'
+        : '<div style="font-size:44px;margin-bottom:12px">🏗️</div>';
+    overlay.innerHTML =
+        '<div style="background:white;border-radius:24px;padding:30px 24px;max-width:320px;width:88%;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.35)">' +
+        logoHtml +
+        '<div style="font-size:17px;font-weight:800;color:#7f1d1d;margin-bottom:8px">🚫 غير مسموح</div>' +
+        '<div style="font-size:13.5px;color:#475569;line-height:1.7;margin-bottom:20px">برجاء التوجه لإدارة الشركة لفتح الخدمة</div>' +
+        '<button id="access-denied-ok-btn" style="background:var(--accent);color:white;border:none;border-radius:14px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer">حسناً</button>' +
+        '</div>';
+    document.body.appendChild(overlay);
+    document.getElementById('access-denied-ok-btn').onclick = function() { overlay.remove(); };
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+}
+
 function setupBrandedAppIcon() {
     var logoImg = document.querySelector('#login-screen img[alt="Hassan Allam Holding"]');
     if (!logoImg || !logoImg.src) return;
@@ -3981,12 +4005,13 @@ function proceedToApp() {
 
     var firstAllowedView = null;
 
-    // إخفاء التبويبات غير المسموح بها
+    // إظهار كل التبويبات دايمًا لكل المستخدمين (بناءً على طلب المستخدم)، حتى لو مالوش صلاحية عليها،
+    // والصفحات المش متاحة له هتقفل وتوريله رسالة "غير مسموح" لو دخل عليها بدل ما تختفي من الأساس.
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
         var view = btn.dataset.view;
         var allowed;
         if (view === 'employees') {
-            // زرار "الموظفين" المدمج يظهر لو عند المستخدم صلاحية على قسم الموظفين أو السائقين (أيهما)
+            // زرار "الموظفين" المدمج يُعتبر "مسموح" لتحديد الصفحة الافتراضية لو عند المستخدم صلاحية على قسم الموظفين أو السائقين
             allowed = canView('employees') || canView('drivers');
         } else {
             var sectionKey = null;
@@ -3994,12 +4019,8 @@ function proceedToApp() {
             allowed = sectionKey && canView(sectionKey);
         }
 
-        if (isAdmin || allowed) {
-            btn.style.display = 'flex';
-            if (!firstAllowedView) firstAllowedView = view;
-        } else {
-            btn.style.display = 'none';
-        }
+        btn.style.display = 'flex';
+        if ((isAdmin || allowed) && !firstAllowedView) firstAllowedView = view;
     });
 
     // إخفاء أزرار التعديل/الحذف بحسب الصلاحيات (للمستخدمين غير المدير)
@@ -11686,12 +11707,17 @@ function updateEmployeesFab() {
 function switchView(view) {
     // التحقق من صلاحية الوصول للقسم
     if (currentUser && currentUser.role !== 'admin') {
+        var denied = false;
         if (view === 'employees') {
-            if (!canView('employees') && !canView('drivers')) return;
+            if (!canView('employees') && !canView('drivers')) denied = true;
+        } else if (view === 'import') {
+            // صفحة استيراد البيانات مقصورة على المدير فقط
+            denied = true;
         } else {
             var sectionMap = { home:'home', sites:'sites', analytics:'analytics', equipment:'equipment', fuel:'fuel', maintenance:'maintenance', inventory:'inventory', rental:'rental', map:'map' };
-            if (sectionMap[view] && !canView(sectionMap[view])) return;
+            if (sectionMap[view] && !canView(sectionMap[view])) denied = true;
         }
+        if (denied) { showAccessDeniedModal(); return; }
     }
     document.getElementById('view-home').style.display = view === 'home' ? 'block' : 'none';
     document.getElementById('view-sites').style.display = view === 'sites' ? 'block' : 'none';
