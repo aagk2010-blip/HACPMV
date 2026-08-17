@@ -428,8 +428,8 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   --glass-border-soft:rgba(255,255,255,0.28);
   --glass-shadow:0 8px 32px rgba(13,27,42,0.14),0 1px 2px rgba(13,27,42,0.06);
   --glass-shadow-lg:0 20px 60px rgba(13,27,42,0.20),0 2px 8px rgba(13,27,42,0.08);
-  --glass-blur:blur(24px) saturate(180%);
-  --glass-blur-strong:blur(34px) saturate(200%);
+  --glass-blur:blur(10px) saturate(140%);
+  --glass-blur-strong:blur(14px) saturate(150%);
   --glass-highlight:inset 0 1px 0 rgba(255,255,255,0.65),inset 0 0 0 1px rgba(255,255,255,0.18);
   --radius-glass:22px;
   --radius-glass-lg:28px;
@@ -463,27 +463,27 @@ body{background:
 /* --- شريط الحالة السفلي: زجاج داكن رفيع --- */
 .status-bar{background:rgba(13,27,42,.72)!important;backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border-top:1px solid rgba(255,255,255,.08)}
 
-/* --- بطاقات الإحصائيات: زجاج شفاف --- */
+/* --- بطاقات الإحصائيات: خلفية شبه شفافة بدون ضبابية (أداء أفضل عند التكرار) --- */
 .stat-card{
-  background:var(--glass-bg)!important;
-  backdrop-filter:var(--glass-blur)!important;-webkit-backdrop-filter:var(--glass-blur)!important;
+  background:rgba(255,255,255,0.82)!important;
   border:1px solid var(--glass-border-soft)!important;
   border-radius:20px!important;
   box-shadow:var(--glass-shadow),var(--glass-highlight)!important;
 }
 
-/* --- كل الكروت (معدات/سائقين/موظفين/وقود/صيانة/مخزون/إيجار/مستخدمين/تفاصيل): زجاج موحّد --- */
+/* --- كل الكروت (معدات/سائقين/موظفين/وقود/صيانة/مخزون/إيجار/مستخدمين/تفاصيل): خلفية شبه معتمة بدون ضبابية
+   (تم إزالة backdrop-filter من هنا لأن هذه العناصر تتكرر عشرات المرات في القوائم، والضبابية المتكررة
+   كانت السبب الرئيسي في تقطّع/اهتزاز الحركة أثناء التمرير على الموبايل) --- */
 .equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.maintenance-card,
 .inventory-item-card,.rental-card,.user-row,.detail-section,.eq-usage-card,.site-dashboard-card{
-  background:var(--glass-bg)!important;
-  backdrop-filter:var(--glass-blur)!important;-webkit-backdrop-filter:var(--glass-blur)!important;
+  background:rgba(255,255,255,0.86)!important;
   border:1px solid var(--glass-border-soft)!important;
   border-radius:var(--radius-glass)!important;
   box-shadow:var(--glass-shadow),var(--glass-highlight)!important;
 }
 .equipment-card:hover,.driver-card:hover,.employee-card:hover,.fuel-card:hover,.fuel-card-compact:hover,.maintenance-card:hover,.inventory-item-card:hover,.rental-card:hover,.user-row:hover,
 .equipment-card.touch-active,.driver-card.touch-active,.employee-card.touch-active,.fuel-card.touch-active,.fuel-card-compact.touch-active,.maintenance-card.touch-active,.inventory-item-card.touch-active,.rental-card.touch-active{
-  background:var(--glass-bg-strong)!important;
+  background:rgba(255,255,255,0.96)!important;
   box-shadow:var(--glass-shadow-lg),var(--glass-highlight)!important;
   border-color:rgba(255,255,255,.7)!important;
 }
@@ -515,7 +515,7 @@ body{background:
 }
 
 /* --- المودالز واللوحات الإدارية: زجاج على خلفية معتمة --- */
-.modal-overlay,.admin-panel-overlay{background:rgba(238,242,247,.86)!important;backdrop-filter:blur(30px) saturate(160%);-webkit-backdrop-filter:blur(30px) saturate(160%)}
+.modal-overlay,.admin-panel-overlay{background:rgba(238,242,247,.9)!important;backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%)}
 .modal-header{
   background:linear-gradient(135deg,rgba(13,27,42,.88),rgba(27,40,56,.82))!important;
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
@@ -526,10 +526,9 @@ body{background:
   .modal-overlay,.admin-panel-overlay{box-shadow:0 30px 90px rgba(0,0,0,.35),0 0 0 3000px rgba(9,16,26,.42)!important;border:1px solid rgba(255,255,255,.5)}
 }
 
-/* --- النماذج: حقول زجاجية --- */
+/* --- النماذج: حقول شبه معتمة بدون ضبابية --- */
 .form-group{
-  background:var(--glass-bg)!important;
-  backdrop-filter:var(--glass-blur)!important;-webkit-backdrop-filter:var(--glass-blur)!important;
+  background:rgba(255,255,255,0.82)!important;
   border:1px solid var(--glass-border-soft)!important;
   border-radius:var(--radius-glass)!important;
   box-shadow:var(--glass-shadow),var(--glass-highlight)!important;
@@ -553,27 +552,24 @@ body{background:
 }
 .danger-btn{background:rgba(220,38,38,.88)!important;border-color:rgba(255,255,255,.3)!important}
 
-/* --- الشارات: كبسولات زجاجية شفافة بدل الألوان الصلبة --- */
+/* --- الشارات: كبسولات شبه معتمة بدون ضبابية (تتكرر كثيراً في كل شاشة) --- */
 .badge,.status-badge,.category-badge,.role-badge,.plan-badge,.eq-quick-btn{
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   border:1px solid rgba(255,255,255,.4);
 }
-.badge-working{background:rgba(16,185,129,.16)!important;color:#065f46!important}
-.badge-maintenance{background:rgba(245,158,11,.16)!important;color:#78350f!important}
-.badge-stopped{background:rgba(239,68,68,.16)!important;color:#7f1d1d!important}
-.badge-active{background:rgba(37,99,235,.16)!important;color:#1e40af!important}
+.badge-working{background:rgba(16,185,129,.22)!important;color:#065f46!important}
+.badge-maintenance{background:rgba(245,158,11,.22)!important;color:#78350f!important}
+.badge-stopped{background:rgba(239,68,68,.22)!important;color:#7f1d1d!important}
+.badge-active{background:rgba(37,99,235,.22)!important;color:#1e40af!important}
 
 /* --- شرائح المراجعة السريعة (زيت/مياه/فلتر) --- */
 .check-chip{
-  background:var(--glass-bg-soft)!important;
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  background:rgba(255,255,255,0.5)!important;
   border:2px solid var(--glass-border-soft)!important;
 }
 .check-chip.flagged{background:rgba(239,68,68,.10)!important;border-color:rgba(239,68,68,.4)!important}
 
-/* --- شبكة أقسام لوحة التحكم: أيقونات زجاجية --- */
+/* --- شبكة أقسام لوحة التحكم: أيقونات بدون ضبابية --- */
 .app-tile-icon{
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   border:1px solid rgba(255,255,255,.5);
   box-shadow:0 8px 20px rgba(13,27,42,.14),inset 0 1px 0 rgba(255,255,255,.6);
 }
@@ -631,29 +627,18 @@ body{background:
    Liquid Glass بأعلى درجة تلميع ممكنة بدون كسر أي وظيفة.
    ======================================================================= */
 
-/* --- نسيج حبيبي خفيف فوق كل الصفحة (يمنع تسطح الضبابية، تفصيلة أصلية بمواد آبل الزجاجية) --- */
-body::after{
-  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.025;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
+/* --- تمت إزالة النسيج الحبيبي المتكرر (كان يُعاد رسمه فوق الشاشة كاملة باستمرار) --- */
 
-/* --- فقاعات الخلفية السائلة: حركة بطيئة عائمة لعمق حقيقي --- */
+/* --- فقاعات الخلفية: أصبحت ثابتة بدون ضبابية ولا حركة (كانت السبب الرئيسي لاهتزاز/تقطّع
+   الحركة أثناء التمرير، لأن طبقة filter:blur متحركة بحجم الشاشة كاملة مكلفة جداً على الموبايل) --- */
 body{position:relative}
 body::before{
-  content:'';position:fixed;inset:-10%;z-index:-1;pointer-events:none;
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
-    radial-gradient(480px 420px at 10% 15%, rgba(232,160,32,.14), transparent 60%),
-    radial-gradient(520px 440px at 90% 25%, rgba(14,116,144,.13), transparent 60%),
-    radial-gradient(460px 400px at 25% 90%, rgba(139,92,246,.10), transparent 60%);
-  filter:blur(10px);
-  animation:liquidDrift 22s ease-in-out infinite alternate;
+    radial-gradient(480px 420px at 10% 15%, rgba(232,160,32,.10), transparent 60%),
+    radial-gradient(520px 440px at 90% 25%, rgba(14,116,144,.09), transparent 60%),
+    radial-gradient(460px 400px at 25% 90%, rgba(139,92,246,.07), transparent 60%);
 }
-@keyframes liquidDrift{
-  0%{transform:translate(0,0) scale(1)}
-  50%{transform:translate(2%,-2%) scale(1.04)}
-  100%{transform:translate(-2%,2%) scale(1.02)}
-}
-@media (prefers-reduced-motion:reduce){body::before{animation:none}}
 
 /* --- إضاءة حافة علوية (Rim Light) على كل سطح زجاجي: خط لمعان رفيع أعلى الحافة --- */
 .equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.maintenance-card,
