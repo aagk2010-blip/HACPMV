@@ -669,18 +669,19 @@ body::before{
   opacity:.7;pointer-events:none;
 }
 
-/* --- التنقل السفلي: كبسولة زجاجية ذهبية متوهجة خلف العنصر النشط (طراز iOS 27) --- */
+/* --- التنقل السفلي: كبسولة زجاجية محايدة (شفافة/فضية) خلف العنصر النشط — بالظبط زي تأثير iOS 27
+   الحقيقي: الكبسولة نفسها زجاج شفاف عادي بدون لون، واللون بييجي بس من الأيقونة والنص --- */
 .tab-btn.active{
-  color:#ffd88a!important;
-  background:linear-gradient(180deg,rgba(232,160,32,.34),rgba(232,160,32,.14))!important;
-  backdrop-filter:blur(14px) saturate(200%);-webkit-backdrop-filter:blur(14px) saturate(200%);
+  color:#f4c869!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,.10))!important;
+  backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);
   border-radius:16px;
-  border:1px solid rgba(255,216,138,.40);
-  box-shadow:0 4px 16px rgba(232,160,32,.30),inset 0 1px 0 rgba(255,255,255,.30);
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 4px 14px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(255,255,255,.06);
   padding:4px 8px;margin-top:-4px;
   transition:background .25s ease,box-shadow .25s ease;
 }
-.tab-btn.active .icon{filter:drop-shadow(0 0 6px rgba(232,160,32,.55))}
+.tab-btn.active .icon{filter:drop-shadow(0 0 5px rgba(244,200,105,.45))}
 .tab-btn.active::after{display:none}
 
 /* --- الشريط الجانبي: توهج زجاجي أعمق للعنصر النشط --- */
