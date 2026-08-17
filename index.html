@@ -494,14 +494,24 @@ body{background:
   border-color:rgba(255,255,255,.7)!important;
 }
 
-/* --- التنقل السفلي (Tab Bar): زجاج عائم بحافة علوية مضيئة --- */
+/* --- التنقل السفلي (Tab Bar): زجاج داكن عالي الجودة بطراز iOS 27 Liquid Glass ---
+   خلفية داكنة شفافة + ضبابية وتشبّع قويين + حافة علوية مضيئة + انعكاس زجاجي داخلي
+   يبان بوضوح فوق أي محتوى ملوّن خلفه (بدل الزجاج الفاتح اللي كان بياخد لون الخلفية البيضا) */
 .tab-bar{
-  background:rgba(255,255,255,.42)!important;
-  backdrop-filter:var(--glass-blur-strong)!important;-webkit-backdrop-filter:var(--glass-blur-strong)!important;
-  border-top:1px solid var(--glass-border)!important;
-  border-radius:26px 26px 0 0;
-  box-shadow:0 -8px 30px rgba(13,27,42,.10),inset 0 1px 0 rgba(255,255,255,.8);
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,0) 40%),
+    linear-gradient(180deg,rgba(22,28,40,.78),rgba(8,12,20,.90))!important;
+  backdrop-filter:blur(26px) saturate(190%)!important;-webkit-backdrop-filter:blur(26px) saturate(190%)!important;
+  border-top:1px solid rgba(255,255,255,.16)!important;
+  border-radius:28px 28px 0 0;
+  box-shadow:
+    0 -14px 36px rgba(0,0,0,.38),
+    inset 0 1px 0 rgba(255,255,255,.20),
+    inset 0 0 0 1px rgba(255,255,255,.04);
 }
+.tab-btn{color:rgba(235,240,248,.52)!important;-webkit-tap-highlight-color:transparent}
+.tab-btn .icon{filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+
 
 /* --- الشريط الجانبي (سطح المكتب): زجاج داكن --- */
 @media (min-width:1024px){
@@ -659,14 +669,18 @@ body::before{
   opacity:.7;pointer-events:none;
 }
 
-/* --- التنقل السفلي: كبسولة زجاجية متحركة خلف العنصر النشط --- */
+/* --- التنقل السفلي: كبسولة زجاجية ذهبية متوهجة خلف العنصر النشط (طراز iOS 27) --- */
 .tab-btn.active{
-  background:rgba(255,255,255,.55)!important;
-  backdrop-filter:blur(10px) saturate(180%);-webkit-backdrop-filter:blur(10px) saturate(180%);
-  border-radius:16px;box-shadow:0 4px 14px rgba(13,27,42,.12),inset 0 1px 0 rgba(255,255,255,.8);
+  color:#ffd88a!important;
+  background:linear-gradient(180deg,rgba(232,160,32,.34),rgba(232,160,32,.14))!important;
+  backdrop-filter:blur(14px) saturate(200%);-webkit-backdrop-filter:blur(14px) saturate(200%);
+  border-radius:16px;
+  border:1px solid rgba(255,216,138,.40);
+  box-shadow:0 4px 16px rgba(232,160,32,.30),inset 0 1px 0 rgba(255,255,255,.30);
   padding:4px 8px;margin-top:-4px;
   transition:background .25s ease,box-shadow .25s ease;
 }
+.tab-btn.active .icon{filter:drop-shadow(0 0 6px rgba(232,160,32,.55))}
 .tab-btn.active::after{display:none}
 
 /* --- الشريط الجانبي: توهج زجاجي أعمق للعنصر النشط --- */
@@ -746,18 +760,7 @@ html[data-theme="dark"] body::before{
     radial-gradient(460px 400px at 25% 90%, rgba(139,92,246,.09), transparent 60%);
 }
 
-/* --- التنقل السفلي والشريط الجانبي: زجاج داكن أعمق --- */
-html[data-theme="dark"] .tab-bar{
-  background:rgba(18,22,30,.62)!important;
-  border-top:1px solid rgba(255,255,255,.10)!important;
-  box-shadow:0 -8px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);
-}
-html[data-theme="dark"] .tab-bar::before{background:linear-gradient(180deg,transparent,rgba(11,15,22,.55))}
-html[data-theme="dark"] .tab-btn{color:var(--gray)}
-html[data-theme="dark"] .tab-btn.active{
-  background:rgba(255,255,255,.10)!important;
-  box-shadow:0 4px 14px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.12);
-}
+/* --- التنقل السفلي الآن داكن دائماً (زجاج iOS 27) بغض النظر عن وضع الإضاءة، فلا حاجة لتخصيص إضافي هنا --- */
 html[data-theme="dark"] .modal-overlay,html[data-theme="dark"] .admin-panel-overlay{
   background:rgba(11,15,22,.90)!important;
 }
