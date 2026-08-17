@@ -65,7 +65,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .search-box{background:white;border-radius:30px;padding:10px 16px;margin-bottom:12px;display:flex;gap:8px;box-shadow:var(--shadow-sm)}.search-box input,.search-box select{flex:1;border:none;outline:none;font-family:inherit;background:transparent;font-size:14px}
 /* --- صف فلاتر صفحة المعدات (الموقع/المشروع/الملكية): تتقلص وتتماشى مع عرض الشاشة --- */
 .eq-filter-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.eq-filter-select{flex:1 1 30%;min-width:0;border:none;outline:none;font-family:inherit;background:white;border-radius:14px;padding:8px 6px;font-size:11.5px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer;text-overflow:ellipsis}
+.eq-filter-select{flex:1 1 30%;min-width:0;border:none;outline:none;font-family:inherit;background:white;color:var(--primary);border-radius:14px;padding:8px 6px;font-size:11.5px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer;text-overflow:ellipsis}
 @media (max-width:380px){
   .eq-filter-select{font-size:10.5px;padding:8px 4px}
 }
@@ -748,8 +748,9 @@ body::marker{content:none}
    --glass-* أو --gray يتلوّن تلقائيًا. باقي العناصر (التقارير/المعاينات
    الداخلية التي لها خلفية فاتحة صريحة) تُترك كما هي عمدًا لسهولة القراءة.
    ======================================================================= */
-html[data-theme="dark"]{color-scheme:dark}
-html:not([data-theme="dark"]){color-scheme:light}
+/* --- تمت إزالة color-scheme هنا بناءً على طلب المستخدم: كانت بتخلي المتصفح يغيّر لون
+   الكتابة تلقائياً في عناصر النماذج (select/input) اللي مالهاش لون كتابة محدد صراحةً في الكود،
+   وده كان بيظهر كأثر متبقي على الكتابة في بعض الصفحات رغم إزالة كل تخصيصات اللون --- */
 
 html[data-theme="dark"]{
   --glass-bg:rgba(32,38,52,.55);
