@@ -52,7 +52,7 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 #fuel-list{display:flex;flex-direction:column;gap:6px;max-width:720px}
 @media (min-width:1024px){ #fuel-list{gap:7px} }
 .status-bar{background:var(--primary);color:white;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-top:24px}
-.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.05);display:flex;justify-content:space-around;padding:8px 0 20px;z-index:100;overflow-x:auto}.tab-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;font-family:inherit;cursor:pointer;font-size:10px;color:var(--gray);min-width:60px}.tab-btn.active{color:var(--accent);font-weight:600}.tab-icon{font-size:20px}
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.05);display:flex;justify-content:flex-start;padding:8px 0 20px;z-index:100;overflow-x:auto;-webkit-overflow-scrolling:touch}.tab-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;font-family:inherit;cursor:pointer;font-size:10px;color:var(--gray);min-width:60px;flex-shrink:0}.tab-btn.active{color:var(--accent);font-weight:600}.tab-icon{font-size:20px}
 .fab{position:fixed;bottom:85px;right:20px;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border:none;color:var(--primary);font-size:26px;cursor:pointer;box-shadow:0 4px 15px rgba(232,160,32,0.4);z-index:150;display:flex;align-items:center;justify-content:center}
 .modal-overlay{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:100%;background:var(--light);z-index:200;overflow-y:auto;display:none}.modal-overlay.active{display:block}.modal-header{background:linear-gradient(135deg,var(--primary),var(--secondary));padding:50px 20px 24px;color:white;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}.modal-title{font-size:20px;font-weight:800}.modal-close{background:rgba(255,255,255,0.2);border:none;color:white;width:36px;height:36px;border-radius:18px;font-size:20px;cursor:pointer}
 .form-group{background:var(--white);margin:12px 14px;border-radius:16px;overflow:hidden}.form-field{padding:12px 16px;border-bottom:1px solid #eef2f6}.form-field:last-child{border-bottom:none}.form-label{font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:5px}.form-input,.form-select,.form-textarea{width:100%;border:none;outline:none;font-size:14px;font-family:inherit;background:transparent;color:var(--primary)}.form-textarea{resize:vertical;min-height:60px}
@@ -684,13 +684,10 @@ body::before{
 .stats-row .stat-card:nth-child(4n+3){background:linear-gradient(160deg,rgba(16,185,129,.16),var(--glass-bg))!important}
 .stats-row .stat-card:nth-child(4n+4){background:linear-gradient(160deg,rgba(139,92,246,.14),var(--glass-bg))!important}
 
-/* --- تلاشي المحتوى قبل وصوله لشريط التنقل السفلي (طبقة زجاجية متدرجة) --- */
+/* --- ملاحظة: أزيل تأثير التلاشي فوق شريط التنقل لأنه كان يعطّل التمرير الأفقي
+   (overflow:visible) ويمنع الوصول لتبويبات "المخزن" و"استيراد" لما التبويبات
+   أكتر من عرض الشاشة. شريط التنقل رجع يسمح بالتمرير الأفقي عادي. --- */
 body::marker{content:none}
-.tab-bar{overflow:visible}
-.tab-bar::before{
-  content:'';position:absolute;left:0;right:0;bottom:100%;height:26px;pointer-events:none;
-  background:linear-gradient(180deg,transparent,rgba(238,242,247,.55));
-}
 
 /* --- المودالز: دخول أنعم بتمويه متدرج --- */
 @keyframes glassSheetIn{from{opacity:0;transform:translateY(14px) scale(.98);filter:blur(6px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
