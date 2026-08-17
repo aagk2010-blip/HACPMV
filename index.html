@@ -760,7 +760,6 @@ html[data-theme="dark"]{
   --glass-highlight:inset 0 1px 0 rgba(255,255,255,.09),inset 0 0 0 1px rgba(255,255,255,.06);
   --glass-shadow:0 8px 32px rgba(0,0,0,.38),0 1px 2px rgba(0,0,0,.25);
   --glass-shadow-lg:0 20px 60px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.3);
-  --gray:#9aa7ba;
 }
 
 /* --- خلفية الصفحة: زجاج سائل داكن --- */
@@ -772,7 +771,6 @@ html[data-theme="dark"] body{
     radial-gradient(620px 520px at 20% 108%, rgba(139,92,246,.10), transparent 60%),
     radial-gradient(500px 460px at 95% 100%, rgba(16,185,129,.07), transparent 60%),
     linear-gradient(180deg,#0d1219,#0a0e14)!important;
-  color:#e8edf3;
 }
 html[data-theme="dark"] body::before{
   background:
@@ -792,40 +790,12 @@ html[data-theme="dark"] .modal-overlay,html[data-theme="dark"] .admin-panel-over
   }
 }
 
-/* --- النصوص الأساسية داخل الأسطح الزجاجية: تتحول للون فاتح --- */
-html[data-theme="dark"] .card-title,
-html[data-theme="dark"] .employee-card .emp-name,
-html[data-theme="dark"] .driver-card .drv-name,
-html[data-theme="dark"] .fuel-card-compact .fc-name,
-html[data-theme="dark"] .detail-value,
-html[data-theme="dark"] .user-email,
-html[data-theme="dark"] .form-input,
-html[data-theme="dark"] .form-select,
-html[data-theme="dark"] .form-textarea,
-html[data-theme="dark"] .app-tile-label,
-html[data-theme="dark"] .check-chip-label,
-html[data-theme="dark"] .stat-label,
-html[data-theme="dark"] .section-title{
-  color:#eef2f7!important;
-}
-html[data-theme="dark"] .form-input::placeholder,
-html[data-theme="dark"] .form-textarea::placeholder{color:rgba(232,237,243,.4)}
+/* --- بناءً على طلب المستخدم: ألوان الكتابة تبقى كما هي في الوضع الفاتح ولا تتغير مع الوضع الداكن،
+   والتأثير الداكن يقتصر على خلفية الصفحة والكروت فقط --- */
 html[data-theme="dark"] .form-field{border-bottom-color:rgba(255,255,255,.08)!important}
-html[data-theme="dark"] .stat-number{
-  background:linear-gradient(90deg,#ffffff,#f3d9a6)!important;
-  -webkit-background-clip:text;background-clip:text;
-}
 
-/* --- الشارات: ألوان أفتح لضمان التباين فوق الزجاج الداكن --- */
-html[data-theme="dark"] .badge-working{background:rgba(16,185,129,.22)!important;color:#6ee7b7!important}
-html[data-theme="dark"] .badge-maintenance{background:rgba(245,158,11,.22)!important;color:#fcd34d!important}
-html[data-theme="dark"] .badge-stopped{background:rgba(239,68,68,.22)!important;color:#fca5a5!important}
-html[data-theme="dark"] .badge-active{background:rgba(37,99,235,.22)!important;color:#93c5fd!important}
-
-/* --- شريط البحث والأزرار الكبيرة: حدود أوضح على الزجاج الداكن --- */
-html[data-theme="dark"] .search-box input,html[data-theme="dark"] .search-box select{color:#eef2f7}
+/* --- شريط البحث والأزرار الكبيرة --- */
 html[data-theme="dark"] .save-btn,html[data-theme="dark"] .big-btn{filter:brightness(.96)}
-html[data-theme="dark"] .empty-state{color:var(--gray)}
 
 /* --- خط اللمعان أعلى الكروت: أهدأ في الوضع الداكن --- */
 html[data-theme="dark"] .equipment-card::after,html[data-theme="dark"] .driver-card::after,
