@@ -7484,6 +7484,7 @@ function renderEquipmentMap() {
                 (p.eq.projectSite ? '<div style="font-size:11.5px;color:#555">📍 المشروع: ' + p.eq.projectSite + '</div>' : '') +
                 (p.loc.meter !== undefined && p.loc.meter !== null ? '<div style="font-size:11.5px;color:#555">⏱️ العداد: ' + p.loc.meter + ' س</div>' : '') +
                 '<div style="font-size:11px;color:#888;margin-top:3px">🕐 آخر تحديث: منذ ' + timeAgoText + '</div>' +
+                (p.drv ? '<button onclick="showEquipmentRouteToday(\'' + p.drv.id + '\')" style="width:100%;margin-top:8px;padding:7px;border:none;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">🛣️ عرض خط سير المعدة اليوم</button>' : '') +
                 '</div>'
         );
         equipmentMapInstance._markers.push(marker);
@@ -7493,8 +7494,28 @@ function renderEquipmentMap() {
     else equipmentMapInstance.setView(bounds[0], 14);
 }
 
-// ==================== عرض مسار سائق ليوم معيّن (من driverLocationHistory) ====================
+// ==================== عرض مسار سائق/معدة ليوم معيّن (من driverLocationHistory) — بالتفصيل: مسافة، مدة، نقاط توقف، اتجاه الحركة ====================
 var driverRouteLayer = null;
+
+// المسافة بين نقطتين (كم) بمعادلة Haversine
+function haversineKm(lat1, lng1, lat2, lng2) {
+    var R = 6371;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLng = (lng2 - lng1) * Math.PI / 180;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+// اتجاه الحركة (زاوية بالدرجات) من نقطة لنقطة — تُستخدم لتدوير سهم الاتجاه
+function bearingDeg(lat1, lng1, lat2, lng2) {
+    var y = Math.sin((lng2 - lng1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
+    var x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+        Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lng2 - lng1) * Math.PI / 180);
+    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
 
 function populateRouteDriverSelect() {
     var sel = document.getElementById('route-driver-select');
@@ -7519,6 +7540,21 @@ function clearDriverRoute() {
     if (info) info.style.display = 'none';
 }
 
+// اختصار من بالون المعدة على الخريطة: يملأ اختيار السائق والتاريخ (اليوم) تلقائيًا ويعرض المسار فورًا
+function showEquipmentRouteToday(driverId) {
+    var sel = document.getElementById('route-driver-select');
+    var dateInput = document.getElementById('route-date-input');
+    if (!sel || !dateInput) return;
+    if (equipmentMapInstance) equipmentMapInstance.closePopup();
+    populateRouteDriverSelect();
+    sel.value = driverId;
+    var now = new Date();
+    dateInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    showDriverRoute();
+    var card = document.getElementById('map-content-card');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function showDriverRoute() {
     var driverId = document.getElementById('route-driver-select').value;
     var dateKey = document.getElementById('route-date-input').value;
@@ -7537,18 +7573,70 @@ function showDriverRoute() {
             return;
         }
         var latlngs = pts.map(function(p) { return [p.lat, p.lng]; });
+
+        // حساب المسافة الكلية المقطوعة + رصد نقاط التوقف (لو المعدة فضلت في نفس المكان تقريبًا لمدة ملحوظة)
+        var totalKm = 0;
+        var stops = []; // نقاط توقف: {lat,lng,fromIdx,toIdx,minutes}
+        var stopStartIdx = 0;
+        for (var i = 1; i < pts.length; i++) {
+            var segKm = haversineKm(pts[i - 1].lat, pts[i - 1].lng, pts[i].lat, pts[i].lng);
+            totalKm += segKm;
+            // لو الحركة بين نقطتين أقل من 30 متر تقريبًا، نعتبرها استمرار لنفس التوقف
+            if (segKm > 0.03) {
+                if (i - 1 - stopStartIdx >= 3) { // فضل واقف 3 نقاط تسجيل على الأقل
+                    var stopMinutes = (new Date(pts[i - 1].updatedAt) - new Date(pts[stopStartIdx].updatedAt)) / 60000;
+                    if (stopMinutes >= 5) {
+                        stops.push({ lat: pts[stopStartIdx].lat, lng: pts[stopStartIdx].lng, minutes: Math.round(stopMinutes), fromTime: pts[stopStartIdx].updatedAt });
+                    }
+                }
+                stopStartIdx = i;
+            }
+        }
+
         driverRouteLayer = L.layerGroup().addTo(equipmentMapInstance);
-        L.polyline(latlngs, { color: '#7c3aed', weight: 4, opacity: 0.85 }).addTo(driverRouteLayer);
+
+        // خط المسار
+        var polyline = L.polyline(latlngs, { color: '#7c3aed', weight: 4, opacity: 0.85 }).addTo(driverRouteLayer);
+
+        // أسهم اتجاه الحركة على طول المسار — موزّعة كل عدد ثابت من النقاط عشان توضّح اتجاه السير من غير ازدحام
+        var arrowStep = Math.max(1, Math.floor(pts.length / 12));
+        for (var ai = arrowStep; ai < pts.length; ai += arrowStep) {
+            var bIdx = ai, aIdx = ai - 1;
+            if (pts[bIdx].lat === pts[aIdx].lat && pts[bIdx].lng === pts[aIdx].lng) continue;
+            var brg = bearingDeg(pts[aIdx].lat, pts[aIdx].lng, pts[bIdx].lat, pts[bIdx].lng);
+            var arrowIcon = L.divIcon({
+                className: '',
+                html: '<div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:12px solid #7c3aed;transform:rotate(' + brg + 'deg);filter:drop-shadow(0 0 1px white)"></div>',
+                iconSize: [12, 12],
+                iconAnchor: [6, 6]
+            });
+            L.marker([pts[bIdx].lat, pts[bIdx].lng], { icon: arrowIcon, interactive: false }).addTo(driverRouteLayer);
+        }
+
+        // نقاط توقف واضحة على المسار (دائرة صفراء) — بتوضح فين المعدة وقفت ولمدة قد إيه
+        stops.forEach(function(s) {
+            L.circleMarker([s.lat, s.lng], { radius: 7, fillColor: '#f59e0b', color: '#fff', weight: 2, fillOpacity: 1 })
+                .addTo(driverRouteLayer)
+                .bindPopup('⏸️ توقف ' + s.minutes + ' دقيقة<br>🕐 من ' + new Date(s.fromTime).toLocaleTimeString('ar-EG'));
+        });
+
+        // نقطة البداية والنهاية
         L.circleMarker(latlngs[0], { radius: 8, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1 })
             .addTo(driverRouteLayer)
-            .bindPopup('🟢 بداية المسار — ' + new Date(pts[0].updatedAt).toLocaleTimeString('ar-EG'));
+            .bindPopup('🟢 بداية المسار — ' + new Date(pts[0].updatedAt).toLocaleTimeString('ar-EG') + (pts[0].meter != null ? '<br>⏱️ العداد: ' + pts[0].meter + ' س' : ''));
         L.circleMarker(latlngs[latlngs.length - 1], { radius: 8, fillColor: '#dc2626', color: '#fff', weight: 2, fillOpacity: 1 })
             .addTo(driverRouteLayer)
-            .bindPopup('🔴 آخر نقطة — ' + new Date(pts[pts.length - 1].updatedAt).toLocaleTimeString('ar-EG'));
+            .bindPopup('🔴 آخر نقطة — ' + new Date(pts[pts.length - 1].updatedAt).toLocaleTimeString('ar-EG') + (pts[pts.length - 1].meter != null ? '<br>⏱️ العداد: ' + pts[pts.length - 1].meter + ' س' : ''));
+
         equipmentMapInstance.fitBounds(latlngs, { padding: [30, 30] });
+
+        var durationMin = (new Date(pts[pts.length - 1].updatedAt) - new Date(pts[0].updatedAt)) / 60000;
+        var durationText = durationMin >= 60 ? (Math.floor(durationMin / 60) + ' س ' + Math.round(durationMin % 60) + ' د') : Math.round(durationMin) + ' د';
         if (infoEl) {
-            infoEl.textContent = '🛣️ عدد النقاط: ' + pts.length + ' — من ' + new Date(pts[0].updatedAt).toLocaleTimeString('ar-EG') +
-                ' إلى ' + new Date(pts[pts.length - 1].updatedAt).toLocaleTimeString('ar-EG');
+            infoEl.innerHTML =
+                '🛣️ ' + pts.length + ' نقطة — من ' + new Date(pts[0].updatedAt).toLocaleTimeString('ar-EG') + ' إلى ' + new Date(pts[pts.length - 1].updatedAt).toLocaleTimeString('ar-EG') +
+                '<br>📏 المسافة الكلية: ' + totalKm.toFixed(1) + ' كم — ⏱️ المدة: ' + durationText +
+                (stops.length ? ' — ⏸️ عدد التوقفات: ' + stops.length : '');
         }
     }).catch(function(e) {
         if (infoEl) infoEl.textContent = '❌ تعذّر تحميل المسار';
