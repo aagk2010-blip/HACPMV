@@ -5045,6 +5045,16 @@ function initEquipmentPublicViewPage(eqId) {
             return;
         }
 
+        // معدات الملك اللي عليها سائق مسجل: كارت مصغّر أعلى الصفحة لمشاركة الموقع وتسجيل بدء/انتهاء العمل
+        // (بدون التأثير على باقي بيانات المعدة والصيانة المعروضة تحته)
+        if (eq.assignedDriver) {
+            var workCardsEl = document.getElementById('eqpv-work-cards');
+            if (workCardsEl) {
+                workCardsEl.innerHTML = buildOwnedEquipmentWorkCardHtml();
+                wireOwnedEquipmentWorkCard(eq.assignedDriver);
+            }
+        }
+
         // معدات الملك: التفاصيل الكاملة + آخر 4 صيانات (من pmHistory بنفس منطق شاشة "سجل الصيانات")
         var pmHistoryVal = results[1].value || {};
         var eqCode = (eq.code || '').replace(/\s+/g, '');
@@ -7581,6 +7591,190 @@ function buildWorkStatusCardHtml() {
         '<button id="loc-share-toggle-btn" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
         '<div style="font-size:10px;color:#9ca3af;margin-top:12px">هيطلب المتصفح إذن الوصول — اضغط "سماح"<br>البيانات بتتسجّل حتى لو النت اتقطع، وترفع تلقائي أول ما النت يرجع</div>' +
         '</div>';
+}
+
+// ==================== كارت مصغّر: الموقع + بدء/انتهاء العمل (لسائقي معدات الملك) — يظهر أعلى صفحة QR الخاصة بالمعدة ====================
+function buildOwnedEquipmentWorkCardHtml() {
+    return '<div style="background:white;border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+        '<span style="font-size:20px">📍</span>' +
+        '<div style="font-size:13px;font-weight:800;color:#0d1b2a">الموقع وحالة العمل</div>' +
+        '</div>' +
+        '<div id="eqpv-share-status" style="font-size:11.5px;font-weight:700;color:#f59e0b;background:#fef3c7;border-radius:8px;padding:7px;margin-bottom:8px">⏳ لسه ما بدأتش الشغل</div>' +
+        '<div id="eqpv-share-queue-info" style="font-size:10px;color:#9ca3af;margin-bottom:8px;display:none"></div>' +
+        '<div style="text-align:right;margin-bottom:8px">' +
+            '<label style="font-size:11px;font-weight:700;color:#0d1b2a;display:block;margin-bottom:4px">⏱️ قراءة العداد الحالية (ساعات)</label>' +
+            '<input type="number" id="eqpv-share-meter-input" placeholder="مثال: 1250" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;box-sizing:border-box">' +
+        '</div>' +
+        '<button id="eqpv-share-toggle-btn" style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
+        '</div>';
+}
+
+// يربط منطق مشاركة الموقع وتسجيل بدء/انتهاء العمل بالكارت المصغّر (نفس منطق initEquipmentMeterSharePage بالضبط، بس مربوط بعناصر الكارت المدمج داخل صفحة QR للمعدة)
+function wireOwnedEquipmentWorkCard(driverId) {
+    var driverName = '';
+    var QUEUE_KEY = 'offlineLocQueue_' + driverId;
+
+    function getLocalDateKey(d) {
+        d = d || new Date();
+        var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + day;
+    }
+
+    var btn = document.getElementById('eqpv-share-toggle-btn');
+    var statusEl = document.getElementById('eqpv-share-status');
+    var queueInfoEl = document.getElementById('eqpv-share-queue-info');
+    var meterInput = document.getElementById('eqpv-share-meter-input');
+    if (!btn || !statusEl || !meterInput) return;
+
+    fbDb.ref('drivers/' + driverId).once('value').then(function(snap) {
+        var d = snap.val();
+        driverName = d ? d.name : '';
+        if (!d) btn.style.display = 'none';
+        tryFlushQueue();
+    });
+
+    var WORK_STATE_KEY = 'driverWorkState_' + driverId;
+    function getSavedWorkState() {
+        try { return JSON.parse(localStorage.getItem(WORK_STATE_KEY) || 'null'); }
+        catch (e) { return null; }
+    }
+    function saveWorkState(state) {
+        try { localStorage.setItem(WORK_STATE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+    var savedWorkState = getSavedWorkState();
+    var sharing = !!(savedWorkState && savedWorkState.sharing);
+    var startMeter = (savedWorkState && savedWorkState.startMeter != null) ? savedWorkState.startMeter : null;
+
+    function getQueue() {
+        try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); }
+        catch (e) { return []; }
+    }
+    function setQueue(arr) {
+        try { localStorage.setItem(QUEUE_KEY, JSON.stringify(arr)); } catch (e) {}
+    }
+    function updateQueueBadge() {
+        var q = getQueue();
+        if (q.length > 0) {
+            queueInfoEl.style.display = 'block';
+            queueInfoEl.innerHTML = '📴 ' + q.length + ' نقطة متخزنة محليًا على جهازك — هترفع تلقائي مجمّعة حسب يومها أول ما النت يرجع';
+        } else {
+            queueInfoEl.style.display = 'none';
+        }
+    }
+
+    var flushInProgress = false;
+    function tryFlushQueue() {
+        var q = getQueue();
+        if (!q.length || !navigator.onLine || flushInProgress) return;
+        flushInProgress = true;
+        var updates = {};
+        q.forEach(function(pt) {
+            var dateKey = pt.dateKey || getLocalDateKey(new Date(pt.updatedAt));
+            var key = fbDb.ref('driverLocationHistory/' + driverId + '/' + dateKey).push().key;
+            updates['driverLocationHistory/' + driverId + '/' + dateKey + '/' + key] = pt;
+        });
+        var last = q[q.length - 1];
+        updates['driverLocations/' + driverId] = {
+            driverId: driverId, driverName: driverName,
+            lat: last.lat, lng: last.lng, accuracy: last.accuracy,
+            updatedAt: last.updatedAt, meter: last.meter
+        };
+        fbDb.ref().update(updates).then(function() {
+            setQueue([]);
+            updateQueueBadge();
+            flushInProgress = false;
+            if (sharing) {
+                statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
+                statusEl.innerHTML = '🟢 شغّال دلوقتي — تم رفع مسار اليوم كامل';
+            }
+        }).catch(function() {
+            flushInProgress = false;
+        });
+    }
+
+    function pushLocation(pos) {
+        var now = new Date();
+        var point = {
+            lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy,
+            updatedAt: now.toISOString(), dateKey: getLocalDateKey(now), meter: startMeter
+        };
+
+        if (!navigator.onLine) {
+            var q = getQueue(); q.push(point); setQueue(q); updateQueueBadge();
+            statusEl.style.color = '#92400e'; statusEl.style.background = '#fef3c7';
+            statusEl.innerHTML = '📴 من غير نت — بيتم تسجيل موقعك ومسارك محليًا على الجهاز';
+            return;
+        }
+
+        var updates = {};
+        var histKey = fbDb.ref('driverLocationHistory/' + driverId + '/' + point.dateKey).push().key;
+        updates['driverLocationHistory/' + driverId + '/' + point.dateKey + '/' + histKey] = point;
+        updates['driverLocations/' + driverId] = {
+            driverId: driverId, driverName: driverName,
+            lat: point.lat, lng: point.lng, accuracy: point.accuracy, updatedAt: point.updatedAt, meter: point.meter
+        };
+        fbDb.ref().update(updates).then(function() {
+            statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
+            statusEl.innerHTML = '🟢 شغّال دلوقتي — آخر تحديث الآن';
+            tryFlushQueue();
+        }).catch(function() {
+            var q = getQueue(); q.push(point); setQueue(q); updateQueueBadge();
+            statusEl.style.color = '#92400e'; statusEl.style.background = '#fef3c7';
+            statusEl.innerHTML = '📴 الشبكة ضعيفة — بيتم تسجيل موقعك ومسارك محليًا';
+        });
+    }
+
+    window.addEventListener('online', tryFlushQueue);
+    setInterval(tryFlushQueue, 20000);
+    updateQueueBadge();
+
+    function startSharing(meterVal) {
+        startMeter = meterVal;
+        sharing = true;
+        meterInput.value = startMeter;
+        meterInput.disabled = true;
+        saveWorkState({ sharing: true, startMeter: startMeter });
+        shareWatchId = navigator.geolocation.watchPosition(pushLocation, function(err) {
+            statusEl.style.color = '#dc2626'; statusEl.style.background = '#fee2e2';
+            statusEl.innerHTML = '❌ ' + (err.code === 1 ? 'رفضت إذن الموقع' : 'تعذّر تحديد الموقع');
+        }, { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 });
+        btn.textContent = '⏹️ انتهاء العمل';
+        btn.style.background = 'linear-gradient(135deg,#dc2626,#991b1b)';
+    }
+
+    function stopSharing() {
+        sharing = false;
+        if (shareWatchId !== null) navigator.geolocation.clearWatch(shareWatchId);
+        tryFlushQueue();
+        meterInput.disabled = false;
+        saveWorkState({ sharing: false, startMeter: null });
+        statusEl.style.color = '#f59e0b'; statusEl.style.background = '#fef3c7';
+        statusEl.innerHTML = '⏸️ تم إنهاء العمل';
+        btn.textContent = '▶️ بدء العمل';
+        btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+    }
+
+    btn.onclick = function() {
+        if (!navigator.geolocation) { statusEl.innerHTML = '❌ الجهاز مش بيدعم تحديد الموقع'; return; }
+        if (!sharing) {
+            var meterVal = parseFloat(meterInput.value);
+            if (isNaN(meterVal)) {
+                statusEl.style.color = '#dc2626'; statusEl.style.background = '#fee2e2';
+                statusEl.innerHTML = '⚠️ من فضلك اكتب قراءة العداد الحالية';
+                meterInput.focus(); return;
+            }
+            startSharing(meterVal);
+        } else {
+            stopSharing();
+        }
+    };
+
+    if (sharing && startMeter != null) {
+        startSharing(startMeter);
+        statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
+        statusEl.innerHTML = '🟢 شغّال دلوقتي — تم استكمال الجلسة تلقائيًا';
+    }
 }
 
 function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
