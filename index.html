@@ -2854,7 +2854,7 @@ function showAccessDeniedModal() {
         '<div style="background:white;border-radius:24px;padding:30px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.35);box-sizing:border-box">' +
         logoHtml +
         '<div style="font-size:17px;font-weight:800;color:#7f1d1d;margin-bottom:8px">🚫 غير مسموح</div>' +
-        '<div style="font-size:13.5px;color:#475569;line-height:1.7;margin-bottom:20px">برجاء التوجه لإدارة الشركة لفتح الخدمة</div>' +
+        '<div style="font-size:13.5px;color:#475569;line-height:1.7;margin-bottom:20px">برجاء التواصل مع إدارة المعدات لفتح الخدمة</div>' +
         '<button id="access-denied-ok-btn" style="background:var(--accent);color:white;border:none;border-radius:14px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer">حسناً</button>' +
         '</div>';
     document.body.appendChild(overlay);
@@ -4961,9 +4961,11 @@ function initEquipmentPublicViewPage(eqId) {
     document.title = 'تفاصيل المعدة';
     document.body.innerHTML =
         '<div style="min-height:100vh;background:#f1f5f9;padding:16px;font-family:Cairo,Tahoma,sans-serif;direction:rtl">' +
-        '<div id="eqpv-content" style="max-width:480px;margin:0 auto">' +
+        '<div style="max-width:480px;margin:0 auto">' +
+        '<div id="eqpv-work-cards"></div>' +
+        '<div id="eqpv-content">' +
         '<div style="background:white;border-radius:18px;padding:40px 20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:36px;margin-bottom:10px">⏳</div><div style="color:#64748b;font-size:14px">جاري تحميل بيانات المعدة...</div></div>' +
-        '</div></div>';
+        '</div></div></div>';
 
     try {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
@@ -5028,6 +5030,16 @@ function initEquipmentPublicViewPage(eqId) {
             // نفس الدورة النشطة الافتراضية المعروضة بالضبط في التطبيق (21 → 20 من كل شهر)
             var activeCycle = getPeriodRange(getCurrentCycleMonthStr());
             var dayData = buildRentalDayEntriesLocal(dailyList, rentalContract, activeCycle.from, activeCycle.to);
+
+            // كارت "حالة العمل" (بدء/انتهاء العمل) وكارت "تسجيل الحضور والانصراف" فوق التايم شيت مباشرة —
+            // بنفس منطق صفحة رابط السائق المباشر، بس هنا بيفتحوا تلقائيًا من QR المعدة نفسها بدون رابط منفصل
+            if (rentalContract && rentalContract.driverId && rentalContractId) {
+                var workCardsEl = document.getElementById('eqpv-work-cards');
+                if (workCardsEl) {
+                    workCardsEl.innerHTML = buildWorkStatusCardHtml() + buildAttendanceFormCardHtml();
+                    wireRentalAttendanceCards(rentalContract.driverId, rentalContractId, rentalContract);
+                }
+            }
 
             renderEquipmentPublicAttendanceView(eq, rentalContract, dayData.days, rentalDriverName, results[4].denied || results[3].denied, activeCycle);
             return;
@@ -7537,12 +7549,8 @@ function initShareLocationPage(driverId) {
 }
 
 // ==================== شاشة تسجيل ساعة الحضور والانصراف (لسائقي معدات الإيجار فقط) ====================
-function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
-    document.title = 'تسجيل الحضور والانصراف';
-    document.body.innerHTML =
-        '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0d1b2a,#1b2838);padding:20px;font-family:Cairo,Tahoma,sans-serif;direction:rtl">' +
-        '<div style="max-width:380px;width:100%">' +
-        '<div style="background:white;border-radius:20px;padding:26px 22px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);margin-bottom:14px">' +
+function buildAttendanceFormCardHtml() {
+    return '<div style="background:white;border-radius:20px;padding:26px 22px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);margin-bottom:14px">' +
         '<div style="font-size:44px;margin-bottom:8px">🕒</div>' +
         '<div id="attend-driver-name" style="font-size:17px;font-weight:800;color:#0d1b2a;margin-bottom:2px">جاري التحميل...</div>' +
         '<div id="attend-eq-label" style="font-size:12.5px;color:#6b7a8d;margin-bottom:16px"></div>' +
@@ -7561,8 +7569,10 @@ function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
         '</div>' +
         '<button id="attend-save-btn" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">📤 إرسال للمراجعة</button>' +
         '<div style="font-size:10.5px;color:#9ca3af;margin-top:14px">تسجيلك بيتبعت للمشرف المسؤول للمراجعة والموافقة عليه — تقدر تعدّل وتبعت تاني قبل ما يراجعه</div>' +
-        '</div>' +
-        '<div style="background:white;border-radius:20px;padding:22px 22px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
+        '</div>';
+}
+function buildWorkStatusCardHtml() {
+    return '<div style="background:white;border-radius:20px;padding:22px 22px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);margin-bottom:14px">' +
         '<div style="font-size:34px;margin-bottom:6px">🛠️</div>' +
         '<div style="font-size:14px;font-weight:800;color:#0d1b2a;margin-bottom:2px">حالة العمل</div>' +
         '<div style="font-size:11.5px;color:#6b7a8d;margin-bottom:14px">سجّل بدء وانتهاء شغلك اليوم عشان فريق العمل يتابع المعدة أول بأول</div>' +
@@ -7570,9 +7580,21 @@ function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
         '<div id="loc-share-queue-info" style="font-size:10.5px;color:#9ca3af;margin-bottom:10px;display:none"></div>' +
         '<button id="loc-share-toggle-btn" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
         '<div style="font-size:10px;color:#9ca3af;margin-top:12px">هيطلب المتصفح إذن الوصول — اضغط "سماح"<br>البيانات بتتسجّل حتى لو النت اتقطع، وترفع تلقائي أول ما النت يرجع</div>' +
-        '</div>' +
-        '</div></div>';
+        '</div>';
+}
 
+function initRentalDriverAttendancePage(driverId, rentalId, rentalContract) {
+    document.title = 'تسجيل الحضور والانصراف';
+    document.body.innerHTML =
+        '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0d1b2a,#1b2838);padding:20px;font-family:Cairo,Tahoma,sans-serif;direction:rtl">' +
+        '<div style="max-width:380px;width:100%">' +
+        buildAttendanceFormCardHtml() + buildWorkStatusCardHtml() +
+        '</div></div>';
+    wireRentalAttendanceCards(driverId, rentalId, rentalContract);
+}
+
+// يربط منطق الحفظ والمشاركة بالكروت (سواء كانت في صفحة رابط السائق المستقلة أو مدمجة في صفحة QR الخاصة بالمعدة)
+function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
     var todayStr = businessDateStr(new Date());
     var eqLabel = rentalContract.equipmentType || rentalContract.equipmentCode || '—';
     var pendingId = null; // طلب معلّق بانتظار المراجعة (يُحدَّث عند التعديل بدل تكرار الطلبات)
