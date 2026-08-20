@@ -7380,27 +7380,36 @@ function renderEquipmentMap() {
     if (!equipmentMapInstance) {
         equipmentMapInstance = L.map(mapEl, { zoomControl: true }).setView(center, points.length ? 11 : 6);
 
-        // ==================== طبقات الخريطة: قمر صناعي واقعي (صور حقيقية محدّثة) + هجين بالطرق والأسماء + طبوغرافي + شوارع ====================
-        // قمر صناعي عالي الدقة (Esri World Imagery) — صور فعلية للأرض (مبانٍ، طرق، زرع) محدّثة دوريًا من Esri/Maxar/Airbus
-        // ملحوظة: أزلنا خاصية detectRetina لأنها كانت بتخلي كل طبقة (القمر الصناعي/الطرق/الأسماء) تحسب أقصى تكبير ليها بشكل مختلف عن الباقي،
-        // فكانت طبقة الطرق والأسماء بتختفي قبل ما صورة القمر الصناعي تتلخبط، وده اللي كان بيبان إن "التفاصيل بتختفي" عند التقريب.
-        // دلوقتي كل الطبقات موحّدة على نفس أقصى تكبير (maxZoom) وأقصى دقة فعلية من المصدر (maxNativeZoom) عشان تفضل الطبقات كلها ظاهرة مع بعض لحد نفس المستوى بالظبط
-        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        // ==================== طبقات الخريطة: قمر صناعي MapTiler عالي الدقة (هجين) + Esri كاحتياطي + طبوغرافي + شوارع ====================
+        // MapTiler Hybrid: طبقة "هجين" واحدة جاهزة من MapTiler فيها صور القمر الصناعي + الطرق + الأسماء مدموجين مع بعض بجودة أعلى ودقة أحدث من المصدر المجاني (Esri)
+        // ملحوظة: الصيغة الصحيحة لمسار MapTiler هي hybrid-v4 مع tileSize:512 و zoomOffset:-1 (موثّق رسميًا من MapTiler لاستخدام Leaflet)
+        var MAPTILER_KEY = 'RMA0yu9JN48fXqjxk8t1';
+        var mtHybridLayer = L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=' + MAPTILER_KEY, {
+            tileSize: 512,
+            zoomOffset: -1,
             maxZoom: 20,
-            maxNativeZoom: 19,
+            maxNativeZoom: 20,
+            crossOrigin: true,
+            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+        });
+
+        // Esri World Imagery (احتياطي) — لو مفتاح MapTiler وصل لحد الاستخدام المجاني الشهري أو حصل أي عطل، تقدر تتحول له من زر الطبقات
+        // ملحوظة: أي مصدر صور مجاني (Esri أو MapTiler) بيوفّر دقة عالية جدًا في المدن الكبرى بس، وأقل في المناطق البعيدة عن المدن؛
+        // maxNativeZoom منخفض هنا عن قصد عشان لو التكبير عدّى حدود الصورة الحقيقية المتاحة، الخريطة تكبّر آخر صورة عندها بدل ما تجيب رمادي فاضي
+        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            maxNativeZoom: 16,
             attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
         });
-        // طبقة الطرق والمواصلات فوق القمر الصناعي — بتدي شكل "هجين" واقعي زي خرائط جوجل (خطوط الطرق والتقاطعات ظاهرة فوق الصورة الفعلية)
         var roadsOverlayLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 20,
-            maxNativeZoom: 19,
+            maxZoom: 19,
+            maxNativeZoom: 16,
             opacity: 0.85,
             attribution: 'Roads &copy; Esri'
         });
-        // طبقة أسماء المدن والمناطق والحدود فوق الطرق — لمزيد من التفاصيل الجغرافية
         var referenceLabelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 20,
-            maxNativeZoom: 19,
+            maxZoom: 19,
+            maxNativeZoom: 16,
             attribution: 'Labels &copy; Esri'
         });
         var satelliteGroup = L.layerGroup([satelliteLayer, roadsOverlayLayer, referenceLabelsLayer]);
@@ -7411,22 +7420,37 @@ function renderEquipmentMap() {
             attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)'
         });
 
-        // خريطة الشوارع الكلاسيكية (الوضع الأصلي) كخيار احتياطي
+        // خريطة الشوارع الكلاسيكية — بترسم بخطوط (مش صور)، فبتفضل واضحة وكاملة التفاصيل في كل مكان وأي مستوى تكبير، حتى في المواقع البعيدة عن المدن
         var streetsLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         });
 
-        satelliteGroup.addTo(equipmentMapInstance); // الافتراضي: قمر صناعي هجين (صور واقعية + طرق + أسماء)
+        mtHybridLayer.addTo(equipmentMapInstance); // الافتراضي: قمر صناعي MapTiler الهجين (أعلى جودة متاحة)
 
         L.control.layers({
-            '🛰️ قمر صناعي واقعي (هجين)': satelliteGroup,
+            '🛰️ قمر صناعي عالي الدقة (MapTiler)': mtHybridLayer,
+            '🛰️ قمر صناعي احتياطي (Esri)': satelliteGroup,
             '⛰️ طبوغرافي ملوّن': terrainLayer,
             '🗺️ خريطة الشوارع': streetsLayer
         }, null, { position: 'topleft', collapsed: true }).addTo(equipmentMapInstance);
 
         // مقياس الرسم أسفل الخريطة — يساعد في تقدير المسافات الفعلية على الأرض
         L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(equipmentMapInstance);
+
+        // تنبيه بسيط بيظهر مرة واحدة لما المستخدم يكبّر لمستوى ممكن الصور فيه تبقى غير واضحة في المواقع البعيدة عن المدن
+        // (قيود حقيقية من مصدر الصور، مش مشكلة في التطبيق) — وبيقترح التحويل لخريطة الشوارع لتفاصيل واضحة دايمًا
+        var zoomHintShown = false;
+        equipmentMapInstance.on('zoomend', function() {
+            if (zoomHintShown) return;
+            var z = equipmentMapInstance.getZoom();
+            var onMapTiler = equipmentMapInstance.hasLayer(mtHybridLayer) && z > 19;
+            var onEsri = equipmentMapInstance.hasLayer(satelliteLayer) && z > 16;
+            if (onMapTiler || onEsri) {
+                zoomHintShown = true;
+                showToast('الصورة ممكن تبقى غير واضحة في المناطق البعيدة عن المدن عند التكبير الشديد — جرّب "🗺️ خريطة الشوارع" من زر الطبقات لتفاصيل أوضح دايمًا');
+            }
+        });
 
         equipmentMapInstance._markers = [];
         // الخريطة أحياناً بتتنشئ قبل ما تكتمل حسابات مقاس الشريط الجانبي على الشاشات الكبيرة،
