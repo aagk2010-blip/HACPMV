@@ -7380,9 +7380,22 @@ function renderEquipmentMap() {
     if (!equipmentMapInstance) {
         equipmentMapInstance = L.map(mapEl, { zoomControl: true }).setView(center, points.length ? 11 : 6);
 
-        // ==================== طبقات الخريطة: قمر صناعي MapTiler عالي الدقة (هجين) + Esri كاحتياطي + طبوغرافي + شوارع ====================
-        // MapTiler Hybrid: طبقة "هجين" واحدة جاهزة من MapTiler فيها صور القمر الصناعي + الطرق + الأسماء مدموجين مع بعض بجودة أعلى ودقة أحدث من المصدر المجاني (Esri)
-        // ملحوظة: الصيغة الصحيحة لمسار MapTiler هي hybrid-v4 مع tileSize:512 و zoomOffset:-1 (موثّق رسميًا من MapTiler لاستخدام Leaflet)
+        // ==================== طبقات الخريطة: قمر صناعي TomTom (بيانات Maxar تجارية) + MapTiler + Esri كاحتياطي + طبوغرافي + شوارع ====================
+        // TomTom Satellite + Hybrid Overlay: صور قمر صناعي من نفس مصدر بيانات Maxar التجاري اللي بيستخدموه Bing/Azure Maps، مع طبقة طرق وأسماء شفافة فوقها
+        var TOMTOM_KEY = 'IKdbPGNVpF6VQRPlyeTqIlaapaHYMuO8';
+        var ttSatelliteLayer = L.tileLayer('https://api.tomtom.com/map/1/tile/sat/main/{z}/{x}/{y}.jpg?key=' + TOMTOM_KEY, {
+            maxZoom: 19,
+            maxNativeZoom: 19,
+            attribution: '&copy; 1992 - ' + new Date().getFullYear() + ' TomTom'
+        });
+        var ttHybridOverlay = L.tileLayer('https://api.tomtom.com/map/1/tile/hybrid/main/{z}/{x}/{y}.png?key=' + TOMTOM_KEY, {
+            maxZoom: 19,
+            maxNativeZoom: 19,
+            attribution: '&copy; TomTom'
+        });
+        var tomtomGroup = L.layerGroup([ttSatelliteLayer, ttHybridOverlay]);
+
+        // MapTiler Hybrid (بديل تاني بجودة عالية لو TomTom وصل لحد الاستخدام أو حصل عطل)
         var MAPTILER_KEY = 'RMA0yu9JN48fXqjxk8t1';
         var mtHybridLayer = L.tileLayer('https://api.maptiler.com/maps/hybrid-v4/{z}/{x}/{y}.jpg?key=' + MAPTILER_KEY, {
             tileSize: 512,
@@ -7393,8 +7406,8 @@ function renderEquipmentMap() {
             attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
         });
 
-        // Esri World Imagery (احتياطي) — لو مفتاح MapTiler وصل لحد الاستخدام المجاني الشهري أو حصل أي عطل، تقدر تتحول له من زر الطبقات
-        // ملحوظة: أي مصدر صور مجاني (Esri أو MapTiler) بيوفّر دقة عالية جدًا في المدن الكبرى بس، وأقل في المناطق البعيدة عن المدن؛
+        // Esri World Imagery (احتياطي أخير) — لو المصدرين التانيين وصلوا لحد الاستخدام المجاني أو حصل أي عطل، تقدر تتحول له من زر الطبقات
+        // ملحوظة: أي مصدر صور مجاني بيوفّر دقة عالية جدًا في المدن الكبرى بس، وأقل في المناطق البعيدة عن المدن؛
         // maxNativeZoom منخفض هنا عن قصد عشان لو التكبير عدّى حدود الصورة الحقيقية المتاحة، الخريطة تكبّر آخر صورة عندها بدل ما تجيب رمادي فاضي
         var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 19,
@@ -7426,10 +7439,11 @@ function renderEquipmentMap() {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         });
 
-        mtHybridLayer.addTo(equipmentMapInstance); // الافتراضي: قمر صناعي MapTiler الهجين (أعلى جودة متاحة)
+        tomtomGroup.addTo(equipmentMapInstance); // الافتراضي: قمر صناعي TomTom الهجين (أعلى جودة متاحة)
 
         L.control.layers({
-            '🛰️ قمر صناعي عالي الدقة (MapTiler)': mtHybridLayer,
+            '🛰️ قمر صناعي عالي الدقة (TomTom)': tomtomGroup,
+            '🛰️ قمر صناعي بديل (MapTiler)': mtHybridLayer,
             '🛰️ قمر صناعي احتياطي (Esri)': satelliteGroup,
             '⛰️ طبوغرافي ملوّن': terrainLayer,
             '🗺️ خريطة الشوارع': streetsLayer
@@ -7444,9 +7458,10 @@ function renderEquipmentMap() {
         equipmentMapInstance.on('zoomend', function() {
             if (zoomHintShown) return;
             var z = equipmentMapInstance.getZoom();
+            var onTomTom = equipmentMapInstance.hasLayer(ttSatelliteLayer) && z > 19;
             var onMapTiler = equipmentMapInstance.hasLayer(mtHybridLayer) && z > 19;
             var onEsri = equipmentMapInstance.hasLayer(satelliteLayer) && z > 16;
-            if (onMapTiler || onEsri) {
+            if (onTomTom || onMapTiler || onEsri) {
                 zoomHintShown = true;
                 showToast('الصورة ممكن تبقى غير واضحة في المناطق البعيدة عن المدن عند التكبير الشديد — جرّب "🗺️ خريطة الشوارع" من زر الطبقات لتفاصيل أوضح دايمًا');
             }
@@ -7930,6 +7945,8 @@ function wireOwnedEquipmentWorkCard(driverId) {
         }
     };
 
+    // استرجاع آخر حالة كانت محفوظة على الجهاز: لو السائق كان شغّال قبل ما يقفل الصفحة،
+    // نكمّل تسجيل الموقع تلقائيًا من غير ما يضغط "بدء العمل" تاني (المتصفح مش هيطلب الإذن تاني بعد أول مرة يوافق فيها)
     if (sharing && startMeter != null) {
         startSharing(startMeter);
         statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
@@ -8158,6 +8175,8 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
         setInterval(tryFlushQueue, 20000);
         updateQueueBadge();
 
+        // استرجاع آخر حالة كانت محفوظة على الجهاز: لو السائق كان شغّال قبل ما يقفل الصفحة،
+        // نكمّل تسجيل الموقع تلقائيًا من غير ما يضغط "بدء العمل" تاني (المتصفح مش هيطلب الإذن تاني بعد أول مرة يوافق فيها)
         var savedLocState = getSavedLocState();
         if (savedLocState && savedLocState.sharing) {
             startLocSharing();
@@ -8353,7 +8372,7 @@ function initEquipmentMeterSharePage(driverId) {
     }
 
     // استرجاع آخر حالة كانت محفوظة على الجهاز: لو السائق كان شغّال قبل ما يقفل الصفحة،
-    // نكمّل تسجيل الموقع تلقائيًا من غير ما يضغط "بدء العمل" تاني
+    // نكمّل تسجيل الموقع تلقائيًا من غير ما يضغط "بدء العمل" تاني (المتصفح مش هيطلب الإذن تاني بعد أول مرة يوافق فيها)
     if (sharing && startMeter != null) {
         startSharing(startMeter);
         statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
@@ -12363,14 +12382,18 @@ function initOfflineDetector() {
 
 // ==================== ربط الأحداث النهائي ====================
 document.addEventListener('DOMContentLoaded', function() {
+    // PWA: نجهّز بانر التثبيت ورابط تثبيت صحيح (يحافظ على بيانات السائق/المعدة في الرابط) قبل أي توجيه للصفحة —
+    // عشان يشتغل حتى في صفحات السائق المباشرة اللي بتستبدل محتوى الصفحة بالكامل
+    injectPwaInstallBanner();
+
     // رابط مشاركة موقع سائق (بدون تسجيل دخول) — يوقف التحميل العادي للتطبيق
     var shareParams = new URLSearchParams(location.search);
     var shareDriverId = shareParams.get('share');
-    if (shareDriverId) { initShareLocationPage(shareDriverId); return; }
+    if (shareDriverId) { setupPwaForCurrentUrl('متابعة موقع السائق', 'موقع السائق'); initShareLocationPage(shareDriverId); return; }
 
     // رابط ملصق QR لمعدة معيّنة — صفحة عامة للقراءة فقط بدون تسجيل دخول
     var eqDeepLinkId = shareParams.get('eq');
-    if (eqDeepLinkId) { initEquipmentPublicViewPage(eqDeepLinkId); return; }
+    if (eqDeepLinkId) { setupPwaForCurrentUrl('صفحة المعدة', 'المعدة'); initEquipmentPublicViewPage(eqDeepLinkId); return; }
 
     console.log('تم تحميل الصفحة - جاري تهيئة التطبيق');
     preloadLoginData();
@@ -14029,11 +14052,55 @@ if ('serviceWorker' in navigator) {
             .catch(function(err) { console.log('SW error:', err); });
     });
 }
+
+// PWA: يبني رابط تثبيت بمانيفست يحافظ على الرابط الحالي كامل (بما فيه ?share= أو ?eq=)
+// عشان لو سائق ثبّت رابطه الخاص على الشاشة الرئيسية، فتحه تاني يرجعه لنفس صفحته على طول بدل شاشة الدخول
+function setupPwaForCurrentUrl(appName, shortName) {
+    try {
+        var manifest = {
+            name: appName || 'نظام إدارة المعدات - حسن علام',
+            short_name: shortName || 'HACPMV',
+            start_url: location.pathname + location.search,
+            scope: location.pathname,
+            display: 'standalone',
+            background_color: '#0d1b2a',
+            theme_color: '#0d1b2a',
+            icons: [
+                { src: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 192 192\'%3E%3Crect width=\'192\' height=\'192\' rx=\'36\' fill=\'%230d1b2a\'/%3E%3Ctext y=\'130\' x=\'96\' text-anchor=\'middle\' font-size=\'110\' font-family=\'Arial\'%3E%E2%9A%99%EF%B8%8F%3C/text%3E%3C/svg%3E', sizes: '192x192', type: 'image/svg+xml' }
+            ]
+        };
+        var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+        var manifestLink = document.querySelector('link[rel="manifest"]');
+        if (manifestLink) manifestLink.href = URL.createObjectURL(blob);
+    } catch (e) { console.warn('تعذّر تجهيز بيانات التثبيت:', e); }
+}
+
+// PWA: بانر "ثبّت التطبيق" — بيتحط كـ sibling لعنصر body (مش جواه) عشان يفضل موجود حتى لو صفحات
+// السائق المباشرة استبدلت document.body.innerHTML بالكامل (وده بيحصل في صفحات الـ QR ولنكات السائقين)
+function injectPwaInstallBanner() {
+    if (document.getElementById('pwa-install-banner')) return;
+    var el = document.createElement('div');
+    el.id = 'pwa-install-banner';
+    el.style.cssText = 'display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:472px;background:linear-gradient(135deg,#0d1b2a,#1b2838);color:white;border-radius:16px;padding:14px 16px;z-index:99999;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);font-family:Cairo,Tahoma,sans-serif;direction:rtl';
+    el.innerHTML =
+        '<div style="font-size:28px">📲</div>' +
+        '<div style="flex:1">' +
+            '<div style="font-weight:700;font-size:14px">ثبّت الصفحة على شاشتك الرئيسية</div>' +
+            '<div style="font-size:11px;opacity:0.8;margin-top:2px">هتفتح بنفس الرابط ده تلقائيًا كل مرة</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px">' +
+            '<button onclick="installPWA()" style="background:#e8a020;color:#0d1b2a;border:none;border-radius:10px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">تثبيت</button>' +
+            '<button onclick="dismissInstall()" style="background:rgba(255,255,255,.15);color:white;border:none;border-radius:10px;padding:8px 10px;font-family:inherit;font-size:13px;cursor:pointer">✕</button>' +
+        '</div>';
+    document.documentElement.appendChild(el);
+}
+
 // زر تثبيت التطبيق
 var deferredPrompt;
 window.addEventListener('beforeinstallprompt', function(e) {
     e.preventDefault();
     deferredPrompt = e;
+    injectPwaInstallBanner(); // نتأكد إن البانر موجود حتى لو الحدث ده اشتغل قبل DOMContentLoaded
     var installBanner = document.getElementById('pwa-install-banner');
     if (installBanner) installBanner.style.display = 'flex';
 });
@@ -14057,18 +14124,7 @@ window.dismissInstall = function() {
 };
 </script>
 
-<!-- بانر تثبيت التطبيق -->
-<div id="pwa-install-banner" style="display:none;position:fixed;bottom:85px;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:472px;background:linear-gradient(135deg,#0d1b2a,#1b2838);color:white;border-radius:16px;padding:14px 16px;z-index:300;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
-    <div style="font-size:28px">⚙️</div>
-    <div style="flex:1">
-        <div style="font-weight:700;font-size:14px">ثبّت التطبيق على موبايلك</div>
-        <div style="font-size:11px;opacity:0.8;margin-top:2px">يعمل بدون إنترنت وكأنه تطبيق حقيقي</div>
-    </div>
-    <div style="display:flex;gap:8px">
-        <button onclick="installPWA()" style="background:#e8a020;color:#0d1b2a;border:none;border-radius:10px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">تثبيت</button>
-        <button onclick="dismissInstall()" style="background:rgba(255,255,255,.15);color:white;border:none;border-radius:10px;padding:8px 10px;font-family:inherit;font-size:13px;cursor:pointer">✕</button>
-    </div>
-</div>
+
 
 <script>
 function toggleAppTheme(){
