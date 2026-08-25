@@ -5052,6 +5052,7 @@ function initEquipmentPublicViewPage(eqId) {
                 window._unlockAttendanceView();
             } else {
                 renderAttendanceGateMessage();
+                showTopNotification('📅', 'اضغط "بدء العمل" لكي يظهر لك أيام عملك كاملة للشهر الحالي');
             }
             return;
         }
@@ -5150,6 +5151,19 @@ function buildRentalDayEntriesLocal(dailyList, rentalContract, dateFrom, dateTo)
     return { days: days, records: records };
 }
 
+
+// إشعار بيظهر فوق الشاشة (زي إشعارات النظام) وبيختفي لوحده — بيتحط كـ sibling لـ body عشان يفضل ظاهر فوق أي محتوى
+function showTopNotification(icon, message) {
+    var el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-120px);width:calc(100% - 28px);max-width:420px;background:white;border-radius:14px;padding:14px 16px;z-index:999999;box-shadow:0 8px 28px rgba(0,0,0,.18);display:flex;align-items:center;gap:10px;font-family:Cairo,Tahoma,sans-serif;direction:rtl;border:1px solid #eef1f4;transition:transform .35s cubic-bezier(.34,1.56,.64,1)';
+    el.innerHTML = '<span style="font-size:22px;flex-shrink:0">' + icon + '</span><span style="font-size:13px;font-weight:700;color:#0d1b2a;flex:1;line-height:1.5">' + message + '</span>';
+    document.documentElement.appendChild(el);
+    setTimeout(function() { el.style.transform = 'translateX(-50%) translateY(0)'; }, 50);
+    setTimeout(function() {
+        el.style.transform = 'translateX(-50%) translateY(-120px)';
+        setTimeout(function() { el.remove(); }, 400);
+    }, 5000);
+}
 
 // رسالة توضيحية بتظهر بدل جدول أيام العمل لحد ما السائق يعمل "بدء العمل" فعليًا
 function renderAttendanceGateMessage() {
