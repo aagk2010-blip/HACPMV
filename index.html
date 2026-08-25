@@ -12992,12 +12992,16 @@ function printWorkOrder(id) {
     var totalCost = items.reduce(function(s,i){ return s + (parseFloat(i.price)||0) * (parseInt(i.qty)||0); }, 0);
     var statusColor = w.status==='مكتمل' ? '#10b981' : w.status==='جارٍ' ? '#f59e0b' : '#0e7490';
 
-    var itemsRows = items.length
-        ? items.map(function(i, idx) {
+    var itemsSectionHtml = items.length ?
+        ('<h3>📦 الأصناف المطلوبة</h3>' +
+        '<table><thead><tr><th>#</th><th>الصنف</th><th>الكمية</th><th>الوحدة</th><th>السعر</th><th>الإجمالي</th></tr></thead>' +
+        '<tbody>' + items.map(function(i, idx) {
             var lineTotal = (parseFloat(i.price)||0) * (parseInt(i.qty)||0);
             return '<tr><td>' + (idx+1) + '</td><td style="text-align:right">' + escapeHtml(i.name) + '</td><td>' + i.qty + '</td><td>' + escapeHtml(i.unit||'قطعة') + '</td><td>' + (parseFloat(i.price)||0).toLocaleString() + '</td><td>' + lineTotal.toLocaleString() + '</td></tr>';
-        }).join('')
-        : '<tr><td colspan="6" style="color:#94a3b8;padding:14px">لا توجد أصناف مسجّلة على أمر العمل ده</td></tr>';
+        }).join('') +
+        '<tr class="total-row"><td colspan="5">الإجمالي الكلي</td><td>' + totalCost.toLocaleString() + ' ج.م</td></tr>' +
+        '</tbody></table>')
+        : '';
 
     // كل بيانات المعدة المسجّلة بالكامل (نفس الحقول الظاهرة في صفحة تفاصيل المعدة)
     var eqDetailsHtml = eq ?
@@ -13045,11 +13049,7 @@ function printWorkOrder(id) {
         '<h3>🏗️ بيانات المعدة الكاملة</h3>' +
         eqDetailsHtml +
 
-        '<h3>📦 الأصناف المطلوبة</h3>' +
-        '<table><thead><tr><th>#</th><th>الصنف</th><th>الكمية</th><th>الوحدة</th><th>السعر</th><th>الإجمالي</th></tr></thead>' +
-        '<tbody>' + itemsRows +
-        (items.length ? '<tr class="total-row"><td colspan="5">الإجمالي الكلي</td><td>' + totalCost.toLocaleString() + ' ج.م</td></tr>' : '') +
-        '</tbody></table>' +
+        itemsSectionHtml +
         (w.notes ? '<div class="notes-box">📌 <b>ملاحظات:</b> ' + escapeHtml(w.notes) + '</div>' : '') +
         '<div class="sign-row">' +
             '<div class="sign-box"><div class="sign-line">مسؤول الصيانة</div></div>' +
