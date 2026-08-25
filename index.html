@@ -5155,12 +5155,13 @@ function buildRentalDayEntriesLocal(dailyList, rentalContract, dateFrom, dateTo)
 // إشعار بيظهر فوق الشاشة (زي إشعارات النظام) وبيختفي لوحده — بيتحط كـ sibling لـ body عشان يفضل ظاهر فوق أي محتوى
 function showTopNotification(icon, message) {
     var el = document.createElement('div');
-    el.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-120px);width:calc(100% - 28px);max-width:420px;background:white;border-radius:14px;padding:14px 16px;z-index:999999;box-shadow:0 8px 28px rgba(0,0,0,.18);display:flex;align-items:center;gap:10px;font-family:Cairo,Tahoma,sans-serif;direction:rtl;border:1px solid #eef1f4;transition:transform .35s cubic-bezier(.34,1.56,.64,1)';
-    el.innerHTML = '<span style="font-size:22px;flex-shrink:0">' + icon + '</span><span style="font-size:13px;font-weight:700;color:#0d1b2a;flex:1;line-height:1.5">' + message + '</span>';
+    el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.85);opacity:0;width:calc(100% - 56px);max-width:380px;background:white;border-radius:16px;padding:20px 18px;z-index:999999;box-shadow:0 12px 36px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;font-family:Cairo,Tahoma,sans-serif;direction:rtl;border:1px solid #eef1f4;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s ease';
+    el.innerHTML = '<span style="font-size:34px">' + icon + '</span><span style="font-size:14px;font-weight:700;color:#0d1b2a;line-height:1.6">' + message + '</span>';
     document.documentElement.appendChild(el);
-    setTimeout(function() { el.style.transform = 'translateX(-50%) translateY(0)'; }, 50);
+    setTimeout(function() { el.style.transform = 'translate(-50%,-50%) scale(1)'; el.style.opacity = '1'; }, 50);
     setTimeout(function() {
-        el.style.transform = 'translateX(-50%) translateY(-120px)';
+        el.style.transform = 'translate(-50%,-50%) scale(0.85)';
+        el.style.opacity = '0';
         setTimeout(function() { el.remove(); }, 400);
     }, 5000);
 }
