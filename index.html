@@ -13565,8 +13565,6 @@ function saveRentalDaily() {
         if (!isAdminActing && actingUserName !== record.recordedByName) {
             record.editedByName = actingUserName;
             record.editedAt = new Date().toISOString();
-            var editNote = '⚠️ سجّلها في الأصل: ' + record.recordedByName + ' — وتم التعديل عليها بواسطة: ' + actingUserName;
-            record.notes = record.notes ? (record.notes + '\n' + editNote) : editNote;
         } else if (existingRecord.editedByName) {
             // لسه محتفظين بتاريخ التعديل السابق لو المدير هو اللي بيعدّل دلوقتي (مش بنمسحه)
             record.editedByName = existingRecord.editedByName;
@@ -13607,15 +13605,13 @@ function updateRentalTimes(id) {
     var h=calcRentalHours(inT,outT,brk);
     var updates={ inTime:inT,outTime:outT,breakWorked:brk,breakHours:h.break,totalHours:h.total,basicHours:h.basic,extraHours:h.extra,updatedAt:new Date().toISOString() };
 
-    // نفس منطق التنبيه في نافذة التعديل الكاملة: لو حساب غير المدير عدّل، نسجّل ونذكر ده في الملاحظات
+    // نفس منطق التتبع في نافذة التعديل الكاملة: لو حساب غير المدير عدّل، نسجّل مين اللي عدّل
     var existingRecord = rentalDailyData.find(function(d){ return d.id === id; });
     var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
     var isAdminActing = currentUser && currentUser.role === 'admin';
     if (existingRecord && !isAdminActing && actingUserName !== (existingRecord.recordedByName || '')) {
         updates.editedByName = actingUserName;
         updates.editedAt = new Date().toISOString();
-        var editNote = '⚠️ سجّلها في الأصل: ' + (existingRecord.recordedByName || '—') + ' — وتم التعديل عليها بواسطة: ' + actingUserName;
-        updates.notes = existingRecord.notes ? (existingRecord.notes + '\n' + editNote) : editNote;
     }
 
     fbDb.ref('rentalDaily/'+id).update(updates)
@@ -13646,7 +13642,7 @@ function renderRentalDailyView() {
             var label=eq?(eq.type+' — '+eq.code):(r.equipmentCode||'—');
             html+='<div class="rental-card" style="background:white;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:9px;overflow:hidden;max-width:600px"><div style="padding:10px 14px">'+
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px">'+
-                '<div style="min-width:0;flex:1;overflow:hidden"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(label)+'"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:11.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:10.5px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 سجّلها: '+escapeHtml(r.recordedByName)+'</div>':'')+'</div>'+
+                '<div style="min-width:0;flex:1;overflow:hidden"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(label)+'"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:11.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:10.5px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 سجّلها: '+escapeHtml(r.recordedByName)+(r.editedByName?' <span style="color:#dc2626;font-weight:700">— تم التعديل بواسطة: '+escapeHtml(r.editedByName)+'</span>':'')+'</div>':'')+'</div>'+
                 (isAdmin?'<div style="display:flex;gap:5px;flex-shrink:0">'+
                 '<button data-action="edit-daily" data-id="'+r.id+'" style="background:#e0e7ff;color:#4338ca;border:none;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer">✏️</button>'+
                 '<button data-action="del-daily" data-id="'+r.id+'" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer">🗑️</button></div>':'')+'</div>'+
@@ -13902,14 +13898,12 @@ function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
             notes: notes, updatedAt: new Date().toISOString()
         });
 
-        // نفس منطق التنبيه: لو حساب غير المدير عدّل، نسجّل ونذكر ده في الملاحظات
+        // نفس منطق التتبع: لو حساب غير المدير عدّل، نسجّل مين اللي عدّل
         var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
         var isAdminActing = currentUser && currentUser.role === 'admin';
         if (!isAdminActing && actingUserName !== (entry.recordedByName || '')) {
             updated.editedByName = actingUserName;
             updated.editedAt = new Date().toISOString();
-            var editNote = '⚠️ سجّلها في الأصل: ' + (entry.recordedByName || '—') + ' — وتم التعديل عليها بواسطة: ' + actingUserName;
-            updated.notes = notes ? (notes + '\n' + editNote) : editNote;
         }
 
         fbDb.ref('rentalDaily/' + entryId).set(updated)
@@ -13951,21 +13945,21 @@ function exportSingleRentalExcel(rentalId) {
     var rows=[['تقرير معدة إيجار'],
         ['المعدة:',(eq?eq.type+' — '+eq.code:'—'),'الشركة:',(rental?rental.company||'—':'—')],
         ['السائق:',(drv?drv.name:'—'),'الفترة:',periodLabel],[],
-        ['التاريخ','حضور','انصراف','أساسي','ساعة راحة','إضافي','المجموع','ملاحظات','سجّلها']];
+        ['التاريخ','حضور','انصراف','أساسي','ساعة راحة','إضافي','المجموع','ملاحظات','سجّلها','تم التعديل بواسطة']];
     var sb=0,sk=0,se=0,absentCount=0;
     days.forEach(function(dayEntry){
         var r = dayEntry.record;
         if (!r) {
-            if (dayEntry.status === 'absent') { absentCount++; rows.push([dayEntry.date,'','','','','','','🚫 غياب','']); }
-            else { rows.push([dayEntry.date,'','','','','','','⏳ لم يُسجل بعد','']); }
+            if (dayEntry.status === 'absent') { absentCount++; rows.push([dayEntry.date,'','','','','','','🚫 غياب','','']); }
+            else { rows.push([dayEntry.date,'','','','','','','⏳ لم يُسجل بعد','','']); }
             return;
         }
         sb+=(r.basicHours||0);sk+=(r.breakHours||0);se+=(r.extraHours||0);
         var rowTotal=(r.basicHours||0)+(r.breakHours||0)+(r.extraHours||0);
-        rows.push([r.date,r.inTime||'',r.outTime||'',(r.basicHours||0).toFixed(2),(r.breakHours||0).toFixed(2),(r.extraHours||0).toFixed(2),rowTotal.toFixed(2),r.notes||'',r.recordedByName||'']);
+        rows.push([r.date,r.inTime||'',r.outTime||'',(r.basicHours||0).toFixed(2),(r.breakHours||0).toFixed(2),(r.extraHours||0).toFixed(2),rowTotal.toFixed(2),r.notes||'',r.recordedByName||'',r.editedByName||'']);
     });
-    rows.push([]);rows.push(['الإجمالي','','',sb.toFixed(2),sk.toFixed(2),se.toFixed(2),(sb+sk+se).toFixed(2),'','']);
-    rows.push(['أيام الغياب',absentCount,'','','','','','','']);
+    rows.push([]);rows.push(['الإجمالي','','',sb.toFixed(2),sk.toFixed(2),se.toFixed(2),(sb+sk+se).toFixed(2),'','','']);
+    rows.push(['أيام الغياب',absentCount,'','','','','','','','']);
     var ws=XLSX.utils.aoa_to_sheet(rows);var wb2=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb2,ws,'تقرير');
     XLSX.writeFile(wb2,'rental_'+(eq?eq.code:'')+'_'+(range.from||'all')+'.xlsx');
 }
@@ -13992,7 +13986,10 @@ function exportSingleRentalPDF(rentalId) {
             return '<tr style="background:'+bg+'"><td>'+dayEntry.date+'</td><td colspan="6" style="color:'+clr+';font-weight:bold">'+label+'</td><td></td></tr>';
         }
         var rowTotal=(r.basicHours||0)+(r.breakHours||0)+(r.extraHours||0);
-        var notesCell = (r.notes?'<div style="white-space:pre-line">'+escapeHtml(r.notes)+'</div>':'') + (r.recordedByName ? '<div style="font-size:9px;color:#9ca3af;margin-top:2px">👤 '+escapeHtml(r.recordedByName)+'</div>' : '');
+        var notesCell = (r.notes?'<div style="white-space:pre-line">'+escapeHtml(r.notes)+'</div>':'') +
+            (r.recordedByName ? '<div style="font-size:9px;color:#9ca3af;margin-top:2px">👤 سجّلها: '+escapeHtml(r.recordedByName)+
+                (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— تم التعديل بواسطة: '+escapeHtml(r.editedByName)+'</span>' : '') +
+            '</div>' : '');
         return '<tr style="background:'+(i%2?'#f8fafc':'white')+'"><td>'+r.date+'</td><td>'+(r.inTime||'—')+'</td><td>'+(r.outTime||'—')+'</td><td>'+(r.basicHours||0).toFixed(2)+'</td><td style="color:'+(r.breakHours>0?'#d97706':'#666')+'">'+(r.breakHours||0).toFixed(2)+'</td><td style="color:'+(r.extraHours>0?'#d97706':'#666')+'">'+(r.extraHours||0).toFixed(2)+'</td><td style="font-weight:bold">'+rowTotal.toFixed(2)+'</td><td>'+notesCell+'</td></tr>';
     }).join('');
     var w=window.open('','_blank');
