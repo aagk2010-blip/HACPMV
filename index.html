@@ -13552,8 +13552,31 @@ function saveRentalDaily() {
         driverId:rental?rental.driverId:'', company:rental?rental.company:'',
         date:date, inTime:inT, outTime:outT, totalHours:h.total, basicHours:h.basic, breakWorked:!!brk, breakHours:h.break, extraHours:h.extra,
         notes:notes,
-        recordedByName: (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم',
         updatedAt:new Date().toISOString() };
+
+    // نحافظ على اسم أول شخص سجّل البيانات، وننبّه في الملاحظات لو حصل تعديل بعد كده من حساب غير حساب المدير
+    var existingRecord = editingRentalDailyId ? rentalDailyData.find(function(d){ return d.id === editingRentalDailyId; }) : null;
+    var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
+    var isAdminActing = currentUser && currentUser.role === 'admin';
+
+    if (existingRecord) {
+        // تعديل على سجل موجود بالفعل
+        record.recordedByName = existingRecord.recordedByName || actingUserName;
+        if (!isAdminActing && actingUserName !== record.recordedByName) {
+            record.editedByName = actingUserName;
+            record.editedAt = new Date().toISOString();
+            var editNote = '⚠️ سجّلها في الأصل: ' + record.recordedByName + ' — وتم التعديل عليها بواسطة: ' + actingUserName;
+            record.notes = record.notes ? (record.notes + '\n' + editNote) : editNote;
+        } else if (existingRecord.editedByName) {
+            // لسه محتفظين بتاريخ التعديل السابق لو المدير هو اللي بيعدّل دلوقتي (مش بنمسحه)
+            record.editedByName = existingRecord.editedByName;
+            record.editedAt = existingRecord.editedAt;
+        }
+    } else {
+        // تسجيل جديد بالكامل
+        record.recordedByName = actingUserName;
+    }
+
     var ref=editingRentalDailyId?fbDb.ref('rentalDaily/'+editingRentalDailyId):fbDb.ref('rentalDaily').push();
     ref.set(record).then(function(){ closeModal('rental-daily-modal'); showToast('تم الحفظ ✅'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
 }
@@ -13582,7 +13605,20 @@ function updateRentalTimes(id) {
     var brk=!!(document.getElementById('upd-brk-'+id)||{}).checked;
     if (!inT||!outT) { showToast('أدخل وقت الحضور والانصراف',true); return; }
     var h=calcRentalHours(inT,outT,brk);
-    fbDb.ref('rentalDaily/'+id).update({ inTime:inT,outTime:outT,breakWorked:brk,breakHours:h.break,totalHours:h.total,basicHours:h.basic,extraHours:h.extra,updatedAt:new Date().toISOString() })
+    var updates={ inTime:inT,outTime:outT,breakWorked:brk,breakHours:h.break,totalHours:h.total,basicHours:h.basic,extraHours:h.extra,updatedAt:new Date().toISOString() };
+
+    // نفس منطق التنبيه في نافذة التعديل الكاملة: لو حساب غير المدير عدّل، نسجّل ونذكر ده في الملاحظات
+    var existingRecord = rentalDailyData.find(function(d){ return d.id === id; });
+    var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
+    var isAdminActing = currentUser && currentUser.role === 'admin';
+    if (existingRecord && !isAdminActing && actingUserName !== (existingRecord.recordedByName || '')) {
+        updates.editedByName = actingUserName;
+        updates.editedAt = new Date().toISOString();
+        var editNote = '⚠️ سجّلها في الأصل: ' + (existingRecord.recordedByName || '—') + ' — وتم التعديل عليها بواسطة: ' + actingUserName;
+        updates.notes = existingRecord.notes ? (existingRecord.notes + '\n' + editNote) : editNote;
+    }
+
+    fbDb.ref('rentalDaily/'+id).update(updates)
         .then(function(){ showToast('تم التحديث'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
 }
 
@@ -13780,7 +13816,7 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo) {
             '<span style="text-align:center;font-weight:600;color:'+(r.extraHours>0?'#d97706':'var(--gray)')+'\">'+(r.extraHours||0).toFixed(1)+'</span>'+
             '<span style="text-align:center;font-weight:700;color:#065f46">'+rowTotal.toFixed(1)+'</span>'+
             editBtns+'</div>'+
-            (r.notes?'<div style="padding:2px 12px 5px;font-size:10px;color:var(--gray);background:'+(i%2?'#f8fafc':'white')+'">\u{1F4DD} '+escapeHtml(r.notes)+'</div>':'');
+            (r.notes?'<div style="padding:2px 12px 5px;font-size:10px;color:var(--gray);background:'+(i%2?'#f8fafc':'white')+';white-space:pre-line">\u{1F4DD} '+escapeHtml(r.notes)+'</div>':'');
     });
     var emptyCol = isAdmin ? '<span></span>' : '';
     html+='<div style="background:#f1f5f9;padding:8px 12px;display:grid;grid-template-columns:'+colTemplate+';gap:3px;font-size:11px;font-weight:700;border-top:2px solid #e2e8f0">'+
@@ -13865,6 +13901,17 @@ function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
             totalHours: h.total, basicHours: h.basic, extraHours: h.extra,
             notes: notes, updatedAt: new Date().toISOString()
         });
+
+        // نفس منطق التنبيه: لو حساب غير المدير عدّل، نسجّل ونذكر ده في الملاحظات
+        var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
+        var isAdminActing = currentUser && currentUser.role === 'admin';
+        if (!isAdminActing && actingUserName !== (entry.recordedByName || '')) {
+            updated.editedByName = actingUserName;
+            updated.editedAt = new Date().toISOString();
+            var editNote = '⚠️ سجّلها في الأصل: ' + (entry.recordedByName || '—') + ' — وتم التعديل عليها بواسطة: ' + actingUserName;
+            updated.notes = notes ? (notes + '\n' + editNote) : editNote;
+        }
+
         fbDb.ref('rentalDaily/' + entryId).set(updated)
             .then(function(){
                 showToast('\u2705 \u062A\u0645 \u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0633\u062C\u0644 \u0628\u0646\u062C\u0627\u062D');
@@ -13945,7 +13992,7 @@ function exportSingleRentalPDF(rentalId) {
             return '<tr style="background:'+bg+'"><td>'+dayEntry.date+'</td><td colspan="6" style="color:'+clr+';font-weight:bold">'+label+'</td><td></td></tr>';
         }
         var rowTotal=(r.basicHours||0)+(r.breakHours||0)+(r.extraHours||0);
-        var notesCell = (r.notes?escapeHtml(r.notes):'') + (r.recordedByName ? '<div style="font-size:9px;color:#9ca3af;margin-top:2px">👤 '+escapeHtml(r.recordedByName)+'</div>' : '');
+        var notesCell = (r.notes?'<div style="white-space:pre-line">'+escapeHtml(r.notes)+'</div>':'') + (r.recordedByName ? '<div style="font-size:9px;color:#9ca3af;margin-top:2px">👤 '+escapeHtml(r.recordedByName)+'</div>' : '');
         return '<tr style="background:'+(i%2?'#f8fafc':'white')+'"><td>'+r.date+'</td><td>'+(r.inTime||'—')+'</td><td>'+(r.outTime||'—')+'</td><td>'+(r.basicHours||0).toFixed(2)+'</td><td style="color:'+(r.breakHours>0?'#d97706':'#666')+'">'+(r.breakHours||0).toFixed(2)+'</td><td style="color:'+(r.extraHours>0?'#d97706':'#666')+'">'+(r.extraHours||0).toFixed(2)+'</td><td style="font-weight:bold">'+rowTotal.toFixed(2)+'</td><td>'+notesCell+'</td></tr>';
     }).join('');
     var w=window.open('','_blank');
