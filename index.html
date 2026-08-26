@@ -5203,7 +5203,8 @@ function renderEquipmentPublicAttendanceView(eq, rentalContract, days, driverNam
                     '</div>';
             }
             var rowTotal = (r.basicHours || 0) + (r.breakHours || 0) + (r.extraHours || 0);
-            return '<div style="background:' + (i % 2 ? '#f8fafc' : 'white') + ';padding:9px 10px;display:grid;grid-template-columns:66px 46px 46px 40px 34px 40px 44px;gap:3px;font-size:11px;border-top:1px solid #f1f5f9;align-items:center;text-align:center">' +
+            return '<div style="background:' + (i % 2 ? '#f8fafc' : 'white') + ';padding:9px 10px;border-top:1px solid #f1f5f9">' +
+                '<div style="display:grid;grid-template-columns:66px 46px 46px 40px 34px 40px 44px;gap:3px;font-size:11px;align-items:center;text-align:center">' +
                 '<span style="text-align:right">' + escapeHtml(r.date || '—') + '</span>' +
                 '<span>' + escapeHtml(r.inTime || '—') + '</span>' +
                 '<span>' + escapeHtml(r.outTime || '—') + '</span>' +
@@ -5211,6 +5212,8 @@ function renderEquipmentPublicAttendanceView(eq, rentalContract, days, driverNam
                 '<span style="color:' + (r.breakHours > 0 ? '#d97706' : '#94a3b8') + '">' + (r.breakHours || 0).toFixed(1) + '</span>' +
                 '<span style="color:' + (r.extraHours > 0 ? '#d97706' : '#94a3b8') + '">' + (r.extraHours || 0).toFixed(1) + '</span>' +
                 '<span style="font-weight:800">' + rowTotal.toFixed(1) + '</span>' +
+                '</div>' +
+                (r.recordedByName ? '<div style="text-align:right;font-size:9.5px;color:#9ca3af;margin-top:3px">👤 سجّلها: ' + escapeHtml(r.recordedByName) + (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— تم التعديل بواسطة: ' + escapeHtml(r.editedByName) + '</span>' : '') + '</div>' : '') +
                 '</div>';
         }).join('');
     } else {
@@ -13126,6 +13129,7 @@ var editingRentalDailyId = null;
       '<div class="form-field"><label class="form-label">المعدة *</label>' +
       '<select class="form-select" id="rental-daily-eq" onchange="onRentalDailyEqChange()"><option value="">-- اختر --</option></select></div>' +
       '<div id="rental-daily-eq-info" style="display:none;margin:0 16px 8px;background:#e0e7ff;color:#4338ca;padding:8px 12px;border-radius:10px;font-size:13px"></div>' +
+      '<div id="rental-daily-attribution" style="display:none;margin:0 16px 8px;font-size:11px;color:#9ca3af"></div>' +
       '<div class="form-field"><label class="form-label">التاريخ *</label>' +
       '<input class="form-input" type="date" id="rental-daily-date-input"></div>' +
       '<div class="form-field"><label class="form-label">🟢 ساعة الحضور</label>' +
@@ -13505,6 +13509,8 @@ function openAddDailyModal(rentalId) {
     document.getElementById('rental-daily-break').checked=false;
     document.getElementById('rental-daily-notes').value='';
     document.getElementById('rental-daily-calc').style.display='none';
+    var attrElReset = document.getElementById('rental-daily-attribution');
+    if (attrElReset) attrElReset.style.display='none';
     if (rentalId) onRentalDailyEqChange();
     document.getElementById('rental-daily-modal').classList.add('active');
     function updCalc() {
@@ -13590,6 +13596,15 @@ function editRentalDaily(id) {
         document.getElementById('rental-daily-break').checked=!!r.breakWorked;
         document.getElementById('rental-daily-notes').value=r.notes||'';
         document.getElementById('rental-daily-modal-title').textContent='✏️ تعديل يوم عمل';
+        var attrEl = document.getElementById('rental-daily-attribution');
+        if (attrEl) {
+            if (r.recordedByName) {
+                attrEl.style.display = 'block';
+                attrEl.innerHTML = '👤 سجّلها: ' + escapeHtml(r.recordedByName) + (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— تم التعديل بواسطة: ' + escapeHtml(r.editedByName) + '</span>' : '');
+            } else {
+                attrEl.style.display = 'none';
+            }
+        }
         document.getElementById('rental-daily-in').dispatchEvent(new Event('input'));
     },60);
 }
@@ -13848,6 +13863,7 @@ function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
         '<button id="edit-daily-close" style="background:#f1f5f9;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px">\u2715</button>'+
         '</div>'+
         '<div style="background:#ede9fe;border-radius:10px;padding:8px 12px;font-size:12px;color:#4c1d95;margin-bottom:14px">\u{1F4C5} \u0627\u0644\u062A\u0627\u0631\u064A\u062E: <strong>'+entry.date+'</strong></div>'+
+        (entry.recordedByName ? '<div style="font-size:11px;color:#9ca3af;margin-bottom:14px">\u{1F464} \u0633\u062C\u0651\u0644\u0647\u0627: '+escapeHtml(entry.recordedByName)+(entry.editedByName?' <span style="color:#dc2626;font-weight:700">\u2014 \u062A\u0645 \u0627\u0644\u062A\u0639\u062F\u064A\u0644 \u0628\u0648\u0627\u0633\u0637\u0629: '+escapeHtml(entry.editedByName)+'</span>':'')+'</div>' : '')+
         '<div style="display:grid;gap:10px">'+
         '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">\u0648\u0642\u062A \u0627\u0644\u062D\u0636\u0648\u0631</label>'+
         '<input type="time" id="edit-entry-in" value="'+(entry.inTime||'08:00')+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>'+
