@@ -13567,7 +13567,9 @@ function saveRentalDaily() {
 
     if (existingRecord) {
         // تعديل على سجل موجود بالفعل
-        record.recordedByName = existingRecord.recordedByName || actingUserName;
+        // نحافظ على اسم أول شخص سجّل البيانات، وننبّه لو حصل تعديل بعد كده من حساب غير حساب المدير.
+        // ملحوظة: السجلات القديمة (قبل إضافة هذه الميزة) مفيهاش اسم مسجّل أصلي محفوظ؛ بدل ما ننسبها غلط للشخص اللي بيعدّلها دلوقتي، نحطّلها قيمة محايدة توضح إنها سجل قديم
+        record.recordedByName = existingRecord.recordedByName || 'غير معروف (سجل قديم)';
         if (!isAdminActing && actingUserName !== record.recordedByName) {
             record.editedByName = actingUserName;
             record.editedAt = new Date().toISOString();
