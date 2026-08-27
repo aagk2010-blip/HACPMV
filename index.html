@@ -13589,8 +13589,8 @@ function saveRentalDaily() {
 function editRentalDaily(id) {
     var r=rentalDailyData.find(function(x){ return x.id===id; });
     if (!r) return;
-    editingRentalDailyId=id;
-    openAddDailyModal(r.equipmentId||'');
+    openAddDailyModal(r.equipmentId||''); // ملحوظة: الدالة دي بترجّع editingRentalDailyId لـ null، فلازم نستدعيها الأول
+    editingRentalDailyId=id; // ...وبعدين نحدد إننا في وضع تعديل، مش تسجيل جديد
     setTimeout(function(){
         document.getElementById('rental-daily-date-input').value=r.date||'';
         document.getElementById('rental-daily-in').value=r.inTime||'';
