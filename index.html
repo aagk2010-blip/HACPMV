@@ -8194,6 +8194,8 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
             }, { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 });
             locBtn.textContent = '⏹️ انتهاء العمل';
             locBtn.style.background = 'linear-gradient(135deg,#dc2626,#991b1b)';
+            // فتح سجل أيام العمل تحت الكارت — كان متخفي لحد ما السائق يعمل "بدء العمل" فعليًا
+            if (window._unlockAttendanceView) window._unlockAttendanceView();
         }
         function stopLocSharing() {
             sharing = false;
@@ -8225,7 +8227,6 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
         }
     })();
 }
-
 // ==================== شاشة قراءة العداد ومشاركة الموقع (لسائقي المعدات العادية غير الإيجار) ====================
 function initEquipmentMeterSharePage(driverId) {
     document.title = 'مشاركة الموقع';
@@ -8381,8 +8382,6 @@ function initEquipmentMeterSharePage(driverId) {
         }, { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 });
         btn.textContent = '⏹️ انتهاء العمل';
         btn.style.background = 'linear-gradient(135deg,#dc2626,#991b1b)';
-        // فتح سجل أيام العمل تحت الكارت — كان متخفي لحد ما السائق يعمل "بدء العمل" فعليًا
-        if (window._unlockAttendanceView) window._unlockAttendanceView();
     }
 
     function stopSharing() {
