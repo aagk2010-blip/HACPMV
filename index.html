@@ -5213,7 +5213,7 @@ function renderEquipmentPublicAttendanceView(eq, rentalContract, days, driverNam
                 '<span style="color:' + (r.extraHours > 0 ? '#d97706' : '#94a3b8') + '">' + (r.extraHours || 0).toFixed(1) + '</span>' +
                 '<span style="font-weight:800">' + rowTotal.toFixed(1) + '</span>' +
                 '</div>' +
-                (r.recordedByName ? '<div style="text-align:right;font-size:9.5px;color:#9ca3af;margin-top:3px">👤 سجّلها: ' + escapeHtml(r.recordedByName) + (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— تم التعديل بواسطة: ' + escapeHtml(r.editedByName) + '</span>' : '') + '</div>' : '') +
+                (r.recordedByName ? '<div style="text-align:right;font-size:9.5px;color:#9ca3af;margin-top:3px">👤 ' + escapeHtml(r.recordedByName) + (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— التعديل بواسطة ' + escapeHtml(r.editedByName) + '</span>' : '') + '</div>' : '') +
                 '</div>';
         }).join('');
     } else {
@@ -13301,9 +13301,24 @@ function quickSaveRentalDay(rentalId,date,existingId,inTime,outTime,brk) {
         driverId:rental.driverId||'', company:rental.company||'', date:date,
         inTime:inTime, outTime:outTime, totalHours:h.total, basicHours:h.basic, breakWorked:!!brk, breakHours:h.break, extraHours:h.extra,
         notes:(existingRecord?existingRecord.notes||'':''),
-        // اسم المستخدم اللي سجّل الحضور والانصراف فعليًا
-        recordedByName: (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم',
         updatedAt:new Date().toISOString() };
+
+    // نفس منطق التتبع المستخدم في باقي شاشات التعديل: نحافظ على اسم أول شخص سجّل، ونسجّل مين عدّل لو مش المدير
+    var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
+    var isAdminActing = currentUser && currentUser.role === 'admin';
+    if (existingRecord) {
+        record.recordedByName = existingRecord.recordedByName || 'غير معروف (سجل قديم)';
+        if (!isAdminActing && actingUserName !== record.recordedByName) {
+            record.editedByName = actingUserName;
+            record.editedAt = new Date().toISOString();
+        } else if (existingRecord.editedByName) {
+            record.editedByName = existingRecord.editedByName;
+            record.editedAt = existingRecord.editedAt;
+        }
+    } else {
+        record.recordedByName = actingUserName;
+    }
+
     var ref=targetId?fbDb.ref('rentalDaily/'+targetId):fbDb.ref('rentalDaily').push();
     ref.set(record).then(function(){ showToast(targetId?'✅ تم تحديث اليوم':'✅ تم حفظ اليوم'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
 }
@@ -13488,7 +13503,17 @@ function saveRentalInlineNotes(rentalId, dateStr, value) {
     if (!rec) { showToast('سجّل الحضور والانصراف أولاً', true); return; }
     var trimmed = (value || '').trim();
     if ((rec.notes || '') === trimmed) return; // مفيش تغيير فعلي
-    fbDb.ref('rentalDaily/' + rec.id).update({ notes: trimmed, updatedAt: new Date().toISOString() }).then(function() {
+    var updates = { notes: trimmed, updatedAt: new Date().toISOString() };
+
+    // نفس منطق التتبع: لو حساب غير المدير عدّل الملاحظة، نسجّل مين اللي عدّل
+    var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
+    var isAdminActing = currentUser && currentUser.role === 'admin';
+    if (!isAdminActing && actingUserName !== (rec.recordedByName || '')) {
+        updates.editedByName = actingUserName;
+        updates.editedAt = new Date().toISOString();
+    }
+
+    fbDb.ref('rentalDaily/' + rec.id).update(updates).then(function() {
         showToast('📝 تم حفظ ملاحظة اليوم');
     }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
 }
@@ -13602,7 +13627,7 @@ function editRentalDaily(id) {
         if (attrEl) {
             if (r.recordedByName) {
                 attrEl.style.display = 'block';
-                attrEl.innerHTML = '👤 سجّلها: ' + escapeHtml(r.recordedByName) + (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— تم التعديل بواسطة: ' + escapeHtml(r.editedByName) + '</span>' : '');
+                attrEl.innerHTML = '👤 ' + escapeHtml(r.recordedByName) + (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— التعديل بواسطة ' + escapeHtml(r.editedByName) + '</span>' : '');
             } else {
                 attrEl.style.display = 'none';
             }
@@ -13659,7 +13684,7 @@ function renderRentalDailyView() {
             var label=eq?(eq.type+' — '+eq.code):(r.equipmentCode||'—');
             html+='<div class="rental-card" style="background:white;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:9px;overflow:hidden;max-width:600px"><div style="padding:10px 14px">'+
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px">'+
-                '<div style="min-width:0;flex:1;overflow:hidden"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(label)+'"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:11.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:10.5px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 سجّلها: '+escapeHtml(r.recordedByName)+(r.editedByName?' <span style="color:#dc2626;font-weight:700">— تم التعديل بواسطة: '+escapeHtml(r.editedByName)+'</span>':'')+'</div>':'')+'</div>'+
+                '<div style="min-width:0;flex:1;overflow:hidden"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(label)+'"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:11.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:10.5px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 '+escapeHtml(r.recordedByName)+(r.editedByName?' <span style="color:#dc2626;font-weight:700">— التعديل بواسطة '+escapeHtml(r.editedByName)+'</span>':'')+'</div>':'')+'</div>'+
                 (isAdmin?'<div style="display:flex;gap:5px;flex-shrink:0">'+
                 '<button data-action="edit-daily" data-id="'+r.id+'" style="background:#e0e7ff;color:#4338ca;border:none;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer">✏️</button>'+
                 '<button data-action="del-daily" data-id="'+r.id+'" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer">🗑️</button></div>':'')+'</div>'+
@@ -13829,7 +13854,8 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo) {
             '<span style="text-align:center;font-weight:600;color:'+(r.extraHours>0?'#d97706':'var(--gray)')+'\">'+(r.extraHours||0).toFixed(1)+'</span>'+
             '<span style="text-align:center;font-weight:700;color:#065f46">'+rowTotal.toFixed(1)+'</span>'+
             editBtns+'</div>'+
-            (r.notes?'<div style="padding:2px 12px 5px;font-size:10px;color:var(--gray);background:'+(i%2?'#f8fafc':'white')+';white-space:pre-line">\u{1F4DD} '+escapeHtml(r.notes)+'</div>':'');
+            (r.notes?'<div style="padding:2px 12px 5px;font-size:10px;color:var(--gray);background:'+(i%2?'#f8fafc':'white')+';white-space:pre-line">\u{1F4DD} '+escapeHtml(r.notes)+'</div>':'')+
+            (r.recordedByName?'<div style="padding:0 12px 6px;font-size:9.5px;color:#9ca3af;background:'+(i%2?'#f8fafc':'white')+'">\u{1F464} '+escapeHtml(r.recordedByName)+(r.editedByName?' <span style="color:#dc2626;font-weight:700">\u2014 \u0627\u0644\u062A\u0639\u062F\u064A\u0644 \u0628\u0648\u0627\u0633\u0637\u0629 '+escapeHtml(r.editedByName)+'</span>':'')+'</div>':'');
     });
     var emptyCol = isAdmin ? '<span></span>' : '';
     html+='<div style="background:#f1f5f9;padding:8px 12px;display:grid;grid-template-columns:'+colTemplate+';gap:3px;font-size:11px;font-weight:700;border-top:2px solid #e2e8f0">'+
@@ -14005,8 +14031,8 @@ function exportSingleRentalPDF(rentalId) {
         }
         var rowTotal=(r.basicHours||0)+(r.breakHours||0)+(r.extraHours||0);
         var notesCell = (r.notes?'<div style="white-space:pre-line">'+escapeHtml(r.notes)+'</div>':'') +
-            (r.recordedByName ? '<div style="font-size:9px;color:#9ca3af;margin-top:2px">👤 سجّلها: '+escapeHtml(r.recordedByName)+
-                (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— تم التعديل بواسطة: '+escapeHtml(r.editedByName)+'</span>' : '') +
+            (r.recordedByName ? '<div style="font-size:9px;color:#9ca3af;margin-top:2px">👤 '+escapeHtml(r.recordedByName)+
+                (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— التعديل بواسطة '+escapeHtml(r.editedByName)+'</span>' : '') +
             '</div>' : '');
         return '<tr style="background:'+(i%2?'#f8fafc':'white')+'"><td>'+r.date+'</td><td>'+(r.inTime||'—')+'</td><td>'+(r.outTime||'—')+'</td><td>'+(r.basicHours||0).toFixed(2)+'</td><td style="color:'+(r.breakHours>0?'#d97706':'#666')+'">'+(r.breakHours||0).toFixed(2)+'</td><td style="color:'+(r.extraHours>0?'#d97706':'#666')+'">'+(r.extraHours||0).toFixed(2)+'</td><td style="font-weight:bold">'+rowTotal.toFixed(2)+'</td><td>'+notesCell+'</td></tr>';
     }).join('');
