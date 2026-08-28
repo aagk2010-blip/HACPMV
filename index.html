@@ -7819,14 +7819,77 @@ function buildOwnedEquipmentWorkCardHtml() {
         '<div id="eqpv-share-queue-info" style="font-size:10px;color:#9ca3af;margin-bottom:8px;display:none"></div>' +
         '<div style="text-align:right;margin-bottom:8px">' +
             '<label style="font-size:11px;font-weight:700;color:#0d1b2a;display:block;margin-bottom:4px">⏱️ قراءة العداد الحالية (ساعات)</label>' +
-            '<input type="number" id="eqpv-share-meter-input" placeholder="مثال: 1250" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;box-sizing:border-box">' +
+            '<div style="display:flex;gap:6px">' +
+                '<input type="number" id="eqpv-share-meter-input" placeholder="مثال: 1250" style="flex:1;min-width:0;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;box-sizing:border-box">' +
+                '<button type="button" id="eqpv-share-ocr-btn" title="قراءة العداد من صورة" style="flex-shrink:0;width:38px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;font-size:16px;cursor:pointer">📸</button>' +
+                '<input type="file" accept="image/*" capture="environment" id="eqpv-share-ocr-file" style="display:none">' +
+            '</div>' +
+            '<div id="eqpv-share-ocr-status" style="font-size:10.5px;margin-top:4px;display:none"></div>' +
         '</div>' +
         '<button id="eqpv-share-toggle-btn" style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
         '</div>';
 }
 
+// ==================== قراءة رقم عداد الساعات من صورة (مجانية بالكامل — بتشتغل جوه المتصفح، من غير أي سيرفر أو مفتاح API) ====================
+// بنحمّل مكتبة Tesseract.js أول مرة بس (لو المستخدم فعلاً محتاج يقرأ صورة)، عشان متبطّئش تحميل الصفحة لكل الناس
+function loadTesseractIfNeeded(callback) {
+    if (window.Tesseract) { callback(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload = function() { callback(); };
+    s.onerror = function() { callback(new Error('تعذّر تحميل أداة القراءة')); };
+    document.head.appendChild(s);
+}
+
+// بتاخد ملف صورة، تقرأ منه الأرقام، وتحطها في حقل الإدخال المطلوب — السائق لازم يراجع الرقم قبل ما يكمل (مش بيتملى لوحده بشكل نهائي)
+function runMeterOCR(file, inputEl, statusEl) {
+    if (!file) return;
+    statusEl.style.display = 'block';
+    statusEl.style.color = '#6b7a8d';
+    statusEl.textContent = '⏳ جاري تحميل أداة القراءة...';
+    loadTesseractIfNeeded(function(err) {
+        if (err || !window.Tesseract) {
+            statusEl.style.color = '#dc2626';
+            statusEl.textContent = '❌ تعذّر تحميل أداة القراءة — تأكد من الاتصال بالإنترنت';
+            return;
+        }
+        statusEl.style.color = '#6b7a8d';
+        statusEl.textContent = '🔍 جاري قراءة الرقم من الصورة...';
+        window.Tesseract.recognize(file, 'eng', {
+            tessedit_char_whitelist: '0123456789'
+        }).then(function(result) {
+            var digitsOnly = (result && result.data && result.data.text || '').replace(/[^0-9]/g, '');
+            if (digitsOnly) {
+                inputEl.value = digitsOnly;
+                statusEl.style.color = '#059669';
+                statusEl.textContent = '✅ الرقم اللي اتقرا: ' + digitsOnly + ' — تأكد إنه صحيح قبل ما تكمل';
+                inputEl.focus();
+            } else {
+                statusEl.style.color = '#dc2626';
+                statusEl.textContent = '⚠️ معرفناش نقرأ رقم واضح من الصورة — اكتب القراءة يدويًا';
+            }
+        }).catch(function() {
+            statusEl.style.color = '#dc2626';
+            statusEl.textContent = '❌ حصل خطأ في قراءة الصورة — اكتب القراءة يدويًا';
+        });
+    });
+}
+
+function wireMeterOCRButton(btnId, fileId, inputId, statusId) {
+    var btn = document.getElementById(btnId);
+    var fileInput = document.getElementById(fileId);
+    var inputEl = document.getElementById(inputId);
+    var statusEl = document.getElementById(statusId);
+    if (!btn || !fileInput || !inputEl || !statusEl) return;
+    btn.onclick = function() { fileInput.click(); };
+    fileInput.onchange = function() {
+        if (fileInput.files && fileInput.files[0]) runMeterOCR(fileInput.files[0], inputEl, statusEl);
+    };
+}
+
 // يربط منطق مشاركة الموقع وتسجيل بدء/انتهاء العمل بالكارت المصغّر (نفس منطق initEquipmentMeterSharePage بالضبط، بس مربوط بعناصر الكارت المدمج داخل صفحة QR للمعدة)
 function wireOwnedEquipmentWorkCard(driverId) {
+    wireMeterOCRButton('eqpv-share-ocr-btn', 'eqpv-share-ocr-file', 'eqpv-share-meter-input', 'eqpv-share-ocr-status');
     var driverName = '';
     var QUEUE_KEY = 'offlineLocQueue_' + driverId;
 
@@ -8240,12 +8303,18 @@ function initEquipmentMeterSharePage(driverId) {
         '<div id="share-queue-info" style="font-size:11px;color:#9ca3af;margin-bottom:12px;display:none"></div>' +
         '<div style="text-align:right;margin-bottom:12px">' +
             '<label style="font-size:12px;font-weight:700;color:#0d1b2a;display:block;margin-bottom:5px">⏱️ قراءة العداد الحالية (ساعات)</label>' +
-            '<input type="number" id="share-meter-input" placeholder="مثال: 1250" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;box-sizing:border-box">' +
+            '<div style="display:flex;gap:6px">' +
+                '<input type="number" id="share-meter-input" placeholder="مثال: 1250" style="flex:1;min-width:0;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;box-sizing:border-box">' +
+                '<button type="button" id="share-ocr-btn" title="قراءة العداد من صورة" style="flex-shrink:0;width:44px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;font-size:18px;cursor:pointer">📸</button>' +
+                '<input type="file" accept="image/*" capture="environment" id="share-ocr-file" style="display:none">' +
+            '</div>' +
+            '<div id="share-ocr-status" style="font-size:11px;margin-top:5px;display:none;text-align:right"></div>' +
         '</div>' +
         '<button id="share-toggle-btn" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
         '<div style="font-size:10.5px;color:#9ca3af;margin-top:14px">هيطلب المتصفح إذن الوصول للموقع — اضغط "سماح"<br>الصفحة بتسجّل مسارك حتى لو النت اتقطع، وترفعه تلقائي مجمّع حسب اليوم أول ما النت يرجع</div>' +
         '</div></div>';
 
+    wireMeterOCRButton('share-ocr-btn', 'share-ocr-file', 'share-meter-input', 'share-ocr-status');
     var driverName = '';
     var QUEUE_KEY = 'offlineLocQueue_' + driverId;
 
@@ -13731,11 +13800,16 @@ function showRentalReport(rentalId) {
         '<div><div style="font-size:11px;color:var(--gray);margin-bottom:3px">إلى</div>'+
         '<input type="date" id="rental-report-date-to" value="'+defTo+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px"></div>'+
         '</div>'+
-        '<div style="display:flex;gap:8px;margin-bottom:10px">'+
+        '<div style="display:flex;gap:8px;margin-bottom:8px">'+
         '<button id="rental-report-apply-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">🔍 عرض</button>'+
         '<button id="rental-report-excel-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">📊 Excel</button>'+
         '<button id="rental-report-pdf-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">📄 PDF</button>'+
-        '</div><div id="rental-report-content"></div></div>';
+        '</div>'+
+        '<div style="margin-bottom:10px">'+
+        '<button id="rental-report-anomaly-btn" style="width:100%;padding:8px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700">🕵️ فحص التناقضات (ساعات مسجّلة مقابل GPS)</button>'+
+        '<div id="rental-anomaly-summary" style="display:none;margin-top:8px"></div>'+
+        '</div>'+
+        '<div id="rental-report-content"></div></div>';
     document.getElementById('detail-modal').classList.add('active');
     var applyBtn=document.getElementById('rental-report-apply-btn');
     if (applyBtn) applyBtn.onclick=function(){
@@ -13747,7 +13821,94 @@ function showRentalReport(rentalId) {
     if (eb) eb.onclick=function(){ exportSingleRentalExcel(rentalId); };
     var pb=document.getElementById('rental-report-pdf-btn');
     if (pb) pb.onclick=function(){ exportSingleRentalPDF(rentalId); };
+    var ab=document.getElementById('rental-report-anomaly-btn');
+    if (ab) ab.onclick=function(){
+        var from=(document.getElementById('rental-report-date-from')||{}).value||defFrom;
+        var to=(document.getElementById('rental-report-date-to')||{}).value||defTo;
+        runRentalAnomalyCheck(rentalId, from, to);
+    };
     renderRentalReportContent(rentalId, defFrom, defTo);
+}
+
+// ==================== فحص التناقضات: مقارنة الساعات المسجَّلة يدويًا بمسار الـ GPS الفعلي لنفس اليوم ====================
+// فكرة الفحص: لكل يوم مسجَّل، بنجيب نقاط الموقع الفعلية (driverLocationHistory) ونحسب هل فعلاً السائق كان متحرك
+// طول المدة المسجَّلة، أو مفيش بيانات موقع خالص، أو المسافة المقطوعة أقل بكتير مما يوحي بيوم عمل كامل.
+// ده فحص بقواعد بسيطة (مش محتاج أي API خارجي أو تكلفة) بيعتمد على بيانات الموقع الموجودة بالفعل في النظام.
+function runRentalAnomalyCheck(rentalId, dateFrom, dateTo) {
+    var summaryEl = document.getElementById('rental-anomaly-summary');
+    var btn = document.getElementById('rental-report-anomaly-btn');
+    if (!summaryEl) return;
+    var rental = rentalData.find(function(r){ return r.id===rentalId; });
+    if (!rental || !rental.driverId) { showToast('مفيش سائق مربوط بعقد الإيجار ده', true); return; }
+    var driverId = rental.driverId;
+
+    var dayData = buildRentalDayEntries(rentalId, dateFrom, dateTo);
+    var recordedDays = dayData.days.filter(function(d){ return d.record && d.record.inTime && d.record.outTime; });
+
+    if (!recordedDays.length) {
+        summaryEl.style.display = 'block';
+        summaryEl.innerHTML = '<div style="background:#f1f5f9;border-radius:10px;padding:12px;font-size:12.5px;color:#64748b;text-align:center">مفيش أيام مسجّلة بحضور وانصراف في الفترة دي للفحص</div>';
+        return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري الفحص...'; }
+    summaryEl.style.display = 'block';
+    summaryEl.innerHTML = '<div style="text-align:center;padding:10px;color:#94a3b8;font-size:12.5px">⏳ جاري تحميل بيانات الموقع لكل يوم...</div>';
+
+    var fetches = recordedDays.map(function(d) {
+        return fbDb.ref('driverLocationHistory/' + driverId + '/' + d.date).once('value')
+            .then(function(snap) { return { day: d, points: snap.val() || {} }; })
+            .catch(function() { return { day: d, points: {} }; });
+    });
+
+    Promise.all(fetches).then(function(results) {
+        if (btn) { btn.disabled = false; btn.textContent = '🕵️ فحص التناقضات (ساعات مسجّلة مقابل GPS)'; }
+        var flagged = [];
+
+        results.forEach(function(res) {
+            var r = res.day.record;
+            var pts = Object.keys(res.points).map(function(k){ return res.points[k]; }).filter(function(p){ return p.lat && p.lng; });
+            var loggedHours = (r.basicHours||0) + (r.breakHours||0) + (r.extraHours||0);
+
+            if (!pts.length) {
+                flagged.push({ date: r.date, level: 'high', reason: '🚫 مفيش أي بيانات موقع مسجّلة لليوم ده رغم إنه مسجّل ' + loggedHours.toFixed(1) + ' ساعة' });
+                return;
+            }
+
+            pts.sort(function(a,b){ return new Date(a.updatedAt) - new Date(b.updatedAt); });
+            var totalKm = 0;
+            for (var i=1; i<pts.length; i++) totalKm += haversineKm(pts[i-1].lat, pts[i-1].lng, pts[i].lat, pts[i].lng);
+            var gpsSpanHours = (new Date(pts[pts.length-1].updatedAt) - new Date(pts[0].updatedAt)) / 3600000;
+
+            if (totalKm < 0.15 && loggedHours >= 2) {
+                flagged.push({ date: r.date, level: 'medium', reason: '⚠️ الموقع تقريبًا لم يتحرك (' + totalKm.toFixed(2) + ' كم) رغم تسجيل ' + loggedHours.toFixed(1) + ' ساعة عمل' });
+            } else if (loggedHours > 0 && gpsSpanHours < loggedHours * 0.4) {
+                flagged.push({ date: r.date, level: 'low', reason: '⏱️ مدة نشاط GPS الفعلية (' + gpsSpanHours.toFixed(1) + ' س) أقل بكتير من الساعات المسجَّلة (' + loggedHours.toFixed(1) + ' س)' });
+            }
+        });
+
+        if (!flagged.length) {
+            summaryEl.innerHTML = '<div style="background:#d1fae5;border-radius:10px;padding:12px;font-size:12.5px;color:#065f46;text-align:center">✅ مفيش تناقضات ملحوظة بين الساعات المسجّلة ومسار الموقع في الفترة دي</div>';
+            return;
+        }
+
+        var levelColor = { high: '#dc2626', medium: '#d97706', low: '#0891b2' };
+        var levelBg = { high: '#fee2e2', medium: '#fef3c7', low: '#e0f2fe' };
+        summaryEl.innerHTML =
+            '<div style="background:white;border:1px solid #fde68a;border-radius:10px;padding:10px 12px">' +
+            '<div style="font-size:12.5px;font-weight:800;color:#92400e;margin-bottom:8px">⚠️ ' + flagged.length + ' يوم محتاج مراجعة:</div>' +
+            flagged.map(function(f) {
+                return '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 8px;background:' + levelBg[f.level] + ';border-radius:8px;margin-bottom:5px;font-size:11.5px">' +
+                    '<span style="font-weight:700;color:' + levelColor[f.level] + ';white-space:nowrap">' + f.date + '</span>' +
+                    '<span style="color:#475569;text-align:right;flex:1">' + f.reason + '</span>' +
+                '</div>';
+            }).join('') +
+            '<div style="font-size:10px;color:#9ca3af;margin-top:6px">فحص تلقائي بقواعد بسيطة — يحتاج مراجعة بشرية قبل أي إجراء</div>' +
+            '</div>';
+    }).catch(function(err) {
+        if (btn) { btn.disabled = false; btn.textContent = '🕵️ فحص التناقضات (ساعات مسجّلة مقابل GPS)'; }
+        summaryEl.innerHTML = '<div style="color:#dc2626;font-size:12px;text-align:center">❌ تعذّر إتمام الفحص: ' + err.message + '</div>';
+    });
 }
 
 // يبني قائمة بكل أيام الفترة المحددة، ويحدد حالة كل يوم: مسجّل / غياب (بعد الساعة 7ص التالية) / لم يحن بعد
