@@ -5680,6 +5680,11 @@ function openDriverDetail(id) {
             var locColor = minsAgo <= 15 ? 'var(--success)' : minsAgo <= 120 ? 'var(--warning)' : 'var(--gray)';
             var timeAgoText = minsAgo < 1 ? 'الآن' : minsAgo < 60 ? Math.round(minsAgo) + ' دقيقة' : Math.round(minsAgo / 60) + ' ساعة';
             locStatusHtml = '<span style="color:' + locColor + ';font-weight:700">📍 آخر تحديث: منذ ' + timeAgoText + '</span>';
+            // لو قفل الصفحة فعليًا بعد آخر تحديث (مش بس انقطاع نت)، بنوريها كتحذير واضح عشان تتصل بيه
+            if (loc.closedAt && new Date(loc.closedAt) > new Date(loc.updatedAt)) {
+                var closedMinsAgo = Math.round((new Date() - new Date(loc.closedAt)) / 60000);
+                locStatusHtml += '<div style="margin-top:6px;color:var(--danger);font-weight:800">🔴 قفل السائق الصفحة منذ ' + (closedMinsAgo < 1 ? 'لحظات' : closedMinsAgo + ' دقيقة') + ' — اتصل بيه</div>';
+            }
         } else {
             locStatusHtml = '<span style="color:var(--gray)">⚪ لسه ماشاركش موقعه</span>';
         }
@@ -7385,7 +7390,8 @@ function startMapColorTimer() {
     }, 15000);
 }
 
-function gpsStatusColor(updatedAt) {
+function gpsStatusColor(updatedAt, closedAt) {
+    if (closedAt && updatedAt && new Date(closedAt) > new Date(updatedAt)) return '#dc2626'; // قفل السائق الصفحة فعليًا (أحمر)
     var minsAgo = (new Date() - new Date(updatedAt)) / 60000;
     if (minsAgo <= 3) return '#10b981';   // متصل الآن (أخضر)
     if (minsAgo <= 15) return '#f59e0b';  // تأخر بسيط (أصفر)
@@ -7396,7 +7402,7 @@ function updateMapMarkerColors() {
     if (!equipmentMapInstance || !equipmentMapInstance._markers) return;
     equipmentMapInstance._markers.forEach(function(m) {
         if (!m._locUpdatedAt) return;
-        var color = gpsStatusColor(m._locUpdatedAt);
+        var color = gpsStatusColor(m._locUpdatedAt, m._locClosedAt);
         m.setStyle({ fillColor: color });
     });
 }
@@ -7539,7 +7545,8 @@ function renderEquipmentMap() {
     var bounds = [];
     points.forEach(function(p) {
         var minsAgo = (new Date() - new Date(p.loc.updatedAt)) / 60000;
-        var color = gpsStatusColor(p.loc.updatedAt);
+        var isClosed = p.loc.closedAt && new Date(p.loc.closedAt) > new Date(p.loc.updatedAt);
+        var color = gpsStatusColor(p.loc.updatedAt, p.loc.closedAt);
         var marker = L.circleMarker([p.loc.lat, p.loc.lng], {
             radius: 9,
             fillColor: color,
@@ -7548,6 +7555,7 @@ function renderEquipmentMap() {
             fillOpacity: 1
         }).addTo(equipmentMapInstance);
         marker._locUpdatedAt = p.loc.updatedAt;
+        marker._locClosedAt = p.loc.closedAt;
         var timeAgoText = minsAgo < 1 ? 'الآن' : minsAgo < 60 ? Math.round(minsAgo) + ' دقيقة' : Math.round(minsAgo / 60) + ' ساعة';
         marker.bindPopup(
             '<div style="font-family:Cairo,sans-serif;text-align:right;min-width:180px">' +
@@ -7558,6 +7566,7 @@ function renderEquipmentMap() {
                 (p.eq.projectSite ? '<div style="font-size:11.5px;color:#555">📍 المشروع: ' + p.eq.projectSite + '</div>' : '') +
                 (p.loc.meter !== undefined && p.loc.meter !== null ? '<div style="font-size:11.5px;color:#555">⏱️ العداد: ' + p.loc.meter + ' س</div>' : '') +
                 '<div style="font-size:11px;color:#888;margin-top:3px">🕐 آخر تحديث: منذ ' + timeAgoText + '</div>' +
+                (isClosed ? '<div style="font-size:11.5px;color:#dc2626;font-weight:800;margin-top:3px">🔴 قفل السائق الصفحة</div>' : '') +
                 (p.drv ? '<button onclick="showEquipmentRouteToday(\'' + p.drv.id + '\')" style="width:100%;margin-top:8px;padding:7px;border:none;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">🛣️ عرض خط سير المعدة اليوم</button>' : '') +
                 '<a href="https://www.google.com/maps/dir/?api=1&destination=' + p.loc.lat + ',' + p.loc.lng + '&travelmode=driving" target="_blank" rel="noopener" style="display:block;text-align:center;width:100%;margin-top:6px;padding:7px;border-radius:8px;background:linear-gradient(135deg,#0891b2,#0e7490);color:white;font-size:11.5px;font-weight:700;text-decoration:none;font-family:inherit;box-sizing:border-box">🧭 فتح المسار في خرائط جوجل</a>' +
                 '</div>'
@@ -7813,6 +7822,127 @@ function buildAttendanceFormCardHtml() {
         '<div style="font-size:10.5px;color:#9ca3af;margin-top:14px">تسجيلك بيتبعت للمشرف المسؤول للمراجعة والموافقة عليه — تقدر تعدّل وتبعت تاني قبل ما يراجعه</div>' +
         '</div>';
 }
+// ==================== خريطة حيّة (خرائط جوجل) أثناء "بدء العمل" ====================
+// بتتحدث تلقائيًا مع كل تحديث موقع (بدون مفتاح API — عن طريق إمبيد خرائط جوجل العادي)
+function buildLiveMapHtml(mapId) {
+    return '<div id="' + mapId + '-wrap" style="display:none;margin-bottom:10px">' +
+        '<div style="font-size:11px;font-weight:700;color:#0d1b2a;margin-bottom:5px">🗺️ موقعك الحالي (مباشر)</div>' +
+        '<iframe id="' + mapId + '" style="width:100%;height:190px;border:0;border-radius:12px;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' +
+        '</div>';
+}
+function updateLiveMap(mapId, lat, lng) {
+    var frame = document.getElementById(mapId);
+    var wrap = document.getElementById(mapId + '-wrap');
+    if (!frame || lat == null || lng == null) return;
+    frame.src = 'https://www.google.com/maps?q=' + lat + ',' + lng + '&z=17&output=embed';
+    if (wrap) wrap.style.display = 'block';
+}
+
+// ==================== منع إغلاق/تعتيم الشاشة تلقائيًا أثناء "بدء العمل" (Screen Wake Lock) ====================
+// المتصفح لسه بيدعم "wakeLock" في المتصفحات الحديثة بس — لو مش مدعوم بنتجاهل بهدوء من غير ما نكسر الصفحة
+var _activeWakeLock = null;
+var _wakeLockShouldBeActive = false;
+function requestScreenWakeLock() {
+    _wakeLockShouldBeActive = true;
+    if (!('wakeLock' in navigator)) return;
+    navigator.wakeLock.request('screen').then(function(lock) {
+        _activeWakeLock = lock;
+        lock.addEventListener('release', function() { _activeWakeLock = null; });
+    }).catch(function() { _activeWakeLock = null; });
+}
+function releaseScreenWakeLock() {
+    _wakeLockShouldBeActive = false;
+    if (_activeWakeLock) {
+        _activeWakeLock.release().catch(function() {});
+        _activeWakeLock = null;
+    }
+}
+// المتصفح بيفصل الـ wakeLock تلقائيًا لما الصفحة تتخفي (يقفل التاب/يقفل الشاشة) — نرجعه تاني أول ما السائق يرجع للصفحة لو لسه شغّال
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible' && _wakeLockShouldBeActive && _activeWakeLock === null) {
+        requestScreenWakeLock();
+    }
+});
+
+// ==================== تحذير عند محاولة إغلاق الصفحة أثناء "بدء العمل" (منعًا لإقفالها بالغلط) ====================
+// تحذيرين ورا بعض: أول محاولة إغلاق بتوريله تنبيه، لو تجاهله وحاول تاني بتوريله تحذير أقوى قبل ما تسمحله يخرج فعلاً.
+// ملحوظة: مربع تحذير إغلاق التاب/تحديث الصفحة (X أو Refresh) بيتحكم فيه المتصفح نفسه ومش بيسمح بنص مخصص —
+// بس المتصفح بيعيد إظهاره في كل محاولة إغلاق تلقائيًا، فده بيحقق نفس فكرة "تحذير في كل محاولة" برضو.
+var _closeWarnActive = false;
+var _closeWarnBackAttempts = 0;
+var _closeWarnDriverId = null;
+
+function armCloseWarning(driverId) {
+    _closeWarnDriverId = driverId || _closeWarnDriverId;
+    if (_closeWarnActive) return;
+    _closeWarnActive = true;
+    _closeWarnBackAttempts = 0;
+    try { history.pushState({ _workGuard: true }, ''); } catch (e) {}
+}
+function disarmCloseWarning() {
+    _closeWarnActive = false;
+    _closeWarnBackAttempts = 0;
+    var modal = document.getElementById('close-warn-modal');
+    if (modal) modal.remove();
+}
+
+// لو الصفحة اتقفلت فعلاً (تاب اتقفل / تحديث / خروج من التطبيق) ونحن لسه في وضع "بدء العمل"،
+// نبعت إشارة فورية لقاعدة البيانات (بدل ما ننتظر انقطاع التحديثات بس) عشان المكتب يعرف فورًا ويتصل بالسائق
+window.addEventListener('pagehide', function() {
+    if (!_closeWarnActive || !_closeWarnDriverId) return;
+    try {
+        var url = FIREBASE_CONFIG.databaseURL + '/driverLocations/' + _closeWarnDriverId + '/closedAt.json';
+        fetch(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(new Date().toISOString()),
+            keepalive: true
+        });
+    } catch (e) {}
+});
+
+window.addEventListener('beforeunload', function(e) {
+    if (!_closeWarnActive) return;
+    e.preventDefault();
+    e.returnValue = 'أنت لسه شغّال دلوقتي — متأكد عايز تقفل الصفحة؟ (تسجيل موقعك هيتوقف)';
+    return e.returnValue;
+});
+
+// زرار الرجوع في المتصفح/الموبايل — بنعرض تحذيرين ورا بعض قبل ما نسمح بالخروج فعلاً
+window.addEventListener('popstate', function() {
+    if (!_closeWarnActive) return;
+    _closeWarnBackAttempts++;
+    if (_closeWarnBackAttempts >= 2) {
+        // دي المحاولة التانية: بنسيبه يخرج فعليًا من غير ما نمنعه تاني
+        disarmCloseWarning();
+        return;
+    }
+    // المحاولة الأولى: بنمنع الخروج ونوريله تحذير، ونرجّعه لنفس الصفحة
+    try { history.pushState({ _workGuard: true }, ''); } catch (e) {}
+    showCloseWarningModal(
+        '⚠️ لسه شغّال دلوقتي',
+        'لو خرجت دلوقتي هيتوقف تسجيل موقعك وساعات شغلك. اضغط "استمرار في العمل" لو حصل بالغلط، أو دوس رجوع تاني لو متأكد إنك عايز تخرج.',
+        false
+    );
+});
+
+function showCloseWarningModal(title, msg, isFinal) {
+    var existing = document.getElementById('close-warn-modal');
+    if (existing) existing.remove();
+    var el = document.createElement('div');
+    el.id = 'close-warn-modal';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Cairo,Tahoma,sans-serif;direction:rtl';
+    el.innerHTML =
+        '<div style="background:white;border-radius:18px;padding:22px;max-width:340px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
+            '<div style="font-size:34px;margin-bottom:8px">' + (isFinal ? '⛔' : '⚠️') + '</div>' +
+            '<div style="font-size:16px;font-weight:800;color:#0d1b2a;margin-bottom:8px">' + title + '</div>' +
+            '<div style="font-size:13px;color:#475569;margin-bottom:18px;line-height:1.6">' + msg + '</div>' +
+            '<button id="close-warn-stay" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">▶️ استمرار في العمل</button>' +
+        '</div>';
+    document.body.appendChild(el);
+    document.getElementById('close-warn-stay').onclick = function() { el.remove(); };
+}
+
 function buildWorkStatusCardHtml() {
     return '<div style="background:white;border-radius:20px;padding:22px 22px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);margin-bottom:14px">' +
         '<div style="font-size:34px;margin-bottom:6px">🛠️</div>' +
@@ -7820,6 +7950,7 @@ function buildWorkStatusCardHtml() {
         '<div style="font-size:11.5px;color:#6b7a8d;margin-bottom:14px">سجّل بدء وانتهاء شغلك اليوم عشان فريق العمل يتابع المعدة أول بأول</div>' +
         '<div id="loc-share-status" style="font-size:12.5px;font-weight:700;color:#f59e0b;background:#fef3c7;border-radius:10px;padding:9px;margin-bottom:8px">⏳ لم يبدأ العمل بعد</div>' +
         '<div id="loc-share-queue-info" style="font-size:10.5px;color:#9ca3af;margin-bottom:10px;display:none"></div>' +
+        buildLiveMapHtml('loc-live-map') +
         '<button id="loc-share-toggle-btn" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
         '<div style="font-size:10px;color:#9ca3af;margin-top:12px">هيطلب المتصفح إذن الوصول — اضغط "سماح"<br>البيانات بتتسجّل حتى لو النت اتقطع، وترفع تلقائي أول ما النت يرجع</div>' +
         '</div>';
@@ -7843,6 +7974,7 @@ function buildOwnedEquipmentWorkCardHtml() {
             '</div>' +
             '<div id="eqpv-share-ocr-status" style="font-size:10.5px;margin-top:4px;display:none"></div>' +
         '</div>' +
+        buildLiveMapHtml('eqpv-live-map') +
         '<button id="eqpv-share-toggle-btn" style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
         '</div>';
 }
@@ -7973,7 +8105,7 @@ function wireOwnedEquipmentWorkCard(driverId) {
         updates['driverLocations/' + driverId] = {
             driverId: driverId, driverName: driverName,
             lat: last.lat, lng: last.lng, accuracy: last.accuracy,
-            updatedAt: last.updatedAt, meter: last.meter
+            updatedAt: last.updatedAt, meter: last.meter, closedAt: null
         };
         fbDb.ref().update(updates).then(function() {
             setQueue([]);
@@ -7995,6 +8127,7 @@ function wireOwnedEquipmentWorkCard(driverId) {
             updatedAt: now.toISOString(), dateKey: getLocalDateKey(now), meter: startMeter
         };
 
+        updateLiveMap('eqpv-live-map', point.lat, point.lng);
         if (!navigator.onLine) {
             var q = getQueue(); q.push(point); setQueue(q); updateQueueBadge();
             statusEl.style.color = '#92400e'; statusEl.style.background = '#fef3c7';
@@ -8007,7 +8140,7 @@ function wireOwnedEquipmentWorkCard(driverId) {
         updates['driverLocationHistory/' + driverId + '/' + point.dateKey + '/' + histKey] = point;
         updates['driverLocations/' + driverId] = {
             driverId: driverId, driverName: driverName,
-            lat: point.lat, lng: point.lng, accuracy: point.accuracy, updatedAt: point.updatedAt, meter: point.meter
+            lat: point.lat, lng: point.lng, accuracy: point.accuracy, updatedAt: point.updatedAt, meter: point.meter, closedAt: null
         };
         fbDb.ref().update(updates).then(function() {
             statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
@@ -8030,6 +8163,8 @@ function wireOwnedEquipmentWorkCard(driverId) {
         meterInput.value = startMeter;
         meterInput.disabled = true;
         saveWorkState({ sharing: true, startMeter: startMeter });
+        requestScreenWakeLock();
+        armCloseWarning(driverId);
         shareWatchId = navigator.geolocation.watchPosition(pushLocation, function(err) {
             statusEl.style.color = '#dc2626'; statusEl.style.background = '#fee2e2';
             statusEl.innerHTML = '❌ ' + (err.code === 1 ? 'رفضت إذن الموقع' : 'تعذّر تحديد الموقع');
@@ -8041,6 +8176,8 @@ function wireOwnedEquipmentWorkCard(driverId) {
     function stopSharing() {
         sharing = false;
         if (shareWatchId !== null) navigator.geolocation.clearWatch(shareWatchId);
+        releaseScreenWakeLock();
+        disarmCloseWarning();
         tryFlushQueue();
         meterInput.disabled = false;
         saveWorkState({ sharing: false, startMeter: null });
@@ -8228,7 +8365,7 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
             var last = q[q.length - 1];
             updates['driverLocations/' + driverId] = {
                 driverId: driverId, driverName: driverNameForLoc,
-                lat: last.lat, lng: last.lng, accuracy: last.accuracy, updatedAt: last.updatedAt
+                lat: last.lat, lng: last.lng, accuracy: last.accuracy, updatedAt: last.updatedAt, closedAt: null
             };
             fbDb.ref().update(updates).then(function() {
                 setQueue([]);
@@ -8244,6 +8381,7 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
         function pushLocation(pos) {
             var now = new Date();
             var point = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, updatedAt: now.toISOString(), dateKey: getLocalDateKey(now) };
+            updateLiveMap('loc-live-map', point.lat, point.lng);
             if (!navigator.onLine) {
                 var q = getQueue(); q.push(point); setQueue(q); updateQueueBadge();
                 locStatusEl.style.color = '#92400e'; locStatusEl.style.background = '#fef3c7';
@@ -8253,7 +8391,7 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
             var updates = {};
             var histKey = fbDb.ref('driverLocationHistory/' + driverId + '/' + point.dateKey).push().key;
             updates['driverLocationHistory/' + driverId + '/' + point.dateKey + '/' + histKey] = point;
-            updates['driverLocations/' + driverId] = { driverId: driverId, driverName: driverNameForLoc, lat: point.lat, lng: point.lng, accuracy: point.accuracy, updatedAt: point.updatedAt };
+            updates['driverLocations/' + driverId] = { driverId: driverId, driverName: driverNameForLoc, lat: point.lat, lng: point.lng, accuracy: point.accuracy, updatedAt: point.updatedAt, closedAt: null };
             fbDb.ref().update(updates).then(function() {
                 locStatusEl.style.color = '#065f46'; locStatusEl.style.background = '#d1fae5';
                 locStatusEl.innerHTML = '🟢 شغّال دلوقتي — آخر تحديث الآن';
@@ -8268,6 +8406,8 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
         function startLocSharing() {
             sharing = true;
             saveLocState({ sharing: true });
+            requestScreenWakeLock();
+            armCloseWarning(driverId);
             shareWatchId = navigator.geolocation.watchPosition(pushLocation, function(err) {
                 locStatusEl.style.color = '#dc2626'; locStatusEl.style.background = '#fee2e2';
                 locStatusEl.innerHTML = '❌ ' + (err.code === 1 ? 'رفضت الإذن المطلوب' : 'تعذّر بدء العمل');
@@ -8280,6 +8420,8 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
         function stopLocSharing() {
             sharing = false;
             if (shareWatchId !== null) navigator.geolocation.clearWatch(shareWatchId);
+            releaseScreenWakeLock();
+            disarmCloseWarning();
             tryFlushQueue();
             saveLocState({ sharing: false });
             locStatusEl.style.color = '#f59e0b'; locStatusEl.style.background = '#fef3c7';
