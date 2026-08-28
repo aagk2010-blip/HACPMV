@@ -7559,6 +7559,7 @@ function renderEquipmentMap() {
                 (p.loc.meter !== undefined && p.loc.meter !== null ? '<div style="font-size:11.5px;color:#555">⏱️ العداد: ' + p.loc.meter + ' س</div>' : '') +
                 '<div style="font-size:11px;color:#888;margin-top:3px">🕐 آخر تحديث: منذ ' + timeAgoText + '</div>' +
                 (p.drv ? '<button onclick="showEquipmentRouteToday(\'' + p.drv.id + '\')" style="width:100%;margin-top:8px;padding:7px;border:none;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">🛣️ عرض خط سير المعدة اليوم</button>' : '') +
+                '<a href="https://www.google.com/maps/dir/?api=1&destination=' + p.loc.lat + ',' + p.loc.lng + '&travelmode=driving" target="_blank" rel="noopener" style="display:block;text-align:center;width:100%;margin-top:6px;padding:7px;border-radius:8px;background:linear-gradient(135deg,#0891b2,#0e7490);color:white;font-size:11.5px;font-weight:700;text-decoration:none;font-family:inherit;box-sizing:border-box">🧭 فتح المسار في خرائط جوجل</a>' +
                 '</div>'
         );
         equipmentMapInstance._markers.push(marker);
@@ -7710,12 +7711,28 @@ function showDriverRoute() {
             infoEl.innerHTML =
                 '🛣️ ' + pts.length + ' نقطة — من ' + new Date(pts[0].updatedAt).toLocaleTimeString('ar-EG') + ' إلى ' + new Date(pts[pts.length - 1].updatedAt).toLocaleTimeString('ar-EG') +
                 '<br>📏 المسافة الكلية: ' + totalKm.toFixed(1) + ' كم — ⏱️ المدة: ' + durationText +
-                (stops.length ? ' — ⏸️ عدد التوقفات: ' + stops.length : '');
+                (stops.length ? ' — ⏸️ عدد التوقفات: ' + stops.length : '') +
+                '<br><a href="' + buildGoogleMapsRouteUrl(pts[0], pts[pts.length - 1], stops) + '" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:6px 12px;border-radius:8px;background:linear-gradient(135deg,#0891b2,#0e7490);color:white;font-size:11.5px;font-weight:700;text-decoration:none;font-family:inherit">🧭 فتح المسار في خرائط جوجل (بداية، نهاية، ومحطات التوقف)</a>';
         }
     }).catch(function(e) {
         if (infoEl) infoEl.textContent = '❌ تعذّر تحميل المسار';
         console.warn(e);
     });
+}
+
+// بناء رابط خرائط جوجل يبدأ من نقطة بداية المسار، يمر بأهم محطات التوقف (حد أقصى تسمح بيه جوجل)، وينتهي بآخر نقطة
+function buildGoogleMapsRouteUrl(startPt, endPt, stops) {
+    var origin = startPt.lat + ',' + startPt.lng;
+    var destination = endPt.lat + ',' + endPt.lng;
+    // جوجل بتسمح بحد أقصى تقريبًا 9-10 محطات وسيطة في الرابط المجاني؛ لو التوقفات أكتر، ناخد أطول توقفات (الأهم) بس
+    var topStops = stops.slice().sort(function(a, b) { return b.minutes - a.minutes; }).slice(0, 8);
+    // نرجّع ترتيب المحطات لترتيبها الزمني الأصلي عشان المسار يفضل منطقي
+    topStops.sort(function(a, b) { return new Date(a.fromTime) - new Date(b.fromTime); });
+    var url = 'https://www.google.com/maps/dir/?api=1&origin=' + origin + '&destination=' + destination + '&travelmode=driving';
+    if (topStops.length) {
+        url += '&waypoints=' + topStops.map(function(s) { return s.lat + ',' + s.lng; }).join('|');
+    }
+    return url;
 }
 
 // توليد رابط مشاركة الموقع لسائق معيّن (بدون تسجيل دخول)
