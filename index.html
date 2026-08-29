@@ -2919,6 +2919,13 @@ function reportHeaderHtml(titleAr, subtitleAr) {
 }
 
 
+// ==================== تصنيف "أدوات" — أنواع معدات بتتحسب زي الأدوات مش معدات تشتغل بالساعات وليها صيانة دورية ====================
+// أي نوع هنا مش هياخد جدول صيانة ولا يتحسب في تنبيهات الصيانة، وبيظهر في تقرير الأمن في قسم منفصل في الآخر
+var TOOL_EQUIPMENT_TYPES = ['مقطورة سطحة', 'مقطورة مياه'];
+function isToolEquipment(eq) {
+    return eq && TOOL_EQUIPMENT_TYPES.indexOf(eq.type) !== -1;
+}
+
 function hoursRemaining(equipment) {
     return (equipment.nextHours || 0) - (equipment.hours || 0);
 }
@@ -2938,9 +2945,11 @@ function generateSecurityReport() {
         return matchSearch && matchProject && matchLocation;
     });
 
-    var owned = filtered.filter(function(e) { return (e.ownership || 'ملك') !== 'إيجار'; })
+    var owned = filtered.filter(function(e) { return !isToolEquipment(e) && (e.ownership || 'ملك') !== 'إيجار'; })
         .sort(function(a, b) { return (a.name || '').localeCompare(b.name || '', 'ar'); });
-    var rented = filtered.filter(function(e) { return e.ownership === 'إيجار'; })
+    var rented = filtered.filter(function(e) { return !isToolEquipment(e) && e.ownership === 'إيجار'; })
+        .sort(function(a, b) { return (a.name || '').localeCompare(b.name || '', 'ar'); });
+    var tools = filtered.filter(function(e) { return isToolEquipment(e); })
         .sort(function(a, b) { return (a.name || '').localeCompare(b.name || '', 'ar'); });
 
     function statusBadge(status) {
@@ -2967,7 +2976,26 @@ function generateSecurityReport() {
         }).join('');
     }
 
+    function toolTableRows(list) {
+        if (!list.length) return '<tr><td colspan="7" style="text-align:center;padding:16px;color:#94a3b8">لا توجد أدوات</td></tr>';
+        return list.map(function(eq, idx) {
+            var ownBadge = (eq.ownership === 'إيجار')
+                ? '<span style="background:#ede9fe;color:#5b21b6;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700">📋 إيجار</span>'
+                : '<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700">🔑 ملك</span>';
+            return '<tr>' +
+                '<td>' + (idx + 1) + '</td>' +
+                '<td style="font-weight:700">' + escapeHtml(eq.name || '—') + (eq.code ? ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(eq.code) + ')</span>' : '') + '</td>' +
+                '<td>' + escapeHtml(eq.type || '—') + '</td>' +
+                '<td>' + escapeHtml(eq.arrivalDate || '—') + '</td>' +
+                '<td>' + statusBadge(eq.status) + '</td>' +
+                '<td>' + escapeHtml(eq.projectSite || eq.location || '—') + '</td>' +
+                '<td>' + ownBadge + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
     var tableHeader = '<tr><th>م</th><th>اسم المعدة</th><th>النوع</th><th>تاريخ الدخول</th><th>الحالة</th><th>اسم الموقع</th></tr>';
+    var toolTableHeader = '<tr><th>م</th><th>الاسم</th><th>النوع</th><th>تاريخ الدخول</th><th>الحالة</th><th>اسم الموقع</th><th>الملكية</th></tr>';
     var scopeLabel = (projectFilter || locationFilter) ? ('نطاق التقرير: ' + (projectFilter || locationFilter)) : 'كل المواقع والمشاريع';
 
     var w = window.open('', '_blank');
@@ -2980,13 +3008,16 @@ function generateSecurityReport() {
         '.section-title{font-size:15px;font-weight:800;margin:20px 0 8px;padding:9px 14px;border-radius:8px}' +
         '.owned{background:#dbeafe;color:#1e3a8a}' +
         '.rented{background:#fef3c7;color:#78350f}' +
+        '.tools{background:#e0f2fe;color:#075985}' +
         '.info{background:#f1f5f9;padding:10px 14px;border-radius:8px;margin-bottom:6px;font-size:12.5px}' +
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
         reportHeaderHtml('تقرير قسم الأمن — معدات الموقع', 'تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG')) +
-        '<div class="info">📍 ' + escapeHtml(scopeLabel) + '&nbsp;&nbsp;|&nbsp;&nbsp; الإجمالي: ' + filtered.length + ' معدة (🔑 ملك: ' + owned.length + ' — 📋 إيجار: ' + rented.length + ')</div>' +
+        '<div class="info">📍 ' + escapeHtml(scopeLabel) + '&nbsp;&nbsp;|&nbsp;&nbsp; الإجمالي: ' + filtered.length + ' (🔑 ملك: ' + owned.length + ' — 📋 إيجار: ' + rented.length + ' — 🧰 أدوات: ' + tools.length + ')</div>' +
         '<div class="section-title owned">🔑 معدات الملك (' + owned.length + ')</div>' +
         '<table><thead>' + tableHeader + '</thead><tbody>' + tableRows(owned) + '</tbody></table>' +
+        '<div class="section-title tools">🧰 أدوات (مقطورات وما شابه) — ' + tools.length + '</div>' +
+        '<table><thead>' + toolTableHeader + '</thead><tbody>' + toolTableRows(tools) + '</tbody></table>' +
         '<div class="section-title rented">📋 معدات الإيجار (' + rented.length + ')</div>' +
         '<table><thead>' + tableHeader + '</thead><tbody>' + tableRows(rented) + '</tbody></table>' +
         '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة</button>' +
@@ -7293,7 +7324,7 @@ function openMeterUpdate() {
         showToast('غير مصرح', true);
         return;
     }
-    var meterListHtml = equipmentData.map(function(eq) {
+    var meterListHtml = equipmentData.filter(function(eq) { return !isToolEquipment(eq); }).map(function(eq) {
         return '<div style="background:white;border-radius:16px;padding:14px;margin-bottom:10px">' +
             '<div style="font-weight:700">' + escapeHtml(eq.name) + '</div>' +
             '<div>العداد: ' + formatNumber(eq.hours) + ' س</div>' +
@@ -8812,7 +8843,7 @@ function buildMaintenanceWhatsAppMsg() {
     loadNotifSettings();
     var threshold = notifSettings.threshold || 50;
     var critical = equipmentData.filter(function(eq) {
-        return eq.status !== 'متوقف' && hoursRemaining(eq) <= threshold;
+        return eq.status !== 'متوقف' && !isToolEquipment(eq) && hoursRemaining(eq) <= threshold;
     }).sort(function(a, b) { return hoursRemaining(a) - hoursRemaining(b); });
     if (!critical.length) return null;
     var date = new Date().toLocaleDateString('ar-EG');
@@ -8851,7 +8882,7 @@ function checkMaintenanceAlerts() {
     loadNotifPrefs();
     var threshold = notifSettings.threshold || 50;
     var critical = notifPrefs.maintenance ? equipmentData.filter(function(eq) {
-        if (eq.status === 'متوقف') return false;
+        if (eq.status === 'متوقف' || isToolEquipment(eq)) return false;
         return hoursRemaining(eq) <= threshold;
     }) : [];
     if (critical.length && Notification.permission === 'granted') {
@@ -9290,8 +9321,8 @@ function getAllSmartAlerts() {
     loadNotifSettings();
     loadNotifPrefs();
     var threshold = notifSettings.threshold || 50;
-    var maintOverdueRaw = notifPrefs.maintenance ? equipmentData.filter(function(eq) { return eq.status !== 'متوقف' && hoursRemaining(eq) <= 0; }) : [];
-    var maintSoonRaw = notifPrefs.maintenance ? equipmentData.filter(function(eq) { return eq.status !== 'متوقف' && hoursRemaining(eq) > 0 && hoursRemaining(eq) <= threshold; }) : [];
+    var maintOverdueRaw = notifPrefs.maintenance ? equipmentData.filter(function(eq) { return eq.status !== 'متوقف' && !isToolEquipment(eq) && hoursRemaining(eq) <= 0; }) : [];
+    var maintSoonRaw = notifPrefs.maintenance ? equipmentData.filter(function(eq) { return eq.status !== 'متوقف' && !isToolEquipment(eq) && hoursRemaining(eq) > 0 && hoursRemaining(eq) <= threshold; }) : [];
 
     var today = new Date();
     var licExpiredRaw = notifPrefs.licenses ? driversData.filter(function(d) { return d.licenseExpiry && d.status === 'نشط' && new Date(d.licenseExpiry) < today; }) : [];
@@ -11853,9 +11884,11 @@ function refreshUI() {
             else statusBadge = '<span class="badge badge-stopped" style="font-size:9px;padding:2px 5px">متوقف</span>';
 
             var isRental = (eq.ownership === 'إيجار');
+            var isTool = isToolEquipment(eq);
             var ownershipBadge = isRental
                 ? '<span style="background:#ede9fe;color:#5b21b6;border-radius:8px;padding:2px 6px;font-size:9px;font-weight:700">📋 إيجار</span>'
                 : '<span style="background:#d1fae5;color:#065f46;border-radius:8px;padding:2px 6px;font-size:9px;font-weight:700">🔑 ملك</span>';
+            var toolBadge = isTool ? '<span style="background:#e0f2fe;color:#075985;border-radius:8px;padding:2px 6px;font-size:9px;font-weight:700">🧰 أداة</span>' : '';
             var hasPendingCheck = equipmentChecksData.some(function(c) { return c.equipmentId === eq.id && c.status === 'pending'; });
             var pendingCheckDot = hasPendingCheck ? '<span class="eq-check-alert-dot" title="فيه مراجعة محتاجة متابعة"></span>' : '';
             var checkStatus = getLatestEquipmentCheckStatus(eq.id);
@@ -11865,8 +11898,8 @@ function refreshUI() {
                   '<button class="eq-quick-btn eq-quick-fail" title="فيه مشكلة" onclick="quickFailEquipment(\'' + eq.id + '\',event)">✘</button>'
                 : '';
 
-            if (isRental) {
-                // للمعدات المستأجرة: عرض مبسط بدون شريط عداد الساعات (غير مهم لمعدات الإيجار)
+            if (isRental || isTool) {
+                // للمعدات المستأجرة أو الأدوات (زي المقطورات): عرض مبسط بدون شريط عداد الساعات (غير مهم لهم)
                 equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px">' +
                     '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">' +
                     '<div style="flex:1;min-width:0">' +
@@ -11874,6 +11907,7 @@ function refreshUI() {
                     ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.code) + '</span>' +
                     '</div>' +
                     ownershipBadge +
+                    toolBadge +
                     statusBadge +
                     quickCheckBtns +
                     (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:1px 5px;border-radius:4px;cursor:pointer;font-size:8px;flex-shrink:0">✏️</button>' : '') +
