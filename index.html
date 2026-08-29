@@ -5688,7 +5688,16 @@ function openDriverDetail(id) {
         } else {
             locStatusHtml = '<span style="color:var(--gray)">⚪ لسه ماشاركش موقعه</span>';
         }
-        contentHtml += '<div class="detail-section"><div class="detail-label">📍 تتبّع الموقع (GPS)</div><div class="detail-value">' + locStatusHtml + '</div>' +
+        // صورة العداد بتتعرض بس لو اتصورت النهارده — تختفي تلقائيًا تاني يوم حتى لو محدش رفع صورة جديدة
+        var meterPhotoHtml = '';
+        if (loc && loc.meterPhoto && loc.meterPhoto.data) {
+            var todayKey = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0');
+            if (loc.meterPhoto.dateKey === todayKey) {
+                meterPhotoHtml = '<div style="margin-top:8px"><div style="font-size:11px;font-weight:700;color:#6b7a8d;margin-bottom:4px">📸 آخر صورة عداد اليوم</div>' +
+                    '<img src="' + loc.meterPhoto.data + '" style="max-width:100%;border-radius:10px;border:1px solid #e2e8f0" onclick="window.open(this.src)"></div>';
+            }
+        }
+        contentHtml += '<div class="detail-section"><div class="detail-label">📍 تتبّع الموقع (GPS)</div><div class="detail-value">' + locStatusHtml + '</div>' + meterPhotoHtml +
             '<div class="grid-2" style="margin-top:8px">' +
             '<button class="save-btn" style="margin:0;background:var(--info)" onclick="copyDriverShareLink(\'' + driver.id + '\')">📋 نسخ رابط المشاركة</button>' +
             '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#25d366,#128c7e)" onclick="shareDriverLinkWhatsApp(\'' + driver.id + '\',\'' + escapeHtml(driver.name).replace(/'/g,"\\'") + '\')">📲 إرسال واتساب</button>' +
@@ -7557,6 +7566,13 @@ function renderEquipmentMap() {
         marker._locUpdatedAt = p.loc.updatedAt;
         marker._locClosedAt = p.loc.closedAt;
         var timeAgoText = minsAgo < 1 ? 'الآن' : minsAgo < 60 ? Math.round(minsAgo) + ' دقيقة' : Math.round(minsAgo / 60) + ' ساعة';
+        var meterPhotoHtml = '';
+        if (p.loc.meterPhoto && p.loc.meterPhoto.data) {
+            var todayKey = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0');
+            if (p.loc.meterPhoto.dateKey === todayKey) {
+                meterPhotoHtml = '<img src="' + p.loc.meterPhoto.data + '" style="width:100%;border-radius:8px;margin-top:6px;cursor:pointer" onclick="window.open(this.src)">';
+            }
+        }
         marker.bindPopup(
             '<div style="font-family:Cairo,sans-serif;text-align:right;min-width:180px">' +
                 '<div style="font-weight:800;font-size:13px;margin-bottom:3px">🏗️ ' + (p.eq.name || '') + '</div>' +
@@ -7567,6 +7583,7 @@ function renderEquipmentMap() {
                 (p.loc.meter !== undefined && p.loc.meter !== null ? '<div style="font-size:11.5px;color:#555">⏱️ العداد: ' + p.loc.meter + ' س</div>' : '') +
                 '<div style="font-size:11px;color:#888;margin-top:3px">🕐 آخر تحديث: منذ ' + timeAgoText + '</div>' +
                 (isClosed ? '<div style="font-size:11.5px;color:#dc2626;font-weight:800;margin-top:3px">🔴 قفل السائق الصفحة</div>' : '') +
+                meterPhotoHtml +
                 (p.drv ? '<button onclick="showEquipmentRouteToday(\'' + p.drv.id + '\')" style="width:100%;margin-top:8px;padding:7px;border:none;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">🛣️ عرض خط سير المعدة اليوم</button>' : '') +
                 '<a href="https://www.google.com/maps/dir/?api=1&destination=' + p.loc.lat + ',' + p.loc.lng + '&travelmode=driving" target="_blank" rel="noopener" style="display:block;text-align:center;width:100%;margin-top:6px;padding:7px;border-radius:8px;background:linear-gradient(135deg,#0891b2,#0e7490);color:white;font-size:11.5px;font-weight:700;text-decoration:none;font-family:inherit;box-sizing:border-box">🧭 فتح المسار في خرائط جوجل</a>' +
                 '</div>'
@@ -8024,7 +8041,7 @@ function runMeterOCR(file, inputEl, statusEl) {
     });
 }
 
-function wireMeterOCRButton(btnId, fileId, inputId, statusId) {
+function wireMeterOCRButton(btnId, fileId, inputId, statusId, driverId) {
     var btn = document.getElementById(btnId);
     var fileInput = document.getElementById(fileId);
     var inputEl = document.getElementById(inputId);
@@ -8032,13 +8049,52 @@ function wireMeterOCRButton(btnId, fileId, inputId, statusId) {
     if (!btn || !fileInput || !inputEl || !statusEl) return;
     btn.onclick = function() { fileInput.click(); };
     fileInput.onchange = function() {
-        if (fileInput.files && fileInput.files[0]) runMeterOCR(fileInput.files[0], inputEl, statusEl);
+        if (fileInput.files && fileInput.files[0]) {
+            runMeterOCR(fileInput.files[0], inputEl, statusEl);
+            if (driverId) uploadMeterPhoto(fileInput.files[0], driverId);
+        }
     };
+}
+
+// ==================== رفع صورة العداد لقاعدة البيانات ====================
+// بتتخزن مربوطة بتاريخ اليوم فقط، وبتتستبدل (تتحذف) تلقائيًا أول ما السائق يرفع صورة جديدة (نفس المكان بيتكتب عليه من جديد)
+function compressImageForUpload(file, maxDim, quality, callback) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+            var w = img.width, h = img.height;
+            if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else if (h >= w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+            var canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            try { callback(canvas.toDataURL('image/jpeg', quality)); } catch (e2) { callback(null); }
+        };
+        img.onerror = function() { callback(null); };
+        img.src = e.target.result;
+    };
+    reader.onerror = function() { callback(null); };
+    reader.readAsDataURL(file);
+}
+function uploadMeterPhoto(file, driverId) {
+    if (!file || !driverId) return;
+    compressImageForUpload(file, 700, 0.6, function(dataUrl) {
+        if (!dataUrl) return;
+        var now = new Date();
+        var dateKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        // .set() بيكتب فوق أي صورة قديمة كانت مخزّنة فمفيش تراكم — دايمًا آخر صورة بس هي الموجودة
+        fbDb.ref('driverLocations/' + driverId + '/meterPhoto').set({
+            data: dataUrl,
+            dateKey: dateKey,
+            updatedAt: now.toISOString()
+        }).catch(function() {});
+    });
 }
 
 // يربط منطق مشاركة الموقع وتسجيل بدء/انتهاء العمل بالكارت المصغّر (نفس منطق initEquipmentMeterSharePage بالضبط، بس مربوط بعناصر الكارت المدمج داخل صفحة QR للمعدة)
 function wireOwnedEquipmentWorkCard(driverId) {
-    wireMeterOCRButton('eqpv-share-ocr-btn', 'eqpv-share-ocr-file', 'eqpv-share-meter-input', 'eqpv-share-ocr-status');
+    wireMeterOCRButton('eqpv-share-ocr-btn', 'eqpv-share-ocr-file', 'eqpv-share-meter-input', 'eqpv-share-ocr-status', driverId);
     var driverName = '';
     var QUEUE_KEY = 'offlineLocQueue_' + driverId;
 
@@ -8473,7 +8529,7 @@ function initEquipmentMeterSharePage(driverId) {
         '<div style="font-size:10.5px;color:#9ca3af;margin-top:14px">هيطلب المتصفح إذن الوصول للموقع — اضغط "سماح"<br>الصفحة بتسجّل مسارك حتى لو النت اتقطع، وترفعه تلقائي مجمّع حسب اليوم أول ما النت يرجع</div>' +
         '</div></div>';
 
-    wireMeterOCRButton('share-ocr-btn', 'share-ocr-file', 'share-meter-input', 'share-ocr-status');
+    wireMeterOCRButton('share-ocr-btn', 'share-ocr-file', 'share-meter-input', 'share-ocr-status', driverId);
     var driverName = '';
     var QUEUE_KEY = 'offlineLocQueue_' + driverId;
 
