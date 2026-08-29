@@ -989,7 +989,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     <div id="analytics-body"></div>
   </div></div>
   
-  <div id="view-equipment" style="display:none"><div style="padding:14px"><button id="meter-update-btn" class="big-btn" style="margin:0 0 10px 0">⏱️ تحديث العدادات اليومي</button><div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div><div class="eq-filter-row"><select id="location-filter" class="eq-filter-select"><option value="">🏢 كل المواقع</option></select><select id="project-site-filter" class="eq-filter-select"><option value="">📍 كل المشاريع</option></select><select id="ownership-filter" class="eq-filter-select"><option value="">🏷️ ملك وإيجار</option><option value="ملك">🔑 ملك فقط</option><option value="إيجار">📋 إيجار فقط</option></select></div><div style="display:flex;gap:10px;margin-bottom:10px"><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات</button><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ حذف الكل</button></div><button id="export-owned-daily-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📆 تصدير ساعات معدات الملك (شيت لكل معدة)</button><button id="print-qr-labels-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="openQRLabelsModal()">🏷️ طباعة ملصقات QR للمعدات</button><div id="equipment-list"></div></div></div>
+  <div id="view-equipment" style="display:none"><div style="padding:14px"><button id="meter-update-btn" class="big-btn" style="margin:0 0 10px 0">⏱️ تحديث العدادات اليومي</button><div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div><div class="eq-filter-row"><select id="location-filter" class="eq-filter-select"><option value="">🏢 كل المواقع</option></select><select id="project-site-filter" class="eq-filter-select"><option value="">📍 كل المشاريع</option></select><select id="ownership-filter" class="eq-filter-select"><option value="">🏷️ ملك وإيجار</option><option value="ملك">🔑 ملك فقط</option><option value="إيجار">📋 إيجار فقط</option></select></div><div style="display:flex;gap:10px;margin-bottom:10px"><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات</button><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ حذف الكل</button></div><button id="export-owned-daily-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📆 تصدير ساعات معدات الملك (شيت لكل معدة)</button><button id="print-qr-labels-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="openQRLabelsModal()">🏷️ طباعة ملصقات QR للمعدات</button><button id="security-report-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#0d1b2a,#1b2838)" onclick="generateSecurityReport()">🛡️ تقرير قسم الأمن</button><div id="equipment-list"></div></div></div>
   
   <div id="view-employees" style="display:none"><div style="padding:14px">
     <div id="employees-subtabs" style="display:flex;gap:8px;margin-bottom:12px;background:#eef1f5;padding:4px;border-radius:14px">
@@ -2921,6 +2921,78 @@ function reportHeaderHtml(titleAr, subtitleAr) {
 
 function hoursRemaining(equipment) {
     return (equipment.nextHours || 0) - (equipment.hours || 0);
+}
+
+// ==================== تقرير قسم الأمن — معدات الموقع (ملك تحت بعض، إيجار تحت بعض) ====================
+// بياخد نفس فلاتر شاشة المعدات المطبّقة حاليًا (موقع/مشروع) عشان لو الأمن عايز تقرير لموقع معيّن بس يفلتره الأول من فوق
+function generateSecurityReport() {
+    var _eqList = getVisibleEquipment();
+    var search = document.getElementById('search-equipment') ? document.getElementById('search-equipment').value : '';
+    var projectFilter = document.getElementById('project-site-filter') ? document.getElementById('project-site-filter').value : '';
+    var locationFilter = document.getElementById('location-filter') ? document.getElementById('location-filter').value : '';
+
+    var filtered = _eqList.filter(function(e) {
+        var matchSearch = !search || (e.name && e.name.includes(search)) || (e.code && e.code.includes(search));
+        var matchProject = !projectFilter || (e.projectSite && e.projectSite === projectFilter);
+        var matchLocation = !locationFilter || (e.location && e.location === locationFilter);
+        return matchSearch && matchProject && matchLocation;
+    });
+
+    var owned = filtered.filter(function(e) { return (e.ownership || 'ملك') !== 'إيجار'; })
+        .sort(function(a, b) { return (a.name || '').localeCompare(b.name || '', 'ar'); });
+    var rented = filtered.filter(function(e) { return e.ownership === 'إيجار'; })
+        .sort(function(a, b) { return (a.name || '').localeCompare(b.name || '', 'ar'); });
+
+    function statusBadge(status) {
+        var map = {
+            'يعمل': ['#d1fae5', '#065f46', '✅ تعمل'],
+            'صيانة': ['#fef3c7', '#92400e', '🔧 صيانة'],
+            'متوقف': ['#fee2e2', '#7f1d1d', '⛔ متوقفة']
+        };
+        var c = map[status] || ['#f1f5f9', '#475569', status || '—'];
+        return '<span style="background:' + c[0] + ';color:' + c[1] + ';padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;display:inline-block">' + c[2] + '</span>';
+    }
+
+    function tableRows(list) {
+        if (!list.length) return '<tr><td colspan="6" style="text-align:center;padding:16px;color:#94a3b8">لا توجد معدات</td></tr>';
+        return list.map(function(eq, idx) {
+            return '<tr>' +
+                '<td>' + (idx + 1) + '</td>' +
+                '<td style="font-weight:700">' + escapeHtml(eq.name || '—') + (eq.code ? ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(eq.code) + ')</span>' : '') + '</td>' +
+                '<td>' + escapeHtml(eq.type || '—') + '</td>' +
+                '<td>' + escapeHtml(eq.arrivalDate || '—') + '</td>' +
+                '<td>' + statusBadge(eq.status) + '</td>' +
+                '<td>' + escapeHtml(eq.projectSite || eq.location || '—') + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    var tableHeader = '<tr><th>م</th><th>اسم المعدة</th><th>النوع</th><th>تاريخ الدخول</th><th>الحالة</th><th>اسم الموقع</th></tr>';
+    var scopeLabel = (projectFilter || locationFilter) ? ('نطاق التقرير: ' + (projectFilter || locationFilter)) : 'كل المواقع والمشاريع';
+
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير قسم الأمن</title><style>' +
+        'body{font-family:Arial;padding:22px;direction:rtl;color:#0d1b2a}' +
+        'table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:12.5px}' +
+        'th,td{border:1px solid #e2e8f0;padding:8px;text-align:right}' +
+        'th{background:#0d1b2a;color:white;font-size:12px}' +
+        'tr:nth-child(even) td{background:#f8fafc}' +
+        '.section-title{font-size:15px;font-weight:800;margin:20px 0 8px;padding:9px 14px;border-radius:8px}' +
+        '.owned{background:#dbeafe;color:#1e3a8a}' +
+        '.rented{background:#fef3c7;color:#78350f}' +
+        '.info{background:#f1f5f9;padding:10px 14px;border-radius:8px;margin-bottom:6px;font-size:12.5px}' +
+        '@media print{ .no-print{display:none} }' +
+        '</style></head><body>' +
+        reportHeaderHtml('تقرير قسم الأمن — معدات الموقع', 'تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG')) +
+        '<div class="info">📍 ' + escapeHtml(scopeLabel) + '&nbsp;&nbsp;|&nbsp;&nbsp; الإجمالي: ' + filtered.length + ' معدة (🔑 ملك: ' + owned.length + ' — 📋 إيجار: ' + rented.length + ')</div>' +
+        '<div class="section-title owned">🔑 معدات الملك (' + owned.length + ')</div>' +
+        '<table><thead>' + tableHeader + '</thead><tbody>' + tableRows(owned) + '</tbody></table>' +
+        '<div class="section-title rented">📋 معدات الإيجار (' + rented.length + ')</div>' +
+        '<table><thead>' + tableHeader + '</thead><tbody>' + tableRows(rented) + '</tbody></table>' +
+        '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة</button>' +
+        '</body></html>');
+    w.document.close();
+    setTimeout(function() { w.print(); }, 500);
 }
 
 function getRemainingPercent(equipment) {
