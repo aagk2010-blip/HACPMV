@@ -4575,6 +4575,110 @@ function editEquipment(id) {
     document.getElementById('equipment-modal').classList.add('active');
 }
 
+// ==================== مستندات المعدة (فحص المعدة / شهادة المعايرة) من داخل البرنامج نفسه ====================
+// نفس البيانات المخزّنة اللي بتتعرض وتترفع من صفحة الـQR العامة (equipment/{id}/inspectionFile و calibrationFile)
+function openMainAppEquipmentFileModal(eqId, fileKey, title, icon) {
+    var existing = document.getElementById('main-file-modal');
+    if (existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = 'main-file-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit;direction:rtl';
+    modal.innerHTML =
+        '<div style="background:white;border-radius:18px;padding:20px;max-width:380px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2a">' + icon + ' ' + escapeHtml(title) + '</div>' +
+        '<button onclick="document.getElementById(\'main-file-modal\').remove()" style="background:#f1f5f9;border:none;width:28px;height:28px;border-radius:8px;font-size:14px;cursor:pointer">✕</button>' +
+        '</div>' +
+        '<div id="main-file-modal-body"></div>' +
+        '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    var equipment = equipmentData.find(function(e) { return e.id === eqId; });
+    renderMainAppFileModalBody(eqId, fileKey, title, equipment ? equipment[fileKey] : null);
+}
+
+function renderMainAppFileModalBody(eqId, fileKey, title, fileData) {
+    var body = document.getElementById('main-file-modal-body');
+    if (!body) return;
+    var isPdf = fileData && fileData.type === 'application/pdf';
+    var currentFileHtml = fileData
+        ? ('<div style="text-align:center;margin-bottom:16px">' +
+            (isPdf
+                ? '<div style="background:#f1f5f9;border-radius:12px;padding:22px;margin-bottom:8px"><div style="font-size:34px">📄</div><div style="font-size:12px;color:#475569;margin-top:4px">ملف PDF</div></div>'
+                : '<img src="' + fileData.data + '" style="max-width:100%;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:8px">') +
+            '<a href="' + fileData.data + '" download="' + escapeHtml(fileData.name || title) + '" style="display:inline-block;padding:9px 18px;border-radius:10px;background:#0d1b2a;color:white;text-decoration:none;font-size:12.5px;font-weight:700">⬇️ تحميل / فتح الملف</a>' +
+            (hasPermission('all') ? ' <button onclick="deleteMainAppEquipmentFile(\'' + eqId + '\',\'' + fileKey + '\',\'' + title + '\')" style="padding:9px 14px;border:none;border-radius:10px;background:#fee2e2;color:#991b1b;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;margin-right:6px">🗑️ حذف</button>' : '') +
+            '<div style="font-size:10.5px;color:#94a3b8;margin-top:8px">آخر رفع: ' + (fileData.uploadedByName ? escapeHtml(fileData.uploadedByName) + ' — ' : '') + (fileData.uploadedAt ? new Date(fileData.uploadedAt).toLocaleDateString('ar-EG') : '') + '</div>' +
+            '</div>')
+        : '<div style="text-align:center;color:#94a3b8;font-size:13px;margin-bottom:16px">📭 لا يوجد ملف مرفوع بعد</div>';
+
+    var uploadSectionHtml;
+    if (hasPermission('all')) {
+        uploadSectionHtml =
+            '<div style="border-top:1px dashed #e2e8f0;padding-top:14px">' +
+            '<input type="file" id="main-file-input" accept="image/*,application/pdf" style="display:none">' +
+            '<button onclick="document.getElementById(\'main-file-input\').click()" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">📤 ' + (fileData ? 'تحديث الملف' : 'رفع الملف') + '</button>' +
+            '<div id="main-file-upload-status" style="font-size:11px;margin-top:8px;text-align:center"></div>' +
+            '</div>';
+    } else {
+        uploadSectionHtml =
+            '<div style="border-top:1px dashed #e2e8f0;padding-top:14px;text-align:center">' +
+            '<div style="font-size:11.5px;color:#94a3b8">رفع أو تحديث الملف يتطلب صلاحية تعديل</div>' +
+            '<div style="background:#f1f5f9;border-radius:10px;padding:9px 10px;font-size:11px;color:#475569;margin-top:8px;line-height:1.7">📞 الرجاء التواصل مع مدير الحساب<br><strong>Abdelhamid khedr</strong> — 01009660802</div>' +
+            '</div>';
+    }
+
+    body.innerHTML = currentFileHtml + uploadSectionHtml;
+
+    var fileInput = document.getElementById('main-file-input');
+    if (fileInput) {
+        fileInput.onchange = function() {
+            if (fileInput.files && fileInput.files[0]) {
+                uploadMainAppEquipmentFile(eqId, fileKey, title, fileInput.files[0]);
+            }
+        };
+    }
+}
+
+function uploadMainAppEquipmentFile(eqId, fileKey, title, file) {
+    var statusEl = document.getElementById('main-file-upload-status');
+    var MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    if (file.size > MAX_SIZE) {
+        if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '⚠️ حجم الملف كبير جدًا (الحد الأقصى 5 ميجا)'; }
+        return;
+    }
+    if (statusEl) { statusEl.style.color = '#64748b'; statusEl.textContent = '⏳ جاري الرفع...'; }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
+        var payload = {
+            data: e.target.result, name: file.name, type: file.type,
+            uploadedAt: new Date().toISOString(), uploadedByName: actingUserName
+        };
+        fbDb.ref('equipment/' + eqId + '/' + fileKey).set(payload).then(function() {
+            if (statusEl) { statusEl.style.color = '#059669'; statusEl.textContent = '✅ تم الرفع بنجاح'; }
+            showToast('✅ تم رفع ' + title);
+            setTimeout(function() { renderMainAppFileModalBody(eqId, fileKey, title, payload); }, 700);
+        }).catch(function(err) {
+            if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '❌ فشل الرفع: ' + err.message; }
+        });
+    };
+    reader.onerror = function() {
+        if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '❌ تعذّر قراءة الملف'; }
+    };
+    reader.readAsDataURL(file);
+}
+
+function deleteMainAppEquipmentFile(eqId, fileKey, title) {
+    if (!confirm('حذف ' + title + '؟')) return;
+    fbDb.ref('equipment/' + eqId + '/' + fileKey).remove().then(function() {
+        showToast('🗑️ تم حذف ' + title);
+        renderMainAppFileModalBody(eqId, fileKey, title, null);
+    }).catch(function(err) {
+        showToast('❌ فشل الحذف: ' + err.message, true);
+    });
+}
+
 function openEquipmentDetail(id) {
     var targetId = String(id);
     var equipment = equipmentData.find(function(e) { return String(e.id) === targetId; });
@@ -4679,6 +4783,13 @@ function openEquipmentDetail(id) {
     if (equipment.notes) {
         contentHtml += '<div class="detail-section"><div class="detail-label">ملاحظات</div><div class="detail-value">' + escapeHtml(equipment.notes) + '</div></div>';
     }
+    var inspStatus = equipment.inspectionFile ? '✅ مرفوع' : '⚪ غير مرفوع';
+    var calibStatus = equipment.calibrationFile ? '✅ مرفوعة' : '⚪ غير مرفوعة';
+    contentHtml += '<div class="detail-section"><div class="detail-label">🗂️ مستندات المعدة</div>' +
+        '<div style="display:flex;gap:8px;margin-top:6px">' +
+        '<button onclick="openMainAppEquipmentFileModal(\'' + equipment.id + '\',\'inspectionFile\',\'فحص المعدة\',\'📋\')" style="flex:1;padding:10px 6px;border:none;border-radius:12px;background:linear-gradient(135deg,#0f766e,#134e4a);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📋 فحص المعدة<br><span style="font-size:9.5px;opacity:.85">' + inspStatus + '</span></button>' +
+        '<button onclick="openMainAppEquipmentFileModal(\'' + equipment.id + '\',\'calibrationFile\',\'شهادة المعايرة\',\'📜\')" style="flex:1;padding:10px 6px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📜 شهادة المعايرة<br><span style="font-size:9.5px;opacity:.85">' + calibStatus + '</span></button>' +
+        '</div></div>';
     contentHtml += '<div class="grid-2" style="margin:12px 14px">';
     if (hasPermission('all')) {
         contentHtml += '<button class="save-btn" style="margin:0;background:var(--accent)" onclick="editEquipment(\'' + equipment.id + '\')">✏️ تعديل</button>' +
@@ -5247,6 +5358,7 @@ function renderEquipmentFileModalBody(eqId, fileKey, title, fileData) {
                 ? '<div style="background:#f1f5f9;border-radius:12px;padding:22px;margin-bottom:8px"><div style="font-size:34px">📄</div><div style="font-size:12px;color:#475569;margin-top:4px">ملف PDF</div></div>'
                 : '<img src="' + fileData.data + '" style="max-width:100%;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:8px">') +
             '<a href="' + fileData.data + '" download="' + escapeHtml(fileData.name || title) + '" style="display:inline-block;padding:9px 18px;border-radius:10px;background:#0d1b2a;color:white;text-decoration:none;font-size:12.5px;font-weight:700">⬇️ تحميل / فتح الملف</a>' +
+            (_eqpvFileUploadAuth ? ' <button onclick="eqpvDeleteEquipmentFile(\'' + eqId + '\',\'' + fileKey + '\',\'' + title + '\')" style="padding:9px 14px;border:none;border-radius:10px;background:#fee2e2;color:#991b1b;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;margin-right:6px">🗑️ حذف</button>' : '') +
             '<div style="font-size:10.5px;color:#94a3b8;margin-top:8px">آخر رفع: ' + (fileData.uploadedByName ? escapeHtml(fileData.uploadedByName) + ' — ' : '') + (fileData.uploadedAt ? new Date(fileData.uploadedAt).toLocaleDateString('ar-EG') : '') + '</div>' +
             '</div>')
         : '<div style="text-align:center;color:#94a3b8;font-size:13px;margin-bottom:16px">📭 لا يوجد ملف مرفوع بعد</div>';
@@ -5264,6 +5376,7 @@ function renderEquipmentFileModalBody(eqId, fileKey, title, fileData) {
         uploadSectionHtml =
             '<div style="border-top:1px dashed #e2e8f0;padding-top:14px">' +
             '<div style="font-size:11.5px;color:#94a3b8;margin-bottom:8px">رفع أو تحديث الملف يتطلب صلاحية تعديل</div>' +
+            '<div style="background:#f1f5f9;border-radius:10px;padding:9px 10px;font-size:11px;color:#475569;margin-bottom:10px;line-height:1.7">📞 الرجاء التواصل مع مدير الحساب<br><strong>Abdelhamid khedr</strong> — 01009660802</div>' +
             '<div id="eqpv-file-login-box">' +
             '<input type="text" id="eqpv-file-username" placeholder="اسم المستخدم" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:6px;box-sizing:border-box">' +
             '<input type="password" id="eqpv-file-password" placeholder="كلمة المرور" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:8px;box-sizing:border-box">' +
@@ -5318,6 +5431,15 @@ function eqpvVerifyEditAccess(eqId, fileKey, title) {
     }).catch(function() {
         statusEl.style.color = '#dc2626';
         statusEl.textContent = 'تعذّر التحقق — تأكد من الاتصال بالإنترنت';
+    });
+}
+
+function eqpvDeleteEquipmentFile(eqId, fileKey, title) {
+    if (!confirm('حذف ' + title + '؟')) return;
+    fbDb.ref('equipment/' + eqId + '/' + fileKey).remove().then(function() {
+        renderEquipmentFileModalBody(eqId, fileKey, title, null);
+    }).catch(function(err) {
+        alert('فشل الحذف: ' + err.message);
     });
 }
 
