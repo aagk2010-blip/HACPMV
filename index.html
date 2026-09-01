@@ -5066,6 +5066,10 @@ function initEquipmentPublicViewPage(eqId) {
     document.body.innerHTML =
         '<div style="min-height:100vh;background:#f1f5f9;padding:16px;font-family:Cairo,Tahoma,sans-serif;direction:rtl">' +
         '<div style="max-width:480px;margin:0 auto">' +
+        '<div style="display:flex;gap:8px;margin-bottom:10px">' +
+        '<button onclick="openEquipmentFileModal(\'' + eqId + '\',\'inspectionFile\',\'فحص المعدة\',\'📋\')" style="flex:1;padding:12px 8px;border:none;border-radius:14px;background:linear-gradient(135deg,#0f766e,#134e4a);color:white;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">📋<br>فحص المعدة</button>' +
+        '<button onclick="openEquipmentFileModal(\'' + eqId + '\',\'calibrationFile\',\'شهادة المعايرة\',\'📜\')" style="flex:1;padding:12px 8px;border:none;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">📜<br>شهادة المعايرة</button>' +
+        '</div>' +
         '<div id="eqpv-work-cards"></div>' +
         '<div id="eqpv-content">' +
         '<div style="background:white;border-radius:18px;padding:40px 20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:36px;margin-bottom:10px">⏳</div><div style="color:#64748b;font-size:14px">جاري تحميل بيانات المعدة...</div></div>' +
@@ -5201,6 +5205,150 @@ function initEquipmentPublicViewPage(eqId) {
 
 function eqpvErrorCard(msg) {
     return '<div style="background:white;border-radius:18px;padding:40px 20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:36px;margin-bottom:10px">📭</div><div style="color:#64748b;font-size:14px">' + msg + '</div></div>';
+}
+
+// ==================== ملفات المعدة (فحص المعدة / شهادة المعايرة) على صفحة الـQR العامة ====================
+// أي حد يقدر يشوف/يحمّل الملف، لكن الرفع أو التحديث مقصور على مستخدم عنده صلاحية تعديل قسم المعدات
+var _eqpvFileUploadAuth = null; // {name} بمجرد ما يتحقق مرة واحدة في الجلسة دي، بيفضل شغّال لباقي الملفات من غير ما يسجّل دخول تاني
+var _eqpvCurrentFileIcon = '📎';
+function openEquipmentFileModal(eqId, fileKey, title, icon) {
+    _eqpvCurrentFileIcon = icon || '📎';
+    var existing = document.getElementById('eqpv-file-modal');
+    if (existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = 'eqpv-file-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:Cairo,Tahoma,sans-serif;direction:rtl';
+    modal.innerHTML =
+        '<div style="background:white;border-radius:18px;padding:20px;max-width:380px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2a">' + icon + ' ' + escapeHtml(title) + '</div>' +
+        '<button onclick="document.getElementById(\'eqpv-file-modal\').remove()" style="background:#f1f5f9;border:none;width:28px;height:28px;border-radius:8px;font-size:14px;cursor:pointer">✕</button>' +
+        '</div>' +
+        '<div id="eqpv-file-modal-body" style="text-align:center;padding:20px 0;color:#94a3b8;font-size:13px">⏳ جاري التحميل...</div>' +
+        '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+
+    fbDb.ref('equipment/' + eqId + '/' + fileKey).once('value').then(function(snap) {
+        renderEquipmentFileModalBody(eqId, fileKey, title, snap.val());
+    }).catch(function() {
+        var body = document.getElementById('eqpv-file-modal-body');
+        if (body) body.innerHTML = '<div style="color:#dc2626">❌ تعذّر تحميل الملف</div>';
+    });
+}
+
+function renderEquipmentFileModalBody(eqId, fileKey, title, fileData) {
+    var body = document.getElementById('eqpv-file-modal-body');
+    if (!body) return;
+    var isPdf = fileData && fileData.type === 'application/pdf';
+    var currentFileHtml = fileData
+        ? ('<div style="text-align:center;margin-bottom:16px">' +
+            (isPdf
+                ? '<div style="background:#f1f5f9;border-radius:12px;padding:22px;margin-bottom:8px"><div style="font-size:34px">📄</div><div style="font-size:12px;color:#475569;margin-top:4px">ملف PDF</div></div>'
+                : '<img src="' + fileData.data + '" style="max-width:100%;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:8px">') +
+            '<a href="' + fileData.data + '" download="' + escapeHtml(fileData.name || title) + '" style="display:inline-block;padding:9px 18px;border-radius:10px;background:#0d1b2a;color:white;text-decoration:none;font-size:12.5px;font-weight:700">⬇️ تحميل / فتح الملف</a>' +
+            '<div style="font-size:10.5px;color:#94a3b8;margin-top:8px">آخر رفع: ' + (fileData.uploadedByName ? escapeHtml(fileData.uploadedByName) + ' — ' : '') + (fileData.uploadedAt ? new Date(fileData.uploadedAt).toLocaleDateString('ar-EG') : '') + '</div>' +
+            '</div>')
+        : '<div style="text-align:center;color:#94a3b8;font-size:13px;margin-bottom:16px">📭 لا يوجد ملف مرفوع بعد</div>';
+
+    var uploadSectionHtml;
+    if (_eqpvFileUploadAuth) {
+        uploadSectionHtml =
+            '<div style="border-top:1px dashed #e2e8f0;padding-top:14px">' +
+            '<div style="font-size:11.5px;color:#64748b;margin-bottom:8px">مسجّل دخول كـ <strong>' + escapeHtml(_eqpvFileUploadAuth.name) + '</strong></div>' +
+            '<input type="file" id="eqpv-file-input" accept="image/*,application/pdf" style="display:none">' +
+            '<button onclick="document.getElementById(\'eqpv-file-input\').click()" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">📤 ' + (fileData ? 'تحديث الملف' : 'رفع الملف') + '</button>' +
+            '<div id="eqpv-file-upload-status" style="font-size:11px;margin-top:8px;text-align:center"></div>' +
+            '</div>';
+    } else {
+        uploadSectionHtml =
+            '<div style="border-top:1px dashed #e2e8f0;padding-top:14px">' +
+            '<div style="font-size:11.5px;color:#94a3b8;margin-bottom:8px">رفع أو تحديث الملف يتطلب صلاحية تعديل</div>' +
+            '<div id="eqpv-file-login-box">' +
+            '<input type="text" id="eqpv-file-username" placeholder="اسم المستخدم" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:6px;box-sizing:border-box">' +
+            '<input type="password" id="eqpv-file-password" placeholder="كلمة المرور" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:8px;box-sizing:border-box">' +
+            '<button onclick="eqpvVerifyEditAccess(\'' + eqId + '\',\'' + fileKey + '\',\'' + title.replace(/'/g, "") + '\')" style="width:100%;padding:10px;border:none;border-radius:10px;background:#0d1b2a;color:white;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">🔐 دخول</button>' +
+            '<div id="eqpv-file-login-status" style="font-size:11px;margin-top:6px;text-align:center;color:#dc2626"></div>' +
+            '</div>' +
+            '</div>';
+    }
+
+    body.style.textAlign = 'right';
+    body.style.padding = '0';
+    body.style.color = 'inherit';
+    body.innerHTML = currentFileHtml + uploadSectionHtml;
+
+    var fileInput = document.getElementById('eqpv-file-input');
+    if (fileInput) {
+        fileInput.onchange = function() {
+            if (fileInput.files && fileInput.files[0]) {
+                eqpvUploadEquipmentFile(eqId, fileKey, title, fileInput.files[0]);
+            }
+        };
+    }
+}
+
+function eqpvVerifyEditAccess(eqId, fileKey, title) {
+    var username = (document.getElementById('eqpv-file-username').value || '').trim();
+    var password = document.getElementById('eqpv-file-password').value || '';
+    var statusEl = document.getElementById('eqpv-file-login-status');
+    if (!username || !password) { statusEl.textContent = 'أدخل اسم المستخدم وكلمة المرور'; return; }
+    statusEl.style.color = '#64748b';
+    statusEl.textContent = '⏳ جاري التحقق...';
+
+    fbDb.ref('appUsers').once('value').then(function(snap) {
+        var val = snap.val() || {};
+        var users = Object.values(val);
+        var found = users.find(function(u) {
+            return u.username && u.username.toLowerCase() === username.toLowerCase() && u.password === password;
+        });
+        if (!found || !found.active) {
+            statusEl.style.color = '#dc2626';
+            statusEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+            return;
+        }
+        var canEditEquipment = found.role === 'admin' || (found.sections && (found.sections.equipment === 'edit' || found.sections.equipment === 'full'));
+        if (!canEditEquipment) {
+            statusEl.style.color = '#dc2626';
+            statusEl.textContent = 'هذا الحساب ليس لديه صلاحية تعديل المعدات';
+            return;
+        }
+        _eqpvFileUploadAuth = { name: found.name || found.username };
+        openEquipmentFileModal(eqId, fileKey, title, _eqpvCurrentFileIcon);
+    }).catch(function() {
+        statusEl.style.color = '#dc2626';
+        statusEl.textContent = 'تعذّر التحقق — تأكد من الاتصال بالإنترنت';
+    });
+}
+
+function eqpvUploadEquipmentFile(eqId, fileKey, title, file) {
+    var statusEl = document.getElementById('eqpv-file-upload-status');
+    var MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    if (file.size > MAX_SIZE) {
+        if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '⚠️ حجم الملف كبير جدًا (الحد الأقصى 5 ميجا)'; }
+        return;
+    }
+    if (statusEl) { statusEl.style.color = '#64748b'; statusEl.textContent = '⏳ جاري الرفع...'; }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var payload = {
+            data: e.target.result,
+            name: file.name,
+            type: file.type,
+            uploadedAt: new Date().toISOString(),
+            uploadedByName: _eqpvFileUploadAuth ? _eqpvFileUploadAuth.name : ''
+        };
+        fbDb.ref('equipment/' + eqId + '/' + fileKey).set(payload).then(function() {
+            if (statusEl) { statusEl.style.color = '#059669'; statusEl.textContent = '✅ تم الرفع بنجاح'; }
+            setTimeout(function() { renderEquipmentFileModalBody(eqId, fileKey, title, payload); }, 700);
+        }).catch(function(err) {
+            if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '❌ فشل الرفع: ' + err.message; }
+        });
+    };
+    reader.onerror = function() {
+        if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '❌ تعذّر قراءة الملف'; }
+    };
+    reader.readAsDataURL(file);
 }
 
 function eqpvStatusBadge(status) {
