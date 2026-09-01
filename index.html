@@ -1080,6 +1080,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
           <input type="date" id="rental-daily-date" style="flex:1;padding:10px;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;font-size:14px">
           <button id="add-rental-daily-btn" style="padding:10px 14px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">➕</button>
           <button onclick="exportRentalToExcel()" style="padding:10px 14px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer">📊</button>
+          <button onclick="printRentalDailyOvertimeReport()" title="طباعة تقرير الإضافي اليومي" style="padding:10px 14px;background:linear-gradient(135deg,#d97706,#b45309);color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer">🖨️</button>
           <button id="rental-wa-btn" onclick="sendRentalWhatsApp()" style="padding:10px 14px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer">📱</button>
         </div>
         <div id="rental-daily-list"></div>
@@ -14539,6 +14540,56 @@ function exportSingleRentalPDF(rentalId) {
         (qrUrl ? '<script>window.addEventListener("load",function(){ new QRCode(document.getElementById("pdfQrBox"),{text:'+JSON.stringify(qrUrl)+',width:64,height:64,correctLevel:QRCode.CorrectLevel.M}); });<\/script>' : '')+
         '</body></html>');
     w.document.close();setTimeout(function(){ w.print(); },qrUrl?900:500);
+}
+
+// ==================== تقرير طباعة: سجل يومي للمعدات المستأجرة — ملخص المعدات صاحبة الإضافي وأسبابه ====================
+function printRentalDailyOvertimeReport() {
+    var dateEl = document.getElementById('rental-daily-date');
+    var dateFilter = dateEl && dateEl.value ? dateEl.value : localDateStr(new Date());
+    var filtered = rentalDailyData.filter(function(d) { return d.date === dateFilter; });
+    var overtimeList = filtered.filter(function(r) { return (r.extraHours || 0) > 0; })
+        .sort(function(a, b) { return (b.extraHours || 0) - (a.extraHours || 0); });
+
+    function rowsHtml(list) {
+        if (!list.length) return '<tr><td colspan="6" style="text-align:center;padding:16px;color:#94a3b8">لا توجد معدات لديها ساعات إضافية في هذا اليوم</td></tr>';
+        return list.map(function(r, idx) {
+            var rental = rentalData.find(function(x) { return x.id === r.equipmentId; });
+            var eq = rental ? equipmentData.find(function(e) { return e.id === rental.equipmentId; }) : null;
+            var drv = rental ? driversData.find(function(d) { return d.id === rental.driverId; }) : null;
+            var label = eq ? (eq.name || eq.type) : (r.equipmentCode || '—');
+            var code = eq ? eq.code : '';
+            var recordedByHtml = r.recordedByName ? escapeHtml(r.recordedByName) : '<span style="color:#c3cad4">—</span>';
+            if (r.editedByName) recordedByHtml += '<div style="color:#dc2626;font-size:10px;font-weight:700">تم التعديل بواسطة ' + escapeHtml(r.editedByName) + '</div>';
+            return '<tr>' +
+                '<td>' + (idx + 1) + '</td>' +
+                '<td style="font-weight:700">' + escapeHtml(label) + (code ? ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(code) + ')</span>' : '') + '</td>' +
+                '<td>' + (drv ? escapeHtml(drv.name) : '—') + '</td>' +
+                '<td style="text-align:center;font-weight:800;color:#92400e">' + (r.extraHours || 0).toFixed(2) + ' س</td>' +
+                '<td>' + (r.notes ? escapeHtml(r.notes) : '<span style="color:#c3cad4">لا توجد ملاحظات</span>') + '</td>' +
+                '<td>' + recordedByHtml + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    var totalExtra = overtimeList.reduce(function(s, r) { return s + (r.extraHours || 0); }, 0);
+
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير الإضافي اليومي — الإيجار</title><style>' +
+        'body{font-family:Arial;padding:22px;direction:rtl;color:#0d1b2a}' +
+        'table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12.5px}' +
+        'th,td{border:1px solid #e2e8f0;padding:8px;text-align:right}' +
+        'th{background:#0e7490;color:white;font-size:12px}' +
+        'tr:nth-child(even) td{background:#f8fafc}' +
+        '.info{background:#fef3c7;color:#92400e;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;font-weight:700}' +
+        '@media print{ .no-print{display:none} }' +
+        '</style></head><body>' +
+        reportHeaderHtml('تقرير الساعات الإضافية اليومي — معدات الإيجار', 'التاريخ: ' + dateFilter) +
+        '<div class="info">⚡ عدد المعدات صاحبة إضافي: ' + overtimeList.length + ' &nbsp;|&nbsp; إجمالي الساعات الإضافية: ' + totalExtra.toFixed(2) + ' ساعة</div>' +
+        '<table><thead><tr><th>م</th><th>اسم المعدة</th><th>السائق</th><th>ساعات الإضافي</th><th>ملاحظات (سبب الإضافي)</th><th>سجّلها</th></tr></thead><tbody>' + rowsHtml(overtimeList) + '</tbody></table>' +
+        '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة</button>' +
+        '</body></html>');
+    w.document.close();
+    setTimeout(function() { w.print(); }, 500);
 }
 
 function sendRentalWhatsApp() {
