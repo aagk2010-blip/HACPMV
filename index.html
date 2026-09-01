@@ -8446,7 +8446,7 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
     saveBtn.onclick = function() {
         var inTime = inInput.value, outTime = outInput.value;
         if (!inTime || !outTime) { statusEl.style.color = '#dc2626'; statusEl.style.background = '#fee2e2'; statusEl.innerHTML = '⚠️ من فضلك اكتب ساعة الحضور والانصراف'; return; }
-        var h = calcRentalHours(inTime, outTime, brkInput.checked);
+        var h = calcRentalHours(inTime, outTime, brkInput.checked, rentalStandardHours(rentalContract.equipmentType));
         var record = {
             equipmentId: rentalId, equipmentCode: rentalContract.equipmentCode || '', equipmentType: rentalContract.equipmentType || '',
             driverId: driverId, company: rentalContract.company || '', date: todayStr,
@@ -13540,7 +13540,14 @@ var editingRentalDailyId = null;
 // breakWorked = true  → اشتغلت المعدة ساعة الراحة، فتُحسب ساعة الراحة ضمن ساعات العمل بشكل منفصل
 // أي وقت بعد 5 مساءً يُحسب "إضافي" تلقائيًا من وقت الانصراف الفعلي
 var RENTAL_STANDARD_END_MINS = 17 * 60; // 5:00 م
-function calcRentalHours(inTime, outTime, breakWorked) {
+// بعض أنواع المعدات (زي المولد الكهربائي) بتشتغل يوم عمل أساسي أطول من الـ8 ساعات العادية —
+// فبنديها سقف ساعات أساسي مختلف قبل ما يتحسب أي وقت زيادة "إضافي"
+var RENTAL_GENERATOR_STANDARD_HOURS = 12;
+function rentalStandardHours(equipmentType) {
+    return (equipmentType === 'مولد كهربائي') ? RENTAL_GENERATOR_STANDARD_HOURS : 8;
+}
+function calcRentalHours(inTime, outTime, breakWorked, standardHours) {
+    standardHours = standardHours || 8;
     if (!inTime || !outTime) return { total:0, basic:0, break:0, extra:0 };
     var inMins  = parseInt(inTime.split(':')[0])*60 + parseInt(inTime.split(':')[1]);
     var outMins = parseInt(outTime.split(':')[0])*60 + parseInt(outTime.split(':')[1]);
@@ -13549,18 +13556,18 @@ function calcRentalHours(inTime, outTime, breakWorked) {
 
     // بدل ما كنا بنحسب "الإضافي" كوقت بعد 5 المساء بس، وده كان بيضيع أي ساعات
     // زيادة عن الأساسي (8س) لو الحضور كان قبل الوقت القياسي (زي حضور 6ص بدل 8ص) -
-    // دلوقتي بنحسب كل الوقت الفعلي المشتغل: أول 8 ساعات = أساسي، بعد كده لحد ساعة
+    // دلوقتي بنحسب كل الوقت الفعلي المشتغل: أول standardHours ساعة = أساسي، بعد كده لحد ساعة
     // (لو اشتغلت) = راحة، والباقي كله = إضافي - أيًا كان معاد الحضور أو الانصراف
     var basic, breakVal, extra;
     if (breakWorked) {
         // ساعة الراحة تُحسب فقط لو فعلاً كان فيه وقت يستحقها ضمن الفترة المسجّلة (لا تُضاف كساعة وهمية على يوم قصير)
-        basic = Math.max(0, Math.min(total, 8));
+        basic = Math.max(0, Math.min(total, standardHours));
         var afterBasic = total - basic;
         breakVal = Math.max(0, Math.min(afterBasic, 1));
         extra = Math.max(0, afterBasic - breakVal);
     } else {
         var payable = Math.max(0, total - 1); // خصم ساعة راحة غير مدفوعة
-        basic = Math.max(0, Math.min(payable, 8));
+        basic = Math.max(0, Math.min(payable, standardHours));
         breakVal = 0;
         extra = Math.max(0, payable - basic);
     }
@@ -13686,7 +13693,7 @@ function quickSaveRentalDay(rentalId,date,existingId,inTime,outTime,brk) {
     var alreadyExists=rentalDailyData.find(function(d){ return d.equipmentId===rentalId&&d.date===date; });
     var targetId=existingId||(alreadyExists?alreadyExists.id:null);
     var existingRecord = targetId ? rentalDailyData.find(function(d){ return d.id===targetId; }) : null;
-    var h=calcRentalHours(inTime,outTime,brk);
+    var h=calcRentalHours(inTime,outTime,brk,rentalStandardHours(rental.equipmentType));
     var record={ equipmentId:rentalId, equipmentCode:rental.equipmentCode||'', equipmentType:rental.equipmentType||'',
         driverId:rental.driverId||'', company:rental.company||'', date:date,
         inTime:inTime, outTime:outTime, totalHours:h.total, basicHours:h.basic, breakWorked:!!brk, breakHours:h.break, extraHours:h.extra,
@@ -13933,7 +13940,9 @@ function openAddDailyModal(rentalId) {
         var outT=document.getElementById('rental-daily-out').value;
         if (!inT||!outT) return;
         var brk=document.getElementById('rental-daily-break').checked;
-        var h=calcRentalHours(inT,outT,brk);
+        var selEqId = document.getElementById('rental-daily-eq').value;
+        var selRental = rentalData.find(function(r){ return r.id === selEqId; });
+        var h=calcRentalHours(inT,outT,brk,rentalStandardHours(selRental?selRental.equipmentType:''));
         var div=document.getElementById('rental-daily-calc');
         div.style.display='block';
         div.innerHTML='<div style="font-weight:700;margin-bottom:6px;color:#065f46">⏱️ ملخص الساعات</div>'+
@@ -13968,7 +13977,7 @@ function saveRentalDaily() {
     }
 
     var rental=rentalData.find(function(r){ return r.id===rId; });
-    var h=calcRentalHours(inT,outT,brk);
+    var h=calcRentalHours(inT,outT,brk,rentalStandardHours(rental?rental.equipmentType:''));
     var record={ equipmentId:rId, equipmentCode:rental?rental.equipmentCode:'', equipmentType:rental?rental.equipmentType:'',
         driverId:rental?rental.driverId:'', company:rental?rental.company:'',
         date:date, inTime:inT, outTime:outT, totalHours:h.total, basicHours:h.basic, breakWorked:!!brk, breakHours:h.break, extraHours:h.extra,
@@ -14034,11 +14043,11 @@ function updateRentalTimes(id) {
     var outT=(document.getElementById('upd-out-'+id)||{}).value||'';
     var brk=!!(document.getElementById('upd-brk-'+id)||{}).checked;
     if (!inT||!outT) { showToast('أدخل وقت الحضور والانصراف',true); return; }
-    var h=calcRentalHours(inT,outT,brk);
+    var existingRecord = rentalDailyData.find(function(d){ return d.id === id; });
+    var h=calcRentalHours(inT,outT,brk,rentalStandardHours(existingRecord?existingRecord.equipmentType:''));
     var updates={ inTime:inT,outTime:outT,breakWorked:brk,breakHours:h.break,totalHours:h.total,basicHours:h.basic,extraHours:h.extra,updatedAt:new Date().toISOString() };
 
     // نفس منطق التتبع في نافذة التعديل الكاملة: لو حساب غير المدير عدّل، نسجّل مين اللي عدّل
-    var existingRecord = rentalDailyData.find(function(d){ return d.id === id; });
     var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
     var isAdminActing = currentUser && currentUser.role === 'admin';
     if (existingRecord && !isAdminActing && actingUserName !== (existingRecord.recordedByName || '')) {
@@ -14396,7 +14405,7 @@ function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
         var brk = document.getElementById('edit-entry-brk').checked;
         var calcDiv = document.getElementById('edit-entry-calc');
         if (inT && outT) {
-            var h = calcRentalHours(inT, outT, brk);
+            var h = calcRentalHours(inT, outT, brk, rentalStandardHours(entry.equipmentType));
             calcDiv.style.display = 'block';
             calcDiv.innerHTML = '\u2705 \u0623\u0633\u0627\u0633\u064A: <strong>'+h.basic.toFixed(1)+'</strong>\u0633'+
                 (h.break>0?' | \u2615 \u0631\u0627\u062D\u0629: <strong style="color:#d97706">'+h.break.toFixed(1)+'</strong>\u0633':'')+
@@ -14417,7 +14426,7 @@ function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
         var brk = document.getElementById('edit-entry-brk').checked;
         var notes = document.getElementById('edit-entry-notes').value;
         if (!inT || !outT) { showToast('\u0623\u062F\u062E\u0644 \u0648\u0642\u062A \u0627\u0644\u062D\u0636\u0648\u0631 \u0648\u0627\u0644\u0627\u0646\u0635\u0631\u0627\u0641', true); return; }
-        var h = calcRentalHours(inT, outT, brk);
+        var h = calcRentalHours(inT, outT, brk, rentalStandardHours(entry.equipmentType));
         var updated = Object.assign({}, entry, {
             inTime: inT, outTime: outT, breakWorked: !!brk, breakHours: h.break,
             totalHours: h.total, basicHours: h.basic, extraHours: h.extra,
