@@ -15273,21 +15273,31 @@ function testGeminiConnection() {
 }
 
 // دالة أساسية لاستدعاء Gemini API — onDone(errorMessageOrNull, textOrNull)
-function callGeminiAPI(prompt, onDone) {
+// بتحاول تلقائيًا لو جوجل رجّعت "الموديل مزدحم حاليًا" (503) قبل ما تستسلم، وآخر محاولة بتتحول لموديل أخف عادة يكون متاح أسرع
+var GEMINI_MODELS_TRY_ORDER = ['gemini-flash-latest', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
+function callGeminiAPI(prompt, onDone, _attempt) {
     if (!GEMINI_API_KEY) {
         onDone('لا يوجد مفتاح Gemini API محفوظ. من فضلك أضفه من ⚙️ الضبط > 🤖 الذكاء الاصطناعي', null);
         return;
     }
-    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
+    _attempt = _attempt || 0;
+    var model = GEMINI_MODELS_TRY_ORDER[Math.min(_attempt, GEMINI_MODELS_TRY_ORDER.length - 1)];
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
     fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     }).then(function(r) {
-        return r.json().then(function(data) { return { ok: r.ok, data: data }; });
+        return r.json().then(function(data) { return { ok: r.ok, status: r.status, data: data }; });
     }).then(function(res) {
         if (!res.ok) {
+            var isOverloaded = res.status === 503 || (res.data && res.data.error && (res.data.error.status === 'UNAVAILABLE' || /high demand|overloaded|مزدحم/i.test(res.data.error.message || '')));
+            if (isOverloaded && _attempt < GEMINI_MODELS_TRY_ORDER.length - 1) {
+                setTimeout(function() { callGeminiAPI(prompt, onDone, _attempt + 1); }, 1200 * (_attempt + 1));
+                return;
+            }
             var msg = (res.data && res.data.error && res.data.error.message) ? res.data.error.message : 'خطأ في الاتصال بـ Gemini';
+            if (isOverloaded) msg = '🚦 خوادم Gemini مزدحمة حاليًا (ضغط مؤقت من جوجل). جرب تاني بعد دقيقة.';
             onDone(msg, null);
             return;
         }
