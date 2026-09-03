@@ -4689,6 +4689,95 @@ function deleteMainAppEquipmentFile(eqId, fileKey, title) {
     });
 }
 
+// ==================== إدارة الفلاتر والزيوت من صفحة المعدة نفسها (بدل ما تدوّر عليها من كل صنف مخزون على حدة) ====================
+// بتستخدم نفس نظام الربط الموجود (equipmentFilterLinks / equipmentOilLinks) فبتتوافق تلقائيًا مع حساب طلبية النواقص
+function openManageEquipmentFiltersModal(equipmentId) {
+    var equipment = equipmentData.find(function(e) { return e.id === equipmentId; });
+    if (!equipment) { showToast('تعذّر العثور على المعدة', true); return; }
+
+    var existing = document.getElementById('eq-filters-manage-modal');
+    if (existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = 'eq-filters-manage-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit;direction:rtl';
+    modal.innerHTML =
+        '<div style="background:white;border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2a">⚙️ فلاتر وزيوت — ' + escapeHtml(equipment.name) + '</div>' +
+        '<button onclick="document.getElementById(\'eq-filters-manage-modal\').remove()" style="background:#f1f5f9;border:none;width:28px;height:28px;border-radius:8px;font-size:14px;cursor:pointer">✕</button>' +
+        '</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-bottom:10px">حدّد القطع المستخدمة في صيانة هذه المعدة والكمية لكل تغيير — ده اللي البرنامج هيعتمد عليه في حساب طلبية النواقص وإذن الصيانة</div>' +
+        '<input type="text" id="eq-filters-search" placeholder="🔍 بحث عن صنف..." oninput="filterEquipmentFiltersManageList()" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:9px;font-family:inherit;font-size:13px;margin-bottom:10px;box-sizing:border-box">' +
+        '<div style="font-size:12px;font-weight:800;color:#0f766e;margin-bottom:6px">🔧 الفلاتر</div>' +
+        '<div id="eq-filters-manage-list"></div>' +
+        '<div style="font-size:12px;font-weight:800;color:#7c3aed;margin:12px 0 6px">🛢️ الزيوت</div>' +
+        '<div id="eq-oils-manage-list"></div>' +
+        '<button onclick="saveEquipmentFilterOilLinks(\'' + equipmentId + '\')" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;margin-top:8px">✅ حفظ</button>' +
+        '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    renderEquipmentFiltersManageList(equipment);
+}
+function renderEquipmentFiltersManageList(equipment, search) {
+    search = (search || '').trim().toLowerCase();
+    function rowHtml(item, links, partNoField) {
+        var link = links.find(function(l) { return l.equipmentId === equipment.code && l[partNoField] === item.partNo; });
+        return '<label data-search="' + escapeHtml((item.name + ' ' + (item.partNo || '')).toLowerCase()) + '" style="display:flex;align-items:center;gap:8px;padding:8px 9px;background:#f8fafc;border-radius:10px;margin-bottom:6px">' +
+            '<input type="checkbox" data-id="' + item.id + '" data-partno="' + escapeHtml(item.partNo || '') + '" ' + (link ? 'checked' : '') + ' style="width:18px;height:18px;flex-shrink:0">' +
+            '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(item.name) + '</div>' +
+            '<div style="font-size:10px;color:#94a3b8">' + escapeHtml(item.partNo || '') + '</div></div>' +
+            '<input type="number" min="1" value="' + (link ? link.quantityPerChange : 1) + '" style="width:52px;border:1px solid #e2e8f0;border-radius:8px;padding:5px;font-size:12px;text-align:center;flex-shrink:0">' +
+            '</label>';
+    }
+    var filters = inventoryItems.filter(function(i) { return i.category === 'filter'; });
+    var oils = inventoryItems.filter(function(i) { return i.category === 'oil'; });
+    document.getElementById('eq-filters-manage-list').innerHTML = filters.length
+        ? filters.map(function(it) { return rowHtml(it, equipmentFilterLinks, 'filterPartNo'); }).join('')
+        : '<div style="font-size:11.5px;color:#94a3b8;padding:6px 0">لا توجد فلاتر في المخزون</div>';
+    document.getElementById('eq-oils-manage-list').innerHTML = oils.length
+        ? oils.map(function(it) { return rowHtml(it, equipmentOilLinks, 'oilPartNo'); }).join('')
+        : '<div style="font-size:11.5px;color:#94a3b8;padding:6px 0">لا توجد زيوت في المخزون</div>';
+    filterEquipmentFiltersManageList();
+}
+function filterEquipmentFiltersManageList() {
+    var q = (document.getElementById('eq-filters-search').value || '').trim().toLowerCase();
+    document.querySelectorAll('#eq-filters-manage-list label, #eq-oils-manage-list label').forEach(function(label) {
+        var match = !q || (label.getAttribute('data-search') || '').indexOf(q) !== -1;
+        label.style.display = match ? 'flex' : 'none';
+    });
+}
+function saveEquipmentFilterOilLinks(equipmentId) {
+    var equipment = equipmentData.find(function(e) { return e.id === equipmentId; });
+    if (!equipment) return;
+
+    function syncLinks(containerId, linksArray, path, partNoField) {
+        var rows = document.querySelectorAll('#' + containerId + ' input[type="checkbox"]');
+        rows.forEach(function(cb) {
+            var partNo = cb.getAttribute('data-partno');
+            var item = inventoryItems.find(function(i) { return i.id === cb.getAttribute('data-id'); });
+            var qtyInput = cb.parentElement.querySelector('input[type="number"]');
+            var qty = Math.max(1, parseInt(qtyInput.value) || 1);
+            var existingLink = linksArray.find(function(l) { return l.equipmentId === equipment.code && l[partNoField] === partNo; });
+            if (cb.checked && !existingLink) {
+                var payload = {}; payload.equipmentId = equipment.code; payload[partNoField] = partNo; payload.quantityPerChange = qty; payload.createdAt = new Date().toISOString();
+                if (item) payload[partNoField.replace('PartNo', 'Name')] = item.name;
+                saveToFirebase(path, payload);
+            } else if (!cb.checked && existingLink) {
+                deleteFromFirebase(path, existingLink.id);
+            } else if (cb.checked && existingLink && existingLink.quantityPerChange !== qty) {
+                saveToFirebase(path, Object.assign({}, existingLink, { quantityPerChange: qty }));
+            }
+        });
+    }
+    syncLinks('eq-filters-manage-list', equipmentFilterLinks, 'equipmentFilterLinks', 'filterPartNo');
+    syncLinks('eq-oils-manage-list', equipmentOilLinks, 'equipmentOilLinks', 'oilPartNo');
+
+    var modal = document.getElementById('eq-filters-manage-modal');
+    if (modal) modal.remove();
+    showToast('✅ تم حفظ الفلاتر والزيوت لهذه المعدة');
+    setTimeout(function() { openEquipmentDetail(equipmentId); }, 300);
+}
+
 function openEquipmentDetail(id) {
     var targetId = String(id);
     var equipment = equipmentData.find(function(e) { return String(e.id) === targetId; });
@@ -4747,8 +4836,15 @@ function openEquipmentDetail(id) {
         '<div><div class="detail-label">العداد عند آخر صيانة</div><div class="detail-value">' + (equipment.lastMaintenanceHours || 0) + ' س</div></div>' +
         '</div></div>';
     
-    if (filtersHtml) contentHtml += '<div class="detail-section"><div class="detail-label">🔧 الفلاتر المستخدمة</div>' + filtersHtml + '</div>';
-    if (oilsHtml) contentHtml += '<div class="detail-section"><div class="detail-label">🛢️ الزيوت المستخدمة</div>' + oilsHtml + '</div>';
+    if (filtersHtml || oilsHtml || true) {
+        contentHtml += '<div class="detail-section"><div style="display:flex;justify-content:space-between;align-items:center"><div class="detail-label" style="margin:0">🔧 الفلاتر والزيوت المستخدمة في صيانة هذه المعدة</div>' +
+            (hasPermission('all') ? '<button onclick="openManageEquipmentFiltersModal(\'' + equipment.id + '\')" style="padding:6px 12px;border:none;border-radius:10px;background:linear-gradient(135deg,#0891b2,#155e75);color:white;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">⚙️ إدارة</button>' : '') +
+            '</div>' +
+            (filtersHtml ? '<div style="margin-top:8px"><div style="font-size:11px;font-weight:700;color:#475569">🔧 الفلاتر</div>' + filtersHtml + '</div>' : '') +
+            (oilsHtml ? '<div style="margin-top:8px"><div style="font-size:11px;font-weight:700;color:#475569">🛢️ الزيوت</div>' + oilsHtml + '</div>' : '') +
+            (!filtersHtml && !oilsHtml ? '<div style="font-size:11.5px;color:#94a3b8;margin-top:6px">لا توجد فلاتر أو زيوت مربوطة بهذه المعدة بعد — اضغط "⚙️ إدارة" لإضافتها، عشان تقدر طلبية النواقص تتحسب صح</div>' : '') +
+            '</div>';
+    }
     if (schedules.length) {
         contentHtml += '<div class="detail-section"><div class="detail-label">🔧 الصيانات المجدولة</div>' +
             schedules.map(function(s) {
@@ -4800,6 +4896,24 @@ function openEquipmentDetail(id) {
         '<button onclick="openMainAppEquipmentFileModal(\'' + equipment.id + '\',\'inspectionFile\',\'فحص المعدة\',\'📋\')" style="flex:1;padding:10px 6px;border:none;border-radius:12px;background:linear-gradient(135deg,#0f766e,#134e4a);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📋 فحص المعدة<br><span style="font-size:9.5px;opacity:.85">' + inspStatus + '</span></button>' +
         '<button onclick="openMainAppEquipmentFileModal(\'' + equipment.id + '\',\'calibrationFile\',\'شهادة المعايرة\',\'📜\')" style="flex:1;padding:10px 6px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📜 شهادة المعايرة<br><span style="font-size:9.5px;opacity:.85">' + calibStatus + '</span></button>' +
         '</div></div>';
+    var curStage = getCurrentMaintenanceStage(equipment);
+    var suggestedTierInfo = maintenanceTierLabel(getEffectiveMaintenanceTier(equipment));
+    var hasPlan = maintenancePlanHasData(equipment);
+    var curStageItemsHtml = curStage.items.length
+        ? curStage.items.map(function(it) { return '<div style="font-size:10.5px;color:#64748b;padding:2px 0">• ' + escapeHtml(it.name) + ' × ' + it.qty + '</div>'; }).join('')
+        : '<div style="font-size:10.5px;color:#94a3b8">لا توجد قطع محددة لهذه المرحلة بعد</div>';
+    contentHtml += '<div class="detail-section"><div class="detail-label">🔧 خطة الصيانات الأربعة (250 ← 500 ← 250 ← 1000)</div>' +
+        '<div style="font-size:11px;color:#64748b;margin:4px 0 6px">المرحلة الحالية (' + (curStage.index + 1) + ' من 4): <strong style="color:' + suggestedTierInfo.color + '">' + suggestedTierInfo.text + '</strong></div>' +
+        '<div style="background:#f8fafc;border-radius:10px;padding:8px;margin-bottom:8px">' + curStageItemsHtml + '</div>' +
+        (!hasPlan ? '<div style="font-size:10.5px;color:#dc2626;margin-bottom:8px">⚠️ لم يتم تحديد قطع خطة الصيانات لهذه المعدة بعد — النظام حاليًا بيستخدم الربط العام (فلاتر/زيوت) لحين إضافتها</div>' : '') +
+        (hasPermission('all') ? (
+            '<div style="display:flex;gap:8px;margin-bottom:8px">' +
+            '<button onclick="openMaintenancePlanModal(\'' + equipment.id + '\')" style="flex:1;padding:9px;border:none;border-radius:10px;background:linear-gradient(135deg,#0891b2,#155e75);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📋 تعديل خطة الصيانات</button>' +
+            '<button onclick="completeCurrentMaintenanceStage(\'' + equipment.id + '\')" style="flex:1;padding:9px;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">✅ إتمام والانتقال للتالية</button>' +
+            '</div>'
+        ) : '') +
+        '<button onclick="createMaintenanceWorkOrderForEquipment(\'' + equipment.id + '\')" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">🖨️ عمل إذن صيانة بقطع المرحلة الحالية</button>' +
+        '</div>';
     contentHtml += '<div class="grid-2" style="margin:12px 14px">';
     if (hasPermission('all')) {
         contentHtml += '<button class="save-btn" style="margin:0;background:var(--accent)" onclick="editEquipment(\'' + equipment.id + '\')">✏️ تعديل</button>' +
@@ -6704,6 +6818,24 @@ function exportFuelReportExcel() {
 }
 
 // ==================== طلبية نواقص فعلية بناءً على القطع المطلوبة في الصيانات المجدولة حاليًا (بدل الإسقاط العام لكل 1000 ساعة) ====================
+// طلبية نواقص حية بناءً على المرحلة الحالية لكل معدة في خطتها الأربعة (أدق مصدر — بيتغيّر تلقائيًا مع تقدم كل معدة في دورتها)
+function calculateFleetWidePlanShortages() {
+    var totals = {};
+    equipmentData.forEach(function(eq) {
+        if (!maintenancePlanHasData(eq)) return;
+        var items = getRequiredItemsForMaintenance(eq);
+        items.forEach(function(it) {
+            if (!totals[it.id]) {
+                totals[it.id] = { id: it.id, name: it.name, partNo: it.partNo, unit: it.unit, available: it.available, needed: 0, usedInEquipment: [] };
+            }
+            totals[it.id].needed += (parseFloat(it.quantity) || 1);
+            totals[it.id].usedInEquipment.push(eq.name + ' (مرحلة ' + (getCurrentMaintenanceStage(eq).index + 1) + ')');
+        });
+    });
+    Object.values(totals).forEach(function(t) { t.shortage = Math.max(0, t.needed - t.available); });
+    return totals;
+}
+
 function calculateScheduledMaintenanceShortages() {
     var totals = {};
     maintenanceSchedules.filter(function(m) { return m.status === 'مجدول' && m.requiredParts && m.requiredParts.length; })
@@ -6725,14 +6857,16 @@ function calculateScheduledMaintenanceShortages() {
     return totals;
 }
 function printScheduledMaintenanceShortageOrder() {
-    var totals = Object.values(calculateScheduledMaintenanceShortages());
-    var shortages = totals.filter(function(t) { return t.shortage > 0; });
-    var totalCost = shortages.reduce(function(sum, i) {
+    var planTotals = Object.values(calculateFleetWidePlanShortages());
+    var planShortages = planTotals.filter(function(t) { return t.shortage > 0; });
+    var schedTotals = Object.values(calculateScheduledMaintenanceShortages());
+    var schedShortages = schedTotals.filter(function(t) { return t.shortage > 0; });
+    var allCost = planShortages.concat(schedShortages).reduce(function(sum, i) {
         var price = inventoryItems.find(function(f) { return f.id === i.id; });
         return sum + (i.shortage * (price ? (price.price || 0) : 0));
     }, 0);
     function rowsHtml(list) {
-        if (!list.length) return '<tr><td colspan="6" style="text-align:center;padding:16px;color:#94a3b8">🎉 لا توجد نواقص — كل القطع المطلوبة للصيانات المجدولة متوفرة</td></tr>';
+        if (!list.length) return '<tr><td colspan="6" style="text-align:center;padding:16px;color:#94a3b8">🎉 لا توجد نواقص</td></tr>';
         return list.map(function(i, idx) {
             return '<tr>' +
                 '<td>' + (idx + 1) + '</td>' +
@@ -6745,25 +6879,63 @@ function printScheduledMaintenanceShortageOrder() {
         }).join('');
     }
     var w = window.open('', '_blank');
-    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>طلبية نواقص الصيانات المجدولة</title><style>' +
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>طلبية النواقص</title><style>' +
         'body{font-family:Arial;padding:22px;direction:rtl;color:#0d1b2a}' +
         'table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12.5px}' +
         'th,td{border:1px solid #e2e8f0;padding:8px;text-align:right}' +
         'th{background:#991b1b;color:white;font-size:12px}' +
         'tr:nth-child(even) td{background:#f8fafc}' +
-        '.info{background:#fef3c7;color:#92400e;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;font-weight:700}' +
+        '.info{background:#fef3c7;color:#92400e;padding:10px 14px;border-radius:8px;margin-bottom:10px;font-size:13px;font-weight:700}' +
+        'h3{color:#0d1b2a;border-bottom:2px solid #e8a020;padding-bottom:4px;margin-top:20px;font-size:14px}' +
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
-        reportHeaderHtml('طلبية نواقص — بناءً على الصيانات المجدولة فعليًا', 'التاريخ: ' + new Date().toLocaleDateString('ar-EG')) +
-        '<div class="info">📋 عدد الأصناف الناقصة: ' + shortages.length + ' &nbsp;|&nbsp; التكلفة التقديرية: ' + formatNumber(Math.round(totalCost)) + ' ج.م</div>' +
-        '<table><thead><tr><th>م</th><th>اسم الصنف</th><th>رقم القطعة</th><th>متوفر</th><th>مطلوب</th><th>ناقص</th></tr></thead><tbody>' + rowsHtml(shortages) + '</tbody></table>' +
+        reportHeaderHtml('طلبية النواقص', 'التاريخ: ' + new Date().toLocaleDateString('ar-EG')) +
+        '<h3>📌 حسب المرحلة الحالية لكل معدة في خطتها الأربعة (الأدق والأحدث)</h3>' +
+        '<div class="info">📋 عدد الأصناف الناقصة: ' + planShortages.length + '</div>' +
+        '<table><thead><tr><th>م</th><th>اسم الصنف</th><th>رقم القطعة</th><th>متوفر</th><th>مطلوب</th><th>ناقص</th></tr></thead><tbody>' + rowsHtml(planShortages) + '</tbody></table>' +
+        '<h3>📅 حسب الصيانات المجدولة يدويًا</h3>' +
+        '<div class="info">📋 عدد الأصناف الناقصة: ' + schedShortages.length + '</div>' +
+        '<table><thead><tr><th>م</th><th>اسم الصنف</th><th>رقم القطعة</th><th>متوفر</th><th>مطلوب</th><th>ناقص</th></tr></thead><tbody>' + rowsHtml(schedShortages) + '</tbody></table>' +
+        '<div class="info">💰 إجمالي التكلفة التقديرية لكل النواقص: ' + formatNumber(Math.round(allCost)) + ' ج.م</div>' +
         '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة</button>' +
         '</body></html>');
     w.document.close();
     setTimeout(function() { w.print(); }, 500);
 }
 
-// ==================== دوال الصيانة ====================
+// ==================== عمل إذن صيانة مباشرة من صفحة المعدة — بالفلاتر المطلوبة وبدائلها، مع إمكانية تعديل نوع الصيانة ====================
+function createMaintenanceWorkOrderForEquipment(equipmentId) {
+    var equipment = equipmentData.find(function(e) { return e.id === equipmentId; });
+    if (!equipment) { showToast('تعذّر العثور على المعدة', true); return; }
+
+    openWorkOrdersView();
+    openAddWorkOrder();
+
+    document.getElementById('wo-eq-select').value = equipmentId;
+    document.getElementById('wo-project').value = equipment.projectSite || '';
+
+    var suggestedTier = getEffectiveMaintenanceTier(equipment);
+    document.getElementById('wo-maint-type').value = 'صيانة ' + suggestedTier + ' ساعة';
+    document.getElementById('wo-desc').value = 'صيانة دورية عند الوصول لـ ' + formatNumber(equipment.nextHours) + ' ساعة (العداد الحالي: ' + formatNumber(equipment.hours) + ' س)';
+
+    var required = getRequiredItemsForMaintenance(equipment);
+    document.getElementById('wo-items-list').innerHTML = '';
+    woItemCount = 0;
+    if (!required.length) {
+        showToast('⚠️ لا توجد فلاتر/زيوت مرتبطة بهذه المعدة في المخزون بعد — أضف الأصناف يدويًا', true);
+        return;
+    }
+    required.forEach(function(item) {
+        var stockWarning = item.available < item.quantity ? ('المخزون الحالي (' + item.available + ') أقل من المطلوب (' + item.quantity + ')') : '';
+        addWOItemRow({
+            name: item.name, qty: item.quantity, unit: item.unit, price: item.price,
+            invItemId: item.id, alternatives: item.alternatives, stockWarning: stockWarning
+        });
+    });
+    showToast('✅ تم تحميل ' + required.length + ' صنف مقترح — راجع الكميات ونوع الصيانة قبل الحفظ');
+}
+
+
 function openAddMaintenanceModal() {
     if (!hasPermission('all')) {
         showToast('غير مصرح', true);
@@ -6926,21 +7098,65 @@ function autoScheduleMaintenance(equipment) {
     showToast('🔄 تم جدولة صيانة تلقائية للمعدة ' + equipment.name + ' عند ' + newNext + ' س');
 }
 
+// ==================== خطة الصيانات الأربعة القادمة لكل معدة (250 ← 500 ← 250 ← 1000) — تتكرر تلقائيًا ====================
+// كل مرحلة ليها قائمة قطع مختلفة عن التانية، والبرنامج بيتتبع المرحلة الحالية ويتنقل للي بعدها تلقائيًا عند إتمام الصيانة
+var DEFAULT_MAINT_PLAN_TIERS = [250, 500, 250, 1000];
+function ensureMaintenancePlan(equipment) {
+    if (!equipment.maintenancePlan || equipment.maintenancePlan.length !== 4) {
+        equipment.maintenancePlan = DEFAULT_MAINT_PLAN_TIERS.map(function(t) { return { tier: t, items: [] }; });
+    }
+    if (equipment.maintenancePlanStage == null || equipment.maintenancePlanStage > 3 || equipment.maintenancePlanStage < 0) {
+        equipment.maintenancePlanStage = 0;
+    }
+    return equipment.maintenancePlan;
+}
+function getCurrentMaintenanceStage(equipment) {
+    var plan = ensureMaintenancePlan(equipment);
+    var idx = equipment.maintenancePlanStage || 0;
+    return { index: idx, tier: plan[idx].tier, items: plan[idx].items || [] };
+}
+function maintenancePlanHasData(equipment) {
+    return !!(equipment.maintenancePlan && equipment.maintenancePlan.length === 4 &&
+        equipment.maintenancePlan.some(function(s) { return s.items && s.items.length; }));
+}
+
 function getRequiredItemsForMaintenance(equipment) {
+    // لو المعدة عندها خطة صيانات أربعة معرّفة بقطع فعلية، بنستخدم قطع المرحلة الحالية بالظبط (أدق من الربط العام)
+    if (maintenancePlanHasData(equipment)) {
+        var cur = getCurrentMaintenanceStage(equipment);
+        return cur.items.map(function(it) {
+            var inv = inventoryItems.find(function(i) { return i.id === it.id; });
+            var altsForItem = inv ? filterAlternatives.filter(function(alt) { return alt.mainFilterId === inv.id; })
+                .map(function(alt) { return inventoryItems.find(function(x) { return x.id === alt.alternativeFilterId; }); })
+                .filter(Boolean) : [];
+            return {
+                id: it.id, name: it.name, partNo: it.partNo || (inv ? inv.partNo : ''), unit: it.unit || (inv ? inv.unit : 'قطعة'),
+                price: inv ? (inv.price || 0) : 0, available: inv ? (inv.qty || 0) : 0,
+                quantity: it.qty || 1, type: 'plan', originalQty: it.qty || 1,
+                alternatives: altsForItem.map(function(a) { return { id: a.id, name: a.name, partNo: a.partNo, available: a.qty || 0, price: a.price || 0 }; })
+            };
+        });
+    }
     var required = [];
     var filterLinks = equipmentFilterLinks.filter(function(l) { return l.equipmentId === equipment.code; });
     for (var i = 0; i < filterLinks.length; i++) {
         var link = filterLinks[i];
         var filterItem = inventoryItems.find(function(item) { return item.partNo === link.filterPartNo; });
         if (filterItem) {
+            var altsForFilter = filterAlternatives.filter(function(alt) { return alt.mainFilterId === filterItem.id; })
+                .map(function(alt) { return inventoryItems.find(function(it) { return it.id === alt.alternativeFilterId; }); })
+                .filter(Boolean);
             required.push({
                 id: filterItem.id,
                 name: filterItem.name,
                 partNo: filterItem.partNo,
                 unit: filterItem.unit,
+                price: filterItem.price || 0,
+                available: filterItem.qty || 0,
                 quantity: link.quantityPerChange || 1,
                 type: 'filter',
-                originalQty: link.quantityPerChange || 1
+                originalQty: link.quantityPerChange || 1,
+                alternatives: altsForFilter.map(function(a) { return { id: a.id, name: a.name, partNo: a.partNo, available: a.qty || 0, price: a.price || 0 }; })
             });
         }
     }
@@ -6954,9 +7170,12 @@ function getRequiredItemsForMaintenance(equipment) {
                 name: oilItem.name,
                 partNo: oilItem.partNo,
                 unit: oilItem.unit,
+                price: oilItem.price || 0,
+                available: oilItem.qty || 0,
                 quantity: oilLink.quantityPerChange || 20,
                 type: 'oil',
-                originalQty: oilLink.quantityPerChange || 20
+                originalQty: oilLink.quantityPerChange || 20,
+                alternatives: []
             });
         }
     }
@@ -7016,6 +7235,183 @@ function deductItemsFromInventory(maintenanceId, equipmentId, approvedItems) {
             }
         };
         processItems();
+    });
+}
+
+function getEffectiveMaintenanceTier(equipment) {
+    if (equipment.maintenancePlan && equipment.maintenancePlan.length === 4) {
+        return getCurrentMaintenanceStage(equipment).tier;
+    }
+    return classifyMaintenanceTier(equipment.nextHours);
+}
+
+// ==================== إدارة خطة الصيانات الأربعة (تحرير قطع كل مرحلة) ====================
+var currentPlanEditEquipmentId = null;
+var currentPlanEditData = null; // نسخة قابلة للتعديل من equipment.maintenancePlan أثناء فتح المودال
+function openMaintenancePlanModal(equipmentId) {
+    var equipment = equipmentData.find(function(e) { return e.id === equipmentId; });
+    if (!equipment) { showToast('تعذّر العثور على المعدة', true); return; }
+    ensureMaintenancePlan(equipment);
+    currentPlanEditEquipmentId = equipmentId;
+    currentPlanEditData = equipment.maintenancePlan.map(function(s) { return { tier: s.tier, items: (s.items || []).map(function(i) { return Object.assign({}, i); }) }; });
+
+    var existing = document.getElementById('maint-plan-modal');
+    if (existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = 'maint-plan-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit;direction:rtl';
+    modal.innerHTML =
+        '<div style="background:white;border-radius:18px;padding:18px;max-width:440px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2a">📋 خطة الصيانات الأربعة — ' + escapeHtml(equipment.name) + '</div>' +
+        '<button onclick="document.getElementById(\'maint-plan-modal\').remove()" style="background:#f1f5f9;border:none;width:28px;height:28px;border-radius:8px;font-size:14px;cursor:pointer">✕</button>' +
+        '</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-bottom:12px">حدّد قطع كل مرحلة من الأربعة (250 ← 500 ← 250 ← 1000). البرنامج هيستخدم قطع المرحلة الحالية بس في حساب النواقص وإذن الصيانة، وهيتنقل تلقائيًا للمرحلة اللي بعدها عند الإتمام</div>' +
+        '<div id="maint-plan-stages"></div>' +
+        '<button onclick="saveMaintenancePlan()" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;margin-top:8px">✅ حفظ الخطة</button>' +
+        '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    renderMaintenancePlanStages(equipment);
+}
+function renderMaintenancePlanStages(equipment) {
+    var wrap = document.getElementById('maint-plan-stages');
+    if (!wrap) return;
+    var currentIdx = equipment.maintenancePlanStage || 0;
+    wrap.innerHTML = currentPlanEditData.map(function(stage, sIdx) {
+        var lbl = maintenanceTierLabel(stage.tier);
+        var isCurrent = sIdx === currentIdx;
+        var itemsHtml = (stage.items || []).length
+            ? stage.items.map(function(it, iIdx) {
+                return '<div style="display:flex;align-items:center;gap:6px;background:white;border-radius:8px;padding:6px 8px;margin-bottom:5px">' +
+                    '<div style="flex:1;font-size:11.5px;font-weight:700;color:#334155">' + escapeHtml(it.name) + '</div>' +
+                    '<input type="number" min="1" value="' + it.qty + '" style="width:50px;border:1px solid #e2e8f0;border-radius:8px;padding:4px;font-size:11.5px;text-align:center" onchange="updateMaintPlanItemQty(' + sIdx + ',' + iIdx + ',this.value)">' +
+                    '<button onclick="removeMaintPlanItem(' + sIdx + ',' + iIdx + ')" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;width:22px;height:22px;cursor:pointer;font-size:11px">✕</button>' +
+                    '</div>';
+            }).join('')
+            : '<div style="font-size:10.5px;color:#94a3b8;padding:4px 0">لا توجد قطع مضافة</div>';
+        return '<div style="background:#f8fafc;border-radius:12px;padding:10px;margin-bottom:10px;' + (isCurrent ? 'border:2px solid #e8a020' : '') + '">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+            '<span style="background:' + lbl.bg + ';color:' + lbl.color + ';border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800">مرحلة ' + (sIdx + 1) + ' — ' + lbl.text + '</span>' +
+            (isCurrent ? '<span style="font-size:10px;color:#e8a020;font-weight:800">🔵 الحالية</span>' : '') +
+            '</div>' +
+            '<div id="maint-plan-items-' + sIdx + '">' + itemsHtml + '</div>' +
+            '<button onclick="addMaintPlanItem(' + sIdx + ')" style="width:100%;padding:6px;border:1px dashed #cbd5e1;border-radius:8px;background:white;color:#475569;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;margin-top:4px">➕ إضافة قطعة</button>' +
+            '</div>';
+    }).join('');
+}
+function addMaintPlanItem(stageIdx) {
+    if (!inventoryItems.length) { showToast('لا توجد أصناف في المخزون', true); return; }
+    var options = inventoryItems.map(function(it) { return it.name + ' (' + (it.partNo || '') + ')'; });
+    var idx = prompt('اكتب رقم الصنف من القائمة:\n' + options.map(function(o, i) { return (i + 1) + '. ' + o; }).join('\n'));
+    var i = parseInt(idx) - 1;
+    if (isNaN(i) || !inventoryItems[i]) return;
+    var it = inventoryItems[i];
+    var stage = currentPlanEditData[stageIdx];
+    var existingItem = stage.items.find(function(p) { return p.id === it.id; });
+    if (existingItem) { existingItem.qty += 1; }
+    else { stage.items.push({ id: it.id, name: it.name, partNo: it.partNo, unit: it.unit, qty: 1 }); }
+    var equipment = equipmentData.find(function(e) { return e.id === currentPlanEditEquipmentId; });
+    renderMaintenancePlanStages(equipment);
+}
+function updateMaintPlanItemQty(stageIdx, itemIdx, val) {
+    var item = currentPlanEditData[stageIdx].items[itemIdx];
+    if (item) item.qty = Math.max(1, parseFloat(val) || 1);
+}
+function removeMaintPlanItem(stageIdx, itemIdx) {
+    currentPlanEditData[stageIdx].items.splice(itemIdx, 1);
+    var equipment = equipmentData.find(function(e) { return e.id === currentPlanEditEquipmentId; });
+    renderMaintenancePlanStages(equipment);
+}
+function saveMaintenancePlan() {
+    var equipment = equipmentData.find(function(e) { return e.id === currentPlanEditEquipmentId; });
+    if (!equipment) return;
+    equipment.maintenancePlan = currentPlanEditData;
+    saveToFirebase('equipment', equipment);
+    var modal = document.getElementById('maint-plan-modal');
+    if (modal) modal.remove();
+    showToast('✅ تم حفظ خطة الصيانات الأربعة');
+    setTimeout(function() { openEquipmentDetail(currentPlanEditEquipmentId); }, 300);
+}
+
+// ==================== إتمام الصيانة الحالية (حسب المرحلة) والانتقال تلقائيًا للمرحلة اللي بعدها ====================
+function completeCurrentMaintenanceStage(equipmentId) {
+    if (!hasPermission('all')) { showToast('غير مصرح', true); return; }
+    var equipment = equipmentData.find(function(e) { return e.id === equipmentId; });
+    if (!equipment) return;
+    var cur = getCurrentMaintenanceStage(equipment);
+    var items = getRequiredItemsForMaintenance(equipment);
+
+    var existing = document.getElementById('stage-complete-modal');
+    if (existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = 'stage-complete-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit;direction:rtl';
+    var lbl = maintenanceTierLabel(cur.tier);
+    var nextIdx = (cur.index + 1) % 4;
+    var nextTier = ensureMaintenancePlan(equipment)[nextIdx].tier;
+    modal.innerHTML =
+        '<div style="background:white;border-radius:18px;padding:18px;max-width:400px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2a;margin-bottom:4px">✅ إتمام الصيانة الحالية — ' + escapeHtml(equipment.name) + '</div>' +
+        '<div style="display:inline-block;background:' + lbl.bg + ';color:' + lbl.color + ';border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;margin-bottom:10px">' + lbl.text + '</div>' +
+        '<div id="stage-complete-items" style="margin-bottom:10px"></div>' +
+        '<div style="font-size:11px;color:#0e7490;background:#ecfeff;border-radius:8px;padding:8px;margin-bottom:12px">🔄 بعد الحفظ هتتنقل المعدة تلقائيًا للمرحلة القادمة (' + maintenanceTierLabel(nextTier).text + ') وهيتحدّث ميعاد الصيانة القادم تلقائيًا</div>' +
+        '<button onclick="confirmCompleteCurrentStage(\'' + equipmentId + '\')" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">✅ تأكيد الصرف والانتقال للمرحلة القادمة</button>' +
+        '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+
+    document.getElementById('stage-complete-items').innerHTML = items.length
+        ? items.map(function(it, idx) {
+            return '<div style="display:flex;align-items:center;gap:6px;background:#f8fafc;border-radius:8px;padding:6px 8px;margin-bottom:5px">' +
+                '<div style="flex:1;font-size:11.5px;font-weight:700;color:#334155">' + escapeHtml(it.name) + (it.available < it.quantity ? ' <span style="color:#dc2626">(متوفر ' + it.available + ' فقط)</span>' : '') + '</div>' +
+                '<input type="number" min="0" value="' + it.quantity + '" id="stage-qty-' + idx + '" style="width:52px;border:1px solid #e2e8f0;border-radius:8px;padding:4px;font-size:11.5px;text-align:center">' +
+                '</div>';
+        }).join('')
+        : '<div style="font-size:11px;color:#94a3b8">لا توجد قطع محددة لهذه المرحلة</div>';
+}
+function confirmCompleteCurrentStage(equipmentId) {
+    var equipment = equipmentData.find(function(e) { return e.id === equipmentId; });
+    if (!equipment) return;
+    var items = getRequiredItemsForMaintenance(equipment);
+    var approvedItems = items.map(function(it, idx) {
+        var qtyInput = document.getElementById('stage-qty-' + idx);
+        var qty = qtyInput ? (parseFloat(qtyInput.value) || 0) : it.quantity;
+        return Object.assign({}, it, { quantity: qty });
+    }).filter(function(it) { return it.quantity > 0; });
+
+    function advanceStage() {
+        var cur = getCurrentMaintenanceStage(equipment);
+        var nextIdx = (cur.index + 1) % 4;
+        var plan = ensureMaintenancePlan(equipment);
+        equipment.maintenancePlanStage = nextIdx;
+        equipment.nextHours = equipment.hours + plan[nextIdx].tier;
+        equipment.lastMaintenanceHours = equipment.hours;
+        saveToFirebase('equipment', equipment);
+        saveToFirebase('maintenanceSchedules', {
+            equipmentId: equipmentId,
+            type: 'صيانة ' + cur.tier + ' ساعة',
+            date: localDateStr(new Date()),
+            targetHours: equipment.hours,
+            tier: cur.tier,
+            requiredParts: approvedItems,
+            status: 'مكتمل',
+            completedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+        });
+        var modal = document.getElementById('stage-complete-modal');
+        if (modal) modal.remove();
+        showToast('✅ تم إتمام الصيانة والانتقال للمرحلة القادمة (' + maintenanceTierLabel(plan[nextIdx].tier).text + ')');
+        setTimeout(function() { openEquipmentDetail(equipmentId); }, 300);
+    }
+
+    if (!approvedItems.length) {
+        advanceStage();
+        return;
+    }
+    showToast('🔄 جاري خصم الأصناف...');
+    deductItemsFromInventory('stage_' + Date.now(), equipmentId, approvedItems).then(advanceStage).catch(function(err) {
+        showToast('❌ حدث خطأ أثناء خصم الأصناف: ' + err.message, true);
     });
 }
 
@@ -13628,6 +14024,7 @@ function renderWorkOrders() {
                 '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">' +
                 '<div><div style="font-size:14px;font-weight:700;color:#0d1b2a">📋 أمر #'+escapeHtml(w.orderNo||w.id.slice(-4))+'</div>' +
                 '<div style="font-size:12px;color:#6b7a8d;margin-top:2px">🏗️ '+(eq?escapeHtml(eq.name)+' ('+escapeHtml(eq.code)+')':'—')+'</div>' +
+                (w.maintenanceType?'<div style="font-size:11px;color:#7c3aed;font-weight:700;margin-top:2px">🔧 '+escapeHtml(w.maintenanceType)+'</div>':'')+
                 (w.projectSite?'<div style="font-size:11px;color:#0e7490;margin-top:2px">📍 '+escapeHtml(w.projectSite)+'</div>':'')+
                 '<div style="font-size:11px;color:#6b7a8d">📅 '+escapeHtml(w.date||'—')+'</div></div>' +
                 '<span style="background:'+statusColor+'22;color:'+statusColor+';padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700">'+escapeHtml(w.status||'مفتوح')+'</span>' +
@@ -13659,6 +14056,7 @@ function openAddWorkOrder() {
         equipmentData.map(function(e){ return '<option value="'+e.id+'">'+escapeHtml(e.code+' — '+e.name)+'</option>'; }).join('');
     document.getElementById('wo-date').value = localDateStr(new Date());
     document.getElementById('wo-project').value = '';
+    document.getElementById('wo-maint-type').value = 'صيانة 250 ساعة';
     document.getElementById('wo-desc').value = '';
     document.getElementById('wo-notes').value = '';
     document.getElementById('wo-status').value = 'مفتوح';
@@ -13677,6 +14075,7 @@ function openEditWorkOrder(id) {
         equipmentData.map(function(e){ return '<option value="'+e.id+'"'+(e.id===w.equipmentId?' selected':'')+'>'+escapeHtml(e.code+' — '+e.name)+'</option>'; }).join('');
     document.getElementById('wo-date').value = w.date||'';
     document.getElementById('wo-project').value = w.projectSite||'';
+    document.getElementById('wo-maint-type').value = w.maintenanceType||'صيانة 250 ساعة';
     document.getElementById('wo-desc').value = w.description||'';
     document.getElementById('wo-notes').value = w.notes||'';
     document.getElementById('wo-status').value = w.status||'مفتوح';
@@ -13705,7 +14104,8 @@ function addWOItemRow(preset) {
         '<div><div style="font-size:10px;color:#6b7a8d;margin-bottom:3px">الكمية</div><input type="number" id="wo-iqty-'+idx+'" value="1" min="1" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px;font-family:inherit;font-size:13px;box-sizing:border-box"></div>' +
         '<div><div style="font-size:10px;color:#6b7a8d;margin-bottom:3px">الوحدة</div><input id="wo-iunit-'+idx+'" value="قطعة" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px;font-family:inherit;font-size:13px;box-sizing:border-box"></div>' +
         '<div><div style="font-size:10px;color:#6b7a8d;margin-bottom:3px">السعر (ج.م)</div><input type="number" id="wo-iprice-'+idx+'" value="0" min="0" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px;font-family:inherit;font-size:13px;box-sizing:border-box"></div>' +
-        '</div>';
+        '</div>' +
+        '<div id="wo-ialt-'+idx+'"></div>';
     document.getElementById('wo-items-list').appendChild(div);
     if (preset) {
         document.getElementById('wo-iname-'+idx).value = preset.name||'';
@@ -13715,6 +14115,17 @@ function addWOItemRow(preset) {
         if (preset.invItemId) {
             var sel = document.getElementById('wo-inv-'+idx);
             if (sel) sel.value = preset.invItemId;
+        }
+        if (preset.stockWarning) {
+            var altEl = document.getElementById('wo-ialt-'+idx);
+            var lowStockHtml = '<div style="font-size:10.5px;color:#dc2626;margin-top:6px">⚠️ ' + preset.stockWarning + '</div>';
+            altEl.innerHTML = (altEl.innerHTML||'') + lowStockHtml;
+        }
+        if (preset.alternatives && preset.alternatives.length) {
+            var altEl2 = document.getElementById('wo-ialt-'+idx);
+            var altHtml = '<div style="font-size:10.5px;color:#7c3aed;background:#f5f3ff;border-radius:8px;padding:6px 8px;margin-top:6px">🔄 بدائل متاحة: ' +
+                preset.alternatives.map(function(a){ return a.name+' (متوفر: '+a.available+')'; }).join('، ') + '</div>';
+            altEl2.innerHTML = (altEl2.innerHTML||'') + altHtml;
         }
     }
 }
@@ -13755,6 +14166,7 @@ function saveWorkOrder() {
         equipmentId: eqId,
         projectSite: document.getElementById('wo-project').value.trim(),
         date: document.getElementById('wo-date').value,
+        maintenanceType: document.getElementById('wo-maint-type').value,
         description: document.getElementById('wo-desc').value.trim(),
         notes: document.getElementById('wo-notes').value.trim(),
         status: document.getElementById('wo-status').value,
@@ -13863,6 +14275,7 @@ function printWorkOrder(id) {
         '<div class="meta">' +
             '<div><b>تاريخ الأمر:</b> ' + escapeHtml(w.date||'—') + '</div>' +
             '<div><b>الحالة:</b> <span class="status-badge">' + escapeHtml(w.status||'مفتوح') + '</span></div>' +
+            (w.maintenanceType ? '<div><b>🔧 نوع الصيانة:</b> ' + escapeHtml(w.maintenanceType) + '</div>' : '') +
             (w.description ? '<div style="grid-column:1/-1"><b>وصف العطل/العمل المطلوب:</b> ' + escapeHtml(w.description) + '</div>' : '') +
         '</div>' +
 
@@ -13909,6 +14322,14 @@ var editingRentalDailyId = null;
         '<div class="form-field"><label class="form-label">المعدة *</label><select class="form-select" id="wo-eq-select"><option value="">-- اختر المعدة --</option></select></div>' +
         '<div class="form-field"><label class="form-label">🏗️ اسم المشروع</label><input class="form-input" id="wo-project" placeholder="مشروع..."></div>' +
         '<div class="form-field"><label class="form-label">📅 التاريخ</label><input class="form-input" type="date" id="wo-date"></div>' +
+        '<div class="form-field"><label class="form-label">🔧 نوع الصيانة</label><select class="form-select" id="wo-maint-type">' +
+        '<option value="صيانة 250 ساعة">🟢 صيانة 250 ساعة (أساسية)</option>' +
+        '<option value="صيانة 500 ساعة">🟠 صيانة 500 ساعة (متوسطة)</option>' +
+        '<option value="صيانة 1000 ساعة">🔴 صيانة 1000 ساعة (كبرى)</option>' +
+        '<option value="صيانة طارئة">⚠️ صيانة طارئة</option>' +
+        '<option value="فحص دوري">🔍 فحص دوري</option>' +
+        '<option value="أخرى">📝 أخرى</option>' +
+        '</select></div>' +
         '<div class="form-field"><label class="form-label">وصف العمل</label><textarea class="form-textarea" id="wo-desc" placeholder="وصف المهمة..."></textarea></div>' +
         '<div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="wo-status"><option value="مفتوح">🔵 مفتوح</option><option value="جارٍ">🟡 جارٍ</option><option value="مكتمل">✅ مكتمل</option></select></div>' +
         '</div>' +
@@ -15523,6 +15944,27 @@ function buildAiDataSummary() {
             return (eq ? eq.name : 'معدة') + ' [' + m.type + ', فئة ' + (m.tier || 250) + ' س, بتاريخ ' + m.date + ']';
         });
         if (maintList.length) lines.push('تفاصيل الصيانات المجدولة: ' + maintList.join('، '));
+    } catch(e) {}
+    // ==== خطة الصيانات الأربعة لكل معدة (المرحلة الحالية وقطعها) — المصدر الأدق للنواقص ====
+    try {
+        var equipmentsWithPlan = (equipmentData || []).filter(function(eq) { return maintenancePlanHasData(eq); });
+        lines.push('معدات لها خطة صيانات أربعة معرّفة (250←500←250←1000): ' + equipmentsWithPlan.length + ' من إجمالي ' + (equipmentData || []).length);
+        var stageDetails = equipmentsWithPlan.slice(0, 20).map(function(eq) {
+            var cur = getCurrentMaintenanceStage(eq);
+            return eq.name + ' [المرحلة ' + (cur.index + 1) + ' من 4، فئة ' + cur.tier + ' ساعة، القطع: ' + (cur.items.map(function(i) { return i.name + '×' + i.qty; }).join('، ') || 'بدون قطع محددة') + ']';
+        });
+        if (stageDetails.length) lines.push('تفاصيل المرحلة الحالية لكل معدة: ' + stageDetails.join(' | '));
+    } catch(e) {}
+    // ==== نواقص القطع بناءً على المرحلة الحالية الفعلية لكل معدة (الأدق) ====
+    try {
+        var planShortages = Object.values(calculateFleetWidePlanShortages()).filter(function(t) { return t.shortage > 0; });
+        if (planShortages.length) {
+            lines.push('نواقص قطع بناءً على المرحلة الحالية الفعلية لكل معدة (' + planShortages.length + ' صنف): ' + planShortages.slice(0, 20).map(function(t) {
+                return t.name + ' [متوفر: ' + t.available + '، مطلوب: ' + t.needed + '، ناقص: ' + t.shortage + ']';
+            }).join('، '));
+        } else if (equipmentsWithPlan && equipmentsWithPlan.length) {
+            lines.push('لا توجد نواقص قطع حاليًا بناءً على خطط الصيانة الحالية للمعدات.');
+        }
     } catch(e) {}
     // ==== نواقص القطع بناءً على الصيانات المجدولة فعليًا ====
     try {
