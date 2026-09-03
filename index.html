@@ -15278,7 +15278,7 @@ function callGeminiAPI(prompt, onDone) {
         onDone('لا يوجد مفتاح Gemini API محفوظ. من فضلك أضفه من ⚙️ الضبط > 🤖 الذكاء الاصطناعي', null);
         return;
     }
-    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
     fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
