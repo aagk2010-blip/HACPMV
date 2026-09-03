@@ -29,6 +29,9 @@
 :root{color-scheme:light only;--primary:#0d1b2a;--secondary:#1b2838;--accent:#e8a020;--accent-dark:#c88a18;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#0e7490;--purple:#8b5cf6;--pink:#ec4899;--light:#f0f4f8;--white:#ffffff;--gray:#6b7a8d;--shadow:0 4px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 3px rgba(0,0,0,0.05);--mono:'IBM Plex Mono',ui-monospace,monospace;--sidebar-w:268px}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction:rtl;max-width:500px;margin:0 auto;min-height:100vh;padding-bottom:80px}
+@media (min-width:501px) and (max-width:1023px){
+  body,.tab-bar,.modal-overlay,.admin-panel-overlay{max-width:700px}
+}
 .stat-number,.card-code,#eq-code,.detail-value{font-family:var(--mono)}
 .header{background:linear-gradient(135deg,var(--primary),var(--secondary));padding:20px 18px;color:white;position:relative;overflow:hidden}.header::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;background:rgba(232,160,32,0.08);border-radius:50%}.header-title{font-size:24px;font-weight:800}.header-sub{font-size:11px;opacity:0.7;margin-top:4px}
 .stats-row{display:flex;gap:10px;padding:14px;overflow-x:auto;scrollbar-width:none}.stats-row::-webkit-scrollbar{display:none}.stat-card{background:var(--white);border-radius:20px;padding:12px 16px;min-width:85px;text-align:center;box-shadow:var(--shadow-sm)}.stat-number{font-size:26px;font-weight:800}.stat-label{font-size:11px;color:var(--gray);margin-top:4px}
@@ -639,8 +642,8 @@ body{background:
   backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;
   border:1px solid rgba(255,255,255,.12)!important;
 }
-#direct-login-btn,#secure-login-btn,#register-login-btn{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-#direct-login-submit,#secure-login-submit,#register-submit-btn{
+#secure-login-btn,#register-login-btn{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#secure-login-submit,#register-submit-btn{
   backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;
   border:1px solid rgba(255,255,255,.35)!important;
   box-shadow:0 10px 26px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.5)!important;
@@ -732,7 +735,6 @@ body::marker{content:none}
 .save-btn:hover,.big-btn:hover{filter:saturate(1.15)}
 
 /* --- شاشة الدخول: أزرار التبويب بلمعان زجاجي عند التفعيل --- */
-#direct-login-btn[style*="background:#e8a020"],
 #secure-login-btn[style*="background:#e8a020"],
 #register-login-btn[style*="background:#e8a020"]{
   box-shadow:0 6px 18px rgba(232,160,32,.4),inset 0 1px 0 rgba(255,255,255,.6)!important;
@@ -867,7 +869,6 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <span style="animation:spin 1s linear infinite;display:inline-block">⏳</span>
       <span>جاري تحميل بيانات الدخول، الرجاء الانتظار...</span>
     </div>
-    <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
 
     <!-- أزرار التبويب -->
     <div style="display:flex;gap:5px;margin-bottom:18px;background:rgba(255,255,255,0.05);border-radius:40px;padding:4px">
@@ -964,7 +965,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   <div class="header"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:20px;font-weight:900;color:white;letter-spacing:2px;flex-shrink:0;font-family:serif">HAC</span><div class="header-title" id="header-title" style="margin-bottom:0">📊 لوحة القيادة</div></div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
-  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title">لوحة القيادة</div><div class="dash-hero-sub">متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع.</div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))">🔄 تحديث البيانات يدوياً</button><div class="section" style="margin-top:14px"><div class="section-title">📂 الأقسام</div><div id="home-app-grid" class="app-grid"></div></div></div>
+  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title">لوحة القيادة</div><div class="dash-hero-sub">متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع.</div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))">🔄 تحديث البيانات يدوياً</button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="big-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تحليل ذكي بالـ AI</button><button onclick="openAiReportModal()" class="big-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">🤖 اطلب أي تقرير من AI</button><div class="section" style="margin-top:14px"><div class="section-title">📂 الأقسام</div><div id="home-app-grid" class="app-grid"></div></div></div>
   <div id="view-sites" style="display:none"><div style="padding:14px">
     <div class="search-box"><span>🔍</span><input type="text" id="search-site" placeholder="بحث باسم الموقع..."></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -1057,7 +1058,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     </div>
   </div>
   
-  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button><div id="maintenance-list"></div></div></div>
+  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button><div id="maintenance-list"></div></div></div>
   
   <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box" style="margin-bottom:8px"><span>🔍</span><input type="text" id="search-inventory" placeholder="بحث باسم أو رقم قطعة..."></div><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><button id="add-inventory-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,var(--purple),var(--pink))">📦 إضافة صنف جديد</button><button id="export-inventory-excel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير المخزون Excel</button><button id="order-report-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,var(--danger),var(--warning))">📋 إنشاء طلبية للنواقص (1000 ساعة)</button><button id="delete-all-inventory-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع أصناف المخزون</button><button id="fix-filter-category-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0891b2,#155e75)" onclick="fixMiscategorizedFilters()">🔍 فحص وتصحيح تصنيف الفلاتر المسجّلة كزيوت</button><div id="inv-list"></div></div></div>
   
@@ -1358,6 +1359,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     <button id="atab-backup-btn" onclick="switchAdminTab('backup')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">💾 نسخ احتياطي</button>
     <button id="atab-loginlog-btn" onclick="switchAdminTab('loginlog')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">📝 سجل الدخول</button>
     <button id="atab-firebase-btn" onclick="switchAdminTab('firebase')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">🔥 إعدادات Firebase</button>
+    <button id="atab-ai-btn" onclick="switchAdminTab('ai')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">🤖 الذكاء الاصطناعي</button>
     <button id="atab-danger-btn" onclick="switchAdminTab('danger')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">⚠️ منطقة الخطر</button>
   </div>
 
@@ -1554,6 +1556,26 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
       <!-- نتيجة الاختبار -->
       <div id="fb-test-result" style="display:none;margin-top:12px;border-radius:12px;padding:12px;font-size:12px;text-align:center"></div>
+    </div>
+  </div>
+
+  <!-- تبويب الذكاء الاصطناعي -->
+  <div id="atab-ai" style="padding:14px;display:none">
+    <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;color:#5b21b6">
+      🤖 مفتاح Gemini API بيتحفظ على السيرفر (Firebase) عشان يشتغل لكل المستخدمين على كل الأجهزة. احصل على مفتاح مجاني من
+      <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#7c3aed;font-weight:700">Google AI Studio</a>.
+    </div>
+    <div style="background:white;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)">
+      <label style="font-size:11px;color:var(--gray);font-weight:600;display:block;margin-bottom:4px">Gemini API Key</label>
+      <div style="position:relative;margin-bottom:12px">
+        <input id="gemini-api-key" type="password" dir="ltr" placeholder="AIzaSy..." style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px 40px 10px 12px;font-size:12px;font-family:monospace;box-sizing:border-box">
+        <button type="button" onclick="toggleGeminiKeyVisibility()" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:#94a3b8">👁</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-direction:column">
+        <button onclick="testGeminiConnection()" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">🔌 اختبار الاتصال</button>
+        <button onclick="saveGeminiApiKey()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">💾 حفظ المفتاح</button>
+      </div>
+      <div id="gemini-test-result" style="display:none;margin-top:12px;border-radius:12px;padding:12px;font-size:12px;text-align:center"></div>
     </div>
   </div>
 
@@ -2216,7 +2238,7 @@ function deleteAdminUser(uid, email) {
 
 // ==================== إعدادات Firebase ====================
 function switchAdminTab(tab) {
-    var tabs = ['users', 'fuel', 'backup', 'loginlog', 'firebase', 'danger'];
+    var tabs = ['users', 'fuel', 'backup', 'loginlog', 'firebase', 'ai', 'danger'];
     tabs.forEach(function(t) {
         var panel = document.getElementById('atab-' + t);
         var btn = document.getElementById('atab-' + t + '-btn');
@@ -2250,6 +2272,12 @@ function switchAdminTab(tab) {
                 ? '<span style="color:#059669;font-weight:700">✅ إعدادات مخصصة محفوظة</span>'
                 : '<span style="color:#94a3b8">📄 إعدادات افتراضية (مدمجة في الكود)</span>';
         }
+    }
+    if (tab === 'ai') {
+        var keyEl = document.getElementById('gemini-api-key');
+        if (keyEl) keyEl.value = GEMINI_API_KEY || '';
+        var resEl = document.getElementById('gemini-test-result');
+        if (resEl) resEl.style.display = 'none';
     }
 }
 
@@ -2608,9 +2636,8 @@ var loginDataReady = false;
 function preloadLoginData() {
     var banner = document.getElementById('login-preload-banner');
     var secureBtn = document.getElementById('secure-login-submit');
-    var directBtn = document.getElementById('direct-login-submit');
     function setButtonsEnabled(enabled) {
-        [secureBtn, directBtn].forEach(function(b) {
+        [secureBtn].forEach(function(b) {
             if (!b) return;
             b.disabled = !enabled;
             b.style.opacity = enabled ? '1' : '0.5';
@@ -3660,19 +3687,6 @@ function updateDriverSelects() {
 }
 
 // ==================== دوال الدخول ====================
-function directLogin() {
-    // دخول مباشر كمشاهد - بدون Firebase Auth (anonymous)
-    currentUid = 'viewer_' + Date.now();
-    currentUserRole = 'viewer';
-    currentUser = {
-        username: 'viewer', role: 'viewer', name: 'مشاهد', permissions: ['view'],
-        // صلاحيات الزائر قابلة للتحكم من لوحة المدير (👁️ صلاحيات الزائر)
-        sections: Object.assign({}, VIEWER_SECTIONS),
-        sites: []
-    };
-    showToast('مرحباً مشاهد');
-    proceedToApp();
-}
 
 // تحميل صلاحيات الزائر من Firebase (لو كانت محفوظة من المدير)
 function loadViewerSectionsFromFirebase(callback) {
@@ -3816,25 +3830,20 @@ function secureLogin() {
 
 function setLoginMode(mode) {
     SYSTEM_CONFIG.loginMode = mode;
-    var directBtn = document.getElementById('direct-login-btn');
     var secureBtn = document.getElementById('secure-login-btn');
     var registerBtn = document.getElementById('register-login-btn');
-    var directPanel = document.getElementById('direct-login-panel');
     var securePanel = document.getElementById('secure-login-panel');
     var registerPanel = document.getElementById('register-login-panel');
 
     // reset all
-    [directBtn, secureBtn, registerBtn].forEach(function(b) {
+    [secureBtn, registerBtn].forEach(function(b) {
         if (b) { b.style.background = 'rgba(255,255,255,0.1)'; b.style.color = 'white'; }
     });
-    [directPanel, securePanel, registerPanel].forEach(function(p) {
+    [securePanel, registerPanel].forEach(function(p) {
         if (p) p.style.display = 'none';
     });
 
-    if (mode === 'direct') {
-        if (directBtn) { directBtn.style.background = '#e8a020'; directBtn.style.color = '#0d1b2a'; }
-        if (directPanel) directPanel.style.display = 'block';
-    } else if (mode === 'secure') {
+    if (mode === 'secure') {
         if (secureBtn) { secureBtn.style.background = '#e8a020'; secureBtn.style.color = '#0d1b2a'; }
         if (securePanel) securePanel.style.display = 'block';
     } else if (mode === 'register') {
@@ -13102,9 +13111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupBrandedAppIcon();
     
     // أزرار صفحة الدخول
-    var directLoginBtn = document.getElementById('direct-login-btn');
     var secureLoginBtn = document.getElementById('secure-login-btn');
-    var directLoginSubmit = document.getElementById('direct-login-submit');
     var secureLoginSubmit = document.getElementById('secure-login-submit');
     var rememberMode = document.getElementById('remember-mode');
     var logoutBtn = document.getElementById('logout-btn');
@@ -13114,9 +13121,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var deleteAllMaintenanceBtn = document.getElementById('delete-all-maintenance-btn');
     var deleteAllInventoryBtn = document.getElementById('delete-all-inventory-btn');
     
-    if (directLoginBtn) directLoginBtn.onclick = function() { setLoginMode('direct'); };
     if (secureLoginBtn) secureLoginBtn.onclick = function() { setLoginMode('secure'); };
-    if (directLoginSubmit) directLoginSubmit.onclick = function() { directLogin(); };
     if (secureLoginSubmit) secureLoginSubmit.onclick = function() { secureLogin(); };
     if (rememberMode) rememberMode.onchange = function() { saveLoginMode(); };
     if (deleteAllEquipmentGlobalBtn) deleteAllEquipmentGlobalBtn.onclick = function() { deleteAllData(); };
@@ -15152,6 +15157,354 @@ function updateThemeToggleIcon(theme){
 }
 document.addEventListener('DOMContentLoaded', function(){
   updateThemeToggleIcon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+});
+</script>
+
+<!-- ==================== الذكاء الاصطناعي (Gemini) ==================== -->
+<button class="fab" id="ai-chat-fab" onclick="openAiChatModal()" title="مساعد ذكي" style="left:20px;right:auto;bottom:85px;background:linear-gradient(135deg,#8b5cf6,#6366f1);width:52px;height:52px;border-radius:26px;font-size:22px">🤖</button>
+
+<!-- مودال التحليل الذكي -->
+<div class="modal-overlay" id="ai-analysis-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
+    <div class="modal-title">🤖 تحليل ذكي بالـ AI</div>
+    <button class="modal-close" onclick="closeModal('ai-analysis-modal')">✕</button>
+  </div>
+  <div id="ai-analysis-content" style="padding:16px;padding-bottom:10px;white-space:pre-wrap;line-height:1.9;font-size:14px"></div>
+  <div style="position:sticky;bottom:0;background:var(--light);padding:14px;display:none" id="ai-analysis-actions">
+    <button class="save-btn" style="background:#0d1b2a" onclick="printAiTextAsPdf('🤖 تحليل ذكي بالـ AI', lastAiAnalysisText)">🖨️ طباعة PDF</button>
+  </div>
+</div>
+
+<!-- مودال التقرير الذكي -->
+<div class="modal-overlay" id="ai-report-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
+    <div class="modal-title">🤖 تقرير ذكي بالـ AI</div>
+    <button class="modal-close" onclick="closeModal('ai-report-modal')">✕</button>
+  </div>
+  <div style="padding:14px 14px 0">
+    <label style="font-size:12px;color:var(--gray);font-weight:600;display:block;margin-bottom:6px">✍️ اكتب أي تقرير عايزه (اختياري)</label>
+    <textarea id="ai-report-request" placeholder="مثال: تقرير عن المعدات المتوقفة في موقع كذا، أو قارن نسبة التوقف بين المواقع، أو تقرير عن أصناف المخزون الناقصة..." style="width:100%;height:70px;border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+    <div style="display:flex;gap:8px;margin:10px 0 4px">
+      <button onclick="generateCustomAiReport()" style="flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:10px;padding:11px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">🤖 توليد التقرير المطلوب</button>
+      <button onclick="openAiReportModal(true)" style="background:#f1f5f9;color:#64748b;border:none;border-radius:10px;padding:11px 12px;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap">📋 التقرير الدوري الجاهز</button>
+    </div>
+  </div>
+  <div id="ai-report-content" style="padding:16px;white-space:pre-wrap;line-height:1.9;font-size:14px"></div>
+  <div style="position:sticky;bottom:0;background:var(--light);padding:14px;display:none;gap:8px;flex-direction:column" id="ai-report-actions">
+    <button class="save-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)" onclick="sendAiReportViaWhatsApp()">📱 إرسال واتساب</button>
+    <button class="save-btn" style="background:#0d1b2a" onclick="printAiTextAsPdf('🤖 تقرير ذكي بالـ AI', lastAiReportText)">🖨️ طباعة PDF</button>
+  </div>
+</div>
+
+<!-- مودال المساعد الذكي (شات) -->
+<div class="modal-overlay" id="ai-chat-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
+    <div class="modal-title">🤖 المساعد الذكي</div>
+    <button class="modal-close" onclick="closeModal('ai-chat-modal')">✕</button>
+  </div>
+  <div id="ai-chat-messages" style="padding:14px;padding-bottom:10px;overflow-y:auto;height:calc(100% - 130px);display:flex;flex-direction:column;gap:10px"></div>
+  <div style="position:sticky;bottom:0;background:var(--light);padding:12px;display:flex;gap:8px;border-top:1px solid #e2e8f0">
+    <input id="ai-chat-input" type="text" placeholder="اسأل عن المعدات، الصيانة، المخزون..." style="flex:1;border:1px solid #e2e8f0;border-radius:20px;padding:10px 16px;font-size:13px;font-family:inherit;box-sizing:border-box" onkeydown="if(event.key==='Enter'){sendAiChatMessage();}">
+    <button onclick="sendAiChatMessage()" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;border-radius:20px;width:44px;height:44px;font-size:16px;cursor:pointer;flex-shrink:0">➤</button>
+  </div>
+</div>
+
+<script>
+// ==================== إعدادات Gemini API ====================
+let GEMINI_API_KEY = '';
+try { GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || ''; } catch(e) {}
+
+function loadGeminiApiKey() {
+    if (!window.fbDb) return;
+    try {
+        fbDb.ref('appSettings/geminiApiKey').once('value').then(function(snap) {
+            var val = snap.val();
+            if (val) {
+                GEMINI_API_KEY = val;
+                try { localStorage.setItem('gemini_api_key', val); } catch(e) {}
+            }
+        }).catch(function() {});
+    } catch(e) {}
+}
+
+function toggleGeminiKeyVisibility() {
+    var el = document.getElementById('gemini-api-key');
+    if (!el) return;
+    el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+function saveGeminiApiKey() {
+    var el = document.getElementById('gemini-api-key');
+    var val = el ? el.value.trim() : '';
+    GEMINI_API_KEY = val;
+    try { localStorage.setItem('gemini_api_key', val); } catch(e) {}
+    if (window.fbDb) {
+        try { fbDb.ref('appSettings/geminiApiKey').set(val); } catch(e) {}
+    }
+    showToast(val ? '✅ تم حفظ مفتاح الذكاء الاصطناعي' : '🗑️ تم مسح المفتاح');
+}
+
+function testGeminiConnection() {
+    var el = document.getElementById('gemini-api-key');
+    var val = el ? el.value.trim() : '';
+    var resEl = document.getElementById('gemini-test-result');
+    if (!val) { showToast('أدخل المفتاح أولاً'); return; }
+    var previousKey = GEMINI_API_KEY;
+    GEMINI_API_KEY = val;
+    if (resEl) {
+        resEl.style.display = 'block';
+        resEl.style.background = '#f1f5f9';
+        resEl.style.color = '#334155';
+        resEl.textContent = '⏳ جاري الاختبار...';
+    }
+    callGeminiAPI('قول "تم الاتصال بنجاح" فقط بدون أي إضافات.', function(err, text) {
+        if (!resEl) return;
+        if (err) {
+            resEl.style.background = '#fee2e2';
+            resEl.style.color = '#991b1b';
+            resEl.textContent = '❌ ' + err;
+            GEMINI_API_KEY = previousKey;
+        } else {
+            resEl.style.background = '#d1fae5';
+            resEl.style.color = '#065f46';
+            resEl.textContent = '✅ الاتصال ناجح: ' + text;
+        }
+    });
+}
+
+// دالة أساسية لاستدعاء Gemini API — onDone(errorMessageOrNull, textOrNull)
+function callGeminiAPI(prompt, onDone) {
+    if (!GEMINI_API_KEY) {
+        onDone('لا يوجد مفتاح Gemini API محفوظ. من فضلك أضفه من ⚙️ الضبط > 🤖 الذكاء الاصطناعي', null);
+        return;
+    }
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    }).then(function(r) {
+        return r.json().then(function(data) { return { ok: r.ok, data: data }; });
+    }).then(function(res) {
+        if (!res.ok) {
+            var msg = (res.data && res.data.error && res.data.error.message) ? res.data.error.message : 'خطأ في الاتصال بـ Gemini';
+            onDone(msg, null);
+            return;
+        }
+        try {
+            var candidate = res.data.candidates && res.data.candidates[0];
+            var text = candidate.content.parts.map(function(p) { return p.text || ''; }).join('');
+            if (!text) throw new Error('empty');
+            onDone(null, text);
+        } catch(e) {
+            onDone('رد غير متوقع من Gemini، أو تم رفض الطلب لأسباب تتعلق بالمحتوى', null);
+        }
+    }).catch(function(e) {
+        onDone('فشل الاتصال: ' + e.message, null);
+    });
+}
+
+// ==================== ملخص بيانات التطبيق (سياق للذكاء الاصطناعي) ====================
+function buildAiDataSummary() {
+    var lines = [];
+    try {
+        var eq = getVisibleEquipment();
+        var stopped = eq.filter(function(e) { return e.status === 'متوقف'; });
+        var overdue = eq.filter(function(e) { return e.status !== 'متوقف' && hoursRemaining(e) <= 0; });
+        var soon = eq.filter(function(e) { return e.status !== 'متوقف' && hoursRemaining(e) > 0 && hoursRemaining(e) <= 50; });
+        var working = eq.length - stopped.length - overdue.length;
+        lines.push('إجمالي المعدات: ' + eq.length);
+        lines.push('تعمل بشكل طبيعي: ' + Math.max(0, working) + ' | متوقفة: ' + stopped.length + ' | متأخرة عن الصيانة: ' + overdue.length + ' | قريبة من موعد الصيانة (أقل من 50 ساعة): ' + soon.length);
+        if (overdue.length) {
+            lines.push('تفاصيل المعدات المتأخرة عن الصيانة: ' + overdue.slice(0, 25).map(function(e) {
+                return (e.name || e.chassisNumber || e.id) + ' [موقع: ' + (e.location || 'غير محدد') + ', متأخرة بـ ' + Math.abs(hoursRemaining(e)) + ' ساعة]';
+            }).join('، '));
+        }
+        if (soon.length) {
+            lines.push('تفاصيل المعدات القريبة من الصيانة: ' + soon.slice(0, 25).map(function(e) {
+                return (e.name || e.id) + ' [متبقي ' + hoursRemaining(e) + ' ساعة]';
+            }).join('، '));
+        }
+    } catch(e) {}
+    try {
+        var low = (inventoryItems || []).filter(function(it) { return (it.qty || 0) <= (it.minQty || 0); });
+        if (low.length) {
+            lines.push('أصناف مخزون منخفضة (' + low.length + '): ' + low.slice(0, 20).map(function(it) {
+                return it.name + ' (متاح: ' + (it.qty || 0) + '، الحد الأدنى: ' + (it.minQty || 0) + ')';
+            }).join('، '));
+        }
+    } catch(e) {}
+    try {
+        var today = new Date();
+        var licExpired = (driversData || []).filter(function(d) { return d.licenseExpiry && d.status === 'نشط' && new Date(d.licenseExpiry) < today; });
+        var licSoon = (driversData || []).filter(function(d) {
+            if (!d.licenseExpiry || d.status !== 'نشط') return false;
+            var diffDays = (new Date(d.licenseExpiry) - today) / 86400000;
+            return diffDays >= 0 && diffDays <= 30;
+        });
+        if (licExpired.length) lines.push('سائقون برخص منتهية: ' + licExpired.map(function(d) { return d.name; }).join('، '));
+        if (licSoon.length) lines.push('سائقون رخصهم قريبة من الانتهاء (خلال 30 يوم): ' + licSoon.map(function(d) { return d.name; }).join('، '));
+    } catch(e) {}
+    return lines.join('\n');
+}
+
+// ==================== التحليل الذكي ====================
+function openAiAnalysisModal() {
+    var modal = document.getElementById('ai-analysis-modal');
+    var content = document.getElementById('ai-analysis-content');
+    var actions = document.getElementById('ai-analysis-actions');
+    if (!modal || !content) return;
+    modal.classList.add('active');
+    if (actions) actions.style.display = 'none';
+    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري تحليل البيانات...</div></div>';
+    var summary = buildAiDataSummary();
+    var prompt = 'أنت مساعد فني لإدارة أسطول معدات في شركة مقاولات كبرى بمصر. حلل البيانات التالية عن حالة المعدات والصيانة والمخزون والسائقين، واكتب تحليل موجز وعملي بالعربية (بدون مقدمات طويلة): أهم النقاط اللي محتاجة تدخل فوري، وتوصيات مختصرة مرتبة حسب الأولوية. البيانات:\n\n' + summary;
+    callGeminiAPI(prompt, function(err, text) {
+        if (err) {
+            content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
+            return;
+        }
+        lastAiAnalysisText = text;
+        content.textContent = text;
+        if (actions) actions.style.display = 'block';
+    });
+}
+
+// ==================== التقرير الذكي ====================
+var lastAiReportText = '';
+var lastAiAnalysisText = '';
+function openAiReportModal(autoGeneratePeriodic) {
+    var modal = document.getElementById('ai-report-modal');
+    var content = document.getElementById('ai-report-content');
+    var actions = document.getElementById('ai-report-actions');
+    if (!modal || !content) return;
+    modal.classList.add('active');
+    if (actions) actions.style.display = 'none';
+    if (autoGeneratePeriodic) {
+        runAiReportGeneration(buildPeriodicReportPrompt());
+    } else {
+        content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 10px;font-size:13px;line-height:2">اكتب أي تقرير عايزه في الحقل فوق واضغط "توليد التقرير المطلوب"،<br>أو اضغط "التقرير الدوري الجاهز" للحصول على تقرير الحالة العام مباشرة.</div>';
+    }
+}
+function buildPeriodicReportPrompt() {
+    var summary = buildAiDataSummary();
+    var today = new Date().toLocaleDateString('ar-EG');
+    return 'اكتب تقرير دوري احترافي بالعربية عن حالة أسطول المعدات لشركة مقاولات، جاهز للإرسال على واتساب لفريق الصيانة. استخدم عناوين قصيرة وإيموجي مناسب واحد بجانب كل عنوان، وخليه مختصر ومباشر. تاريخ التقرير: ' + today + '. البيانات:\n\n' + summary;
+}
+function generateCustomAiReport() {
+    var reqEl = document.getElementById('ai-report-request');
+    var userRequest = reqEl ? reqEl.value.trim() : '';
+    if (!userRequest) {
+        showToast('اكتب التقرير اللي عايزه الأول');
+        return;
+    }
+    var summary = buildAiDataSummary();
+    var today = new Date().toLocaleDateString('ar-EG');
+    var prompt = 'أنت مساعد فني لإدارة أسطول معدات لشركة مقاولات بمصر. المستخدم طلب التقرير التالي بالضبط: "' + userRequest + '". اكتب هذا التقرير بالعربية، احترافي ومنظم بعناوين وإيموجي مناسب، جاهز للإرسال على واتساب لو احتاج، بناءً على البيانات المتاحة فقط. لو البيانات المتاحة مش كافية للإجابة على الطلب بدقة، وضّح ده في التقرير بدل ما تختلق أرقام. تاريخ التقرير: ' + today + '. البيانات المتاحة:\n\n' + summary;
+    runAiReportGeneration(prompt);
+}
+function runAiReportGeneration(prompt) {
+    var content = document.getElementById('ai-report-content');
+    var actions = document.getElementById('ai-report-actions');
+    if (!content) return;
+    if (actions) actions.style.display = 'none';
+    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري إعداد التقرير...</div></div>';
+    callGeminiAPI(prompt, function(err, text) {
+        if (err) {
+            content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
+            return;
+        }
+        lastAiReportText = text;
+        content.textContent = text;
+        if (actions) actions.style.display = 'flex';
+    });
+}
+// طباعة أي نص AI كـ PDF (عبر نافذة طباعة المتصفح — يقدر يحفظه PDF من مربع الطباعة)
+function printAiTextAsPdf(title, text) {
+    if (!text) { showToast('لا يوجد محتوى للطباعة بعد'); return; }
+    var date = new Date().toLocaleDateString('ar-EG');
+    var css = 'body{font-family:Arial;padding:24px;direction:rtl;color:#1e293b}h1{color:#0d1b2a;border-bottom:3px solid #8b5cf6;padding-bottom:10px}.content{white-space:pre-wrap;line-height:2;font-size:14px;margin-top:16px}.footer{margin-top:30px;font-size:10px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:10px}.no-print{margin-top:20px;text-align:center}';
+    var html = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + escapeHtml(title) + '</title><style>' + css + '</style></head><body>' +
+        '<h1>' + escapeHtml(title) + '</h1>' +
+        '<div style="color:#64748b;font-size:12px">📅 ' + date + '</div>' +
+        '<div class="content">' + escapeHtml(text) + '</div>' +
+        '<div class="footer">Hassan Allam Holding | تم إنشاؤه بواسطة الذكاء الاصطناعي (Gemini) | ' + date + '</div>' +
+        '<div class="no-print"><button onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة / حفظ PDF</button></div>' +
+        '</body></html>';
+    var blob = new Blob([html], { type: 'text/html' });
+    var url = URL.createObjectURL(blob);
+    var win = window.open(url, '_blank');
+    if (win) {
+        setTimeout(function() { URL.revokeObjectURL(url); }, 100);
+    } else {
+        showToast('من فضلك اسمح بفتح النوافذ المنبثقة (popups) لهذا الموقع');
+    }
+}
+function sendAiReportViaWhatsApp() {
+    if (!lastAiReportText) return;
+    var number = (notifSettings && notifSettings.whatsappNumber) ? notifSettings.whatsappNumber.replace(/\D/g,'') : '';
+    var url = 'https://wa.me/' + number + '?text=' + encodeURIComponent(lastAiReportText);
+    window.open(url, '_blank');
+}
+
+// ==================== المساعد الذكي (شات) ====================
+var aiChatHistory = [];
+function openAiChatModal() {
+    var modal = document.getElementById('ai-chat-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    if (!aiChatHistory.length) {
+        renderAiChatMessage('assistant', 'أهلاً 👋 اسألني أي سؤال عن المعدات، الصيانة، المخزون، أو السائقين وهجاوبك بناءً على بيانات النظام الحالية.');
+    }
+}
+function renderAiChatMessage(role, text) {
+    var wrap = document.getElementById('ai-chat-messages');
+    if (!wrap) return;
+    var bubble = document.createElement('div');
+    var isUser = role === 'user';
+    bubble.style.cssText = 'max-width:82%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.7;white-space:pre-wrap;' +
+        (isUser
+            ? 'align-self:flex-end;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border-bottom-left-radius:4px'
+            : 'align-self:flex-start;background:white;color:#1e293b;box-shadow:var(--shadow-sm);border-bottom-right-radius:4px');
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+    wrap.scrollTop = wrap.scrollHeight;
+}
+function sendAiChatMessage() {
+    var input = document.getElementById('ai-chat-input');
+    if (!input) return;
+    var msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    renderAiChatMessage('user', msg);
+    aiChatHistory.push({ role: 'user', text: msg });
+
+    var wrap = document.getElementById('ai-chat-messages');
+    var loadingBubble = document.createElement('div');
+    loadingBubble.id = 'ai-chat-loading';
+    loadingBubble.style.cssText = 'align-self:flex-start;background:white;color:#94a3b8;padding:10px 14px;border-radius:16px;font-size:13px;box-shadow:var(--shadow-sm)';
+    loadingBubble.textContent = '⏳ جاري الكتابة...';
+    if (wrap) { wrap.appendChild(loadingBubble); wrap.scrollTop = wrap.scrollHeight; }
+
+    var summary = buildAiDataSummary();
+    var historyText = aiChatHistory.slice(-8).map(function(m) { return (m.role === 'user' ? 'المستخدم: ' : 'المساعد: ') + m.text; }).join('\n');
+    var prompt = 'أنت مساعد ذكي داخل تطبيق إدارة معدات لشركة مقاولات بمصر. جاوب بالعربية، باختصار ووضوح، بناءً على البيانات دي فقط، ولو السؤال مش متعلق بالبيانات جاوب بمعرفتك العامة بإيجاز. بيانات النظام الحالية:\n' + summary + '\n\nمحادثة سابقة:\n' + historyText + '\n\nجاوب على آخر سؤال من المستخدم فقط.';
+
+    callGeminiAPI(prompt, function(err, text) {
+        var loading = document.getElementById('ai-chat-loading');
+        if (loading) loading.remove();
+        if (err) {
+            renderAiChatMessage('assistant', '❌ ' + err);
+            return;
+        }
+        renderAiChatMessage('assistant', text);
+        aiChatHistory.push({ role: 'assistant', text: text });
+    });
+}
+
+// تحميل مفتاح Gemini عند بدء التطبيق
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(loadGeminiApiKey, 1500);
 });
 </script>
 </body>
