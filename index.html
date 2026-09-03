@@ -6818,18 +6818,26 @@ function exportFuelReportExcel() {
 }
 
 // ==================== طلبية نواقص فعلية بناءً على القطع المطلوبة في الصيانات المجدولة حاليًا (بدل الإسقاط العام لكل 1000 ساعة) ====================
-// طلبية نواقص حية بناءً على المرحلة الحالية لكل معدة في خطتها الأربعة (أدق مصدر — بيتغيّر تلقائيًا مع تقدم كل معدة في دورتها)
+// طلبية نواقص حية بناءً على الأربع صيانات القادمة لكل معدة (مش المرحلة الحالية بس) — يعني لو خلصت صيانة 500،
+// بيحسب اللي محتاجه للأربع صيانات اللي جايين بعدها (250، 1000، 250، 500 التالية)، وبما إن الدورة طولها 4 مراحل بالظبط
+// (250←500←250←1000) فأي أربع صيانات قادمة = دورة كاملة: فئة 250 بتتكرر مرتين، و500 و1000 مرة واحدة لكل منهم — أيًا كانت المرحلة الحالية
 function calculateFleetWidePlanShortages() {
     var totals = {};
+    var occurrencesPerCycle = { 250: 2, 500: 1, 1000: 1 }; // عدد مرات ظهور كل فئة في أي 4 صيانات متتالية بالدورة
     equipmentData.forEach(function(eq) {
         if (!maintenancePlanHasData(eq)) return;
-        var items = getRequiredItemsForMaintenance(eq);
-        items.forEach(function(it) {
-            if (!totals[it.id]) {
-                totals[it.id] = { id: it.id, name: it.name, partNo: it.partNo, unit: it.unit, available: it.available, needed: 0, usedInEquipment: [] };
-            }
-            totals[it.id].needed += (parseFloat(it.quantity) || 1);
-            totals[it.id].usedInEquipment.push(eq.name + ' (مرحلة ' + (getCurrentMaintenanceStage(eq).index + 1) + ')');
+        var tierItems = ensureMaintenanceTierItems(eq);
+        MAINT_TIER_KEYS.forEach(function(tier) {
+            var items = tierItems[tier] || [];
+            var mult = occurrencesPerCycle[tier];
+            items.forEach(function(it) {
+                var inv = inventoryItems.find(function(i) { return i.id === it.id; });
+                if (!totals[it.id]) {
+                    totals[it.id] = { id: it.id, name: it.name, partNo: it.partNo || (inv ? inv.partNo : ''), unit: it.unit || (inv ? inv.unit : ''), available: inv ? (inv.qty || 0) : 0, needed: 0, usedInEquipment: [] };
+                }
+                totals[it.id].needed += (parseFloat(it.qty) || 1) * mult;
+                totals[it.id].usedInEquipment.push(eq.name + ' (فئة ' + tier + (mult > 1 ? ' × ' + mult + ' مرات' : '') + ')');
+            });
         });
     });
     Object.values(totals).forEach(function(t) { t.shortage = Math.max(0, t.needed - t.available); });
@@ -6890,7 +6898,7 @@ function printScheduledMaintenanceShortageOrder() {
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
         reportHeaderHtml('طلبية النواقص', 'التاريخ: ' + new Date().toLocaleDateString('ar-EG')) +
-        '<h3>📌 حسب المرحلة الحالية لكل معدة في خطتها الأربعة (الأدق والأحدث)</h3>' +
+        '<h3>📌 حسب الأربع صيانات القادمة لكل معدة (دورة كاملة: 250×2 + 500 + 1000)</h3>' +
         '<div class="info">📋 عدد الأصناف الناقصة: ' + planShortages.length + '</div>' +
         '<table><thead><tr><th>م</th><th>اسم الصنف</th><th>رقم القطعة</th><th>متوفر</th><th>مطلوب</th><th>ناقص</th></tr></thead><tbody>' + rowsHtml(planShortages) + '</tbody></table>' +
         '<h3>📅 حسب الصيانات المجدولة يدويًا</h3>' +
@@ -7098,26 +7106,37 @@ function autoScheduleMaintenance(equipment) {
     showToast('🔄 تم جدولة صيانة تلقائية للمعدة ' + equipment.name + ' عند ' + newNext + ' س');
 }
 
-// ==================== خطة الصيانات الأربعة القادمة لكل معدة (250 ← 500 ← 250 ← 1000) — تتكرر تلقائيًا ====================
-// كل مرحلة ليها قائمة قطع مختلفة عن التانية، والبرنامج بيتتبع المرحلة الحالية ويتنقل للي بعدها تلقائيًا عند إتمام الصيانة
+// ==================== دورة الصيانات الأربعة لكل معدة (250 ← 500 ← 250 ← 1000) — تتكرر تلقائيًا ====================
+// فئة 250 بتستخدم نفس الأصناف في كل مرة تيجي فيها بالدورة (مش قائمتين مختلفتين) — فيه 3 قوائم أصناف بس: 250 / 500 / 1000
+// والدورة نفسها مجرد ترتيب تكرار: 250 → 500 → 250 → 1000 → ترجع تاني 250...
 var DEFAULT_MAINT_PLAN_TIERS = [250, 500, 250, 1000];
-function ensureMaintenancePlan(equipment) {
-    if (!equipment.maintenancePlan || equipment.maintenancePlan.length !== 4) {
-        equipment.maintenancePlan = DEFAULT_MAINT_PLAN_TIERS.map(function(t) { return { tier: t, items: [] }; });
+function ensureMaintenanceTierItems(equipment) {
+    if (!equipment.maintenanceTierItems) {
+        // توافق مع أي بيانات قديمة كانت متخزنة بالصيغة القديمة (4 مراحل منفصلة) قبل التعديل
+        if (equipment.maintenancePlan && equipment.maintenancePlan.length === 4) {
+            equipment.maintenanceTierItems = {
+                250: (equipment.maintenancePlan[0] && equipment.maintenancePlan[0].items) || [],
+                500: (equipment.maintenancePlan[1] && equipment.maintenancePlan[1].items) || [],
+                1000: (equipment.maintenancePlan[3] && equipment.maintenancePlan[3].items) || []
+            };
+        } else {
+            equipment.maintenanceTierItems = { 250: [], 500: [], 1000: [] };
+        }
     }
     if (equipment.maintenancePlanStage == null || equipment.maintenancePlanStage > 3 || equipment.maintenancePlanStage < 0) {
         equipment.maintenancePlanStage = 0;
     }
-    return equipment.maintenancePlan;
+    return equipment.maintenanceTierItems;
 }
 function getCurrentMaintenanceStage(equipment) {
-    var plan = ensureMaintenancePlan(equipment);
+    var tierItems = ensureMaintenanceTierItems(equipment);
     var idx = equipment.maintenancePlanStage || 0;
-    return { index: idx, tier: plan[idx].tier, items: plan[idx].items || [] };
+    var tier = DEFAULT_MAINT_PLAN_TIERS[idx];
+    return { index: idx, tier: tier, items: tierItems[tier] || [] };
 }
 function maintenancePlanHasData(equipment) {
-    return !!(equipment.maintenancePlan && equipment.maintenancePlan.length === 4 &&
-        equipment.maintenancePlan.some(function(s) { return s.items && s.items.length; }));
+    var t = ensureMaintenanceTierItems(equipment);
+    return !!((t[250] && t[250].length) || (t[500] && t[500].length) || (t[1000] && t[1000].length));
 }
 
 function getRequiredItemsForMaintenance(equipment) {
@@ -7239,21 +7258,25 @@ function deductItemsFromInventory(maintenanceId, equipmentId, approvedItems) {
 }
 
 function getEffectiveMaintenanceTier(equipment) {
-    if (equipment.maintenancePlan && equipment.maintenancePlan.length === 4) {
+    if (equipment.maintenanceTierItems || equipment.maintenancePlan) {
         return getCurrentMaintenanceStage(equipment).tier;
     }
     return classifyMaintenanceTier(equipment.nextHours);
 }
 
-// ==================== إدارة خطة الصيانات الأربعة (تحرير قطع كل مرحلة) ====================
+// ==================== إدارة أصناف كل فئة صيانة (250 / 500 / 1000) — الفئة الواحدة بتستخدم نفس الأصناف في كل تكرار لها بالدورة ====================
 var currentPlanEditEquipmentId = null;
-var currentPlanEditData = null; // نسخة قابلة للتعديل من equipment.maintenancePlan أثناء فتح المودال
+var currentPlanEditData = null; // نسخة قابلة للتعديل من equipment.maintenanceTierItems أثناء فتح المودال: {250:[...],500:[...],1000:[...]}
+var MAINT_TIER_KEYS = [250, 500, 1000];
 function openMaintenancePlanModal(equipmentId) {
     var equipment = equipmentData.find(function(e) { return e.id === equipmentId; });
     if (!equipment) { showToast('تعذّر العثور على المعدة', true); return; }
-    ensureMaintenancePlan(equipment);
+    var tierItems = ensureMaintenanceTierItems(equipment);
     currentPlanEditEquipmentId = equipmentId;
-    currentPlanEditData = equipment.maintenancePlan.map(function(s) { return { tier: s.tier, items: (s.items || []).map(function(i) { return Object.assign({}, i); }) }; });
+    currentPlanEditData = {};
+    MAINT_TIER_KEYS.forEach(function(tier) {
+        currentPlanEditData[tier] = (tierItems[tier] || []).map(function(i) { return Object.assign({}, i); });
+    });
 
     var existing = document.getElementById('maint-plan-modal');
     if (existing) existing.remove();
@@ -7263,12 +7286,12 @@ function openMaintenancePlanModal(equipmentId) {
     modal.innerHTML =
         '<div style="background:white;border-radius:18px;padding:18px;max-width:440px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
-        '<div style="font-size:15px;font-weight:800;color:#0d1b2a">📋 خطة الصيانات الأربعة — ' + escapeHtml(equipment.name) + '</div>' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2a">📋 أصناف كل فئة صيانة — ' + escapeHtml(equipment.name) + '</div>' +
         '<button onclick="document.getElementById(\'maint-plan-modal\').remove()" style="background:#f1f5f9;border:none;width:28px;height:28px;border-radius:8px;font-size:14px;cursor:pointer">✕</button>' +
         '</div>' +
-        '<div style="font-size:11px;color:#94a3b8;margin-bottom:12px">حدّد قطع كل مرحلة من الأربعة (250 ← 500 ← 250 ← 1000). البرنامج هيستخدم قطع المرحلة الحالية بس في حساب النواقص وإذن الصيانة، وهيتنقل تلقائيًا للمرحلة اللي بعدها عند الإتمام</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-bottom:12px">دورة الصيانة: 250 ← 500 ← 250 ← 1000 ← ترجع تاني. فئة الـ250 بتستخدم نفس الأصناف في كل مرة تيجي فيها بالدورة — حدّد أصناف كل فئة مرة واحدة بس وهتتكرر تلقائيًا</div>' +
         '<div id="maint-plan-stages"></div>' +
-        '<button onclick="saveMaintenancePlan()" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;margin-top:8px">✅ حفظ الخطة</button>' +
+        '<button onclick="saveMaintenancePlan()" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;margin-top:8px">✅ حفظ</button>' +
         '</div>';
     document.body.appendChild(modal);
     modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
@@ -7277,60 +7300,61 @@ function openMaintenancePlanModal(equipmentId) {
 function renderMaintenancePlanStages(equipment) {
     var wrap = document.getElementById('maint-plan-stages');
     if (!wrap) return;
-    var currentIdx = equipment.maintenancePlanStage || 0;
-    wrap.innerHTML = currentPlanEditData.map(function(stage, sIdx) {
-        var lbl = maintenanceTierLabel(stage.tier);
-        var isCurrent = sIdx === currentIdx;
-        var itemsHtml = (stage.items || []).length
-            ? stage.items.map(function(it, iIdx) {
+    var currentTier = getCurrentMaintenanceStage(equipment).tier;
+    wrap.innerHTML = MAINT_TIER_KEYS.map(function(tier) {
+        var lbl = maintenanceTierLabel(tier);
+        var isCurrent = tier === currentTier;
+        var items = currentPlanEditData[tier];
+        var itemsHtml = items.length
+            ? items.map(function(it, iIdx) {
                 return '<div style="display:flex;align-items:center;gap:6px;background:white;border-radius:8px;padding:6px 8px;margin-bottom:5px">' +
                     '<div style="flex:1;font-size:11.5px;font-weight:700;color:#334155">' + escapeHtml(it.name) + '</div>' +
-                    '<input type="number" min="1" value="' + it.qty + '" style="width:50px;border:1px solid #e2e8f0;border-radius:8px;padding:4px;font-size:11.5px;text-align:center" onchange="updateMaintPlanItemQty(' + sIdx + ',' + iIdx + ',this.value)">' +
-                    '<button onclick="removeMaintPlanItem(' + sIdx + ',' + iIdx + ')" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;width:22px;height:22px;cursor:pointer;font-size:11px">✕</button>' +
+                    '<input type="number" min="1" value="' + it.qty + '" style="width:50px;border:1px solid #e2e8f0;border-radius:8px;padding:4px;font-size:11.5px;text-align:center" onchange="updateMaintPlanItemQty(' + tier + ',' + iIdx + ',this.value)">' +
+                    '<button onclick="removeMaintPlanItem(' + tier + ',' + iIdx + ')" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;width:22px;height:22px;cursor:pointer;font-size:11px">✕</button>' +
                     '</div>';
             }).join('')
             : '<div style="font-size:10.5px;color:#94a3b8;padding:4px 0">لا توجد قطع مضافة</div>';
         return '<div style="background:#f8fafc;border-radius:12px;padding:10px;margin-bottom:10px;' + (isCurrent ? 'border:2px solid #e8a020' : '') + '">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
-            '<span style="background:' + lbl.bg + ';color:' + lbl.color + ';border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800">مرحلة ' + (sIdx + 1) + ' — ' + lbl.text + '</span>' +
-            (isCurrent ? '<span style="font-size:10px;color:#e8a020;font-weight:800">🔵 الحالية</span>' : '') +
+            '<span style="background:' + lbl.bg + ';color:' + lbl.color + ';border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800">' + lbl.text + '</span>' +
+            (isCurrent ? '<span style="font-size:10px;color:#e8a020;font-weight:800">🔵 الفئة الحالية</span>' : '') +
             '</div>' +
-            '<div id="maint-plan-items-' + sIdx + '">' + itemsHtml + '</div>' +
-            '<button onclick="addMaintPlanItem(' + sIdx + ')" style="width:100%;padding:6px;border:1px dashed #cbd5e1;border-radius:8px;background:white;color:#475569;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;margin-top:4px">➕ إضافة قطعة</button>' +
+            '<div id="maint-plan-items-' + tier + '">' + itemsHtml + '</div>' +
+            '<button onclick="addMaintPlanItem(' + tier + ')" style="width:100%;padding:6px;border:1px dashed #cbd5e1;border-radius:8px;background:white;color:#475569;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;margin-top:4px">➕ إضافة قطعة</button>' +
             '</div>';
     }).join('');
 }
-function addMaintPlanItem(stageIdx) {
+function addMaintPlanItem(tier) {
     if (!inventoryItems.length) { showToast('لا توجد أصناف في المخزون', true); return; }
     var options = inventoryItems.map(function(it) { return it.name + ' (' + (it.partNo || '') + ')'; });
     var idx = prompt('اكتب رقم الصنف من القائمة:\n' + options.map(function(o, i) { return (i + 1) + '. ' + o; }).join('\n'));
     var i = parseInt(idx) - 1;
     if (isNaN(i) || !inventoryItems[i]) return;
     var it = inventoryItems[i];
-    var stage = currentPlanEditData[stageIdx];
-    var existingItem = stage.items.find(function(p) { return p.id === it.id; });
+    var list = currentPlanEditData[tier];
+    var existingItem = list.find(function(p) { return p.id === it.id; });
     if (existingItem) { existingItem.qty += 1; }
-    else { stage.items.push({ id: it.id, name: it.name, partNo: it.partNo, unit: it.unit, qty: 1 }); }
+    else { list.push({ id: it.id, name: it.name, partNo: it.partNo, unit: it.unit, qty: 1 }); }
     var equipment = equipmentData.find(function(e) { return e.id === currentPlanEditEquipmentId; });
     renderMaintenancePlanStages(equipment);
 }
-function updateMaintPlanItemQty(stageIdx, itemIdx, val) {
-    var item = currentPlanEditData[stageIdx].items[itemIdx];
+function updateMaintPlanItemQty(tier, itemIdx, val) {
+    var item = currentPlanEditData[tier][itemIdx];
     if (item) item.qty = Math.max(1, parseFloat(val) || 1);
 }
-function removeMaintPlanItem(stageIdx, itemIdx) {
-    currentPlanEditData[stageIdx].items.splice(itemIdx, 1);
+function removeMaintPlanItem(tier, itemIdx) {
+    currentPlanEditData[tier].splice(itemIdx, 1);
     var equipment = equipmentData.find(function(e) { return e.id === currentPlanEditEquipmentId; });
     renderMaintenancePlanStages(equipment);
 }
 function saveMaintenancePlan() {
     var equipment = equipmentData.find(function(e) { return e.id === currentPlanEditEquipmentId; });
     if (!equipment) return;
-    equipment.maintenancePlan = currentPlanEditData;
+    equipment.maintenanceTierItems = currentPlanEditData;
     saveToFirebase('equipment', equipment);
     var modal = document.getElementById('maint-plan-modal');
     if (modal) modal.remove();
-    showToast('✅ تم حفظ خطة الصيانات الأربعة');
+    showToast('✅ تم حفظ أصناف فئات الصيانة');
     setTimeout(function() { openEquipmentDetail(currentPlanEditEquipmentId); }, 300);
 }
 
@@ -7349,7 +7373,7 @@ function completeCurrentMaintenanceStage(equipmentId) {
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit;direction:rtl';
     var lbl = maintenanceTierLabel(cur.tier);
     var nextIdx = (cur.index + 1) % 4;
-    var nextTier = ensureMaintenancePlan(equipment)[nextIdx].tier;
+    var nextTier = DEFAULT_MAINT_PLAN_TIERS[nextIdx];
     modal.innerHTML =
         '<div style="background:white;border-radius:18px;padding:18px;max-width:400px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
         '<div style="font-size:15px;font-weight:800;color:#0d1b2a;margin-bottom:4px">✅ إتمام الصيانة الحالية — ' + escapeHtml(equipment.name) + '</div>' +
@@ -7383,9 +7407,10 @@ function confirmCompleteCurrentStage(equipmentId) {
     function advanceStage() {
         var cur = getCurrentMaintenanceStage(equipment);
         var nextIdx = (cur.index + 1) % 4;
-        var plan = ensureMaintenancePlan(equipment);
+        var nextTierVal = DEFAULT_MAINT_PLAN_TIERS[nextIdx];
+        ensureMaintenanceTierItems(equipment);
         equipment.maintenancePlanStage = nextIdx;
-        equipment.nextHours = equipment.hours + plan[nextIdx].tier;
+        equipment.nextHours = equipment.hours + nextTierVal;
         equipment.lastMaintenanceHours = equipment.hours;
         saveToFirebase('equipment', equipment);
         saveToFirebase('maintenanceSchedules', {
@@ -7401,7 +7426,7 @@ function confirmCompleteCurrentStage(equipmentId) {
         });
         var modal = document.getElementById('stage-complete-modal');
         if (modal) modal.remove();
-        showToast('✅ تم إتمام الصيانة والانتقال للمرحلة القادمة (' + maintenanceTierLabel(plan[nextIdx].tier).text + ')');
+        showToast('✅ تم إتمام الصيانة والانتقال للفئة القادمة (' + maintenanceTierLabel(nextTierVal).text + ')');
         setTimeout(function() { openEquipmentDetail(equipmentId); }, 300);
     }
 
@@ -15955,15 +15980,15 @@ function buildAiDataSummary() {
         });
         if (stageDetails.length) lines.push('تفاصيل المرحلة الحالية لكل معدة: ' + stageDetails.join(' | '));
     } catch(e) {}
-    // ==== نواقص القطع بناءً على المرحلة الحالية الفعلية لكل معدة (الأدق) ====
+    // ==== نواقص القطع بناءً على الأربع صيانات القادمة لكل معدة (دورة كاملة: فئة 250 مرتين + 500 + 1000) ====
     try {
         var planShortages = Object.values(calculateFleetWidePlanShortages()).filter(function(t) { return t.shortage > 0; });
         if (planShortages.length) {
-            lines.push('نواقص قطع بناءً على المرحلة الحالية الفعلية لكل معدة (' + planShortages.length + ' صنف): ' + planShortages.slice(0, 20).map(function(t) {
-                return t.name + ' [متوفر: ' + t.available + '، مطلوب: ' + t.needed + '، ناقص: ' + t.shortage + ']';
+            lines.push('نواقص قطع بناءً على الأربع صيانات القادمة لكل معدة (' + planShortages.length + ' صنف): ' + planShortages.slice(0, 20).map(function(t) {
+                return t.name + ' [متوفر: ' + t.available + '، مطلوب للدورة القادمة كاملة: ' + t.needed + '، ناقص: ' + t.shortage + ']';
             }).join('، '));
         } else if (equipmentsWithPlan && equipmentsWithPlan.length) {
-            lines.push('لا توجد نواقص قطع حاليًا بناءً على خطط الصيانة الحالية للمعدات.');
+            lines.push('لا توجد نواقص قطع حاليًا لتغطية الأربع صيانات القادمة لأي معدة.');
         }
     } catch(e) {}
     // ==== نواقص القطع بناءً على الصيانات المجدولة فعليًا ====
