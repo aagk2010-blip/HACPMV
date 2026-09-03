@@ -1074,6 +1074,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
           <button id="add-rental-btn" style="flex:1;padding:10px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">➕ إضافة عقد إيجار</button>
           <button id="delete-all-rental-btn" style="padding:10px 14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;cursor:pointer" title="حذف جميع السجلات">🗑️</button>
         </div>
+        <button onclick="openRentalAiAnalysisModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🤖 تحليل الإيجار الذكي (شذوذ الإضافي + توصيات العقود)</button>
         <div id="rental-equipment-list"></div>
       </div>
       <div id="rental-section-daily" style="display:none">
@@ -1156,7 +1157,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 <div class="eq-step-dot" data-step="3" style="display:flex;flex-direction:column;align-items:center;gap:4px"><div class="eq-step-circle" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#e2e8f0;color:var(--gray)">3</div><span style="font-size:10px;color:var(--gray)">المرفقات</span></div>
 </div>
 
-<div id="eq-step-1" class="eq-wizard-step"><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>مقطورة سطحة</option><option>مقطورة تانك</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">🏗️ اسم المشروع</label><input class="form-input" id="eq-project-site" placeholder="مثال: مشروع القاهرة الجديدة"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">🏷️ نوع الملكية</label><select class="form-select" id="eq-ownership"><option value="ملك">🔑 ملك</option><option value="إيجار">📋 إيجار</option></select></div></div>
+<div id="eq-step-1" class="eq-wizard-step"><div class="form-group"><div class="form-field"><label class="form-label">كود المعدة *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label">اسم المعدة *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label">النوع</label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>مقطورة سطحة</option><option>مقطورة تانك</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label">رقم الشاسيه</label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label">الموقع</label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">🏗️ اسم المشروع</label><input class="form-input" id="eq-project-site" placeholder="مثال: مشروع القاهرة الجديدة"></div><div class="form-field"><label class="form-label">السائق المسند</label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">🏷️ نوع الملكية</label><select class="form-select" id="eq-ownership"><option value="ملك">🔑 ملك</option><option value="إيجار">📋 إيجار</option></select></div><div class="form-field"><label class="form-label">⛽ نوع الوقود</label><select class="form-select" id="eq-fuel-type"><option value="ديزل">⛽ ديزل</option><option value="بنزين">⛽ بنزين</option></select></div></div>
 <button class="save-btn" style="margin:0" onclick="eqWizardNext(1)">التالي: العداد ⬅️</button>
 </div>
 
@@ -2560,6 +2561,7 @@ let equipmentData = [];
 let driversData = [];
 let employeesData = [];
 let fuelData = [];
+var currentFuelPrices = { diesel: 0, gasoline: 0 };
 let maintenanceSchedules = [];
 let inventoryItems = [];
 let equipmentFilterLinks = [];
@@ -3544,6 +3546,11 @@ function attachFirebaseListeners() {
         fuelData = snapshotToArray(snapshot);
         debouncedRefresh();
     });
+
+    listen('appSettings/fuelPrices', function(snapshot) {
+        var d = snapshot.val() || {};
+        currentFuelPrices = { diesel: parseFloat(d.diesel) || 0, gasoline: parseFloat(d.gasoline) || 0 };
+    });
     
     listen('maintenanceSchedules', function(snapshot) {
         maintenanceSchedules = snapshotToArray(snapshot);
@@ -4411,6 +4418,7 @@ function openAddEquipmentModal() {
     document.getElementById('eq-type-lock-msg').style.display = 'none';
     document.getElementById('eq-status').value = 'يعمل';
     document.getElementById('eq-ownership').value = 'ملك';
+    document.getElementById('eq-fuel-type').value = 'ديزل';
     updateDriverSelects();
     currentEquipmentAttachments = [];
     renderEquipmentAttachmentsPreview();
@@ -4500,6 +4508,7 @@ function saveEquipment() {
         lastMaintenanceHours: parseInt(document.getElementById('eq-last-maintenance-hours').value) || 0,
         status: document.getElementById('eq-status').value,
         ownership: document.getElementById('eq-ownership').value || 'ملك',
+        fuelType: document.getElementById('eq-fuel-type').value || 'ديزل',
         notes: document.getElementById('eq-notes').value,
         attachments: currentEquipmentAttachments,
         updatedAt: new Date().toISOString()
@@ -4573,6 +4582,7 @@ function editEquipment(id) {
     document.getElementById('eq-last-maintenance-hours').value = equipment.lastMaintenanceHours || 0;
     document.getElementById('eq-status').value = equipment.status || 'يعمل';
     document.getElementById('eq-ownership').value = equipment.ownership || 'ملك';
+    document.getElementById('eq-fuel-type').value = equipment.fuelType || 'ديزل';
     document.getElementById('eq-notes').value = equipment.notes || '';
     updateDriverSelects();
     if (equipment.assignedDriver) {
@@ -6451,6 +6461,29 @@ function exportEmployeesPDF() {
 }
 
 // ==================== دوال الوقود ====================
+function getFuelPriceForEquipment(equipmentId) {
+    var eq = equipmentData.find(function(e) { return e.id === equipmentId; });
+    var type = (eq && eq.fuelType === 'بنزين') ? 'gasoline' : 'diesel';
+    return currentFuelPrices[type] || 0;
+}
+var fuelCostManuallyEdited = false;
+function recalcFuelCostFromAmount() {
+    var eqId = document.getElementById('fuel-equipment').value;
+    var amount = parseFloat(document.getElementById('fuel-amount').value) || 0;
+    var hintEl = document.getElementById('fuel-price-hint');
+    if (!eqId || amount <= 0) { if (hintEl) hintEl.textContent = ''; return; }
+    var price = getFuelPriceForEquipment(eqId);
+    if (!price) {
+        if (hintEl) hintEl.textContent = '⚠️ سعر الوقود لهذا النوع غير محدد — من فضلك أدخله من لوحة المدير';
+        return;
+    }
+    var eq = equipmentData.find(function(e) { return e.id === eqId; });
+    var typeLabel = (eq && eq.fuelType === 'بنزين') ? 'بنزين' : 'ديزل';
+    if (!fuelCostManuallyEdited) {
+        document.getElementById('fuel-cost').value = (amount * price).toFixed(2);
+    }
+    if (hintEl) hintEl.textContent = '💡 السعر الحالي: ' + price + ' ج.م/لتر (' + typeLabel + ')';
+}
 function openAddFuelModal() {
     if (!hasPermission('all')) {
         showToast('غير مصرح', true);
@@ -6465,6 +6498,18 @@ function openAddFuelModal() {
     document.getElementById('fuel-hours').value = '';
     document.getElementById('fuel-date').value = localDateStr(new Date());
     document.getElementById('fuel-notes').value = '';
+    fuelCostManuallyEdited = false;
+    var hintDiv = document.getElementById('fuel-price-hint');
+    if (!hintDiv) {
+        hintDiv = document.createElement('div');
+        hintDiv.id = 'fuel-price-hint';
+        hintDiv.style.cssText = 'font-size:11px;color:#059669;margin-top:-8px;margin-bottom:4px';
+        document.getElementById('fuel-cost').insertAdjacentElement('afterend', hintDiv);
+    }
+    hintDiv.textContent = '';
+    select.onchange = recalcFuelCostFromAmount;
+    document.getElementById('fuel-amount').oninput = recalcFuelCostFromAmount;
+    document.getElementById('fuel-cost').oninput = function() { fuelCostManuallyEdited = true; };
     document.getElementById('fuel-modal').classList.add('active');
 }
 
@@ -6507,6 +6552,23 @@ function openEditFuelModal(id) {
     document.getElementById('edit-fuel-hours').value = fuel.hours || 0;
     document.getElementById('edit-fuel-date').value = fuel.date || '';
     document.getElementById('edit-fuel-notes').value = fuel.notes || '';
+    fuelCostManuallyEdited = true; // في التعديل، نحافظ على التكلفة الحالية ولا نغيّرها إلا لو المستخدم غيّر الكمية بنفسه
+    var hintDiv = document.getElementById('edit-fuel-price-hint');
+    if (!hintDiv) {
+        hintDiv = document.createElement('div');
+        hintDiv.id = 'edit-fuel-price-hint';
+        hintDiv.style.cssText = 'font-size:11px;color:#059669;margin-top:-8px;margin-bottom:4px';
+        document.getElementById('edit-fuel-cost').insertAdjacentElement('afterend', hintDiv);
+    }
+    var price = getFuelPriceForEquipment(fuel.equipmentId);
+    var eq = equipmentData.find(function(e) { return e.id === fuel.equipmentId; });
+    var typeLabel = (eq && eq.fuelType === 'بنزين') ? 'بنزين' : 'ديزل';
+    hintDiv.textContent = price ? ('💡 السعر الحالي: ' + price + ' ج.م/لتر (' + typeLabel + ')') : '⚠️ سعر الوقود لهذا النوع غير محدد';
+    document.getElementById('edit-fuel-amount').oninput = function() {
+        if (!price) return;
+        var amount = parseFloat(document.getElementById('edit-fuel-amount').value) || 0;
+        document.getElementById('edit-fuel-cost').value = (amount * price).toFixed(2);
+    };
     document.getElementById('fuel-edit-modal').classList.add('active');
 }
 
@@ -15806,6 +15868,18 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </div>
 
+<!-- مودال تحليل الإيجار الذكي -->
+<div class="modal-overlay" id="ai-rental-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
+    <div class="modal-title">🤖 تحليل الإيجار الذكي</div>
+    <button class="modal-close" onclick="closeModal('ai-rental-modal')">✕</button>
+  </div>
+  <div id="ai-rental-content" style="padding:16px;padding-bottom:10px;white-space:pre-wrap;line-height:1.9;font-size:14px"></div>
+  <div style="position:sticky;bottom:0;background:var(--light);padding:14px;display:none" id="ai-rental-actions">
+    <button class="save-btn" style="background:#0d1b2a" onclick="printAiTextAsPdf('🤖 تحليل الإيجار الذكي', lastAiRentalText)">🖨️ طباعة PDF</button>
+  </div>
+</div>
+
 <!-- مودال المساعد الذكي (شات) -->
 <div class="modal-overlay" id="ai-chat-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
@@ -16039,6 +16113,21 @@ function buildAiDataSummary() {
         var activeEmployees = (employeesData || []).filter(function(emp) { return emp.status === 'نشط'; });
         lines.push('إجمالي الموظفين: ' + (employeesData || []).length + ' (نشط: ' + activeEmployees.length + ')');
     } catch(e) {}
+    // ==== الإيجار (أكبر بند في ميزانية المشروع) ====
+    try {
+        if (rentalData && rentalData.length) {
+            var todayR = new Date();
+            var rentalExpired = rentalData.filter(function(r) { return r.endDate && new Date(r.endDate) < todayR; });
+            var rentalSoon = rentalData.filter(function(r) {
+                if (!r.endDate) return false;
+                var dl = (new Date(r.endDate) - todayR) / 86400000;
+                return dl >= 0 && dl <= 30;
+            });
+            lines.push('عقود الإيجار: ' + rentalData.length + ' (منتهية: ' + rentalExpired.length + ' | قريبة الانتهاء خلال 30 يوم: ' + rentalSoon.length + ')');
+            if (rentalExpired.length) lines.push('عقود إيجار منتهية بالفعل: ' + rentalExpired.slice(0, 15).map(function(r) { return (r.equipmentCode || r.equipmentType || 'معدة') + (r.company ? ' - ' + r.company : '') + ' (انتهى ' + r.endDate + ')'; }).join('، '));
+            if (rentalSoon.length) lines.push('عقود إيجار قريبة الانتهاء: ' + rentalSoon.slice(0, 15).map(function(r) { return (r.equipmentCode || r.equipmentType || 'معدة') + (r.company ? ' - ' + r.company : '') + ' (' + r.endDate + ')'; }).join('، '));
+        }
+    } catch(e) {}
     return lines.join('\n');
 }
 
@@ -16164,6 +16253,86 @@ function renderAiChatMessage(role, text) {
     wrap.appendChild(bubble);
     wrap.scrollTop = wrap.scrollHeight;
 }
+
+// ==================== تحليل الإيجار الذكي (شذوذ الإضافي + توصيات العقود) ====================
+var lastAiRentalText = '';
+function buildRentalAnalysisData() {
+    if (!rentalData || !rentalData.length) return null;
+    var today = new Date();
+    var contractsInfo = [];
+    rentalData.forEach(function(r) {
+        var logs = rentalDailyData.filter(function(d) { return d.equipmentId === r.id; })
+            .sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
+        var daysCount = logs.length;
+        var totalBasic = 0, totalExtra = 0;
+        logs.forEach(function(l) { totalBasic += (l.basicHours || 0); totalExtra += (l.extraHours || 0); });
+        var overtimeDays = logs.filter(function(l) { return (l.extraHours || 0) > 0; });
+        var avgExtra = overtimeDays.length ? (totalExtra / overtimeDays.length) : 0;
+
+        // رصد الأيام الشاذة: إضافي أعلى بكثير من متوسط هذا العقد نفسه، أو مرتفع جدًا في المطلق
+        var anomalies = [];
+        logs.forEach(function(l) {
+            var e = l.extraHours || 0;
+            if (e >= 5) {
+                anomalies.push(l.date + ' (' + e.toFixed(1) + ' س. إضافي — مرتفع جدًا)');
+            } else if (avgExtra > 0 && e > avgExtra * 1.8 && e >= 2 && overtimeDays.length >= 4) {
+                anomalies.push(l.date + ' (' + e.toFixed(1) + ' س. إضافي مقابل متوسط العقد ' + avgExtra.toFixed(1) + ')');
+            }
+        });
+
+        var daysLeft = r.endDate ? Math.ceil((new Date(r.endDate) - today) / 86400000) : null;
+        var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
+        var label = (eq ? (eq.name || eq.type) + ' (' + eq.code + ')' : (r.equipmentType || 'معدة')) + (r.company ? ' - ' + r.company : '');
+
+        contractsInfo.push({
+            label: label, daysCount: daysCount, totalBasic: totalBasic, totalExtra: totalExtra,
+            avgExtra: avgExtra, overtimeDaysCount: overtimeDays.length, anomalies: anomalies,
+            startDate: r.startDate || null, endDate: r.endDate || null, daysLeft: daysLeft
+        });
+    });
+
+    var lines = ['إجمالي عقود الإيجار المسجلة: ' + contractsInfo.length];
+    contractsInfo.forEach(function(c) {
+        var statusNote;
+        if (c.daysLeft === null) statusNote = 'بدون تاريخ نهاية محدد';
+        else if (c.daysLeft < 0) statusNote = '⚠️ العقد منتهي منذ ' + Math.abs(c.daysLeft) + ' يوم';
+        else if (c.daysLeft <= 30) statusNote = '⏳ ينتهي خلال ' + c.daysLeft + ' يوم (بتاريخ ' + c.endDate + ')';
+        else statusNote = 'ساري حتى ' + c.endDate;
+
+        lines.push('- ' + c.label + ': ' + c.daysCount + ' يوم عمل مسجل، إجمالي ساعات أساسية ' + c.totalBasic.toFixed(1) +
+            '، إجمالي ساعات إضافية ' + c.totalExtra.toFixed(1) + ' (' + c.overtimeDaysCount + ' يوم فيه إضافي، متوسط ' + c.avgExtra.toFixed(1) + ' س/يوم) | ' + statusNote +
+            (c.anomalies.length ? ' | أيام شاذة: ' + c.anomalies.join('، ') : ''));
+    });
+    return lines.join('\n');
+}
+function openRentalAiAnalysisModal() {
+    var modal = document.getElementById('ai-rental-modal');
+    var content = document.getElementById('ai-rental-content');
+    var actions = document.getElementById('ai-rental-actions');
+    if (!modal || !content) return;
+    modal.classList.add('active');
+    if (actions) actions.style.display = 'none';
+    var summary = buildRentalAnalysisData();
+    if (!summary) {
+        content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد عقود إيجار مسجلة حاليًا لتحليلها.</div>';
+        return;
+    }
+    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري تحليل بيانات الإيجار...</div></div>';
+    var prompt = 'أنت محلل تكاليف ومعدات لشركة مقاولات كبرى بمصر، وعقود الإيجار بتاخد أكبر جزء من ميزانية المشروع. حلل بيانات عقود الإيجار والساعات الإضافية التالية بالعربية، باختصار ووضوح وبدون مقدمات طويلة:\n' +
+        '1) أي أيام أو معدات فيها ساعات إضافية غير طبيعية تستاهل مراجعة فورية، مع توضيح السبب المحتمل (مثلاً: خطأ تسجيل، سوء استغلال، ضغط عمل حقيقي).\n' +
+        '2) لكل عقد قريب من الانتهاء أو منتهي بالفعل، اديني توصية واضحة (تجديد / إرجاع / تفاوض) بناءً على معدل الاستخدام والإضافي المسجل، مع سبب مختصر لكل توصية.\n' +
+        'رتب النتيجة حسب الأولوية (الأكثر إلحاحًا أولاً)، واستخدم عناوين قصيرة وإيموجي مناسب. البيانات:\n\n' + summary;
+    callGeminiAPI(prompt, function(err, text) {
+        if (err) {
+            content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
+            return;
+        }
+        lastAiRentalText = text;
+        content.textContent = text;
+        if (actions) actions.style.display = 'block';
+    });
+}
+
 function sendAiChatMessage() {
     var input = document.getElementById('ai-chat-input');
     if (!input) return;
