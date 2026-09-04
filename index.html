@@ -1202,6 +1202,8 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <input type="file" id="fault-report-photo" accept="image/*" style="display:none">
       <button type="button" class="save-btn" style="margin:0;margin-top:8px;padding:8px;background:#f1f5f9;color:#334155" onclick="document.getElementById('fault-report-photo').click()">📷 إرفاق صورة</button>
       <div id="fault-report-photo-preview" style="margin-top:8px"></div>
+      <div id="fault-report-ai-result"></div>
+      <button type="button" id="fault-report-ai-retry-btn" onclick="analyzeFaultReportPhotoWithAi()" style="display:none;width:100%;margin-top:6px;background:#ede9fe;color:#5b21b6;border:none;border-radius:10px;padding:8px;font-weight:700;cursor:pointer;font-size:11.5px;font-family:inherit">🔄 إعادة التحليل بالـ AI (بعد تعديل الوصف)</button>
     </div>
     <button class="save-btn" style="background:linear-gradient(135deg,#dc2626,#991b1b)" onclick="submitFaultReport()">🚨 إرسال البلاغ</button>
   </div>
@@ -10156,6 +10158,7 @@ var equipmentMapInstance = null;
 var currentFaultReportEqId = null;
 var currentFaultReportPhoto = null;
 var currentConvertingFaultReportId = null;
+var currentFaultReportAiAnalysis = null; // نتيجة تحليل Gemini Vision الحالية (لو موجودة) — بتتبعت مع البلاغ عند الإرسال
 
 function openFaultReportModal(eqId) {
     if (!currentUser) { showToast('سجّل الدخول أولاً', true); return; }
@@ -10163,10 +10166,13 @@ function openFaultReportModal(eqId) {
     if (!eq) return;
     currentFaultReportEqId = eqId;
     currentFaultReportPhoto = null;
+    currentFaultReportAiAnalysis = null;
     document.getElementById('fault-report-eq-name').textContent = eq.name + ' (' + eq.code + ')';
     document.getElementById('fault-report-desc').value = '';
     document.getElementById('fault-report-photo').value = '';
     document.getElementById('fault-report-photo-preview').innerHTML = '';
+    document.getElementById('fault-report-ai-result').innerHTML = '';
+    document.getElementById('fault-report-ai-retry-btn').style.display = 'none';
     closeModal('detail-modal');
     document.getElementById('fault-report-modal').classList.add('active');
 }
@@ -10174,12 +10180,17 @@ function openFaultReportModal(eqId) {
 function handleFaultReportPhoto(file) {
     if (!file) return;
     var preview = document.getElementById('fault-report-photo-preview');
+    currentFaultReportAiAnalysis = null;
+    document.getElementById('fault-report-ai-result').innerHTML = '';
+    document.getElementById('fault-report-ai-retry-btn').style.display = 'none';
     preview.innerHTML = '<div style="font-size:11px;color:var(--gray)">⏳ جاري المعالجة...</div>';
     var reader = new FileReader();
     reader.onload = function() {
         compressImageDataUrl(reader.result, 1000, 0.75).then(function(result) {
             currentFaultReportPhoto = result.dataUrl;
             preview.innerHTML = '<img src="' + result.dataUrl + '" style="max-width:140px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.2)">';
+            // تحليل فوري بالـ AI فور إرفاق الصورة — قبل ما فني يوصل أصلاً
+            analyzeFaultReportPhotoWithAi();
         }).catch(function() {
             preview.innerHTML = '<div style="font-size:11px;color:var(--danger)">تعذّر رفع الصورة</div>';
         });
@@ -10199,11 +10210,106 @@ function submitFaultReport() {
         reportedBy: (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم',
         reportedAt: new Date().toISOString(), status: 'pending'
     };
+    if (currentFaultReportAiAnalysis) {
+        report.aiSeverity = currentFaultReportAiAnalysis.severity || '';
+        report.aiStopEquipment = !!currentFaultReportAiAnalysis.stopEquipment;
+        report.aiLikelyCause = currentFaultReportAiAnalysis.likelyCause || '';
+        report.aiRecommendation = currentFaultReportAiAnalysis.recommendation || '';
+    }
     fbDb.ref('maintenanceReports').push(report).then(function() {
         showToast('✅ تم إرسال البلاغ، هيتراجع من الإدارة');
         closeModal('fault-report-modal');
     }).catch(function(e) {
         showToast('خطأ: ' + e.message, true);
+    });
+}
+
+// ==================== تحليل فوري للأعطال بالصورة (Gemini Vision) ====================
+// بيدي تقييم أولي لخطورة العطل واحتمال السبب فور ما السائق يرفق صورة — قبل ما فني يوصل أصلاً
+function faultReportAiSeverityMeta(sev) {
+    sev = (sev || '').trim();
+    if (sev === 'عالية' || sev === 'حرجة') return { color: '#dc2626', bg: '#fef2f2', border: '#fecaca', icon: '🔴' };
+    if (sev === 'متوسطة') return { color: '#b45309', bg: '#fffbeb', border: '#fde68a', icon: '🟠' };
+    return { color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', icon: '🟢' };
+}
+
+function renderFaultReportAiAnalysis(analysis) {
+    var box = document.getElementById('fault-report-ai-result');
+    if (!box) return;
+    if (!analysis) { box.innerHTML = ''; return; }
+    var meta = faultReportAiSeverityMeta(analysis.severity);
+    var stopHtml = analysis.stopEquipment
+        ? '<div style="font-weight:800;color:#dc2626;margin-top:6px">⛔ يُنصح بإيقاف المعدة فورًا لحد ما الفني يوصل</div>'
+        : '<div style="font-weight:700;color:#15803d;margin-top:6px">✅ يمكن الاستمرار بحذر لحد ما الفني يوصل</div>';
+    box.innerHTML =
+        '<div style="background:' + meta.bg + ';border:1px solid ' + meta.border + ';border-radius:12px;padding:12px;margin-top:8px">' +
+        '<div style="font-weight:800;font-size:12.5px;color:' + meta.color + ';margin-bottom:4px">' + meta.icon + ' تقييم AI فوري — خطورة: ' + escapeHtml(analysis.severity || 'غير محدد') + '</div>' +
+        (analysis.likelyCause ? '<div style="font-size:12px;margin-bottom:4px"><b>السبب المحتمل:</b> ' + escapeHtml(analysis.likelyCause) + '</div>' : '') +
+        (analysis.recommendation ? '<div style="font-size:12px"><b>التوصية:</b> ' + escapeHtml(analysis.recommendation) + '</div>' : '') +
+        stopHtml +
+        '<div style="font-size:10px;color:var(--gray);margin-top:6px">⚠️ تقييم أولي بالذكاء الاصطناعي من الصورة فقط — لا يغني عن معاينة الفني</div>' +
+        '</div>';
+}
+
+function parseFaultReportAiJson(text) {
+    if (!text) return null;
+    var cleaned = text.replace(/```json|```/g, '').trim();
+    var m = cleaned.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    try {
+        var obj = JSON.parse(m[0]);
+        var sev = obj.severity || '';
+        if (sev !== 'عالية' && sev !== 'متوسطة' && sev !== 'منخفضة') {
+            // نطبّع أي صياغة تانية قريبة لواحدة من التلاتة المتوقعة
+            if (/عال|حرج|خطير/i.test(sev)) sev = 'عالية';
+            else if (/متوسط/i.test(sev)) sev = 'متوسطة';
+            else if (/منخفض|بسيط|خفيف/i.test(sev)) sev = 'منخفضة';
+        }
+        return {
+            severity: sev,
+            stopEquipment: !!obj.stopEquipment,
+            likelyCause: (obj.likelyCause || '').toString().trim(),
+            recommendation: (obj.recommendation || '').toString().trim()
+        };
+    } catch (e) { return null; }
+}
+
+function analyzeFaultReportPhotoWithAi() {
+    if (!currentFaultReportPhoto) return;
+    var box = document.getElementById('fault-report-ai-result');
+    var retryBtn = document.getElementById('fault-report-ai-retry-btn');
+    if (!GEMINI_API_KEY) {
+        // مفيش مفتاح Gemini محفوظ — بنتجاهل بصمت، السائق لسه يقدر يبعت البلاغ عادي بدون تحليل
+        if (retryBtn) retryBtn.style.display = 'none';
+        return;
+    }
+    var eq = equipmentData.find(function(e) { return e.id === currentFaultReportEqId; });
+    currentFaultReportAiAnalysis = null;
+    if (retryBtn) retryBtn.style.display = 'none';
+    if (box) box.innerHTML = '<div style="font-size:11.5px;color:var(--gray);padding:8px 0">🤖 جاري تحليل الصورة فوريًا لتقييم الخطورة...</div>';
+    var desc = ((document.getElementById('fault-report-desc') || {}).value || '').trim();
+    var prompt = 'انت فني معدات ثقيلة خبير جدًا في تشخيص الأعطال من الصور. عندك صورة عطل في معدة "' + (eq ? eq.name : '') + '"' +
+        (desc ? '، ووصف السائق للمشكلة: "' + desc + '"' : ' (السائق لسه ما كتبش وصف نصي).') +
+        ' حلل الصورة كويس وقيّم خطورة العطل بسرعة عشان نعرف لو المعدة محتاجة توقف فورًا أو ممكن تستنى لحد ما الفني يوصل. ' +
+        'رد فقط بكائن JSON واحد بدون أي نص إضافي وبدون Markdown وبدون علامات كود، بالشكل ده بالظبط:\n' +
+        '{"severity":"عالية أو متوسطة أو منخفضة","stopEquipment":true أو false,"likelyCause":"السبب المحتمل للعطل بإيجاز شديد","recommendation":"توصية عملية قصيرة للسائق لحد ما الفني يوصل"}';
+    callGeminiVisionAPI(prompt, currentFaultReportPhoto, function(err, text) {
+        // لو المستخدم غيّر الصورة أثناء الانتظار، تجاهل النتيجة القديمة
+        if (!currentFaultReportPhoto) return;
+        if (err) {
+            if (box) box.innerHTML = '<div style="font-size:11px;color:var(--gray);padding:6px 0">تعذّر التحليل الفوري (' + escapeHtml(err) + ') — تقدر تبعت البلاغ عادي وهيراجعه فني.</div>';
+            if (retryBtn) retryBtn.style.display = 'block';
+            return;
+        }
+        var parsed = parseFaultReportAiJson(text);
+        if (!parsed || !parsed.severity) {
+            if (box) box.innerHTML = '<div style="font-size:11px;color:var(--gray);padding:6px 0">تعذّر فهم رد الـ AI بشكل منظم — هيتراجع البلاغ يدويًا من الفني.</div>';
+            if (retryBtn) retryBtn.style.display = 'block';
+            return;
+        }
+        currentFaultReportAiAnalysis = parsed;
+        renderFaultReportAiAnalysis(parsed);
+        if (retryBtn) retryBtn.style.display = 'block';
     });
 }
 
@@ -10675,10 +10781,20 @@ function openNotifCenter() {
             a.pendingFaults.map(function(r) {
                 var when = r.reportedAt ? new Date(r.reportedAt).toLocaleString('ar-EG') : '';
                 var photoTag = r.photo ? '<img src="' + r.photo + '" style="width:100%;max-width:200px;border-radius:8px;margin-top:6px;display:block">' : '';
+                var aiTag = '';
+                if (r.aiSeverity) {
+                    var aiMeta = faultReportAiSeverityMeta(r.aiSeverity);
+                    aiTag = '<div style="background:' + aiMeta.bg + ';border:1px solid ' + aiMeta.border + ';border-radius:8px;padding:6px 8px;margin-top:6px;font-size:11px">' +
+                        '<div style="font-weight:800;color:' + aiMeta.color + '">' + aiMeta.icon + ' تقييم AI: خطورة ' + escapeHtml(r.aiSeverity) + (r.aiStopEquipment ? ' — ⛔ ينصح بإيقاف المعدة فورًا' : ' — ✅ يمكن الاستمرار بحذر') + '</div>' +
+                        (r.aiLikelyCause ? '<div style="margin-top:2px"><b>السبب المحتمل:</b> ' + escapeHtml(r.aiLikelyCause) + '</div>' : '') +
+                        (r.aiRecommendation ? '<div><b>التوصية:</b> ' + escapeHtml(r.aiRecommendation) + '</div>' : '') +
+                        '</div>';
+                }
                 return '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:9px 10px;margin-bottom:6px;font-size:12px">' +
                     '<div style="font-weight:700;margin-bottom:2px">' + escapeHtml(r.equipmentName||'') + ' (' + escapeHtml(r.equipmentCode||'') + ')</div>' +
                     '<div style="margin-bottom:3px">' + escapeHtml(r.description || '') + '</div>' +
                     photoTag +
+                    aiTag +
                     '<div style="color:var(--gray);font-size:10.5px;margin:6px 0">بواسطة: ' + escapeHtml(r.reportedBy||'') + ' — ' + when + '</div>' +
                     '<div style="display:flex;gap:6px">' +
                     '<button onclick="convertFaultReportToMaintenance(\'' + r.id + '\')" style="flex:1;background:#7c3aed;color:white;border:none;border-radius:8px;padding:6px;font-size:11px;cursor:pointer;font-family:inherit">🔧 تحويل لصيانة</button>' +
@@ -16311,6 +16427,64 @@ function callGeminiAPI(prompt, onDone, _attempt) {
             if (!text) throw new Error('empty');
             onDone(null, text);
         } catch(e) {
+            onDone('رد غير متوقع من Gemini، أو تم رفض الطلب لأسباب تتعلق بالمحتوى', null);
+        }
+    }).catch(function(e) {
+        if (timeoutId) clearTimeout(timeoutId);
+        if (e && e.name === 'AbortError') {
+            onDone('⏱️ انتهت مهلة الاتصال بـ Gemini (25 ثانية بدون رد). جرب تاني.', null);
+            return;
+        }
+        onDone('فشل الاتصال: ' + e.message, null);
+    });
+}
+
+// نسخة من callGeminiAPI بترفق صورة كمان (Gemini Vision) — نفس منطق إعادة المحاولة عند الازدحام
+// imageDataUrl لازم يكون data URL (data:image/...;base64,....) زي اللي بيرجعه compressImageDataUrl
+function dataUrlToGeminiInlinePart(dataUrl) {
+    var m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl || '');
+    if (!m) return null;
+    return { mime_type: m[1], data: m[2] };
+}
+
+function callGeminiVisionAPI(prompt, imageDataUrl, onDone, _attempt) {
+    if (!GEMINI_API_KEY) {
+        onDone('لا يوجد مفتاح Gemini API محفوظ. من فضلك أضفه من ⚙️ الضبط > 🤖 الذكاء الاصطناعي', null);
+        return;
+    }
+    var imgPart = dataUrlToGeminiInlinePart(imageDataUrl);
+    if (!imgPart) { onDone('تعذّر قراءة الصورة', null); return; }
+    _attempt = _attempt || 0;
+    var model = GEMINI_MODELS_TRY_ORDER[Math.min(_attempt, GEMINI_MODELS_TRY_ORDER.length - 1)];
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timeoutId = controller ? setTimeout(function() { controller.abort(); }, 25000) : null;
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: imgPart }] }] }),
+        signal: controller ? controller.signal : undefined
+    }).then(function(r) {
+        if (timeoutId) clearTimeout(timeoutId);
+        return r.json().then(function(data) { return { ok: r.ok, status: r.status, data: data }; });
+    }).then(function(res) {
+        if (!res.ok) {
+            var isOverloaded = res.status === 503 || (res.data && res.data.error && (res.data.error.status === 'UNAVAILABLE' || /high demand|overloaded|مزدحم/i.test(res.data.error.message || '')));
+            if (isOverloaded && _attempt < GEMINI_MODELS_TRY_ORDER.length - 1) {
+                setTimeout(function() { callGeminiVisionAPI(prompt, imageDataUrl, onDone, _attempt + 1); }, 1200 * (_attempt + 1));
+                return;
+            }
+            var msg = (res.data && res.data.error && res.data.error.message) ? res.data.error.message : 'خطأ في الاتصال بـ Gemini';
+            if (isOverloaded) msg = '🚦 خوادم Gemini مزدحمة حاليًا (ضغط مؤقت من جوجل). جرب تاني بعد دقيقة.';
+            onDone(msg, null);
+            return;
+        }
+        try {
+            var candidate = res.data.candidates && res.data.candidates[0];
+            var text = candidate.content.parts.map(function(p) { return p.text || ''; }).join('');
+            if (!text) throw new Error('empty');
+            onDone(null, text);
+        } catch (e) {
             onDone('رد غير متوقع من Gemini، أو تم رفض الطلب لأسباب تتعلق بالمحتوى', null);
         }
     }).catch(function(e) {
