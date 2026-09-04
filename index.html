@@ -1074,7 +1074,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
           <button id="add-rental-btn" style="flex:1;padding:10px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">➕ إضافة عقد إيجار</button>
           <button id="delete-all-rental-btn" style="padding:10px 14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;cursor:pointer" title="حذف جميع السجلات">🗑️</button>
         </div>
-        <button onclick="openRentalAiAnalysisModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🤖 تحليل الإيجار الذكي (شذوذ الإضافي + توصيات العقود)</button>
+        <button onclick="openRentalAiAnalysisModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🤖 تحليل الإيجار الذكي (استثناءات + توقع غياب المعدات + توصيات العقود)</button>
         <div id="rental-equipment-list"></div>
       </div>
       <div id="rental-section-daily" style="display:none">
@@ -1257,7 +1257,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
 <div class="modal-overlay" id="import-progress-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--success),var(--info))"><div class="modal-title">📊 جاري استيراد البيانات...</div><button class="modal-close" onclick="closeModal('import-progress-modal')">✕</button></div><div style="padding:20px; text-align:center"><div style="font-size:40px; margin-bottom:15px">⏳</div><div id="import-progress-text" style="margin-bottom:10px">جارٍ قراءة الملف...</div><div class="progress-bar" style="height:10px"><div id="import-progress-bar" class="progress-fill" style="width:0%"></div></div><div id="import-status-list" style="margin-top:15px; font-size:12px; text-align:right; max-height:200px; overflow:auto"></div></div></div>
 
-<div class="modal-overlay" id="notif-settings-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 إعدادات الإشعارات</div><button class="modal-close" onclick="closeModal('notif-settings-modal')">✕</button></div><div style="padding:16px"><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">📱 رقم واتساب لاستقبال التنبيهات</div><input class="form-input" id="whatsapp-number" type="tel" placeholder="مثال: 201012345678" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%; font-size:14px"><div style="font-size:11px; color:var(--gray); margin-top:6px">أدخل الرقم مع كود الدولة بدون + مثلاً 201012345678</div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">⏰ إشعار عند باقي (ساعات)</div><select class="form-select" id="notif-threshold" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%"><option value="10">10 ساعات فأقل</option><option value="25">25 ساعة فأقل</option><option value="50" selected>50 ساعة فأقل</option><option value="100">100 ساعة فأقل</option></select></div><div class="detail-section" style="margin:0 0 12px 0; display:flex; justify-content:space-between; align-items:center"><div><div class="detail-label">🔔 إشعارات المتصفح</div><div style="font-size:11px; color:var(--gray)">تنبيه تلقائي عند فتح التطبيق</div></div><div id="notif-permission-status" style="font-size:12px; font-weight:600"></div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">🔔 أنواع التنبيهات التي تريد استلامها</div><div style="display:flex;flex-direction:column;gap:8px"><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-maintenance" style="width:18px;height:18px">🔧 صيانة المعدات (متأخرة / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-licenses" style="width:18px;height:18px">📜 رخص السائقين (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-inventory" style="width:18px;height:18px">📦 المخزون المنخفض</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental" style="width:18px;height:18px">📄 عقود الإيجار (منتهية / قريبة)</label></div></div><button id="enable-notif-btn" class="save-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5); margin-bottom:10px">🔔 تفعيل إشعارات المتصفح</button><button id="send-wa-report-btn" class="save-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير واتساب الآن</button><button id="save-notif-settings-btn" class="save-btn">✅ حفظ الإعدادات</button></div></div>
+<div class="modal-overlay" id="notif-settings-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 إعدادات الإشعارات</div><button class="modal-close" onclick="closeModal('notif-settings-modal')">✕</button></div><div style="padding:16px"><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">📱 رقم واتساب لاستقبال التنبيهات</div><input class="form-input" id="whatsapp-number" type="tel" placeholder="مثال: 201012345678" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%; font-size:14px"><div style="font-size:11px; color:var(--gray); margin-top:6px">أدخل الرقم مع كود الدولة بدون + مثلاً 201012345678</div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">⏰ إشعار عند باقي (ساعات)</div><select class="form-select" id="notif-threshold" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%"><option value="10">10 ساعات فأقل</option><option value="25">25 ساعة فأقل</option><option value="50" selected>50 ساعة فأقل</option><option value="100">100 ساعة فأقل</option></select></div><div class="detail-section" style="margin:0 0 12px 0; display:flex; justify-content:space-between; align-items:center"><div><div class="detail-label">🔔 إشعارات المتصفح</div><div style="font-size:11px; color:var(--gray)">تنبيه تلقائي عند فتح التطبيق</div></div><div id="notif-permission-status" style="font-size:12px; font-weight:600"></div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">🔔 أنواع التنبيهات التي تريد استلامها</div><div style="display:flex;flex-direction:column;gap:8px"><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-maintenance" style="width:18px;height:18px">🔧 صيانة المعدات (متأخرة / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-licenses" style="width:18px;height:18px">📜 رخص السائقين (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-inventory" style="width:18px;height:18px">📦 المخزون المنخفض</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental" style="width:18px;height:18px">📄 عقود الإيجار (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-hours-anomaly" style="width:18px;height:18px">⏱️ استثناءات في تسجيل الساعات (قفزة غير منطقية / نقص)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-value-edits" style="width:18px;height:18px">✏️ تعديل قيم مسجلة سابقاً (أي مستخدم)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental-daily" style="width:18px;height:18px">📋 استثناءات التسجيل اليومي وغياب معدات الإيجار</label></div></div><button id="enable-notif-btn" class="save-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5); margin-bottom:10px">🔔 تفعيل إشعارات المتصفح</button><button id="send-wa-report-btn" class="save-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير واتساب الآن</button><button id="save-notif-settings-btn" class="save-btn">✅ حفظ الإعدادات</button></div></div>
 
 <div class="modal-overlay" id="notif-center-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 مركز التنبيهات</div><button class="modal-close" onclick="closeNotifCenter()">✕</button></div><div id="notif-center-body" style="padding:14px"></div></div>
 
@@ -1460,6 +1460,13 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <div id="fp-error" style="display:none;background:#fee2e2;color:#dc2626;border-radius:10px;padding:10px;font-size:12px;margin-bottom:10px;text-align:center"></div>
       <button onclick="saveFuelPrices()" style="width:100%;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:12px;padding:12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit">✅ حفظ الأسعار</button>
       <div id="fp-last-update" style="margin-top:10px;font-size:11px;color:#94a3b8;text-align:center">جاري التحميل...</div>
+    </div>
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:14px;padding:12px;margin-top:14px;font-size:12px;color:#92400e;line-height:1.8">
+      ⚠️ الحساب التلقائي للتكلفة بيشتغل بس على سجلات الوقود الجديدة اللي بتتسجل من دلوقتي. السجلات القديمة اللي كانت متسجلة قبل تفعيل هذه الميزة تكلفتها لسه زي ما كانت (صفر أو يدوية). استخدم الأزرار دي لتحديثها بناءً على السعر الحالي:
+    </div>
+    <div style="background:white;border-radius:14px;padding:16px;box-shadow:var(--shadow-sm);margin-top:10px">
+      <button onclick="recalculateFuelCosts(false)" style="width:100%;background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit;margin-bottom:8px">🔄 حساب تكلفة السجلات الفارغة فقط (آمن)</button>
+      <button onclick="recalculateFuelCosts(true)" style="width:100%;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">⚠️ إعادة حساب كل السجلات (يستبدل أي تكلفة مسجلة يدويًا)</button>
     </div>
   </div>
 
@@ -1678,6 +1685,7 @@ function loadFuelPrices() {
         var d = snap.val() || {};
         if (d.diesel != null) dieselEl.value = d.diesel;
         if (d.gasoline != null) gasolineEl.value = d.gasoline;
+        currentFuelPrices = { diesel: parseFloat(d.diesel) || 0, gasoline: parseFloat(d.gasoline) || 0 };
         if (infoEl) {
             infoEl.textContent = d.updatedAt
                 ? ('آخر تحديث: ' + new Date(d.updatedAt).toLocaleString('ar-EG') + (d.updatedBy ? ' — بواسطة ' + d.updatedBy : ''))
@@ -1711,6 +1719,37 @@ function saveFuelPrices() {
     }).catch(function(e) {
         showToast('❌ فشل حفظ الأسعار: ' + e.message, true);
     });
+}
+
+function recalculateFuelCosts(overwriteAll) {
+    if (currentUserRole !== 'admin') { showToast('غير مصرح', true); return; }
+    if (!currentFuelPrices.diesel && !currentFuelPrices.gasoline) {
+        showToast('⚠️ من فضلك احفظ أسعار الوقود أولاً', true);
+        return;
+    }
+    var targets = overwriteAll
+        ? fuelData.slice()
+        : fuelData.filter(function(f) { return !f.cost || f.cost <= 0; });
+    if (!targets.length) {
+        showToast(overwriteAll ? 'لا توجد سجلات وقود' : '✅ كل السجلات ليها تكلفة محسوبة بالفعل');
+        return;
+    }
+    var confirmMsg = overwriteAll
+        ? ('⚠️ سيتم استبدال تكلفة ' + targets.length + ' سجل وقود (بما فيها اللي متسجلة يدويًا) بالتكلفة المحسوبة من السعر الحالي للتر. هذا الإجراء لا يمكن التراجع عنه. هل أنت متأكد؟')
+        : ('سيتم حساب التكلفة تلقائيًا لـ ' + targets.length + ' سجل وقود ماله تكلفة مسجلة، بناءً على السعر الحالي للتر ونوع وقود كل معدة. متابعة؟');
+    if (!confirm(confirmMsg)) return;
+
+    var updated = 0, skippedNoPrice = 0;
+    targets.forEach(function(f) {
+        var price = getFuelPriceForEquipment(f.equipmentId);
+        if (!price) { skippedNoPrice++; return; }
+        var newCost = Math.round((f.amount || 0) * price * 100) / 100;
+        saveToFirebase('fuelRecords', Object.assign({}, f, { cost: newCost, updatedAt: new Date().toISOString() }));
+        updated++;
+    });
+    var msg = '✅ تم تحديث تكلفة ' + updated + ' سجل';
+    if (skippedNoPrice) msg += ' (تم تخطي ' + skippedNoPrice + ' سجل بدون سعر وقود محدد لنوعه)';
+    showToast(msg);
 }
 
 function loadAdminUsers() {
@@ -2794,11 +2833,11 @@ let lastAlertCheck = 0;
 let notifSettings = { whatsappNumber: '', threshold: 50 };
 
 // تفضيلات أنواع التنبيهات التي يريد المستخدم استلامها (محفوظة على هذا الجهاز)
-var notifPrefs = { maintenance: true, licenses: true, inventory: true, rental: true };
+var notifPrefs = { maintenance: true, licenses: true, inventory: true, rental: true, hoursAnomaly: true, valueEdits: true, rentalDaily: true };
 function loadNotifPrefs() {
     try {
         var saved = JSON.parse(localStorage.getItem('notifPrefs') || 'null');
-        if (saved && typeof saved === 'object') notifPrefs = Object.assign({ maintenance:true, licenses:true, inventory:true, rental:true }, saved);
+        if (saved && typeof saved === 'object') notifPrefs = Object.assign({ maintenance:true, licenses:true, inventory:true, rental:true, hoursAnomaly:true, valueEdits:true, rentalDaily:true }, saved);
     } catch (e) {}
 }
 function saveNotifPrefs(prefs) {
@@ -3610,13 +3649,14 @@ function attachFirebaseListeners() {
     listen('rental', function(snapshot) {
         rentalData = snapshotToArray(snapshot);
         renderRentalEquipment();
-        setTimeout(function() { checkRentalExpiryAlerts(); }, 500);
+        setTimeout(function() { checkRentalExpiryAlerts(); checkRentalAbsenceAfterDayClose(); }, 500);
     });
 
     listen('rentalDaily', function(snapshot) {
         rentalDailyData = snapshotToArray(snapshot);
         renderRentalEquipment();
         renderRentalDailyView();
+        setTimeout(function() { checkRentalDailyLogExceptions(); checkRentalAbsenceAfterDayClose(); }, 500);
     });
 
     listen('rentalDailyRequests', function(snapshot) {
@@ -4436,6 +4476,49 @@ var CHANGE_LOG_FIELD_LABELS = {
     lastMaintenanceDate: 'تاريخ آخر صيانة', lastMaintenanceHours: 'عداد آخر صيانة',
     status: 'الحالة', ownership: 'الملكية', notes: 'ملاحظات'
 };
+// ==================== استثناءات تسجيل الساعات + تنبيهات تعديل القيم ====================
+function notifyValueEditIfNeeded(title, changes, who) {
+    if (!notifPrefs.valueEdits || !changes || !changes.length) return;
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        var body = changes.map(function(c) { return c.label + ': ' + c.oldValue + ' ← ' + c.newValue; }).join(' | ');
+        new Notification('✏️ تعديل بيانات مسجلة - ' + title, {
+            body: body + ' — بواسطة ' + who,
+            icon: 'https://cdn-icons-png.flaticon.com/512/1995/1995562.png'
+        });
+    }
+}
+function checkHoursAnomalyAndNotify(equipment, oldHours, newHours, changedBy) {
+    if (!notifPrefs.hoursAnomaly) return;
+    oldHours = parseFloat(oldHours); newHours = parseFloat(newHours);
+    if (isNaN(oldHours) || isNaN(newHours) || oldHours === newHours) return;
+    var diff = newHours - oldHours;
+    var reasons = [];
+    if (diff < 0) {
+        reasons.push('نقص في العداد بمقدار ' + Math.abs(diff) + ' ساعة (من ' + oldHours + ' إلى ' + newHours + ')');
+    } else {
+        var lastLog = (equipment.hoursLog || []).slice(-1)[0];
+        var daysSince = (lastLog && lastLog.date) ? Math.max(1, Math.ceil((new Date() - new Date(lastLog.date)) / 86400000)) : null;
+        var maxPossible = daysSince ? daysSince * 24 : 24;
+        if (diff > maxPossible) {
+            reasons.push('زيادة غير منطقية في العداد بمقدار ' + diff + ' ساعة' + (daysSince ? (' خلال ' + daysSince + ' يوم فقط (أقصى معدل ممكن ' + maxPossible + ' ساعة)') : ' — لا يوجد سجل سابق للمقارنة'));
+        } else if (diff >= 500) {
+            reasons.push('زيادة كبيرة في العداد بمقدار ' + diff + ' ساعة دفعة واحدة — يستحق المراجعة');
+        }
+    }
+    if (!reasons.length) return;
+    var who = changedBy || (currentUser && (currentUser.name || currentUser.username)) || 'غير معروف';
+    saveToFirebase('hoursAnomalies', {
+        equipmentId: equipment.id, equipmentName: equipment.name || '', equipmentCode: equipment.code || '',
+        oldHours: oldHours, newHours: newHours, reasons: reasons, changedBy: who,
+        createdAt: new Date().toISOString()
+    });
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        new Notification('⏱️ استثناء في تسجيل الساعات - ' + (equipment.name || 'معدة'), {
+            body: reasons.join(' | ') + ' — بواسطة ' + who,
+            icon: 'https://cdn-icons-png.flaticon.com/512/1995/1995562.png'
+        });
+    }
+}
 function logEquipmentChanges(oldEq, newEq) {
     var changes = [];
     Object.keys(CHANGE_LOG_FIELD_LABELS).forEach(function(field) {
@@ -4456,6 +4539,11 @@ function logEquipmentChanges(oldEq, newEq) {
         changedAt: new Date().toISOString(),
         changes: changes
     });
+    notifyValueEditIfNeeded(newEq.name || oldEq.name || 'معدة', changes, who);
+    var hoursChange = changes.find(function(c) { return c.field === 'hours'; });
+    if (hoursChange) {
+        checkHoursAnomalyAndNotify(oldEq, hoursChange.oldValue, hoursChange.newValue, who);
+    }
 }
 
 function showEquipmentChangeLog(eqId) {
@@ -6592,7 +6680,19 @@ function updateFuelRecord() {
         notes: document.getElementById('edit-fuel-notes').value,
         updatedAt: new Date().toISOString()
     });
+    var fuelChanges = [];
+    var fuelFieldLabels = { amount: 'الكمية (لتر)', cost: 'التكلفة (ج.م)', hours: 'العداد', date: 'التاريخ' };
+    Object.keys(fuelFieldLabels).forEach(function(field) {
+        if (String(fuel[field] || '') !== String(updated[field] || '')) {
+            fuelChanges.push({ field: field, label: fuelFieldLabels[field], oldValue: String(fuel[field] || '—'), newValue: String(updated[field] || '—') });
+        }
+    });
     saveToFirebase('fuelRecords', updated);
+    if (fuelChanges.length) {
+        var fuelWho = (currentUser && (currentUser.name || currentUser.username)) || 'غير معروف';
+        var eqForFuel = equipmentData.find(function(e) { return e.id === fuel.equipmentId; });
+        notifyValueEditIfNeeded('سجل وقود - ' + (eqForFuel ? eqForFuel.name : ''), fuelChanges, fuelWho);
+    }
     closeModal('fuel-edit-modal');
     showToast('تم تحديث سجل الوقود');
 }
@@ -8271,6 +8371,7 @@ function updateSingleMeter(eid) {
                     return;
                 }
             }
+            var oldHours = equipment.hours;
             equipment.hours = newHours;
             if (newHours >= equipment.nextHours) autoScheduleMaintenance(equipment);
             equipment.hoursLog = (equipment.hoursLog || []).concat([{
@@ -8279,6 +8380,7 @@ function updateSingleMeter(eid) {
                 updatedBy: currentUser ? currentUser.name : 'مستخدم'
             }]);
             saveToFirebase('equipment', equipment);
+            checkHoursAnomalyAndNotify(equipment, oldHours, newHours);
             showToast('تم تحديث ' + equipment.name);
             openMeterUpdate();
         }
@@ -8291,6 +8393,7 @@ function saveAllMeters() {
         if (input) {
             var newHours = parseInt(input.value);
             if (!isNaN(newHours) && newHours !== eq.hours) {
+                var oldHours = eq.hours;
                 eq.hours = newHours;
                 if (newHours >= eq.nextHours) autoScheduleMaintenance(eq);
                 eq.hoursLog = (eq.hoursLog || []).concat([{
@@ -8299,6 +8402,7 @@ function saveAllMeters() {
                     updatedBy: currentUser ? currentUser.name : 'مستخدم'
                 }]);
                 saveToFirebase('equipment', eq);
+                checkHoursAnomalyAndNotify(eq, oldHours, newHours);
             }
         }
     });
@@ -8326,6 +8430,7 @@ function updateSingleMeterFromHome(eid) {
         }
     }
     if (newHours !== equipment.hours) {
+        var oldHours = equipment.hours;
         equipment.hours = newHours;
         if (newHours >= equipment.nextHours) autoScheduleMaintenance(equipment);
         equipment.hoursLog = (equipment.hoursLog || []).concat([{
@@ -8334,6 +8439,7 @@ function updateSingleMeterFromHome(eid) {
             updatedBy: currentUser ? currentUser.name : 'مستخدم'
         }]);
         saveToFirebase('equipment', equipment);
+        checkHoursAnomalyAndNotify(equipment, oldHours, newHours);
         showToast('✅ تم تحديث عداد ' + equipment.name + ' → ' + newHours + ' س');
         debouncedRefresh();
     }
@@ -8362,7 +8468,10 @@ function saveNotifSettings() {
         maintenance: document.getElementById('notif-pref-maintenance').checked,
         licenses: document.getElementById('notif-pref-licenses').checked,
         inventory: document.getElementById('notif-pref-inventory').checked,
-        rental: document.getElementById('notif-pref-rental').checked
+        rental: document.getElementById('notif-pref-rental').checked,
+        hoursAnomaly: document.getElementById('notif-pref-hours-anomaly').checked,
+        valueEdits: document.getElementById('notif-pref-value-edits').checked,
+        rentalDaily: document.getElementById('notif-pref-rental-daily').checked
     });
     // حفظ في Firebase مباشرة
     if (fbDb) {
@@ -8384,6 +8493,9 @@ function openNotifSettings() {
     document.getElementById('notif-pref-licenses').checked = notifPrefs.licenses !== false;
     document.getElementById('notif-pref-inventory').checked = notifPrefs.inventory !== false;
     document.getElementById('notif-pref-rental').checked = notifPrefs.rental !== false;
+    document.getElementById('notif-pref-hours-anomaly').checked = notifPrefs.hoursAnomaly !== false;
+    document.getElementById('notif-pref-value-edits').checked = notifPrefs.valueEdits !== false;
+    document.getElementById('notif-pref-rental-daily').checked = notifPrefs.rentalDaily !== false;
     var permission = Notification.permission;
     var statusEl = document.getElementById('notif-permission-status');
     if (permission === 'granted') {
@@ -9878,6 +9990,82 @@ function checkRentalExpiryAlerts() {
         });
     }
     runSmartAlertsRefresh();
+}
+
+// ==================== استثناءات التسجيل اليومي + غياب معدات الإيجار بعد قفل اليوم ====================
+function getNotifiedRentalExceptionIds() {
+    try { return JSON.parse(localStorage.getItem('notifiedRentalExceptions') || '{}'); } catch(e) { return {}; }
+}
+function saveNotifiedRentalExceptionIds(obj) {
+    try {
+        var keys = Object.keys(obj);
+        if (keys.length > 800) {
+            var trimmed = {};
+            keys.slice(-400).forEach(function(k) { trimmed[k] = true; });
+            obj = trimmed;
+        }
+        localStorage.setItem('notifiedRentalExceptions', JSON.stringify(obj));
+    } catch(e) {}
+}
+function checkRentalDailyLogExceptions() {
+    if (!notifPrefs.rentalDaily) return;
+    if (!rentalDailyData || !rentalDailyData.length) return;
+    var notified = getNotifiedRentalExceptionIds();
+    var newExceptions = [];
+    rentalDailyData.forEach(function(l) {
+        if (!l.id || notified[l.id]) return;
+        var e = l.extraHours || 0, b = l.basicHours || 0;
+        var reason = '';
+        if (e >= 5) reason = 'ساعات إضافية مرتفعة جدًا (' + e.toFixed(1) + ' س)';
+        else if (b > 16) reason = 'ساعات أساسية غير منطقية في يوم واحد (' + b.toFixed(1) + ' س)';
+        else if (e > 0 && b > 0 && (e + b) > 20) reason = 'إجمالي ساعات اليوم مرتفع جدًا (' + (e + b).toFixed(1) + ' س)';
+        notified[l.id] = true;
+        if (reason) {
+            var rental = rentalData.find(function(r) { return r.id === l.equipmentId; });
+            var eq = rental ? equipmentData.find(function(e2) { return e2.id === rental.equipmentId; }) : null;
+            var label = eq ? (eq.name + ' (' + eq.code + ')') : (rental ? (rental.equipmentType || 'معدة') : 'معدة');
+            newExceptions.push({ label: label, date: l.date || '', reason: reason });
+        }
+    });
+    saveNotifiedRentalExceptionIds(notified);
+    if (newExceptions.length && Notification.permission === 'granted') {
+        new Notification('📋 استثناءات في التسجيل اليومي للإيجار - ' + newExceptions.length, {
+            body: newExceptions.slice(0, 8).map(function(x) { return x.label + ' (' + x.date + '): ' + x.reason; }).join(' | '),
+            icon: 'https://cdn-icons-png.flaticon.com/512/1995/1995562.png'
+        });
+    }
+}
+var lastRentalAbsenceCheck = 0;
+function checkRentalAbsenceAfterDayClose() {
+    if (!notifPrefs.rentalDaily) return;
+    if (!rentalData || !rentalData.length) return;
+    var now = Date.now();
+    if (now - lastRentalAbsenceCheck < 60 * 60 * 1000) return; // مرة كل ساعة كحد أقصى
+    lastRentalAbsenceCheck = now;
+
+    var yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    var yStr = yesterday.toISOString().slice(0, 10);
+    var checkedKey = 'rentalAbsenceChecked_' + yStr;
+    if (localStorage.getItem(checkedKey)) return; // اليوم ده اتفحص قبل كده
+
+    var absentList = [];
+    rentalData.forEach(function(r) {
+        if (r.startDate && r.startDate > yStr) return; // العقد لسه ما بدأش وقتها
+        if (r.endDate && r.endDate < yStr) return; // العقد كان خلص قبلها
+        var hasLog = rentalDailyData.some(function(l) { return l.equipmentId === r.id && l.date === yStr; });
+        if (!hasLog) {
+            var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
+            absentList.push((eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentType || 'معدة')) + (r.company ? ' - ' + r.company : ''));
+        }
+    });
+    try { localStorage.setItem(checkedKey, '1'); } catch(e) {}
+    if (absentList.length && Notification.permission === 'granted') {
+        new Notification('📋 غياب معدات إيجار - يوم ' + yStr, {
+            body: absentList.join('، '),
+            icon: 'https://cdn-icons-png.flaticon.com/512/1995/1995562.png'
+        });
+    }
 }
 
 // يجمع كل أنواع التنبيهات في مكان واحد
@@ -16254,11 +16442,23 @@ function renderAiChatMessage(role, text) {
     wrap.scrollTop = wrap.scrollHeight;
 }
 
-// ==================== تحليل الإيجار الذكي (شذوذ الإضافي + توصيات العقود) ====================
+// ==================== تحليل الإيجار الذكي (استثناءات + توقع غياب المعدات + توصيات العقود) ====================
 var lastAiRentalText = '';
+function dateRangeArray(startStr, endStr) {
+    var out = [];
+    var d = new Date(startStr);
+    var end = new Date(endStr);
+    if (isNaN(d) || isNaN(end) || d > end) return out;
+    while (d <= end) {
+        out.push(d.toISOString().slice(0, 10));
+        d.setDate(d.getDate() + 1);
+    }
+    return out;
+}
 function buildRentalAnalysisData() {
     if (!rentalData || !rentalData.length) return null;
     var today = new Date();
+    var todayStr = today.toISOString().slice(0, 10);
     var contractsInfo = [];
     rentalData.forEach(function(r) {
         var logs = rentalDailyData.filter(function(d) { return d.equipmentId === r.id; })
@@ -16269,16 +16469,30 @@ function buildRentalAnalysisData() {
         var overtimeDays = logs.filter(function(l) { return (l.extraHours || 0) > 0; });
         var avgExtra = overtimeDays.length ? (totalExtra / overtimeDays.length) : 0;
 
-        // رصد الأيام الشاذة: إضافي أعلى بكثير من متوسط هذا العقد نفسه، أو مرتفع جدًا في المطلق
-        var anomalies = [];
+        // استثناءات: إضافي أعلى بكثير من متوسط هذا العقد نفسه، أو مرتفع جدًا في المطلق
+        var exceptions = [];
         logs.forEach(function(l) {
             var e = l.extraHours || 0;
             if (e >= 5) {
-                anomalies.push(l.date + ' (' + e.toFixed(1) + ' س. إضافي — مرتفع جدًا)');
+                exceptions.push(l.date + ' (' + e.toFixed(1) + ' س. إضافي — مرتفع جدًا)');
             } else if (avgExtra > 0 && e > avgExtra * 1.8 && e >= 2 && overtimeDays.length >= 4) {
-                anomalies.push(l.date + ' (' + e.toFixed(1) + ' س. إضافي مقابل متوسط العقد ' + avgExtra.toFixed(1) + ')');
+                exceptions.push(l.date + ' (' + e.toFixed(1) + ' س. إضافي مقابل متوسط العقد ' + avgExtra.toFixed(1) + ')');
             }
         });
+
+        // توقع/رصد غياب المعدة: الأيام اللي مفيش فيها تسجيل رغم إن العقد سارٍ
+        var loggedDatesSet = {};
+        logs.forEach(function(l) { if (l.date) loggedDatesSet[l.date] = true; });
+        var rangeStart = logs.length ? logs[0].date : (r.startDate || null);
+        var rangeEnd = (r.endDate && r.endDate < todayStr) ? r.endDate : todayStr;
+        var allDates = rangeStart ? dateRangeArray(rangeStart, rangeEnd) : [];
+        var absentDates = allDates.filter(function(ds) { return !loggedDatesSet[ds]; });
+        var totalRangeDays = allDates.length;
+        var absenceRate = totalRangeDays ? (absentDates.length / totalRangeDays * 100) : 0;
+        var recentStreak = 0;
+        for (var i = allDates.length - 1; i >= 0; i--) {
+            if (!loggedDatesSet[allDates[i]]) recentStreak++; else break;
+        }
 
         var daysLeft = r.endDate ? Math.ceil((new Date(r.endDate) - today) / 86400000) : null;
         var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
@@ -16286,8 +16500,10 @@ function buildRentalAnalysisData() {
 
         contractsInfo.push({
             label: label, daysCount: daysCount, totalBasic: totalBasic, totalExtra: totalExtra,
-            avgExtra: avgExtra, overtimeDaysCount: overtimeDays.length, anomalies: anomalies,
-            startDate: r.startDate || null, endDate: r.endDate || null, daysLeft: daysLeft
+            avgExtra: avgExtra, overtimeDaysCount: overtimeDays.length, exceptions: exceptions,
+            startDate: r.startDate || null, endDate: r.endDate || null, daysLeft: daysLeft,
+            totalRangeDays: totalRangeDays, absentCount: absentDates.length, absenceRate: absenceRate,
+            recentStreak: recentStreak, lastAbsentDates: absentDates.slice(-8)
         });
     });
 
@@ -16299,9 +16515,16 @@ function buildRentalAnalysisData() {
         else if (c.daysLeft <= 30) statusNote = '⏳ ينتهي خلال ' + c.daysLeft + ' يوم (بتاريخ ' + c.endDate + ')';
         else statusNote = 'ساري حتى ' + c.endDate;
 
+        var absenceNote = c.totalRangeDays
+            ? ('أيام غياب: ' + c.absentCount + ' من أصل ' + c.totalRangeDays + ' يوم (نسبة الغياب ' + c.absenceRate.toFixed(0) + '%)' +
+               (c.recentStreak >= 2 ? ' | ⚠️ غياب متواصل حاليًا منذ ' + c.recentStreak + ' يوم' : '') +
+               (c.lastAbsentDates.length ? ' | آخر أيام الغياب: ' + c.lastAbsentDates.join('، ') : ''))
+            : 'لا يوجد نطاق تاريخ كافٍ لحساب الغياب';
+
         lines.push('- ' + c.label + ': ' + c.daysCount + ' يوم عمل مسجل، إجمالي ساعات أساسية ' + c.totalBasic.toFixed(1) +
             '، إجمالي ساعات إضافية ' + c.totalExtra.toFixed(1) + ' (' + c.overtimeDaysCount + ' يوم فيه إضافي، متوسط ' + c.avgExtra.toFixed(1) + ' س/يوم) | ' + statusNote +
-            (c.anomalies.length ? ' | أيام شاذة: ' + c.anomalies.join('، ') : ''));
+            ' | ' + absenceNote +
+            (c.exceptions.length ? ' | استثناءات: ' + c.exceptions.join('، ') : ''));
     });
     return lines.join('\n');
 }
@@ -16318,9 +16541,10 @@ function openRentalAiAnalysisModal() {
         return;
     }
     content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري تحليل بيانات الإيجار...</div></div>';
-    var prompt = 'أنت محلل تكاليف ومعدات لشركة مقاولات كبرى بمصر، وعقود الإيجار بتاخد أكبر جزء من ميزانية المشروع. حلل بيانات عقود الإيجار والساعات الإضافية التالية بالعربية، باختصار ووضوح وبدون مقدمات طويلة:\n' +
-        '1) أي أيام أو معدات فيها ساعات إضافية غير طبيعية تستاهل مراجعة فورية، مع توضيح السبب المحتمل (مثلاً: خطأ تسجيل، سوء استغلال، ضغط عمل حقيقي).\n' +
-        '2) لكل عقد قريب من الانتهاء أو منتهي بالفعل، اديني توصية واضحة (تجديد / إرجاع / تفاوض) بناءً على معدل الاستخدام والإضافي المسجل، مع سبب مختصر لكل توصية.\n' +
+    var prompt = 'أنت محلل تكاليف ومعدات لشركة مقاولات كبرى بمصر، وعقود الإيجار بتاخد أكبر جزء من ميزانية المشروع. حلل بيانات عقود الإيجار والساعات الإضافية وأيام الغياب التالية بالعربية، باختصار ووضوح وبدون مقدمات طويلة:\n' +
+        '1) أي أيام أو معدات فيها ساعات إضافية غير طبيعية تستاهل مراجعة فورية (استثناءات)، مع توضيح السبب المحتمل (مثلاً: خطأ تسجيل، سوء استغلال، ضغط عمل حقيقي).\n' +
+        '2) توقع غياب المعدات: لكل معدة، حلل نمط الغياب (الأيام اللي مفيش فيها تسجيل عمل رغم إن العقد سارٍ)، وتوقع احتمالية استمرار أو تكرار الغياب قريبًا، وحدد بوضوح أي معدة غيابها الحالي أو المتكرر يستاهل متابعة عاجلة مع شركة الإيجار — لأن ده معناه إحنا بندفع إيجار على معدة مش موجودة أو مش شغالة فعليًا.\n' +
+        '3) لكل عقد قريب من الانتهاء أو منتهي بالفعل، اديني توصية واضحة (تجديد / إرجاع / تفاوض) بناءً على معدل الاستخدام والغياب والإضافي المسجل، مع سبب مختصر لكل توصية.\n' +
         'رتب النتيجة حسب الأولوية (الأكثر إلحاحًا أولاً)، واستخدم عناوين قصيرة وإيموجي مناسب. البيانات:\n\n' + summary;
     callGeminiAPI(prompt, function(err, text) {
         if (err) {
