@@ -1032,6 +1032,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         </select>
       </div>
       <div id="drivers-stats-bar" style="display:flex;gap:8px;margin-bottom:10px"></div>
+      <button onclick="openDriverBehaviorModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🤖 تحليل سلوك السائقين الذكي (المسافة + التوقفات + انقطاع التتبع)</button>
       <div id="drivers-list"></div>
     </div>
   </div></div>
@@ -8756,6 +8757,31 @@ function bearingDeg(lat1, lng1, lat2, lng2) {
     return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
+// إحصائيات مسار يوم واحد (مسافة مقطوعة + نقاط توقف) من مصفوفة نقاط GPS مرتبة زمنيًا
+// نفس منطق كشف التوقفات المستخدم في رسم المسار على الخريطة (showDriverRoute)، مفصول هنا كدالة
+// قابلة لإعادة الاستخدام في تحليل سلوك السائقين المجمّع لعدة أيام
+function computeRouteStatsFromPoints(pts) {
+    var totalKm = 0;
+    var stops = [];
+    var stopStartIdx = 0;
+    for (var i = 1; i < pts.length; i++) {
+        var segKm = haversineKm(pts[i - 1].lat, pts[i - 1].lng, pts[i].lat, pts[i].lng);
+        totalKm += segKm;
+        if (segKm > 0.03) {
+            if (i - 1 - stopStartIdx >= 3) {
+                var stopMinutes = (new Date(pts[i - 1].updatedAt) - new Date(pts[stopStartIdx].updatedAt)) / 60000;
+                if (stopMinutes >= 5) {
+                    stops.push({ minutes: Math.round(stopMinutes), fromTime: pts[stopStartIdx].updatedAt });
+                }
+            }
+            stopStartIdx = i;
+        }
+    }
+    var spanMinutes = pts.length >= 2 ? (new Date(pts[pts.length - 1].updatedAt) - new Date(pts[0].updatedAt)) / 60000 : 0;
+    var stoppedMinutes = stops.reduce(function(s, x) { return s + x.minutes; }, 0);
+    return { totalKm: totalKm, stops: stops, spanMinutes: Math.max(0, spanMinutes), stoppedMinutes: stoppedMinutes };
+}
+
 function populateRouteDriverSelect() {
     var sel = document.getElementById('route-driver-select');
     if (!sel) return;
@@ -10035,6 +10061,49 @@ function checkRentalDailyLogExceptions() {
         });
     }
 }
+function rentalAbsenceLabel(r) {
+    var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
+    return (eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentType || 'معدة')) + (r.company ? ' - ' + r.company : '');
+}
+// بيحسب لكل عقد إيجار ساري عدد أيام الغياب المتتالية (من غير تسجيل) لغاية أمس،
+// وده اللي بيميّز "يوم واحد نسيان تسجيل عادي" عن "غياب متكرر يستاهل متابعة عاجلة مع شركة الإيجار"
+function computeRentalAbsenceStreaks() {
+    var loggedByRental = {};
+    var lastLoggedByRental = {};
+    (rentalDailyData || []).forEach(function(l) {
+        if (!l.equipmentId || !l.date) return;
+        if (!loggedByRental[l.equipmentId]) loggedByRental[l.equipmentId] = {};
+        loggedByRental[l.equipmentId][l.date] = true;
+        if (!lastLoggedByRental[l.equipmentId] || l.date > lastLoggedByRental[l.equipmentId]) {
+            lastLoggedByRental[l.equipmentId] = l.date;
+        }
+    });
+    var today = new Date();
+    var todayStr = today.toISOString().slice(0, 10);
+    var MAX_LOOKBACK = 45; // حد أقصى للرجوع للخلف يوميًا (حماية أداء)
+    var results = [];
+    (rentalData || []).forEach(function(r) {
+        if (r.endDate && r.endDate < todayStr) return; // العقد خلص، مش غياب دلوقتي
+        if (r.startDate && r.startDate > todayStr) return; // لسه ما بدأش
+        var logged = loggedByRental[r.id] || {};
+        var streak = 0;
+        var d = new Date(today);
+        d.setDate(d.getDate() - 1); // نبدأ من "أمس" مش النهاردة، لسه ممكن محدش سجل بيانات اليوم
+        for (var i = 0; i < MAX_LOOKBACK; i++) {
+            var ds = d.toISOString().slice(0, 10);
+            if (r.startDate && ds < r.startDate) break;
+            if (logged[ds]) break;
+            streak++;
+            d.setDate(d.getDate() - 1);
+        }
+        if (streak >= 2) {
+            results.push({ id: r.id, rental: r, streak: streak, lastLogged: lastLoggedByRental[r.id] || null });
+        }
+    });
+    results.sort(function(a, b) { return b.streak - a.streak; });
+    return results;
+}
+
 var lastRentalAbsenceCheck = 0;
 function checkRentalAbsenceAfterDayClose() {
     if (!notifPrefs.rentalDaily) return;
@@ -10055,17 +10124,24 @@ function checkRentalAbsenceAfterDayClose() {
         if (r.endDate && r.endDate < yStr) return; // العقد كان خلص قبلها
         var hasLog = rentalDailyData.some(function(l) { return l.equipmentId === r.id && l.date === yStr; });
         if (!hasLog) {
-            var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
-            absentList.push((eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentType || 'معدة')) + (r.company ? ' - ' + r.company : ''));
+            absentList.push(r);
         }
     });
     try { localStorage.setItem(checkedKey, '1'); } catch(e) {}
     if (absentList.length && Notification.permission === 'granted') {
+        var streaks = computeRentalAbsenceStreaks();
+        var streakById = {};
+        streaks.forEach(function(s) { streakById[s.id] = s.streak; });
+        var bodyText = absentList.map(function(r) {
+            var st = streakById[r.id] || 1;
+            return (st >= 4 ? '🔴 ' : '') + rentalAbsenceLabel(r) + (st >= 2 ? ' (غايبة ' + st + ' يوم متتالي)' : '');
+        }).join('، ');
         new Notification('📋 غياب معدات إيجار - يوم ' + yStr, {
-            body: absentList.join('، '),
+            body: bodyText,
             icon: 'https://cdn-icons-png.flaticon.com/512/1995/1995562.png'
         });
     }
+    runSmartAlertsRefresh();
 }
 
 // يجمع كل أنواع التنبيهات في مكان واحد
@@ -10454,6 +10530,8 @@ function getAllSmartAlerts() {
         return daysLeft >= 0 && daysLeft <= 15;
     }) : [];
 
+    var rentAbsenceRaw = notifPrefs.rentalDaily ? computeRentalAbsenceStreaks() : [];
+
     // "مقروء" لمدة 24 ساعة فقط - أي مشكلة لسه موجودة بترجع تظهر تاني بعدها حتى لو محدش لمسها (عشان محدش ينسى صيانة متأخرة مثلاً)
     var DISMISS_TTL = 24 * 60 * 60 * 1000;
     var nowTs = Date.now();
@@ -10470,8 +10548,9 @@ function getAllSmartAlerts() {
     var lowStock = lowStockRaw.filter(notDismissed('lowStock', 'id'));
     var rentExpired = rentExpiredRaw.filter(notDismissed('rentExpired', 'id'));
     var rentSoon = rentSoonRaw.filter(notDismissed('rentSoon', 'id'));
+    var rentAbsence = rentAbsenceRaw.filter(notDismissed('rentAbsence', 'id'));
 
-    var totalCount = maintOverdue.length + maintSoon.length + licExpired.length + licSoon.length + lowStock.length + rentExpired.length + rentSoon.length;
+    var totalCount = maintOverdue.length + maintSoon.length + licExpired.length + licSoon.length + lowStock.length + rentExpired.length + rentSoon.length + rentAbsence.length;
     var pendingReports = getPendingScheduledReports();
     totalCount += pendingReports.length;
     var pendingApprovals = (currentUser && currentUser.role === 'admin') ? getPendingApprovalRequests() : [];
@@ -10483,9 +10562,9 @@ function getAllSmartAlerts() {
     var pendingAccountRequests = (currentUser && currentUser.role === 'admin') ? getPendingAccountRequests() : [];
     totalCount += pendingAccountRequests.length;
     return {
-        maintOverdue:maintOverdue, maintSoon:maintSoon, licExpired:licExpired, licSoon:licSoon, lowStock:lowStock, rentExpired:rentExpired, rentSoon:rentSoon,
+        maintOverdue:maintOverdue, maintSoon:maintSoon, licExpired:licExpired, licSoon:licSoon, lowStock:lowStock, rentExpired:rentExpired, rentSoon:rentSoon, rentAbsence:rentAbsence,
         pendingReports:pendingReports, pendingApprovals:pendingApprovals, pendingFaults:pendingFaults, pendingChecks:pendingChecks, pendingAccountRequests:pendingAccountRequests, totalCount:totalCount,
-        _raw: { maintOverdue:maintOverdueRaw, maintSoon:maintSoonRaw, licExpired:licExpiredRaw, licSoon:licSoonRaw, lowStock:lowStockRaw, rentExpired:rentExpiredRaw, rentSoon:rentSoonRaw }
+        _raw: { maintOverdue:maintOverdueRaw, maintSoon:maintSoonRaw, licExpired:licExpiredRaw, licSoon:licSoonRaw, lowStock:lowStockRaw, rentExpired:rentExpiredRaw, rentSoon:rentSoonRaw, rentAbsence:rentAbsenceRaw }
     };
 }
 
@@ -10504,6 +10583,7 @@ function markAllAlertsRead() {
     markAll('lowStock', 'id', raw.lowStock);
     markAll('rentExpired', 'id', raw.rentExpired);
     markAll('rentSoon', 'id', raw.rentSoon);
+    markAll('rentAbsence', 'id', raw.rentAbsence);
     saveDismissedAlertKeys();
 }
 
@@ -10517,6 +10597,10 @@ function showSmartAlertBar() {
     if (a.licExpired.length || a.licSoon.length) parts.push('📜 ' + (a.licExpired.length + a.licSoon.length) + ' رخصة سائق منتهية/قريبة');
     if (a.lowStock.length) parts.push('📦 ' + a.lowStock.length + ' صنف مخزون منخفض');
     if (a.rentExpired.length || a.rentSoon.length) parts.push('📄 ' + (a.rentExpired.length + a.rentSoon.length) + ' عقد إيجار منتهي/قريب');
+    if (a.rentAbsence.length) {
+        var critical = a.rentAbsence.filter(function(x) { return x.streak >= 4; }).length;
+        parts.push((critical ? '🔴' : '⚠️') + ' ' + a.rentAbsence.length + ' معدة إيجار غايبة متتالي');
+    }
     if (a.pendingReports.length) parts.push('📤 ' + a.pendingReports.length + ' تقرير دوري لسه ما اتبعتش');
     if (a.pendingApprovals.length) parts.push('✅ ' + a.pendingApprovals.length + ' طلب بانتظار موافقتك');
     if (a.pendingFaults.length) parts.push('🚨 ' + a.pendingFaults.length + ' بلاغ عطل جديد');
@@ -10575,6 +10659,17 @@ function openNotifCenter() {
     html += section('📄 عقود إيجار قريبة الانتهاء', '#d97706', a.rentSoon, function(r) {
         return row((r.equipmentType||'') + ' — ' + (r.equipmentCode||''), 'ينتهي في ' + r.endDate + (r.company?' | '+r.company:''));
     });
+    if (a.rentAbsence.length) {
+        html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#be123c;margin-bottom:6px">📋 معدات إيجار غايبة (تسجيل متتالي مفقود) (' + a.rentAbsence.length + ')</div>' +
+            a.rentAbsence.map(function(x) {
+                var critical = x.streak >= 4;
+                return '<div style="background:' + (critical ? '#fef2f2' : '#fffbeb') + ';border:1px solid ' + (critical ? '#fecaca' : '#fde68a') + ';border-radius:10px;padding:9px 10px;margin-bottom:6px;font-size:12px">' +
+                    '<div style="font-weight:700;margin-bottom:2px">' + (critical ? '🔴 ' : '⚠️ ') + escapeHtml(rentalAbsenceLabel(x.rental)) + '</div>' +
+                    '<div style="color:' + (critical ? '#991b1b' : '#92400e') + ';font-weight:600">غايبة ' + x.streak + ' يوم متتالي بدون تسجيل عمل رغم إن العقد سارٍ' + (x.lastLogged ? ' — آخر تسجيل: ' + x.lastLogged : '') + '</div>' +
+                    (critical ? '<div style="color:var(--gray);font-size:11px;margin-top:3px">💡 يستاهل متابعة عاجلة مع شركة الإيجار — ممكن تكون بتدفع إيجار على معدة مش موجودة فعليًا</div>' : '') +
+                    '</div>';
+            }).join('') + '</div>';
+    }
     if (a.pendingFaults.length) {
         html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#dc2626;margin-bottom:6px">🚨 بلاغات أعطال جديدة (' + a.pendingFaults.length + ')</div>' +
             a.pendingFaults.map(function(r) {
@@ -10637,7 +10732,7 @@ function openNotifCenter() {
             a.pendingAccountRequests.map(accountRequestCardHtml).join('') + '</div>';
     }
     if (!a.totalCount) html = '<div style="text-align:center;padding:30px;color:var(--gray)">✅ لا توجد تنبيهات حالياً — كل شيء تمام</div>';
-    var hasClearable = a.maintOverdue.length || a.maintSoon.length || a.licExpired.length || a.licSoon.length || a.lowStock.length || a.rentExpired.length || a.rentSoon.length;
+    var hasClearable = a.maintOverdue.length || a.maintSoon.length || a.licExpired.length || a.licSoon.length || a.lowStock.length || a.rentExpired.length || a.rentSoon.length || a.rentAbsence.length;
     if (hasClearable && currentUser && currentUser.role === 'admin') {
         html += '<button class="save-btn" style="background:#64748b;margin-top:6px" onclick="clearAllNotifications()">🗑️ حذف كل الإشعارات</button>';
     }
@@ -16068,6 +16163,25 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </div>
 
+<!-- مودال تحليل سلوك السائقين الذكي -->
+<div class="modal-overlay" id="driver-behavior-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
+    <div class="modal-title">🤖 تحليل سلوك السائقين</div>
+    <button class="modal-close" onclick="closeModal('driver-behavior-modal')">✕</button>
+  </div>
+  <div style="padding:14px 14px 0">
+    <select id="driver-behavior-period" onchange="openDriverBehaviorModal()" style="width:100%;border:none;outline:none;font-family:inherit;background:white;color:var(--primary);border-radius:14px;padding:10px 14px;font-size:13px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
+      <option value="7">آخر 7 أيام</option>
+      <option value="14">آخر 14 يوم</option>
+      <option value="30">آخر 30 يوم</option>
+    </select>
+  </div>
+  <div id="driver-behavior-content" style="padding:16px;padding-bottom:10px;white-space:pre-wrap;line-height:1.9;font-size:14px"></div>
+  <div style="position:sticky;bottom:0;background:var(--light);padding:14px;display:none" id="driver-behavior-actions">
+    <button class="save-btn" style="background:#0d1b2a" onclick="printAiTextAsPdf('🤖 تحليل سلوك السائقين', lastAiDriverBehaviorText)">🖨️ طباعة PDF</button>
+  </div>
+</div>
+
 <!-- مودال المساعد الذكي (شات) -->
 <div class="modal-overlay" id="ai-chat-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
@@ -16155,11 +16269,17 @@ function callGeminiAPI(prompt, onDone, _attempt) {
     _attempt = _attempt || 0;
     var model = GEMINI_MODELS_TRY_ORDER[Math.min(_attempt, GEMINI_MODELS_TRY_ORDER.length - 1)];
     var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
+    // مهلة زمنية 25 ثانية: لو الشبكة أو خوادم جوجل اتعلقت من غير رد، منمنع السبينر
+    // من التحميل بدون نهاية ونديله رسالة خطأ واضحة بدل ما يفضل عالق
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timeoutId = controller ? setTimeout(function() { controller.abort(); }, 25000) : null;
     fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+        signal: controller ? controller.signal : undefined
     }).then(function(r) {
+        if (timeoutId) clearTimeout(timeoutId);
         return r.json().then(function(data) { return { ok: r.ok, status: r.status, data: data }; });
     }).then(function(res) {
         if (!res.ok) {
@@ -16182,6 +16302,11 @@ function callGeminiAPI(prompt, onDone, _attempt) {
             onDone('رد غير متوقع من Gemini، أو تم رفض الطلب لأسباب تتعلق بالمحتوى', null);
         }
     }).catch(function(e) {
+        if (timeoutId) clearTimeout(timeoutId);
+        if (e && e.name === 'AbortError') {
+            onDone('⏱️ انتهت مهلة الاتصال بـ Gemini (25 ثانية بدون رد). جرب تاني.', null);
+            return;
+        }
         onDone('فشل الاتصال: ' + e.message, null);
     });
 }
@@ -16449,6 +16574,13 @@ function dateRangeArray(startStr, endStr) {
     var d = new Date(startStr);
     var end = new Date(endStr);
     if (isNaN(d) || isNaN(end) || d > end) return out;
+    // حماية: تاريخ خاطئ في البيانات (سنة غلط، تاريخ فاضي...) ممكن يعمل فارق ملايين
+    // الأيام ويجمّد المتصفح بالكامل ("تحميل بدون نهاية"). بنحدد أقصى 5 سنين تقريبًا.
+    var MAX_DAYS = 1830;
+    var msPerDay = 86400000;
+    if ((end - d) / msPerDay > MAX_DAYS) {
+        end = new Date(d.getTime() + MAX_DAYS * msPerDay);
+    }
     while (d <= end) {
         out.push(d.toISOString().slice(0, 10));
         d.setDate(d.getDate() + 1);
@@ -16461,6 +16593,7 @@ function buildRentalAnalysisData() {
     var todayStr = today.toISOString().slice(0, 10);
     var contractsInfo = [];
     rentalData.forEach(function(r) {
+      try {
         var logs = rentalDailyData.filter(function(d) { return d.equipmentId === r.id; })
             .sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
         var daysCount = logs.length;
@@ -16505,6 +16638,9 @@ function buildRentalAnalysisData() {
             totalRangeDays: totalRangeDays, absentCount: absentDates.length, absenceRate: absenceRate,
             recentStreak: recentStreak, lastAbsentDates: absentDates.slice(-8)
         });
+      } catch(e) {
+        // تجاهل العقد ده لو بياناته فيها مشكلة، وكمل الباقي بدل ما التحليل كله يفشل
+      }
     });
 
     var lines = ['إجمالي عقود الإيجار المسجلة: ' + contractsInfo.length];
@@ -16528,33 +16664,226 @@ function buildRentalAnalysisData() {
     });
     return lines.join('\n');
 }
-function openRentalAiAnalysisModal() {
+// ---- تخزين مؤقت (Cache) لنتائج التحليل الذكي لتجنب استدعاء API بشكل متكرر لنفس البيانات ----
+var AI_CACHE_TTL_MS = 20 * 60 * 1000; // 20 دقيقة
+function aiCacheHash(str) {
+    // هاش بسيط وسريع (مش تشفيري) بس كفاية لمقارنة "هل البيانات اتغيرت؟"
+    var h = 0;
+    for (var i = 0; i < str.length; i++) {
+        h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    }
+    return String(h) + '_' + str.length;
+}
+function aiCacheGet(key) {
+    try {
+        var raw = localStorage.getItem('ai_cache_' + key);
+        if (!raw) return null;
+        var obj = JSON.parse(raw);
+        if (!obj || (Date.now() - obj.ts) > AI_CACHE_TTL_MS) return null;
+        return obj;
+    } catch(e) { return null; }
+}
+function aiCacheSet(key, hash, text) {
+    try {
+        localStorage.setItem('ai_cache_' + key, JSON.stringify({ hash: hash, text: text, ts: Date.now() }));
+    } catch(e) {}
+}
+
+function openRentalAiAnalysisModal(forceRefresh) {
     var modal = document.getElementById('ai-rental-modal');
     var content = document.getElementById('ai-rental-content');
     var actions = document.getElementById('ai-rental-actions');
     if (!modal || !content) return;
     modal.classList.add('active');
     if (actions) actions.style.display = 'none';
-    var summary = buildRentalAnalysisData();
-    if (!summary) {
-        content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد عقود إيجار مسجلة حاليًا لتحليلها.</div>';
-        return;
-    }
+    // نعرض السبينر فورًا، وبعدين نأجل الحساب الثقيل لخطوة تالية عشان الشاشة
+    // تقدر تعرض السبينر قبل ما المتصفح يبدأ الحساب (بدل ما تفضل واقفة من غير رد فعل)
     content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري تحليل بيانات الإيجار...</div></div>';
-    var prompt = 'أنت محلل تكاليف ومعدات لشركة مقاولات كبرى بمصر، وعقود الإيجار بتاخد أكبر جزء من ميزانية المشروع. حلل بيانات عقود الإيجار والساعات الإضافية وأيام الغياب التالية بالعربية، باختصار ووضوح وبدون مقدمات طويلة:\n' +
-        '1) أي أيام أو معدات فيها ساعات إضافية غير طبيعية تستاهل مراجعة فورية (استثناءات)، مع توضيح السبب المحتمل (مثلاً: خطأ تسجيل، سوء استغلال، ضغط عمل حقيقي).\n' +
-        '2) توقع غياب المعدات: لكل معدة، حلل نمط الغياب (الأيام اللي مفيش فيها تسجيل عمل رغم إن العقد سارٍ)، وتوقع احتمالية استمرار أو تكرار الغياب قريبًا، وحدد بوضوح أي معدة غيابها الحالي أو المتكرر يستاهل متابعة عاجلة مع شركة الإيجار — لأن ده معناه إحنا بندفع إيجار على معدة مش موجودة أو مش شغالة فعليًا.\n' +
-        '3) لكل عقد قريب من الانتهاء أو منتهي بالفعل، اديني توصية واضحة (تجديد / إرجاع / تفاوض) بناءً على معدل الاستخدام والغياب والإضافي المسجل، مع سبب مختصر لكل توصية.\n' +
-        'رتب النتيجة حسب الأولوية (الأكثر إلحاحًا أولاً)، واستخدم عناوين قصيرة وإيموجي مناسب. البيانات:\n\n' + summary;
-    callGeminiAPI(prompt, function(err, text) {
-        if (err) {
-            content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
+
+    setTimeout(function() {
+        var summary;
+        try {
+            summary = buildRentalAnalysisData();
+        } catch(e) {
+            content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ حصل خطأ أثناء تجهيز بيانات التحليل: ' + escapeHtml(e.message || String(e)) + '</div>';
             return;
         }
-        lastAiRentalText = text;
-        content.textContent = text;
-        if (actions) actions.style.display = 'block';
+        if (!summary) {
+            content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد عقود إيجار مسجلة حاليًا لتحليلها.</div>';
+            return;
+        }
+
+        var cacheKey = 'rental_analysis';
+        var hash = aiCacheHash(summary);
+        var cached = forceRefresh ? null : aiCacheGet(cacheKey);
+        if (cached && cached.hash === hash) {
+            lastAiRentalText = cached.text;
+            content.textContent = cached.text;
+            var minsAgo = Math.max(1, Math.round((Date.now() - cached.ts) / 60000));
+            content.innerHTML += '<div style="margin-top:14px;font-size:11px;color:var(--gray);text-align:center">📦 نتيجة محفوظة من قبل ' + minsAgo + ' دقيقة (نفس البيانات) — <a href="#" onclick="openRentalAiAnalysisModal(true);return false;" style="color:var(--purple)">تحديث الآن</a></div>';
+            if (actions) actions.style.display = 'block';
+            return;
+        }
+
+        var prompt = 'أنت محلل تكاليف ومعدات لشركة مقاولات كبرى بمصر، وعقود الإيجار بتاخد أكبر جزء من ميزانية المشروع. حلل بيانات عقود الإيجار والساعات الإضافية وأيام الغياب التالية بالعربية، باختصار ووضوح وبدون مقدمات طويلة:\n' +
+            '1) أي أيام أو معدات فيها ساعات إضافية غير طبيعية تستاهل مراجعة فورية (استثناءات)، مع توضيح السبب المحتمل (مثلاً: خطأ تسجيل، سوء استغلال، ضغط عمل حقيقي).\n' +
+            '2) توقع غياب المعدات: لكل معدة، حلل نمط الغياب (الأيام اللي مفيش فيها تسجيل عمل رغم إن العقد سارٍ)، وتوقع احتمالية استمرار أو تكرار الغياب قريبًا، وحدد بوضوح أي معدة غيابها الحالي أو المتكرر يستاهل متابعة عاجلة مع شركة الإيجار — لأن ده معناه إحنا بندفع إيجار على معدة مش موجودة أو مش شغالة فعليًا.\n' +
+            '3) لكل عقد قريب من الانتهاء أو منتهي بالفعل، اديني توصية واضحة (تجديد / إرجاع / تفاوض) بناءً على معدل الاستخدام والغياب والإضافي المسجل، مع سبب مختصر لكل توصية.\n' +
+            'رتب النتيجة حسب الأولوية (الأكثر إلحاحًا أولاً)، واستخدم عناوين قصيرة وإيموجي مناسب. البيانات:\n\n' + summary;
+
+        callGeminiAPI(prompt, function(err, text) {
+            if (err) {
+                content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
+                return;
+            }
+            lastAiRentalText = text;
+            content.textContent = text;
+            aiCacheSet(cacheKey, hash, text);
+            if (actions) actions.style.display = 'block';
+        });
+    }, 30);
+}
+
+// ==================== تحليل سلوك السائقين الذكي (مسافة + توقفات + انقطاع تتبع عبر عدة أيام) ====================
+function fetchDriverDayPoints(driverId, dateKey) {
+    if (!fbDb) return Promise.resolve([]);
+    return fbDb.ref('driverLocationHistory/' + driverId + '/' + dateKey).once('value').then(function(snap) {
+        var val = snap.val() || {};
+        var pts = Object.keys(val).map(function(k) { return val[k]; }).filter(function(p) { return p.lat && p.lng && p.updatedAt; });
+        pts.sort(function(a, b) { return new Date(a.updatedAt) - new Date(b.updatedAt); });
+        return pts;
+    }).catch(function() { return []; });
+}
+function dateKeyDaysAgo(n) {
+    var d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+// بيجمع بيانات GPS لكل السائقين النشطين خلال عدد أيام معين، ويحسب لكل سائق:
+// المسافة الكلية، وقت التوقف الكلي، نسبة التوقف، أطول توقف، وهل قافل تتبع الموقع دلوقتي
+function buildDriverBehaviorData(days, onDone) {
+    var activeDrivers = (driversData || []).filter(function(d) { return d.status === 'نشط'; });
+    if (!activeDrivers.length || !fbDb) { onDone(null); return; }
+
+    var dateKeys = [];
+    for (var i = 0; i < days; i++) dateKeys.push(dateKeyDaysAgo(i));
+
+    var tasks = [];
+    activeDrivers.forEach(function(d) {
+        dateKeys.forEach(function(dk) {
+            tasks.push(fetchDriverDayPoints(d.id, dk).then(function(pts) {
+                return { driverId: d.id, dateKey: dk, pts: pts };
+            }));
+        });
     });
+
+    Promise.all(tasks).then(function(results) {
+        var byDriver = {};
+        activeDrivers.forEach(function(d) { byDriver[d.id] = { driver: d, days: [], daysTracked: 0 }; });
+        results.forEach(function(r) {
+            if (!r.pts.length || !byDriver[r.driverId]) return;
+            var stats = computeRouteStatsFromPoints(r.pts);
+            byDriver[r.driverId].days.push({ dateKey: r.dateKey, stats: stats });
+            byDriver[r.driverId].daysTracked++;
+        });
+
+        var lines = ['فترة التحليل: آخر ' + days + ' يوم | عدد السائقين النشطين: ' + activeDrivers.length];
+        var noTrackingDrivers = [];
+        var driverSummaries = [];
+
+        Object.keys(byDriver).forEach(function(id) {
+            var entry = byDriver[id];
+            if (!entry.daysTracked) { noTrackingDrivers.push(entry.driver.name); return; }
+            var totalKm = 0, totalStopped = 0, totalSpan = 0, longestStop = null, bigStopsCount = 0;
+            entry.days.forEach(function(dd) {
+                totalKm += dd.stats.totalKm;
+                totalStopped += dd.stats.stoppedMinutes;
+                totalSpan += dd.stats.spanMinutes;
+                dd.stats.stops.forEach(function(s) {
+                    if (s.minutes >= 45) bigStopsCount++;
+                    if (!longestStop || s.minutes > longestStop.minutes) longestStop = { minutes: s.minutes, dateKey: dd.dateKey };
+                });
+            });
+            var idlePct = totalSpan > 0 ? (totalStopped / totalSpan * 100) : 0;
+            var current = (driverLocations || []).find(function(l) { return l.driverId === id; });
+            var currentlyClosed = !!(current && current.closedAt);
+
+            driverSummaries.push({
+                name: entry.driver.name, daysTracked: entry.daysTracked, totalDaysInPeriod: days,
+                totalKm: totalKm, totalStopped: totalStopped, idlePct: idlePct,
+                bigStopsCount: bigStopsCount, longestStop: longestStop, currentlyClosed: currentlyClosed
+            });
+        });
+
+        driverSummaries.sort(function(a, b) { return b.idlePct - a.idlePct; });
+
+        driverSummaries.forEach(function(s) {
+            lines.push('- ' + s.name + ': تتبع في ' + s.daysTracked + ' من ' + s.totalDaysInPeriod + ' يوم | إجمالي مسافة مقطوعة ' + s.totalKm.toFixed(1) + ' كم | إجمالي وقت توقف ' + Math.round(s.totalStopped) + ' دقيقة (نسبة توقف ' + s.idlePct.toFixed(0) + '% من وقت التتبع)' +
+                (s.bigStopsCount ? ' | عدد توقفات طويلة (45 دقيقة+): ' + s.bigStopsCount : '') +
+                (s.longestStop ? ' | أطول توقف: ' + s.longestStop.minutes + ' دقيقة بتاريخ ' + s.longestStop.dateKey : '') +
+                (s.currentlyClosed ? ' | ⚠️ قافل تتبع الموقع دلوقتي' : ''));
+        });
+
+        if (noTrackingDrivers.length) {
+            lines.push('سائقين نشطين بدون أي بيانات GPS خلال الفترة دي (' + noTrackingDrivers.length + '): ' + noTrackingDrivers.join('، '));
+        }
+
+        onDone(lines.join('\n'));
+    }).catch(function() { onDone(null); });
+}
+
+var lastAiDriverBehaviorText = '';
+function openDriverBehaviorModal(forceRefresh) {
+    var modal = document.getElementById('driver-behavior-modal');
+    var content = document.getElementById('driver-behavior-content');
+    var actions = document.getElementById('driver-behavior-actions');
+    var periodSel = document.getElementById('driver-behavior-period');
+    if (!modal || !content) return;
+    modal.classList.add('active');
+    if (actions) actions.style.display = 'none';
+    var days = parseInt((periodSel && periodSel.value) || '7', 10);
+    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري تحميل مسارات GPS وتحليلها (ممكن ياخد شوية حسب عدد السائقين)...</div></div>';
+
+    setTimeout(function() {
+        try {
+            buildDriverBehaviorData(days, function(summary) {
+                if (!summary) {
+                    content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد بيانات GPS كافية لتحليل سلوك السائقين في الفترة دي.</div>';
+                    return;
+                }
+                var cacheKey = 'driver_behavior_' + days;
+                var hash = aiCacheHash(summary);
+                var cached = forceRefresh ? null : aiCacheGet(cacheKey);
+                if (cached && cached.hash === hash) {
+                    lastAiDriverBehaviorText = cached.text;
+                    content.textContent = cached.text;
+                    var minsAgo = Math.max(1, Math.round((Date.now() - cached.ts) / 60000));
+                    content.innerHTML += '<div style="margin-top:14px;font-size:11px;color:var(--gray);text-align:center">📦 نتيجة محفوظة من قبل ' + minsAgo + ' دقيقة (نفس البيانات) — <a href="#" onclick="openDriverBehaviorModal(true);return false;" style="color:var(--purple)">تحديث الآن</a></div>';
+                    if (actions) actions.style.display = 'block';
+                    return;
+                }
+
+                var prompt = 'أنت محلل عمليات لشركة مقاولات كبرى بمصر، ومهمتك تحليل بيانات GPS لسائقي المعدات لرصد أي سلوك يستاهل مراجعة (استخدام غير رسمي، توقفات مطولة غير مبررة، تعطيل تتبع الموقع عمدًا). حلل البيانات دي بالعربية، باختصار ووضوح وبدون مقدمات طويلة:\n' +
+                    '1) أي سائق نسبة وقت توقفه مرتفعة جدًا مقارنة بمسافة الحركة، أو عنده توقفات طويلة متكررة أثناء وقت العمل — وضح احتمالية السبب (استراحة طويلة، مشوار شخصي، مشكلة بالمعدة).\n' +
+                    '2) أي سائق قافل تتبع الموقع دلوقتي أو تتبعه ناقص/متقطع بشكل ملحوظ خلال الفترة — ده ممكن يعني تعمد إخفاء الموقع.\n' +
+                    '3) رتب السائقين من الأكثر استحقاقًا للمراجعة للأقل، واستخدم عناوين قصيرة وإيموجي مناسب. لو كل حاجة طبيعية قول كده بوضوح من غير تهويل.\n' +
+                    'البيانات:\n\n' + summary;
+
+                callGeminiAPI(prompt, function(err, text) {
+                    if (err) {
+                        content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
+                        return;
+                    }
+                    lastAiDriverBehaviorText = text;
+                    content.textContent = text;
+                    aiCacheSet(cacheKey, hash, text);
+                    if (actions) actions.style.display = 'block';
+                });
+            });
+        } catch(e) {
+            content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ حصل خطأ أثناء تجهيز التحليل: ' + escapeHtml(e.message || String(e)) + '</div>';
+        }
+    }, 30);
 }
 
 function sendAiChatMessage() {
