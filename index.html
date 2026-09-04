@@ -1059,7 +1059,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     </div>
   </div>
   
-  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button><div id="maintenance-list"></div></div></div>
+  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="openPredictiveMaintenanceModal()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#0e7490,#0369a1)">🔮 الصيانة التنبؤية الذكية</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button><div id="maintenance-list"></div></div></div>
   
   <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box" style="margin-bottom:8px"><span>🔍</span><input type="text" id="search-inventory" placeholder="بحث باسم أو رقم قطعة..."></div><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><button id="add-inventory-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,var(--purple),var(--pink))">📦 إضافة صنف جديد</button><button id="export-inventory-excel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير المخزون Excel</button><button id="order-report-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,var(--danger),var(--warning))">📋 إنشاء طلبية للنواقص (1000 ساعة)</button><button id="delete-all-inventory-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع أصناف المخزون</button><button id="fix-filter-category-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0891b2,#155e75)" onclick="fixMiscategorizedFilters()">🔍 فحص وتصحيح تصنيف الفلاتر المسجّلة كزيوت</button><div id="inv-list"></div></div></div>
   
@@ -16151,6 +16151,18 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </div>
 
+<!-- مودال الصيانة التنبؤية الذكية -->
+<div class="modal-overlay" id="predictive-maintenance-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#0e7490,#0369a1)">
+    <div class="modal-title">🔮 الصيانة التنبؤية الذكية</div>
+    <button class="modal-close" onclick="closeModal('predictive-maintenance-modal')">✕</button>
+  </div>
+  <div id="predictive-maintenance-content" style="padding:16px;padding-bottom:10px;white-space:pre-wrap;line-height:1.9;font-size:14px"></div>
+  <div style="position:sticky;bottom:0;background:var(--light);padding:14px;display:none" id="predictive-maintenance-actions">
+    <button class="save-btn" style="background:#0d1b2a" onclick="printAiTextAsPdf('🔮 الصيانة التنبؤية الذكية', lastAiPredictiveMaintenanceText)">🖨️ طباعة PDF</button>
+  </div>
+</div>
+
 <!-- مودال تحليل الإيجار الذكي -->
 <div class="modal-overlay" id="ai-rental-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
@@ -16883,6 +16895,145 @@ function openDriverBehaviorModal(forceRefresh) {
         } catch(e) {
             content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ حصل خطأ أثناء تجهيز التحليل: ' + escapeHtml(e.message || String(e)) + '</div>';
         }
+    }, 30);
+}
+
+// ==================== الصيانة التنبؤية الذكية (تحليل معدل الاستخدام الفعلي من hoursLog للتنبؤ بتاريخ الصيانة) ====================
+// بيحسب معدل الاستخدام (ساعة/يوم) لمعدة معينة خلال آخر نافذة زمنية، من سجل قراءات العداد الفعلي (hoursLog)
+function computeUsageRateForWindow(log, windowDays) {
+    if (!log || log.length < 2) return null;
+    var cutoff = new Date();
+    cutoff.setHours(0, 0, 0, 0); // نبدأ من بداية اليوم عشان لا نستبعد قراءة بتاريخ حد النافذة بالظبط بسبب وقت اللحظة الحالية
+    cutoff.setDate(cutoff.getDate() - windowDays);
+    var inWindow = log.filter(function(l) { return l.date && new Date(l.date) >= cutoff; });
+    if (inWindow.length < 2) return null;
+    var first = inWindow[0], last = inWindow[inWindow.length - 1];
+    var totalDays = (new Date(last.date) - new Date(first.date)) / 86400000;
+    var totalHours = last.hours - first.hours;
+    if (totalDays <= 0 || totalHours <= 0) return null;
+    return totalHours / totalDays;
+}
+// بيدّي معدل الاستخدام الحالي (آخر 14 يوم)، ومعدل أوسع للمقارنة (آخر 60 يوم)، عشان نقدر نرصد تسارع أو تباطؤ الاستخدام
+function computeEquipmentUsageRate(eq) {
+    var log = (eq.hoursLog || []).slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+    if (log.length < 2) return { recentRate: null, baseRate: null, logCount: log.length, lastLogDate: log.length ? log[log.length - 1].date : null };
+    var recentRate = computeUsageRateForWindow(log, 14);
+    var baseRate = computeUsageRateForWindow(log, 60);
+    // لو معدل آخر 14 يوم مش متاح (قراءات قليلة قريبة)، نستخدم المعدل الأوسع كبديل
+    var effectiveRate = recentRate != null ? recentRate : baseRate;
+    return { recentRate: recentRate, baseRate: baseRate, effectiveRate: effectiveRate, logCount: log.length, lastLogDate: log[log.length - 1].date };
+}
+// بيتوقع تاريخ الصيانة القادمة بناءً على معدل الاستخدام الفعلي، مش بس رقم الساعات المتبقية
+function predictMaintenanceDate(eq) {
+    var remaining = hoursRemaining(eq);
+    var usage = computeEquipmentUsageRate(eq);
+    if (usage.effectiveRate == null || usage.effectiveRate <= 0) {
+        return { remaining: remaining, usage: usage, daysUntil: null, predictedDate: null };
+    }
+    var daysUntil = remaining / usage.effectiveRate;
+    var predicted = new Date();
+    predicted.setDate(predicted.getDate() + Math.round(daysUntil));
+    return { remaining: remaining, usage: usage, daysUntil: daysUntil, predictedDate: predicted.toISOString().slice(0, 10) };
+}
+
+function buildPredictiveMaintenanceData() {
+    var eqList = (equipmentData || []).filter(function(eq) { return !isToolEquipment(eq) && eq.status !== 'متوقف'; });
+    if (!eqList.length) return null;
+
+    var items = eqList.map(function(eq) {
+        var pred = predictMaintenanceDate(eq);
+        var accelerating = false;
+        if (pred.usage.recentRate != null && pred.usage.baseRate != null && pred.usage.baseRate > 0) {
+            accelerating = pred.usage.recentRate > pred.usage.baseRate * 1.4; // استخدام حالي أعلى بـ 40%+ من المعتاد
+        }
+        return {
+            label: (eq.name || eq.code) + ' (' + (eq.code || '') + ')' + (eq.location ? ' - ' + eq.location : ''),
+            remaining: pred.remaining, daysUntil: pred.daysUntil, predictedDate: pred.predictedDate,
+            rate: pred.usage.effectiveRate, logCount: pred.usage.logCount, lastLogDate: pred.usage.lastLogDate,
+            accelerating: accelerating, alreadyOverdue: pred.remaining <= 0
+        };
+    });
+
+    // نرتب: الأقرب زمنيًا للصيانة (حتى لو الساعات المتبقية كتير لسه بس معدل استخدامه عالي) في الأول
+    items.sort(function(a, b) {
+        var da = a.daysUntil == null ? Infinity : a.daysUntil;
+        var db = b.daysUntil == null ? Infinity : b.daysUntil;
+        return da - db;
+    });
+
+    var lines = ['إجمالي المعدات النشطة (غير المتوقفة، بخلاف المقطورات): ' + items.length];
+    var noDataCount = 0;
+    items.forEach(function(it) {
+        if (it.logCount < 2) { noDataCount++; return; }
+        var statusNote;
+        if (it.alreadyOverdue) statusNote = '🚨 تجاوزت موعد الصيانة فعلاً (متبقي ' + it.remaining.toFixed(0) + ' س)';
+        else if (it.daysUntil == null) statusNote = 'متبقي ' + it.remaining.toFixed(0) + ' س لكن مفيش معدل استخدام واضح للتنبؤ بتاريخ';
+        else if (it.daysUntil <= 7) statusNote = '🔴 متوقع الوصول لموعد الصيانة خلال ' + Math.round(it.daysUntil) + ' يوم تقريبًا (' + it.predictedDate + ')';
+        else if (it.daysUntil <= 21) statusNote = '🟠 متوقع الوصول لموعد الصيانة خلال ' + Math.round(it.daysUntil) + ' يوم تقريبًا (' + it.predictedDate + ')';
+        else statusNote = 'متوقع الوصول لموعد الصيانة خلال ' + Math.round(it.daysUntil) + ' يوم (' + it.predictedDate + ')';
+
+        lines.push('- ' + it.label + ': متبقي ' + it.remaining.toFixed(0) + ' س | معدل استخدام فعلي ~' + (it.rate ? it.rate.toFixed(1) : '؟') + ' س/يوم | ' + statusNote +
+            (it.accelerating ? ' | ⚡ معدل الاستخدام الأخير أعلى بوضوح من المعتاد (استخدام مكثف مؤخرًا)' : '') +
+            ' | آخر قراءة عداد مسجّلة: ' + (it.lastLogDate || '؟'));
+    });
+    if (noDataCount) {
+        lines.push('معدات مفيش عندها سجل قراءات عداد كافٍ للتنبؤ (' + noDataCount + '): محتاجة تسجيل ساعات بانتظام أكتر عشان التنبؤ يبقى دقيق.');
+    }
+    return lines.join('\n');
+}
+
+var lastAiPredictiveMaintenanceText = '';
+function openPredictiveMaintenanceModal(forceRefresh) {
+    var modal = document.getElementById('predictive-maintenance-modal');
+    var content = document.getElementById('predictive-maintenance-content');
+    var actions = document.getElementById('predictive-maintenance-actions');
+    if (!modal || !content) return;
+    modal.classList.add('active');
+    if (actions) actions.style.display = 'none';
+    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري تحليل معدلات الاستخدام والتنبؤ بمواعيد الصيانة...</div></div>';
+
+    setTimeout(function() {
+        var summary;
+        try {
+            summary = buildPredictiveMaintenanceData();
+        } catch(e) {
+            content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ حصل خطأ أثناء تجهيز التحليل: ' + escapeHtml(e.message || String(e)) + '</div>';
+            return;
+        }
+        if (!summary) {
+            content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد معدات نشطة كافية للتحليل حاليًا.</div>';
+            return;
+        }
+
+        var cacheKey = 'predictive_maintenance';
+        var hash = aiCacheHash(summary);
+        var cached = forceRefresh ? null : aiCacheGet(cacheKey);
+        if (cached && cached.hash === hash) {
+            lastAiPredictiveMaintenanceText = cached.text;
+            content.textContent = cached.text;
+            var minsAgo = Math.max(1, Math.round((Date.now() - cached.ts) / 60000));
+            content.innerHTML += '<div style="margin-top:14px;font-size:11px;color:var(--gray);text-align:center">📦 نتيجة محفوظة من قبل ' + minsAgo + ' دقيقة (نفس البيانات) — <a href="#" onclick="openPredictiveMaintenanceModal(true);return false;" style="color:var(--purple)">تحديث الآن</a></div>';
+            if (actions) actions.style.display = 'block';
+            return;
+        }
+
+        var prompt = 'أنت مهندس صيانة معدات ثقيلة لشركة مقاولات كبرى بمصر. عندك بيانات كل معدة فيها: الساعات المتبقية لموعد الصيانة، ومعدل الاستخدام الفعلي المحسوب من سجل قراءات العداد التاريخي، والتاريخ المتوقع للوصول لموعد الصيانة بناءً على الاستخدام الفعلي (مش بس الرقم الثابت). حلل البيانات دي بالعربية، باختصار ووضوح وبدون مقدمات طويلة:\n' +
+            '1) رتب المعدات اللي محتاجة جدولة صيانة عاجلة حسب أقرب تاريخ متوقع (مش حسب الساعات المتبقية بس)، ووضح لو فيه معدة الساعات المتبقية عندها كتير لكن معدل استخدامها عالي جدًا فهتوصل بسرعة غير متوقعة.\n' +
+            '2) أي معدة عندها "استخدام مكثف مؤخرًا" وضح إن معدل استهلاكها زاد وإن التاريخ المتوقع ممكن يتقدم أكتر لو الاستخدام استمر بنفس المعدل.\n' +
+            '3) أي معدة مفيش عندها بيانات كافية للتنبؤ، اطلب تسجيل قراءات العداد بانتظام أكتر عشان الدقة تزيد.\n' +
+            '4) اقترح جدول أولويات مختصر (الأسبوع ده / الأسبوعين الجايين / بعدين) عشان يسهّل التخطيط لقطع الغيار والفنيين.\n' +
+            'استخدم عناوين قصيرة وإيموجي مناسب. البيانات:\n\n' + summary;
+
+        callGeminiAPI(prompt, function(err, text) {
+            if (err) {
+                content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
+                return;
+            }
+            lastAiPredictiveMaintenanceText = text;
+            content.textContent = text;
+            aiCacheSet(cacheKey, hash, text);
+            if (actions) actions.style.display = 'block';
+        });
     }, 30);
 }
 
