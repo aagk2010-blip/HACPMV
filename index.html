@@ -1077,6 +1077,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
           <button id="delete-all-rental-btn" style="padding:10px 14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;cursor:pointer" title="حذف جميع السجلات">🗑️</button>
         </div>
         <button onclick="openRentalAiAnalysisModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🤖 تحليل الإيجار الذكي (استثناءات + توقع غياب المعدات + توصيات العقود)</button>
+        <button onclick="openOvertimeAnomalyModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">⚠️ كشف الإضافي المشبوه (مقارنة بين المعدات المتشابهة)</button>
         <div id="rental-equipment-list"></div>
       </div>
       <div id="rental-section-daily" style="display:none">
@@ -15539,6 +15540,53 @@ function openAddDailyModal(rentalId) {
     ['rental-daily-in','rental-daily-out'].forEach(function(id){ var el=document.getElementById(id); if(el) el.oninput=updCalc; });
     document.getElementById('rental-daily-break').onchange=updCalc;
 }
+// ==================== تنبيه تلقائي عند إدخال بيانات يومية غير منطقية (وقت الإدخال نفسه) ====================
+// بيراجع الرقم قبل ما يتحفظ فعليًا في القاعدة، ويقارنه بـ: حد مطلق، وتاريخ نفس المعدة، ومتوسط المعدات المشابهة (نفس النوع)
+function detectRentalDailyDataAnomaly(record, rId) {
+    var warnings = [];
+    var extra = record.extraHours || 0;
+    var total = record.totalHours || 0;
+
+    // 1) إجمالي ساعات غير منطقي ليوم واحد (احتمال خطأ في وقت الحضور/الانصراف)
+    if (total > 16) {
+        warnings.push('⏱️ إجمالي الساعات المسجلة ' + total.toFixed(1) + ' ساعة في يوم واحد — تأكد من وقت الحضور والانصراف.');
+    }
+
+    // 2) إضافي مرتفع جدًا في المطلق
+    if (extra >= 6) {
+        warnings.push('🔺 الساعات الإضافية المدخلة (' + extra.toFixed(1) + ' س) مرتفعة جدًا — راجع الرقم قبل الحفظ.');
+    }
+
+    // 3) مقارنة بتاريخ هذه المعدة نفسها سابقًا (باستثناء السجل الحالي لو بيتعدل)
+    var ownLogs = rentalDailyData.filter(function(d) { return d.equipmentId === rId && d.id !== editingRentalDailyId && (d.extraHours || 0) > 0; });
+    if (ownLogs.length >= 3) {
+        var ownAvg = ownLogs.reduce(function(a, d) { return a + (d.extraHours || 0); }, 0) / ownLogs.length;
+        if (extra > 0 && ownAvg > 0 && extra > ownAvg * 1.8 && (extra - ownAvg) >= 1.5) {
+            warnings.push('📊 الإضافي المدخل (' + extra.toFixed(1) + ' س) أعلى بكثير من متوسط هذه المعدة نفسها سابقًا (' + ownAvg.toFixed(1) + ' س/يوم).');
+        }
+    }
+
+    // 4) مقارنة بمتوسط المعدات المشابهة (نفس نوع المعدة) — نفس منطق كشف الإضافي المشبوه
+    var rental = rentalData.find(function(r) { return r.id === rId; });
+    var type = rental ? rental.equipmentType : '';
+    if (type && extra > 0) {
+        var peerValues = [];
+        rentalData.filter(function(r) { return r.equipmentType === type; }).forEach(function(r) {
+            rentalDailyData.filter(function(d) { return d.equipmentId === r.id && d.id !== editingRentalDailyId && (d.extraHours || 0) > 0; })
+                .forEach(function(d) { peerValues.push(d.extraHours); });
+        });
+        if (peerValues.length >= 5) {
+            var pMean = peerValues.reduce(function(a, b) { return a + b; }, 0) / peerValues.length;
+            var pVar = peerValues.reduce(function(a, b) { return a + Math.pow(b - pMean, 2); }, 0) / peerValues.length;
+            var pStd = Math.sqrt(pVar);
+            if (pStd > 0 && extra > pMean + 2 * pStd && extra >= 2) {
+                warnings.push('📈 الإضافي المدخل (' + extra.toFixed(1) + ' س) أعلى من الطبيعي مقارنة بمتوسط معدات "' + type + '" الأخرى (' + pMean.toFixed(1) + ' س/يوم).');
+            }
+        }
+    }
+
+    return warnings;
+}
 function saveRentalDaily() {
     var rId=document.getElementById('rental-daily-eq').value;
     var date=document.getElementById('rental-daily-date-input').value;
@@ -15566,6 +15614,13 @@ function saveRentalDaily() {
         date:date, inTime:inT, outTime:outT, totalHours:h.total, basicHours:h.basic, breakWorked:!!brk, breakHours:h.break, extraHours:h.extra,
         notes:notes,
         updatedAt:new Date().toISOString() };
+
+    // تنبيه تلقائي لو البيانات المدخلة تبدو غير منطقية (قبل الحفظ الفعلي)
+    var anomalyWarnings = detectRentalDailyDataAnomaly(record, rId);
+    if (anomalyWarnings.length) {
+        var proceedAnyway = confirm('⚠️ تنبيه — البيانات المدخلة تبدو غير معتادة:\n\n' + anomalyWarnings.join('\n') + '\n\nهل أنت متأكد من صحة الأرقام وتريد المتابعة والحفظ؟');
+        if (!proceedAnyway) return;
+    }
 
     // نحافظ على اسم أول شخص سجّل البيانات، وننبّه في الملاحظات لو حصل تعديل بعد كده من حساب غير حساب المدير
     var existingRecord = editingRentalDailyId ? rentalDailyData.find(function(d){ return d.id === editingRentalDailyId; }) : null;
@@ -16528,6 +16583,15 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </div>
 
+<!-- مودال كشف الإضافي المشبوه (مقارنة رياضية مباشرة بين المعدات المتشابهة، بدون AI) -->
+<div class="modal-overlay" id="overtime-anomaly-modal">
+  <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+    <div class="modal-title">⚠️ كشف الإضافي المشبوه</div>
+    <button class="modal-close" onclick="closeModal('overtime-anomaly-modal')">✕</button>
+  </div>
+  <div id="overtime-anomaly-content" style="padding:16px;padding-bottom:24px;line-height:1.9;font-size:14px"></div>
+</div>
+
 <!-- مودال تحليل سلوك السائقين الذكي -->
 <div class="modal-overlay" id="driver-behavior-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
@@ -17085,7 +17149,150 @@ function buildRentalAnalysisData() {
             ' | ' + absenceNote +
             (c.exceptions.length ? ' | استثناءات: ' + c.exceptions.join('، ') : ''));
     });
+    var overtimeAnomalySummary = buildOvertimeAnomalyTextSummary();
+    if (overtimeAnomalySummary) lines.push(overtimeAnomalySummary);
     return lines.join('\n');
+}
+
+// ==================== كشف الإضافي المشبوه: مقارنة رياضية مباشرة بين المعدات المتشابهة ====================
+// الفكرة: نجمع كل أيام الإضافي حسب نوع المعدة (حفارة مع حفارات، لودر مع لودرات...)
+// ونحسب المتوسط والانحراف المعياري لكل نوع، وبعدين نقارن كل معدة بمتوسط زميلاتها.
+// ده حساب رياضي مباشر (مش محتاج استدعاء AI)، فبيظهر فورًا وببلاش.
+function computeSuspiciousOvertime() {
+    if (!rentalData || !rentalData.length || !rentalDailyData || !rentalDailyData.length) return null;
+
+    var byType = {}; // النوع -> { values: [كل قيم الإضافي في هذا النوع], byEquip: { equipmentId: {label, project, entries:[{date,extra}]} } }
+
+    rentalData.forEach(function(r) {
+        var type = r.equipmentType || 'غير محدد';
+        if (!byType[type]) byType[type] = { values: [], byEquip: {} };
+        var logs = rentalDailyData.filter(function(d) { return d.equipmentId === r.id; });
+        var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
+        var label = (eq ? (eq.name || eq.type) + ' (' + eq.code + ')' : (r.equipmentType || 'معدة')) + (r.company ? ' - ' + r.company : '');
+        var proj = eq ? (eq.projectSite || eq.location || '') : '';
+        if (!byType[type].byEquip[r.id]) byType[type].byEquip[r.id] = { label: label, project: proj, entries: [] };
+        logs.forEach(function(l) {
+            var e = l.extraHours || 0;
+            if (e > 0) {
+                byType[type].values.push(e);
+                byType[type].byEquip[r.id].entries.push({ date: l.date, extra: e });
+            }
+        });
+    });
+
+    var flaggedEquipment = [];
+    var flaggedDays = [];
+    var groupStats = [];
+
+    Object.keys(byType).forEach(function(type) {
+        var g = byType[type];
+        var n = g.values.length;
+        if (n < 5) return; // بيانات قليلة جدًا للمقارنة الموثوقة
+        var equipIds = Object.keys(g.byEquip);
+        if (equipIds.length < 2) return; // محتاجين معدتين على الأقل من نفس النوع للمقارنة
+
+        var mean = g.values.reduce(function(a, b) { return a + b; }, 0) / n;
+        var variance = g.values.reduce(function(a, b) { return a + Math.pow(b - mean, 2); }, 0) / n;
+        var stddev = Math.sqrt(variance);
+        groupStats.push({ type: type, count: n, equipCount: equipIds.length, mean: mean, stddev: stddev });
+
+        equipIds.forEach(function(eqId) {
+            var info = g.byEquip[eqId];
+            if (!info.entries.length) return;
+            var ownN = info.entries.length;
+            var ownMean = info.entries.reduce(function(a, e) { return a + e.extra; }, 0) / ownN;
+
+            // مستوى 1: نمط مستمر — متوسط إضافي المعدة أعلى بشكل ملحوظ من متوسط نوعها
+            if (ownN >= 2 && mean > 0 && ownMean > mean * 1.6 && (ownMean - mean) >= 1) {
+                flaggedEquipment.push({ type: type, label: info.label, project: info.project, ownMean: ownMean, groupMean: mean, ownDays: ownN, groupEquipCount: equipIds.length });
+            }
+
+            // مستوى 2: يوم بعينه شاذ (خارج متوسط النوع + 2 انحراف معياري) حتى لو متوسط المعدة نفسه طبيعي
+            info.entries.forEach(function(e) {
+                if (stddev > 0 && e.extra > mean + 2 * stddev && e.extra >= 2) {
+                    flaggedDays.push({ type: type, label: info.label, date: e.date, extra: e.extra, groupMean: mean });
+                }
+            });
+        });
+    });
+
+    flaggedEquipment.sort(function(a, b) { return (b.ownMean - b.groupMean) - (a.ownMean - a.groupMean); });
+    flaggedDays.sort(function(a, b) { return b.extra - a.extra; });
+
+    return { groupStats: groupStats, flaggedEquipment: flaggedEquipment, flaggedDays: flaggedDays };
+}
+
+function buildOvertimeAnomalyTextSummary() {
+    var res = computeSuspiciousOvertime();
+    if (!res || (!res.flaggedEquipment.length && !res.flaggedDays.length)) return '';
+    var lines = ['', '— مقارنة الإضافي بين المعدات المتشابهة (نفس النوع) —'];
+    res.flaggedEquipment.forEach(function(f) {
+        var pct = Math.round((f.ownMean / f.groupMean - 1) * 100);
+        lines.push('⚠️ ' + f.label + ' (نوع: ' + f.type + '): متوسط إضافيها ' + f.ownMean.toFixed(1) + ' س/يوم مقابل متوسط ' + f.groupEquipCount + ' معدة من نفس النوع ' + f.groupMean.toFixed(1) + ' س/يوم (أعلى بـ ' + pct + '%)');
+    });
+    res.flaggedDays.slice(0, 10).forEach(function(f) {
+        lines.push('🔍 يوم شاذ: ' + f.label + ' بتاريخ ' + f.date + ' — إضافي ' + f.extra.toFixed(1) + ' س (متوسط نوعها ' + f.groupMean.toFixed(1) + ' س)');
+    });
+    return lines.join('\n');
+}
+
+function buildOvertimeAnomalyHtml() {
+    var res = computeSuspiciousOvertime();
+    if (!res) {
+        return '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد بيانات كافية للمقارنة حاليًا (محتاجين على الأقل معدتين من نفس النوع بسجلات إضافي كفاية).</div>';
+    }
+
+    var html = '<div style="font-size:12px;color:var(--gray);margin-bottom:14px;line-height:1.8">📊 بيقارن هذا الفحص متوسط الساعات الإضافية لكل معدة بمتوسط زميلاتها من نفس النوع (حفارة مع حفارات، لودر مع لودرات...)، ويحدد أي معدة أو يوم شاذ عن الطبيعي رياضيًا — بدون الحاجة لاستدعاء الذكاء الاصطناعي.</div>';
+
+    if (!res.flaggedEquipment.length && !res.flaggedDays.length) {
+        html += '<div style="text-align:center;color:var(--success);padding:16px 0">✅ لا توجد معدات أو أيام إضافي شاذة حاليًا مقارنة بمثيلاتها.</div>';
+    }
+
+    if (res.flaggedEquipment.length) {
+        html += '<div style="font-weight:800;color:var(--primary);margin:6px 0 10px">⚠️ معدات إضافيها أعلى من المعتاد لنوعها</div>';
+        res.flaggedEquipment.forEach(function(f) {
+            var pct = Math.round((f.ownMean / f.groupMean - 1) * 100);
+            html += '<div class="detail-section" style="margin:0 0 10px 0;border-right:3px solid var(--warning)">' +
+                '<div style="font-weight:700;color:var(--primary);margin-bottom:4px">' + escapeHtml(f.label) + '</div>' +
+                (f.project ? '<div style="font-size:11px;color:var(--gray);margin-bottom:6px">📍 ' + escapeHtml(f.project) + '</div>' : '') +
+                '<div style="font-size:13px">متوسط إضافي المعدة: <b>' + f.ownMean.toFixed(1) + '</b> س/يوم — مقابل متوسط ' + f.groupEquipCount + ' معدة من نفس النوع (' + escapeHtml(f.type) + '): <b>' + f.groupMean.toFixed(1) + '</b> س/يوم ' +
+                '<span style="color:var(--danger);font-weight:700">(أعلى بـ ' + pct + '%)</span></div>' +
+                '<div style="font-size:11px;color:var(--gray);margin-top:4px">بناءً على ' + f.ownDays + ' يوم فيه إضافي</div>' +
+                '</div>';
+        });
+    }
+
+    if (res.flaggedDays.length) {
+        html += '<div style="font-weight:800;color:var(--primary);margin:16px 0 10px">🔍 أيام شاذة بعينها</div>';
+        res.flaggedDays.slice(0, 15).forEach(function(f) {
+            html += '<div class="detail-section" style="margin:0 0 8px 0;border-right:3px solid var(--danger)">' +
+                '<div style="font-weight:700;color:var(--primary)">' + escapeHtml(f.label) + '</div>' +
+                '<div style="font-size:13px">📅 ' + f.date + ' — إضافي ' + f.extra.toFixed(1) + ' ساعة (متوسط نوعها ' + f.groupMean.toFixed(1) + ' س)</div>' +
+                '</div>';
+        });
+        if (res.flaggedDays.length > 15) {
+            html += '<div style="font-size:11px;color:var(--gray);text-align:center">+' + (res.flaggedDays.length - 15) + ' يوم شاذ إضافي</div>';
+        }
+    }
+
+    if (res.groupStats.length) {
+        html += '<div style="font-weight:800;color:var(--primary);margin:16px 0 10px">📈 متوسطات الأنواع المقارَنة</div>';
+        html += '<div style="font-size:12px;color:var(--gray);line-height:2">';
+        res.groupStats.forEach(function(g) {
+            html += escapeHtml(g.type) + ': متوسط ' + g.mean.toFixed(1) + ' س/يوم (' + g.equipCount + ' معدة، ' + g.count + ' يوم إضافي مسجل)<br>';
+        });
+        html += '</div>';
+    }
+
+    return html;
+}
+
+function openOvertimeAnomalyModal() {
+    var modal = document.getElementById('overtime-anomaly-modal');
+    var content = document.getElementById('overtime-anomaly-content');
+    if (!modal || !content) return;
+    modal.classList.add('active');
+    content.innerHTML = buildOvertimeAnomalyHtml();
 }
 // ---- تخزين مؤقت (Cache) لنتائج التحليل الذكي لتجنب استدعاء API بشكل متكرر لنفس البيانات ----
 var AI_CACHE_TTL_MS = 20 * 60 * 1000; // 20 دقيقة
@@ -17149,7 +17356,7 @@ function openRentalAiAnalysisModal(forceRefresh) {
         }
 
         var prompt = 'أنت محلل تكاليف ومعدات لشركة مقاولات كبرى بمصر، وعقود الإيجار بتاخد أكبر جزء من ميزانية المشروع. حلل بيانات عقود الإيجار والساعات الإضافية وأيام الغياب التالية بالعربية، باختصار ووضوح وبدون مقدمات طويلة:\n' +
-            '1) أي أيام أو معدات فيها ساعات إضافية غير طبيعية تستاهل مراجعة فورية (استثناءات)، مع توضيح السبب المحتمل (مثلاً: خطأ تسجيل، سوء استغلال، ضغط عمل حقيقي).\n' +
+            '1) أي أيام أو معدات فيها ساعات إضافية غير طبيعية تستاهل مراجعة فورية (استثناءات)، مع توضيح السبب المحتمل (مثلاً: خطأ تسجيل، سوء استغلال، ضغط عمل حقيقي). البيانات فيها قسم "مقارنة الإضافي بين المعدات المتشابهة" محسوب رياضيًا مسبقًا (مقارنة كل معدة بمتوسط نوعها) — استخدمه كأساس أساسي لتحديد الاستثناءات دي، ومتجاهلوش.\n' +
             '2) توقع غياب المعدات: لكل معدة، حلل نمط الغياب (الأيام اللي مفيش فيها تسجيل عمل رغم إن العقد سارٍ)، وتوقع احتمالية استمرار أو تكرار الغياب قريبًا، وحدد بوضوح أي معدة غيابها الحالي أو المتكرر يستاهل متابعة عاجلة مع شركة الإيجار — لأن ده معناه إحنا بندفع إيجار على معدة مش موجودة أو مش شغالة فعليًا.\n' +
             '3) لكل عقد قريب من الانتهاء أو منتهي بالفعل، اديني توصية واضحة (تجديد / إرجاع / تفاوض) بناءً على معدل الاستخدام والغياب والإضافي المسجل، مع سبب مختصر لكل توصية.\n' +
             'رتب النتيجة حسب الأولوية (الأكثر إلحاحًا أولاً)، واستخدم عناوين قصيرة وإيموجي مناسب. البيانات:\n\n' + summary;
