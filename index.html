@@ -2914,6 +2914,29 @@ function localMonthStr(d) {
     d = d || new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
 }
+// دورة الإيجار المعتمدة: من يوم 21 في الشهر لحد يوم 20 من الشهر التالي (مش الشهر الميلادي العادي)
+// بترجع مفتاح فريد للدورة (زي "2026-08" يعني دورة 21 أغسطس - 20 سبتمبر) وتسمية عربية واضحة للعرض
+function getRentalPeriodKey(dateStr) {
+    if (!dateStr) return '';
+    var parts = dateStr.split('-');
+    if (parts.length < 3) return '';
+    var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1, d = parseInt(parts[2], 10);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return '';
+    var startY = y, startM = m;
+    if (d < 21) {
+        startM = m - 1;
+        if (startM < 0) { startM = 11; startY = y - 1; }
+    }
+    return startY + '-' + String(startM + 1).padStart(2, '0');
+}
+function rentalPeriodLabel(periodKey) {
+    var monthNamesAr = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    var parts = periodKey.split('-');
+    var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1;
+    var endM = m + 1, endY = y;
+    if (endM > 11) { endM = 0; endY = y + 1; }
+    return '21 ' + monthNamesAr[m] + ' – 20 ' + monthNamesAr[endM] + ' ' + endY;
+}
 
 // ==================== هوية الشركة (شعار حسن علام) ====================
 var COMPANY_LOGO_DATA_URI = null;   // شعار الشركة الأصلي (مستخرج من صفحة الدخول)
@@ -15557,22 +15580,25 @@ function detectRentalDailyDataAnomaly(record, rId) {
         warnings.push('🔺 الساعات الإضافية المدخلة (' + extra.toFixed(1) + ' س) مرتفعة جدًا — راجع الرقم قبل الحفظ.');
     }
 
-    // 3) مقارنة بتاريخ هذه المعدة نفسها سابقًا (باستثناء السجل الحالي لو بيتعدل)
-    var ownLogs = rentalDailyData.filter(function(d) { return d.equipmentId === rId && d.id !== editingRentalDailyId && (d.extraHours || 0) > 0; });
+    // نقصر المقارنات على دورة التسجيل نفسها (21 الشهر - 20 الشهر التالي) بدل كل التاريخ
+    var recordPeriodKey = getRentalPeriodKey(record.date);
+
+    // 3) مقارنة بتاريخ هذه المعدة نفسها خلال نفس الدورة (باستثناء السجل الحالي لو بيتعدل)
+    var ownLogs = rentalDailyData.filter(function(d) { return d.equipmentId === rId && d.id !== editingRentalDailyId && (d.extraHours || 0) > 0 && getRentalPeriodKey(d.date) === recordPeriodKey; });
     if (ownLogs.length >= 3) {
         var ownAvg = ownLogs.reduce(function(a, d) { return a + (d.extraHours || 0); }, 0) / ownLogs.length;
         if (extra > 0 && ownAvg > 0 && extra > ownAvg * 1.8 && (extra - ownAvg) >= 1.5) {
-            warnings.push('📊 الإضافي المدخل (' + extra.toFixed(1) + ' س) أعلى بكثير من متوسط هذه المعدة نفسها سابقًا (' + ownAvg.toFixed(1) + ' س/يوم).');
+            warnings.push('📊 الإضافي المدخل (' + extra.toFixed(1) + ' س) أعلى بكثير من متوسط هذه المعدة نفسها خلال نفس الدورة (' + ownAvg.toFixed(1) + ' س/يوم).');
         }
     }
 
-    // 4) مقارنة بمتوسط المعدات المشابهة (نفس نوع المعدة) — نفس منطق كشف الإضافي المشبوه
+    // 4) مقارنة بمتوسط المعدات المشابهة (نفس نوع المعدة) خلال نفس الدورة — نفس منطق كشف الإضافي المشبوه
     var rental = rentalData.find(function(r) { return r.id === rId; });
     var type = rental ? rental.equipmentType : '';
     if (type && extra > 0) {
         var peerValues = [];
         rentalData.filter(function(r) { return r.equipmentType === type; }).forEach(function(r) {
-            rentalDailyData.filter(function(d) { return d.equipmentId === r.id && d.id !== editingRentalDailyId && (d.extraHours || 0) > 0; })
+            rentalDailyData.filter(function(d) { return d.equipmentId === r.id && d.id !== editingRentalDailyId && (d.extraHours || 0) > 0 && getRentalPeriodKey(d.date) === recordPeriodKey; })
                 .forEach(function(d) { peerValues.push(d.extraHours); });
         });
         if (peerValues.length >= 5) {
@@ -15580,7 +15606,7 @@ function detectRentalDailyDataAnomaly(record, rId) {
             var pVar = peerValues.reduce(function(a, b) { return a + Math.pow(b - pMean, 2); }, 0) / peerValues.length;
             var pStd = Math.sqrt(pVar);
             if (pStd > 0 && extra > pMean + 2 * pStd && extra >= 2) {
-                warnings.push('📈 الإضافي المدخل (' + extra.toFixed(1) + ' س) أعلى من الطبيعي مقارنة بمتوسط معدات "' + type + '" الأخرى (' + pMean.toFixed(1) + ' س/يوم).');
+                warnings.push('📈 الإضافي المدخل (' + extra.toFixed(1) + ' س) أعلى من الطبيعي مقارنة بمتوسط معدات "' + type + '" الأخرى خلال نفس الدورة (' + pMean.toFixed(1) + ' س/يوم).');
             }
         }
     }
@@ -17161,12 +17187,17 @@ function buildRentalAnalysisData() {
 function computeSuspiciousOvertime() {
     if (!rentalData || !rentalData.length || !rentalDailyData || !rentalDailyData.length) return null;
 
-    var byType = {}; // النوع -> { values: [كل قيم الإضافي في هذا النوع], byEquip: { equipmentId: {label, project, entries:[{date,extra}]} } }
+    // نقصر المقارنة على الدورة الحالية فقط (من 21 الشهر لحد 20 الشهر التالي)
+    // عشان الإضافي القديم من دورات سابقة ميأثرش على تقييم الأداء الحالي
+    var currentPeriodKey = getRentalPeriodKey(localDateStr(new Date()));
+
+    var byType = {}; // النوع -> { values: [كل قيم الإضافي في هذا النوع خلال الدورة الحالية], byEquip: { equipmentId: {label, project, entries:[{date,extra}]} } }
 
     rentalData.forEach(function(r) {
         var type = r.equipmentType || 'غير محدد';
+        var logs = rentalDailyData.filter(function(d) { return d.equipmentId === r.id && getRentalPeriodKey(d.date) === currentPeriodKey; });
+        if (!logs.length) return; // مفيش تسجيل لهذه المعدة في الدورة الحالية، متتحسبش أصلًا
         if (!byType[type]) byType[type] = { values: [], byEquip: {} };
-        var logs = rentalDailyData.filter(function(d) { return d.equipmentId === r.id; });
         var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
         var label = (eq ? (eq.name || eq.type) + ' (' + eq.code + ')' : (r.equipmentType || 'معدة')) + (r.company ? ' - ' + r.company : '');
         var proj = eq ? (eq.projectSite || eq.location || '') : '';
@@ -17225,7 +17256,8 @@ function computeSuspiciousOvertime() {
 function buildOvertimeAnomalyTextSummary() {
     var res = computeSuspiciousOvertime();
     if (!res || (!res.flaggedEquipment.length && !res.flaggedDays.length)) return '';
-    var lines = ['', '— مقارنة الإضافي بين المعدات المتشابهة (نفس النوع) —'];
+    var currentPeriodLabel = rentalPeriodLabel(getRentalPeriodKey(localDateStr(new Date())));
+    var lines = ['', '— مقارنة الإضافي بين المعدات المتشابهة (نفس النوع، مقصورة على دورة ' + currentPeriodLabel + ' الحالية فقط) —'];
     res.flaggedEquipment.forEach(function(f) {
         var pct = Math.round((f.ownMean / f.groupMean - 1) * 100);
         lines.push('⚠️ ' + f.label + ' (نوع: ' + f.type + '): متوسط إضافيها ' + f.ownMean.toFixed(1) + ' س/يوم مقابل متوسط ' + f.groupEquipCount + ' معدة من نفس النوع ' + f.groupMean.toFixed(1) + ' س/يوم (أعلى بـ ' + pct + '%)');
@@ -17238,11 +17270,12 @@ function buildOvertimeAnomalyTextSummary() {
 
 function buildOvertimeAnomalyHtml() {
     var res = computeSuspiciousOvertime();
+    var currentPeriodLabel = rentalPeriodLabel(getRentalPeriodKey(localDateStr(new Date())));
     if (!res) {
-        return '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد بيانات كافية للمقارنة حاليًا (محتاجين على الأقل معدتين من نفس النوع بسجلات إضافي كفاية).</div>';
+        return '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد بيانات كافية للمقارنة خلال دورة (' + currentPeriodLabel + ') حاليًا (محتاجين على الأقل معدتين من نفس النوع بسجلات إضافي كفاية هذه الدورة).</div>';
     }
 
-    var html = '<div style="font-size:12px;color:var(--gray);margin-bottom:14px;line-height:1.8">📊 بيقارن هذا الفحص متوسط الساعات الإضافية لكل معدة بمتوسط زميلاتها من نفس النوع (حفارة مع حفارات، لودر مع لودرات...)، ويحدد أي معدة أو يوم شاذ عن الطبيعي رياضيًا — بدون الحاجة لاستدعاء الذكاء الاصطناعي.</div>';
+    var html = '<div style="font-size:12px;color:var(--gray);margin-bottom:14px;line-height:1.8">📊 هذا الفحص يقتصر على دورة <b>' + currentPeriodLabel + '</b> فقط (المدة الحالية اللي بيتم التسجيل فيها)، ويقارن متوسط الساعات الإضافية لكل معدة بمتوسط زميلاتها من نفس النوع (حفارة مع حفارات، لودر مع لودرات...)، ويحدد أي معدة أو يوم شاذ عن الطبيعي رياضيًا — بدون الحاجة لاستدعاء الذكاء الاصطناعي.</div>';
 
     if (!res.flaggedEquipment.length && !res.flaggedDays.length) {
         html += '<div style="text-align:center;color:var(--success);padding:16px 0">✅ لا توجد معدات أو أيام إضافي شاذة حاليًا مقارنة بمثيلاتها.</div>';
