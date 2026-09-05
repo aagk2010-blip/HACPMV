@@ -1076,7 +1076,6 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
           <button id="add-rental-btn" style="flex:1;padding:10px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">➕ إضافة عقد إيجار</button>
           <button id="delete-all-rental-btn" style="padding:10px 14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;cursor:pointer" title="حذف جميع السجلات">🗑️</button>
         </div>
-        <button onclick="openRentalAiAnalysisModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🤖 تحليل الإيجار الذكي (استثناءات + توقع غياب المعدات + توصيات العقود)</button>
         <button onclick="openOvertimeAnomalyModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">⚠️ كشف الإضافي المشبوه (مقارنة بين المعدات المتشابهة)</button>
         <div id="rental-equipment-list"></div>
       </div>
@@ -5538,7 +5537,7 @@ function initEquipmentPublicViewPage(eqId) {
             var workCardsEl = document.getElementById('eqpv-work-cards');
             if (workCardsEl) {
                 workCardsEl.innerHTML = buildOwnedEquipmentWorkCardHtml();
-                wireOwnedEquipmentWorkCard(eq.assignedDriver);
+                wireOwnedEquipmentWorkCard(eq.assignedDriver, eq.type);
             }
         }
 
@@ -9282,6 +9281,47 @@ function updateLiveMap(mapId, lat, lng) {
     if (wrap) wrap.style.display = 'block';
 }
 
+// ==================== شريط تفاعلي حي: ساعات العمل لليوم نفسه اللي بيتم تشغيل الصفحة فيه ====================
+// بيتحدث تلقائيًا كل ما الوقت يعدي من لحظة "بدء العمل"، ويقسم الوقت لأساسي/إضافي حسب الساعات المعيارية للمعدة
+function buildTodayHoursBarHtml(barId) {
+    return '<div id="' + barId + '-wrap" style="display:none;margin-bottom:10px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">' +
+            '<span style="font-size:11px;font-weight:700;color:#0d1b2a">⏱️ ساعات العمل اليوم</span>' +
+            '<span id="' + barId + '-time" style="font-size:13px;font-weight:800;color:#0d1b2a">00:00</span>' +
+        '</div>' +
+        '<div style="background:#e2e8f0;border-radius:10px;height:16px;overflow:hidden;display:flex">' +
+            '<div id="' + barId + '-basic" style="height:100%;background:linear-gradient(90deg,#10b981,#059669);width:0%;transition:width .6s ease"></div>' +
+            '<div id="' + barId + '-extra" style="height:100%;background:linear-gradient(90deg,#f59e0b,#d97706);width:0%;transition:width .6s ease"></div>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:9.5px;color:#94a3b8;margin-top:3px">' +
+            '<span>🟢 أساسي</span><span>🟠 إضافي</span>' +
+        '</div>' +
+        '</div>';
+}
+function updateTodayHoursBar(barId, startedAtIso, standardHours) {
+    var wrap = document.getElementById(barId + '-wrap');
+    var timeEl = document.getElementById(barId + '-time');
+    var basicEl = document.getElementById(barId + '-basic');
+    var extraEl = document.getElementById(barId + '-extra');
+    if (!wrap || !startedAtIso) return;
+    wrap.style.display = 'block';
+
+    var elapsedMs = Date.now() - new Date(startedAtIso).getTime();
+    if (isNaN(elapsedMs) || elapsedMs < 0) elapsedMs = 0;
+    var elapsedHours = elapsedMs / 3600000;
+    var std = standardHours || 8;
+    var basicHours = Math.min(elapsedHours, std);
+    var extraHours = Math.max(0, elapsedHours - std);
+    var scale = Math.max(std + 4, elapsedHours + 1); // مقياس ديناميكي عشان الشريط ميفضلش مليان بسرعة لو الإضافي زاد
+    if (basicEl) basicEl.style.width = ((basicHours / scale) * 100) + '%';
+    if (extraEl) extraEl.style.width = ((extraHours / scale) * 100) + '%';
+
+    var totalMins = Math.floor(elapsedMs / 60000);
+    var hh = Math.floor(totalMins / 60), mm = totalMins % 60;
+    var timeLabel = (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+    if (timeEl) timeEl.textContent = timeLabel + (extraHours > 0 ? ' (منها ' + extraHours.toFixed(1) + ' س إضافي)' : '');
+}
+
 // ==================== منع إغلاق/تعتيم الشاشة تلقائيًا أثناء "بدء العمل" (Screen Wake Lock) ====================
 // المتصفح لسه بيدعم "wakeLock" في المتصفحات الحديثة بس — لو مش مدعوم بنتجاهل بهدوء من غير ما نكسر الصفحة
 var _activeWakeLock = null;
@@ -9394,7 +9434,7 @@ function buildWorkStatusCardHtml() {
         '<div style="font-size:11.5px;color:#6b7a8d;margin-bottom:14px">سجّل بدء وانتهاء شغلك اليوم عشان فريق العمل يتابع المعدة أول بأول</div>' +
         '<div id="loc-share-status" style="font-size:12.5px;font-weight:700;color:#f59e0b;background:#fef3c7;border-radius:10px;padding:9px;margin-bottom:8px">⏳ لم يبدأ العمل بعد</div>' +
         '<div id="loc-share-queue-info" style="font-size:10.5px;color:#9ca3af;margin-bottom:10px;display:none"></div>' +
-        buildLiveMapHtml('loc-live-map') +
+        buildTodayHoursBarHtml('loc-hours-bar') +
         '<button id="loc-share-toggle-btn" style="width:100%;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
         '<div style="font-size:10px;color:#9ca3af;margin-top:12px">هيطلب المتصفح إذن الوصول — اضغط "سماح"<br>البيانات بتتسجّل حتى لو النت اتقطع، وترفع تلقائي أول ما النت يرجع</div>' +
         '</div>';
@@ -9418,7 +9458,7 @@ function buildOwnedEquipmentWorkCardHtml() {
             '</div>' +
             '<div id="eqpv-share-ocr-status" style="font-size:10.5px;margin-top:4px;display:none"></div>' +
         '</div>' +
-        buildLiveMapHtml('eqpv-live-map') +
+        buildTodayHoursBarHtml('eqpv-hours-bar') +
         '<button id="eqpv-share-toggle-btn" style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
         '</div>';
 }
@@ -9520,15 +9560,32 @@ function uploadMeterPhoto(file, driverId) {
 }
 
 // يربط منطق مشاركة الموقع وتسجيل بدء/انتهاء العمل بالكارت المصغّر (نفس منطق initEquipmentMeterSharePage بالضبط، بس مربوط بعناصر الكارت المدمج داخل صفحة QR للمعدة)
-function wireOwnedEquipmentWorkCard(driverId) {
+function wireOwnedEquipmentWorkCard(driverId, eqType) {
     wireMeterOCRButton('eqpv-share-ocr-btn', 'eqpv-share-ocr-file', 'eqpv-share-meter-input', 'eqpv-share-ocr-status', driverId);
     var driverName = '';
     var QUEUE_KEY = 'offlineLocQueue_' + driverId;
+    var standardHoursForBar = rentalStandardHours(eqType);
 
     function getLocalDateKey(d) {
         d = d || new Date();
         var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
         return y + '-' + m + '-' + day;
+    }
+
+    // ---- شريط ساعات العمل الحي (بديل الخريطة) ----
+    var hoursBarInterval = null;
+    function startHoursBarTimer(startedAtIso) {
+        if (!startedAtIso) return;
+        updateTodayHoursBar('eqpv-hours-bar', startedAtIso, standardHoursForBar);
+        if (hoursBarInterval) clearInterval(hoursBarInterval);
+        hoursBarInterval = setInterval(function() {
+            updateTodayHoursBar('eqpv-hours-bar', startedAtIso, standardHoursForBar);
+        }, 30000);
+    }
+    function stopHoursBarTimer() {
+        if (hoursBarInterval) { clearInterval(hoursBarInterval); hoursBarInterval = null; }
+        var wrap = document.getElementById('eqpv-hours-bar-wrap');
+        if (wrap) wrap.style.display = 'none';
     }
 
     var btn = document.getElementById('eqpv-share-toggle-btn');
@@ -9610,7 +9667,6 @@ function wireOwnedEquipmentWorkCard(driverId) {
             updatedAt: now.toISOString(), dateKey: getLocalDateKey(now), meter: startMeter
         };
 
-        updateLiveMap('eqpv-live-map', point.lat, point.lng);
         if (!navigator.onLine) {
             var q = getQueue(); q.push(point); setQueue(q); updateQueueBadge();
             statusEl.style.color = '#92400e'; statusEl.style.background = '#fef3c7';
@@ -9645,7 +9701,12 @@ function wireOwnedEquipmentWorkCard(driverId) {
         sharing = true;
         meterInput.value = startMeter;
         meterInput.disabled = true;
-        saveWorkState({ sharing: true, startMeter: startMeter });
+        // نحافظ على وقت بداية العمل لو السائق فتح الصفحة تاني في نفس اليوم (بدل ما العداد يرجع صفر)
+        var existingState = getSavedWorkState();
+        var todayKeyNow = getLocalDateKey(new Date());
+        var startedAt = (existingState && existingState.startedAt && existingState.dateKey === todayKeyNow) ? existingState.startedAt : new Date().toISOString();
+        saveWorkState({ sharing: true, startMeter: startMeter, startedAt: startedAt, dateKey: todayKeyNow });
+        startHoursBarTimer(startedAt);
         requestScreenWakeLock();
         armCloseWarning(driverId);
         shareWatchId = navigator.geolocation.watchPosition(pushLocation, function(err) {
@@ -9664,6 +9725,7 @@ function wireOwnedEquipmentWorkCard(driverId) {
         tryFlushQueue();
         meterInput.disabled = false;
         saveWorkState({ sharing: false, startMeter: null });
+        stopHoursBarTimer();
         statusEl.style.color = '#f59e0b'; statusEl.style.background = '#fef3c7';
         statusEl.innerHTML = '⏸️ تم إنهاء العمل';
         btn.textContent = '▶️ بدء العمل';
@@ -9812,6 +9874,23 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
             var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
             return y + '-' + m + '-' + day;
         }
+
+        // ---- شريط ساعات العمل الحي (بديل الخريطة) ----
+        var hoursBarInterval = null;
+        var standardHoursForBar = rentalStandardHours(rentalContract.equipmentType);
+        function startHoursBarTimer(startedAtIso) {
+            if (!startedAtIso) return;
+            updateTodayHoursBar('loc-hours-bar', startedAtIso, standardHoursForBar);
+            if (hoursBarInterval) clearInterval(hoursBarInterval);
+            hoursBarInterval = setInterval(function() {
+                updateTodayHoursBar('loc-hours-bar', startedAtIso, standardHoursForBar);
+            }, 30000);
+        }
+        function stopHoursBarTimer() {
+            if (hoursBarInterval) { clearInterval(hoursBarInterval); hoursBarInterval = null; }
+            var wrap = document.getElementById('loc-hours-bar-wrap');
+            if (wrap) wrap.style.display = 'none';
+        }
         function getQueue() {
             try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch (e) { return []; }
         }
@@ -9864,7 +9943,6 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
         function pushLocation(pos) {
             var now = new Date();
             var point = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, updatedAt: now.toISOString(), dateKey: getLocalDateKey(now) };
-            updateLiveMap('loc-live-map', point.lat, point.lng);
             if (!navigator.onLine) {
                 var q = getQueue(); q.push(point); setQueue(q); updateQueueBadge();
                 locStatusEl.style.color = '#92400e'; locStatusEl.style.background = '#fef3c7';
@@ -9888,7 +9966,12 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
 
         function startLocSharing() {
             sharing = true;
-            saveLocState({ sharing: true });
+            // نحافظ على وقت بداية العمل لو السائق أعاد فتح الصفحة في نفس اليوم (بدل ما العداد يرجع صفر)
+            var existingState = getSavedLocState();
+            var todayKeyNow = getLocalDateKey(new Date());
+            var startedAt = (existingState && existingState.startedAt && existingState.dateKey === todayKeyNow) ? existingState.startedAt : new Date().toISOString();
+            saveLocState({ sharing: true, startedAt: startedAt, dateKey: todayKeyNow });
+            startHoursBarTimer(startedAt);
             requestScreenWakeLock();
             armCloseWarning(driverId);
             shareWatchId = navigator.geolocation.watchPosition(pushLocation, function(err) {
@@ -9907,6 +9990,7 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
             disarmCloseWarning();
             tryFlushQueue();
             saveLocState({ sharing: false });
+            stopHoursBarTimer();
             locStatusEl.style.color = '#f59e0b'; locStatusEl.style.background = '#fef3c7';
             locStatusEl.innerHTML = '⏸️ تم إنهاء العمل';
             locBtn.textContent = '▶️ بدء العمل';
@@ -16597,18 +16681,6 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </div>
 
-<!-- مودال تحليل الإيجار الذكي -->
-<div class="modal-overlay" id="ai-rental-modal">
-  <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
-    <div class="modal-title">🤖 تحليل الإيجار الذكي</div>
-    <button class="modal-close" onclick="closeModal('ai-rental-modal')">✕</button>
-  </div>
-  <div id="ai-rental-content" style="padding:16px;padding-bottom:10px;white-space:pre-wrap;line-height:1.9;font-size:14px"></div>
-  <div style="position:sticky;bottom:0;background:var(--light);padding:14px;display:none" id="ai-rental-actions">
-    <button class="save-btn" style="background:#0d1b2a" onclick="printAiTextAsPdf('🤖 تحليل الإيجار الذكي', lastAiRentalText)">🖨️ طباعة PDF</button>
-  </div>
-</div>
-
 <!-- مودال كشف الإضافي المشبوه (مقارنة رياضية مباشرة بين المعدات المتشابهة، بدون AI) -->
 <div class="modal-overlay" id="overtime-anomaly-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
@@ -17080,106 +17152,6 @@ function renderAiChatMessage(role, text) {
     wrap.scrollTop = wrap.scrollHeight;
 }
 
-// ==================== تحليل الإيجار الذكي (استثناءات + توقع غياب المعدات + توصيات العقود) ====================
-var lastAiRentalText = '';
-function dateRangeArray(startStr, endStr) {
-    var out = [];
-    var d = new Date(startStr);
-    var end = new Date(endStr);
-    if (isNaN(d) || isNaN(end) || d > end) return out;
-    // حماية: تاريخ خاطئ في البيانات (سنة غلط، تاريخ فاضي...) ممكن يعمل فارق ملايين
-    // الأيام ويجمّد المتصفح بالكامل ("تحميل بدون نهاية"). بنحدد أقصى 5 سنين تقريبًا.
-    var MAX_DAYS = 1830;
-    var msPerDay = 86400000;
-    if ((end - d) / msPerDay > MAX_DAYS) {
-        end = new Date(d.getTime() + MAX_DAYS * msPerDay);
-    }
-    while (d <= end) {
-        out.push(d.toISOString().slice(0, 10));
-        d.setDate(d.getDate() + 1);
-    }
-    return out;
-}
-function buildRentalAnalysisData() {
-    if (!rentalData || !rentalData.length) return null;
-    var today = new Date();
-    var todayStr = today.toISOString().slice(0, 10);
-    var contractsInfo = [];
-    rentalData.forEach(function(r) {
-      try {
-        var logs = rentalDailyData.filter(function(d) { return d.equipmentId === r.id; })
-            .sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
-        var daysCount = logs.length;
-        var totalBasic = 0, totalExtra = 0;
-        logs.forEach(function(l) { totalBasic += (l.basicHours || 0); totalExtra += (l.extraHours || 0); });
-        var overtimeDays = logs.filter(function(l) { return (l.extraHours || 0) > 0; });
-        var avgExtra = overtimeDays.length ? (totalExtra / overtimeDays.length) : 0;
-
-        // استثناءات: إضافي أعلى بكثير من متوسط هذا العقد نفسه، أو مرتفع جدًا في المطلق
-        var exceptions = [];
-        logs.forEach(function(l) {
-            var e = l.extraHours || 0;
-            if (e >= 5) {
-                exceptions.push(l.date + ' (' + e.toFixed(1) + ' س. إضافي — مرتفع جدًا)');
-            } else if (avgExtra > 0 && e > avgExtra * 1.8 && e >= 2 && overtimeDays.length >= 4) {
-                exceptions.push(l.date + ' (' + e.toFixed(1) + ' س. إضافي مقابل متوسط العقد ' + avgExtra.toFixed(1) + ')');
-            }
-        });
-
-        // توقع/رصد غياب المعدة: الأيام اللي مفيش فيها تسجيل رغم إن العقد سارٍ
-        var loggedDatesSet = {};
-        logs.forEach(function(l) { if (l.date) loggedDatesSet[l.date] = true; });
-        var rangeStart = logs.length ? logs[0].date : (r.startDate || null);
-        var rangeEnd = (r.endDate && r.endDate < todayStr) ? r.endDate : todayStr;
-        var allDates = rangeStart ? dateRangeArray(rangeStart, rangeEnd) : [];
-        var absentDates = allDates.filter(function(ds) { return !loggedDatesSet[ds]; });
-        var totalRangeDays = allDates.length;
-        var absenceRate = totalRangeDays ? (absentDates.length / totalRangeDays * 100) : 0;
-        var recentStreak = 0;
-        for (var i = allDates.length - 1; i >= 0; i--) {
-            if (!loggedDatesSet[allDates[i]]) recentStreak++; else break;
-        }
-
-        var daysLeft = r.endDate ? Math.ceil((new Date(r.endDate) - today) / 86400000) : null;
-        var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
-        var label = (eq ? (eq.name || eq.type) + ' (' + eq.code + ')' : (r.equipmentType || 'معدة')) + (r.company ? ' - ' + r.company : '');
-
-        contractsInfo.push({
-            label: label, daysCount: daysCount, totalBasic: totalBasic, totalExtra: totalExtra,
-            avgExtra: avgExtra, overtimeDaysCount: overtimeDays.length, exceptions: exceptions,
-            startDate: r.startDate || null, endDate: r.endDate || null, daysLeft: daysLeft,
-            totalRangeDays: totalRangeDays, absentCount: absentDates.length, absenceRate: absenceRate,
-            recentStreak: recentStreak, lastAbsentDates: absentDates.slice(-8)
-        });
-      } catch(e) {
-        // تجاهل العقد ده لو بياناته فيها مشكلة، وكمل الباقي بدل ما التحليل كله يفشل
-      }
-    });
-
-    var lines = ['إجمالي عقود الإيجار المسجلة: ' + contractsInfo.length];
-    contractsInfo.forEach(function(c) {
-        var statusNote;
-        if (c.daysLeft === null) statusNote = 'بدون تاريخ نهاية محدد';
-        else if (c.daysLeft < 0) statusNote = '⚠️ العقد منتهي منذ ' + Math.abs(c.daysLeft) + ' يوم';
-        else if (c.daysLeft <= 30) statusNote = '⏳ ينتهي خلال ' + c.daysLeft + ' يوم (بتاريخ ' + c.endDate + ')';
-        else statusNote = 'ساري حتى ' + c.endDate;
-
-        var absenceNote = c.totalRangeDays
-            ? ('أيام غياب: ' + c.absentCount + ' من أصل ' + c.totalRangeDays + ' يوم (نسبة الغياب ' + c.absenceRate.toFixed(0) + '%)' +
-               (c.recentStreak >= 2 ? ' | ⚠️ غياب متواصل حاليًا منذ ' + c.recentStreak + ' يوم' : '') +
-               (c.lastAbsentDates.length ? ' | آخر أيام الغياب: ' + c.lastAbsentDates.join('، ') : ''))
-            : 'لا يوجد نطاق تاريخ كافٍ لحساب الغياب';
-
-        lines.push('- ' + c.label + ': ' + c.daysCount + ' يوم عمل مسجل، إجمالي ساعات أساسية ' + c.totalBasic.toFixed(1) +
-            '، إجمالي ساعات إضافية ' + c.totalExtra.toFixed(1) + ' (' + c.overtimeDaysCount + ' يوم فيه إضافي، متوسط ' + c.avgExtra.toFixed(1) + ' س/يوم) | ' + statusNote +
-            ' | ' + absenceNote +
-            (c.exceptions.length ? ' | استثناءات: ' + c.exceptions.join('، ') : ''));
-    });
-    var overtimeAnomalySummary = buildOvertimeAnomalyTextSummary();
-    if (overtimeAnomalySummary) lines.push(overtimeAnomalySummary);
-    return lines.join('\n');
-}
-
 // ==================== كشف الإضافي المشبوه: مقارنة رياضية مباشرة بين المعدات المتشابهة ====================
 // الفكرة: نجمع كل أيام الإضافي حسب نوع المعدة (حفارة مع حفارات، لودر مع لودرات...)
 // ونحسب المتوسط والانحراف المعياري لكل نوع، وبعدين نقارن كل معدة بمتوسط زميلاتها.
@@ -17253,20 +17225,6 @@ function computeSuspiciousOvertime() {
     return { groupStats: groupStats, flaggedEquipment: flaggedEquipment, flaggedDays: flaggedDays };
 }
 
-function buildOvertimeAnomalyTextSummary() {
-    var res = computeSuspiciousOvertime();
-    if (!res || (!res.flaggedEquipment.length && !res.flaggedDays.length)) return '';
-    var currentPeriodLabel = rentalPeriodLabel(getRentalPeriodKey(localDateStr(new Date())));
-    var lines = ['', '— مقارنة الإضافي بين المعدات المتشابهة (نفس النوع، مقصورة على دورة ' + currentPeriodLabel + ' الحالية فقط) —'];
-    res.flaggedEquipment.forEach(function(f) {
-        var pct = Math.round((f.ownMean / f.groupMean - 1) * 100);
-        lines.push('⚠️ ' + f.label + ' (نوع: ' + f.type + '): متوسط إضافيها ' + f.ownMean.toFixed(1) + ' س/يوم مقابل متوسط ' + f.groupEquipCount + ' معدة من نفس النوع ' + f.groupMean.toFixed(1) + ' س/يوم (أعلى بـ ' + pct + '%)');
-    });
-    res.flaggedDays.slice(0, 10).forEach(function(f) {
-        lines.push('🔍 يوم شاذ: ' + f.label + ' بتاريخ ' + f.date + ' — إضافي ' + f.extra.toFixed(1) + ' س (متوسط نوعها ' + f.groupMean.toFixed(1) + ' س)');
-    });
-    return lines.join('\n');
-}
 
 function buildOvertimeAnomalyHtml() {
     var res = computeSuspiciousOvertime();
@@ -17337,58 +17295,8 @@ function aiCacheSet(key, hash, text) {
 }
 
 function openRentalAiAnalysisModal(forceRefresh) {
-    var modal = document.getElementById('ai-rental-modal');
-    var content = document.getElementById('ai-rental-content');
-    var actions = document.getElementById('ai-rental-actions');
-    if (!modal || !content) return;
-    modal.classList.add('active');
-    if (actions) actions.style.display = 'none';
-    // نعرض السبينر فورًا، وبعدين نأجل الحساب الثقيل لخطوة تالية عشان الشاشة
-    // تقدر تعرض السبينر قبل ما المتصفح يبدأ الحساب (بدل ما تفضل واقفة من غير رد فعل)
-    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري تحليل بيانات الإيجار...</div></div>';
-
-    setTimeout(function() {
-        var summary;
-        try {
-            summary = buildRentalAnalysisData();
-        } catch(e) {
-            content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ حصل خطأ أثناء تجهيز بيانات التحليل: ' + escapeHtml(e.message || String(e)) + '</div>';
-            return;
-        }
-        if (!summary) {
-            content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد عقود إيجار مسجلة حاليًا لتحليلها.</div>';
-            return;
-        }
-
-        var cacheKey = 'rental_analysis';
-        var hash = aiCacheHash(summary);
-        var cached = forceRefresh ? null : aiCacheGet(cacheKey);
-        if (cached && cached.hash === hash) {
-            lastAiRentalText = cached.text;
-            content.textContent = cached.text;
-            var minsAgo = Math.max(1, Math.round((Date.now() - cached.ts) / 60000));
-            content.innerHTML += '<div style="margin-top:14px;font-size:11px;color:var(--gray);text-align:center">📦 نتيجة محفوظة من قبل ' + minsAgo + ' دقيقة (نفس البيانات) — <a href="#" onclick="openRentalAiAnalysisModal(true);return false;" style="color:var(--purple)">تحديث الآن</a></div>';
-            if (actions) actions.style.display = 'block';
-            return;
-        }
-
-        var prompt = 'أنت محلل تكاليف ومعدات لشركة مقاولات كبرى بمصر، وعقود الإيجار بتاخد أكبر جزء من ميزانية المشروع. حلل بيانات عقود الإيجار والساعات الإضافية وأيام الغياب التالية بالعربية، باختصار ووضوح وبدون مقدمات طويلة:\n' +
-            '1) أي أيام أو معدات فيها ساعات إضافية غير طبيعية تستاهل مراجعة فورية (استثناءات)، مع توضيح السبب المحتمل (مثلاً: خطأ تسجيل، سوء استغلال، ضغط عمل حقيقي). البيانات فيها قسم "مقارنة الإضافي بين المعدات المتشابهة" محسوب رياضيًا مسبقًا (مقارنة كل معدة بمتوسط نوعها) — استخدمه كأساس أساسي لتحديد الاستثناءات دي، ومتجاهلوش.\n' +
-            '2) توقع غياب المعدات: لكل معدة، حلل نمط الغياب (الأيام اللي مفيش فيها تسجيل عمل رغم إن العقد سارٍ)، وتوقع احتمالية استمرار أو تكرار الغياب قريبًا، وحدد بوضوح أي معدة غيابها الحالي أو المتكرر يستاهل متابعة عاجلة مع شركة الإيجار — لأن ده معناه إحنا بندفع إيجار على معدة مش موجودة أو مش شغالة فعليًا.\n' +
-            '3) لكل عقد قريب من الانتهاء أو منتهي بالفعل، اديني توصية واضحة (تجديد / إرجاع / تفاوض) بناءً على معدل الاستخدام والغياب والإضافي المسجل، مع سبب مختصر لكل توصية.\n' +
-            'رتب النتيجة حسب الأولوية (الأكثر إلحاحًا أولاً)، واستخدم عناوين قصيرة وإيموجي مناسب. البيانات:\n\n' + summary;
-
-        callGeminiAPI(prompt, function(err, text) {
-            if (err) {
-                content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
-                return;
-            }
-            lastAiRentalText = text;
-            content.textContent = text;
-            aiCacheSet(cacheKey, hash, text);
-            if (actions) actions.style.display = 'block';
-        });
-    }, 30);
+    // تم إلغاء ميزة "تحليل الإيجار الذكي" بناءً على طلب المستخدم — الدالة اتسابت فاضية احتياطًا لأي زر قديم متبقي بالخطأ
+    return;
 }
 
 // ==================== تحليل سلوك السائقين الذكي (مسافة + توقفات + انقطاع تتبع عبر عدة أيام) ====================
