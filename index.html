@@ -22,6 +22,7 @@
 <script>if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
@@ -1097,6 +1098,10 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <div style="font-size:11.5px;background:white;border-radius:20px;padding:6px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06)">🟡 آخر تحديث قديم</div>
         <div style="font-size:11.5px;background:white;border-radius:20px;padding:6px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06)">⚪ لا يشارك موقعه</div>
       </div>
+      <div style="padding:0 14px 10px">
+        <button id="map-ai-snapshot-btn" onclick="analyzeMapSnapshotWithAi()" style="width:100%;padding:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🤖 تحليل ذكي فوري لحالة الأسطول الآن</button>
+        <div id="map-ai-snapshot-result"></div>
+      </div>
       <div style="padding:0 14px 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <select id="route-driver-select" style="flex:1;min-width:140px;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;background:white"><option value="">🛣️ اختر سائق لعرض مساره</option></select>
         <input type="date" id="route-date-input" style="border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;background:white">
@@ -1104,6 +1109,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <button onclick="clearDriverRoute()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">✖️ مسح</button>
       </div>
       <div id="route-info" style="display:none;margin:0 14px 8px;font-size:11.5px;color:#64748b"></div>
+      <div id="route-ai-insight" style="display:none;margin:0 14px 10px"></div>
       <div id="equipment-map" style="height:calc(100vh - 220px);min-height:380px;width:100%;box-sizing:border-box;margin:0 14px 14px;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);position:relative;z-index:1"></div>
     </div>
   </div>
@@ -5406,6 +5412,7 @@ function initEquipmentPublicViewPage(eqId) {
         '<button onclick="openEquipmentFileModal(\'' + eqId + '\',\'inspectionFile\',\'فحص المعدة\',\'📋\')" style="flex:1;padding:12px 8px;border:none;border-radius:14px;background:linear-gradient(135deg,#0f766e,#134e4a);color:white;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">📋<br>فحص المعدة</button>' +
         '<button onclick="openEquipmentFileModal(\'' + eqId + '\',\'calibrationFile\',\'شهادة المعايرة\',\'📜\')" style="flex:1;padding:12px 8px;border:none;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">📜<br>شهادة المعايرة</button>' +
         '</div>' +
+        '<button onclick="eqpvOpenFaultReportModal(\'' + eqId + '\')" style="width:100%;margin-bottom:10px;padding:12px 8px;border:none;border-radius:14px;background:linear-gradient(135deg,#dc2626,#991b1b);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">🚨 إبلاغ عن عطل</button>' +
         '<div id="eqpv-work-cards"></div>' +
         '<div id="eqpv-content">' +
         '<div style="background:white;border-radius:18px;padding:40px 20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:36px;margin-bottom:10px">⏳</div><div style="color:#64748b;font-size:14px">جاري تحميل بيانات المعدة...</div></div>' +
@@ -5541,6 +5548,148 @@ function initEquipmentPublicViewPage(eqId) {
 
 function eqpvErrorCard(msg) {
     return '<div style="background:white;border-radius:18px;padding:40px 20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:36px;margin-bottom:10px">📭</div><div style="color:#64748b;font-size:14px">' + msg + '</div></div>';
+}
+
+// ==================== الإبلاغ عن عطل من صفحة الـQR العامة (بدون تسجيل دخول) ====================
+// أي عامل يمسح كود المعدة يقدر يبلّغ عن عطل مباشرة من هنا، بنفس منطق تحليل الصورة الفوري بالـ AI المستخدم داخل التطبيق
+var eqpvFaultReportEqId = null;
+var eqpvFaultReportPhoto = null;
+var eqpvFaultReportAiAnalysis = null;
+
+function eqpvOpenFaultReportModal(eqId) {
+    eqpvFaultReportEqId = eqId;
+    eqpvFaultReportPhoto = null;
+    eqpvFaultReportAiAnalysis = null;
+    var existing = document.getElementById('eqpv-fault-modal');
+    if (existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = 'eqpv-fault-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:Cairo,Tahoma,sans-serif;direction:rtl';
+    modal.innerHTML =
+        '<div style="background:white;border-radius:18px;padding:20px;max-width:380px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2a">🚨 إبلاغ عن عطل</div>' +
+        '<button onclick="document.getElementById(\'eqpv-fault-modal\').remove()" style="background:#f1f5f9;border:none;width:28px;height:28px;border-radius:8px;font-size:14px;cursor:pointer">✕</button>' +
+        '</div>' +
+        '<input type="text" id="eqpv-fault-name" placeholder="اسمك (اختياري)" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:8px;box-sizing:border-box">' +
+        '<textarea id="eqpv-fault-desc" placeholder="وصف العطل..." rows="3" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:8px;box-sizing:border-box;resize:vertical"></textarea>' +
+        '<input type="file" id="eqpv-fault-photo" accept="image/*" style="display:none">' +
+        '<button type="button" onclick="document.getElementById(\'eqpv-fault-photo\').click()" style="width:100%;padding:9px;border:none;border-radius:10px;background:#f1f5f9;color:#334155;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;margin-bottom:8px">📷 إرفاق صورة</button>' +
+        '<div id="eqpv-fault-photo-preview"></div>' +
+        '<div id="eqpv-fault-ai-result"></div>' +
+        '<button type="button" id="eqpv-fault-ai-retry-btn" onclick="eqpvAnalyzeFaultReportPhotoWithAi()" style="display:none;width:100%;margin-bottom:8px;background:#ede9fe;color:#5b21b6;border:none;border-radius:10px;padding:8px;font-weight:700;cursor:pointer;font-size:11.5px;font-family:inherit">🔄 إعادة التحليل بالـ AI</button>' +
+        '<button type="button" onclick="eqpvSubmitFaultReport()" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#dc2626,#991b1b);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">🚨 إرسال البلاغ</button>' +
+        '<div id="eqpv-fault-submit-status" style="font-size:11px;margin-top:8px;text-align:center"></div>' +
+        '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+
+    var photoInput = document.getElementById('eqpv-fault-photo');
+    if (photoInput) {
+        photoInput.onchange = function() {
+            if (photoInput.files && photoInput.files[0]) eqpvHandleFaultReportPhoto(photoInput.files[0]);
+        };
+    }
+}
+
+function eqpvHandleFaultReportPhoto(file) {
+    if (!file) return;
+    var preview = document.getElementById('eqpv-fault-photo-preview');
+    eqpvFaultReportAiAnalysis = null;
+    var aiBox = document.getElementById('eqpv-fault-ai-result');
+    var retryBtn = document.getElementById('eqpv-fault-ai-retry-btn');
+    if (aiBox) aiBox.innerHTML = '';
+    if (retryBtn) retryBtn.style.display = 'none';
+    if (preview) preview.innerHTML = '<div style="font-size:11px;color:#94a3b8">⏳ جاري المعالجة...</div>';
+    var reader = new FileReader();
+    reader.onload = function() {
+        compressImageDataUrl(reader.result, 1000, 0.75).then(function(result) {
+            eqpvFaultReportPhoto = result.dataUrl;
+            if (preview) preview.innerHTML = '<img src="' + result.dataUrl + '" style="max-width:140px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.2);margin-bottom:8px">';
+            eqpvAnalyzeFaultReportPhotoWithAi();
+        }).catch(function() {
+            if (preview) preview.innerHTML = '<div style="font-size:11px;color:#dc2626">تعذّر رفع الصورة</div>';
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+// نسخة من analyzeFaultReportPhotoWithAi تشتغل جوّه صفحة الـQR العامة (بدون تسجيل دخول)، بنفس منطق التحليل الفوري بالضبط
+function eqpvAnalyzeFaultReportPhotoWithAi() {
+    if (!eqpvFaultReportPhoto) return;
+    var box = document.getElementById('eqpv-fault-ai-result');
+    var retryBtn = document.getElementById('eqpv-fault-ai-retry-btn');
+    if (!GEMINI_API_KEY) { if (retryBtn) retryBtn.style.display = 'none'; return; }
+    eqpvFaultReportAiAnalysis = null;
+    if (retryBtn) retryBtn.style.display = 'none';
+    if (box) box.innerHTML = '<div style="font-size:11.5px;color:#94a3b8;padding:8px 0">🤖 جاري تحليل الصورة فوريًا لتقييم الخطورة...</div>';
+    var desc = ((document.getElementById('eqpv-fault-desc') || {}).value || '').trim();
+    fbDb.ref('equipment/' + eqpvFaultReportEqId).once('value').then(function(snap) {
+        var eq = snap.val() || {};
+        var prompt = 'انت فني معدات ثقيلة خبير جدًا في تشخيص الأعطال من الصور. عندك صورة عطل في معدة "' + (eq.name || '') + '"' +
+            (desc ? '، ووصف السائق للمشكلة: "' + desc + '"' : ' (السائق لسه ما كتبش وصف نصي).') +
+            ' حلل الصورة كويس وقيّم خطورة العطل بسرعة عشان نعرف لو المعدة محتاجة توقف فورًا أو ممكن تستنى لحد ما الفني يوصل. ' +
+            'رد فقط بكائن JSON واحد بدون أي نص إضافي وبدون Markdown وبدون علامات كود، بالشكل ده بالظبط:\n' +
+            '{"severity":"عالية أو متوسطة أو منخفضة","stopEquipment":true أو false,"likelyCause":"السبب المحتمل للعطل بإيجاز شديد","recommendation":"توصية عملية قصيرة للسائق لحد ما الفني يوصل"}';
+        callGeminiVisionAPI(prompt, eqpvFaultReportPhoto, function(err, text) {
+            if (!eqpvFaultReportPhoto) return;
+            if (err) {
+                if (box) box.innerHTML = '<div style="font-size:11px;color:#94a3b8;padding:6px 0">تعذّر التحليل الفوري (' + escapeHtml(err) + ') — تقدر تبعت البلاغ عادي وهيراجعه فني.</div>';
+                if (retryBtn) retryBtn.style.display = 'block';
+                return;
+            }
+            var parsed = parseFaultReportAiJson(text);
+            if (!parsed || !parsed.severity) {
+                if (box) box.innerHTML = '<div style="font-size:11px;color:#94a3b8;padding:6px 0">تعذّر فهم رد الـ AI بشكل منظم — هيتراجع البلاغ يدويًا من الفني.</div>';
+                if (retryBtn) retryBtn.style.display = 'block';
+                return;
+            }
+            eqpvFaultReportAiAnalysis = parsed;
+            if (box) {
+                var meta = faultReportAiSeverityMeta(parsed.severity);
+                var stopHtml = parsed.stopEquipment
+                    ? '<div style="font-weight:800;color:#dc2626;margin-top:6px">⛔ يُنصح بإيقاف المعدة فورًا لحد ما الفني يوصل</div>'
+                    : '<div style="font-weight:700;color:#15803d;margin-top:6px">✅ يمكن الاستمرار بحذر لحد ما الفني يوصل</div>';
+                box.innerHTML =
+                    '<div style="background:' + meta.bg + ';border:1px solid ' + meta.border + ';border-radius:12px;padding:12px;margin-bottom:8px">' +
+                    '<div style="font-weight:800;font-size:12.5px;color:' + meta.color + ';margin-bottom:4px">' + meta.icon + ' تقييم AI فوري — خطورة: ' + escapeHtml(parsed.severity) + '</div>' +
+                    (parsed.likelyCause ? '<div style="font-size:12px;margin-bottom:4px"><b>السبب المحتمل:</b> ' + escapeHtml(parsed.likelyCause) + '</div>' : '') +
+                    (parsed.recommendation ? '<div style="font-size:12px"><b>التوصية:</b> ' + escapeHtml(parsed.recommendation) + '</div>' : '') +
+                    stopHtml +
+                    '</div>';
+            }
+            if (retryBtn) retryBtn.style.display = 'block';
+        });
+    });
+}
+
+function eqpvSubmitFaultReport() {
+    var name = (document.getElementById('eqpv-fault-name').value || '').trim();
+    var desc = (document.getElementById('eqpv-fault-desc').value || '').trim();
+    var statusEl = document.getElementById('eqpv-fault-submit-status');
+    if (!desc) { if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '⚠️ اكتب وصف العطل'; } return; }
+    if (statusEl) { statusEl.style.color = '#64748b'; statusEl.textContent = '⏳ جاري الإرسال...'; }
+    fbDb.ref('equipment/' + eqpvFaultReportEqId).once('value').then(function(snap) {
+        var eq = snap.val() || {};
+        var report = {
+            equipmentId: eqpvFaultReportEqId, equipmentCode: eq.code || '', equipmentName: eq.name || '',
+            description: desc, photo: eqpvFaultReportPhoto || null,
+            reportedBy: name || 'بدون اسم', reportedAt: new Date().toISOString(), status: 'pending'
+        };
+        if (eqpvFaultReportAiAnalysis) {
+            report.aiSeverity = eqpvFaultReportAiAnalysis.severity || '';
+            report.aiStopEquipment = !!eqpvFaultReportAiAnalysis.stopEquipment;
+            report.aiLikelyCause = eqpvFaultReportAiAnalysis.likelyCause || '';
+            report.aiRecommendation = eqpvFaultReportAiAnalysis.recommendation || '';
+        }
+        return fbDb.ref('maintenanceReports').push(report);
+    }).then(function() {
+        var modal = document.getElementById('eqpv-fault-modal');
+        if (modal) modal.remove();
+        showTopNotification('✅', 'تم إرسال البلاغ، هيتراجع من الإدارة');
+    }).catch(function(e) {
+        if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '❌ خطأ: ' + e.message; }
+    });
 }
 
 // ==================== ملفات المعدة (فحص المعدة / شهادة المعايرة) على صفحة الـQR العامة ====================
@@ -8514,6 +8663,71 @@ function openNotifSettings() {
 // ==================== خريطة تتبع المعدات (GPS عبر السائقين) — Leaflet + OpenStreetMap (مجاني، بدون مفتاح API) ====================
 var equipmentMapColorTimer = null;
 
+function gpsStatusLabel(updatedAt, closedAt) {
+    if (closedAt && updatedAt && new Date(closedAt) > new Date(updatedAt)) return 'قفل السائق مشاركة الموقع يدويًا';
+    var minsAgo = (new Date() - new Date(updatedAt)) / 60000;
+    if (minsAgo <= 3) return 'نشط الآن';
+    if (minsAgo <= 15) return 'تأخر بسيط (' + Math.round(minsAgo) + ' د)';
+    return 'منقطع منذ ' + Math.round(minsAgo) + ' دقيقة';
+}
+
+// ==================== تحليل ذكي فوري لحالة الأسطول على الخريطة (Gemini) ====================
+// بياخد لقطة حالية (Snapshot) لكل المعدات ومواقع سائقيها ويطلب من AI رصد أي حاجة تستاهل انتباه فورًا
+function analyzeMapSnapshotWithAi() {
+    var box = document.getElementById('map-ai-snapshot-result');
+    var btn = document.getElementById('map-ai-snapshot-btn');
+    if (!box) return;
+    var lines = [];
+    equipmentData.forEach(function(eq) {
+        if (!eq.assignedDriver) return;
+        var loc = driverLocations.find(function(l) { return l.driverId === eq.assignedDriver; });
+        if (!loc || !loc.lat || !loc.lng) return;
+        var drv = driversData.find(function(d) { return d.id === eq.assignedDriver; });
+        lines.push('- ' + (eq.name || '') + ' (' + (eq.code || '') + ') — السائق: ' + (drv ? drv.name : 'غير معروف') + ' — الحالة: ' + gpsStatusLabel(loc.updatedAt, loc.closedAt));
+    });
+    if (!lines.length) {
+        box.innerHTML = '<div style="font-size:11.5px;color:var(--gray);padding:8px 0">لا توجد بيانات مواقع كافية الآن لتحليلها.</div>';
+        return;
+    }
+    if (btn) btn.disabled = true;
+    box.innerHTML = '<div style="font-size:11.5px;color:var(--gray);padding:8px 0">🤖 جاري تحليل حالة الأسطول الآن...</div>';
+    var prompt = 'أنت محلل عمليات لشركة مقاولات كبرى بمصر بتدير أسطول معدات ثقيلة. دي لقطة حالية (الآن) لحالة تتبع المعدات عبر GPS:\n' +
+        lines.join('\n') + '\n' +
+        'حلل اللقطة دي بالعربية باختصار شديد (نقاط قصيرة، بدون مقدمات): ركّز بس على اللي يستاهل انتباه فوري — معدات منقطعة عن التتبع لمدة طويلة، أو سائقين قافلين مشاركة الموقع يدويًا (ده أكتر حاجة تستاهل مراجعة). لو كل حاجة طبيعية قول كده بجملة واحدة بس.';
+    callGeminiAPI(prompt, function(text) {
+        if (btn) btn.disabled = false;
+        var isError = !text || /^(⚠️|❌|🚦|⏱️|لا يوجد مفتاح)/.test(text.trim());
+        if (isError) {
+            box.innerHTML = '<div style="font-size:11px;color:var(--gray);padding:6px 0">' + escapeHtml(text || 'تعذّر التحليل') + '</div>';
+            return;
+        }
+        box.innerHTML = '<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:12px;padding:12px;margin-top:8px;font-size:12.5px;line-height:1.8;white-space:pre-wrap">' +
+            '<div style="font-weight:800;color:#5b21b6;margin-bottom:6px">🤖 تحليل الأسطول الآن</div>' + escapeHtml(text) + '</div>';
+    });
+}
+
+// تحليل ذكي لمسار سائق واحد بعد عرضه — بيدّي رأي مختصر هل المسار طبيعي أو فيه توقفات تستاهل مراجعة
+function renderRouteAiInsight(driverName, totalKm, durationText, stops) {
+    var box = document.getElementById('route-ai-insight');
+    if (!box) return;
+    box.style.display = 'block';
+    box.innerHTML = '<div style="font-size:11px;color:var(--gray);padding:6px 0">🤖 جاري تحليل المسار...</div>';
+    var stopsText = stops.length
+        ? stops.map(function(s) { return '- توقف ' + s.minutes + ' دقيقة الساعة ' + new Date(s.fromTime).toLocaleTimeString('ar-EG'); }).join('\n')
+        : 'مفيش توقفات مسجّلة تستاهل الذكر';
+    var prompt = 'أنت محلل عمليات لشركة مقاولات كبرى بمصر. ده ملخص مسار GPS ليوم واحد للسائق "' + (driverName || '') + '":\n' +
+        'المسافة الكلية: ' + totalKm.toFixed(1) + ' كم — مدة النشاط: ' + durationText + '\n' + stopsText + '\n' +
+        'قيّم المسار ده بالعربية في سطرين بحد أقصى: هل يبدو طبيعي لمعدة شغالة، ولا فيه توقفات طويلة أو غير مبررة تستاهل مراجعة؟ بدون مقدمات.';
+    callGeminiAPI(prompt, function(text) {
+        var isError = !text || /^(⚠️|❌|🚦|⏱️|لا يوجد مفتاح)/.test(text.trim());
+        if (isError) {
+            box.innerHTML = '<div style="font-size:11px;color:var(--gray);padding:6px 0">' + escapeHtml(text || 'تعذّر التحليل') + '</div>';
+            return;
+        }
+        box.innerHTML = '<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.8"><b style="color:#5b21b6">🤖 رأي AI:</b> ' + escapeHtml(text) + '</div>';
+    });
+}
+
 function refreshMapView() {
     var contentCard = document.getElementById('map-content-card');
     if (!contentCard) return;
@@ -8602,6 +8816,22 @@ function renderEquipmentMap() {
             attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
         });
 
+        // ==================== طبقة حدود المباني (Vector) ====================
+        // بترسم شكل كل مبنى لوحده (حدوده الحقيقية) فوق أي خريطة قمر صناعي، زي ما بتظهر في خرائط جوجل — من بيانات OpenStreetMap عبر MapTiler
+        // شفافة تمامًا ومفيش فيها غير حدود المباني (باقي الطبقات زي الطرق والأسماء متجاهلينها هنا عشان محدش يتكرر مع الطبقة الأساسية)
+        var buildingsOutlineLayer = null;
+        if (window.L && L.vectorGrid && L.vectorGrid.protobuf) {
+            buildingsOutlineLayer = L.vectorGrid.protobuf(
+                'https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=' + MAPTILER_KEY, {
+                maxNativeZoom: 14,
+                maxZoom: 20,
+                interactive: false,
+                vectorTileLayerStyles: {
+                    building: { fill: true, fillColor: '#ffffff', fillOpacity: 0.05, color: '#ffffff', weight: 1, opacity: 0.8 }
+                }
+            });
+        }
+
         // Esri World Imagery (احتياطي أخير) — لو المصدرين التانيين وصلوا لحد الاستخدام المجاني أو حصل أي عطل، تقدر تتحول له من زر الطبقات
         // ملحوظة: أي مصدر صور مجاني بيوفّر دقة عالية جدًا في المدن الكبرى بس، وأقل في المناطق البعيدة عن المدن؛
         // maxNativeZoom منخفض هنا عن قصد عشان لو التكبير عدّى حدود الصورة الحقيقية المتاحة، الخريطة تكبّر آخر صورة عندها بدل ما تجيب رمادي فاضي
@@ -8643,7 +8873,10 @@ function renderEquipmentMap() {
             '🛰️ قمر صناعي احتياطي (Esri)': satelliteGroup,
             '⛰️ طبوغرافي ملوّن': terrainLayer,
             '🗺️ خريطة الشوارع': streetsLayer
-        }, null, { position: 'topleft', collapsed: true }).addTo(equipmentMapInstance);
+        }, buildingsOutlineLayer ? { '🏢 حدود المباني': buildingsOutlineLayer } : null, { position: 'topleft', collapsed: true }).addTo(equipmentMapInstance);
+
+        // حدود المباني مفعّلة افتراضيًا فوق القمر الصناعي عشان توضّح شكل كل مبنى لوحده من أول ما الخريطة تفتح
+        if (buildingsOutlineLayer) buildingsOutlineLayer.addTo(equipmentMapInstance);
 
         // مقياس الرسم أسفل الخريطة — يساعد في تقدير المسافات الفعلية على الأرض
         L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(equipmentMapInstance);
@@ -8805,6 +9038,8 @@ function clearDriverRoute() {
     }
     var info = document.getElementById('route-info');
     if (info) info.style.display = 'none';
+    var aiBox = document.getElementById('route-ai-insight');
+    if (aiBox) { aiBox.style.display = 'none'; aiBox.innerHTML = ''; }
 }
 
 // اختصار من بالون المعدة على الخريطة: يملأ اختيار السائق والتاريخ (اليوم) تلقائيًا ويعرض المسار فورًا
@@ -8906,6 +9141,8 @@ function showDriverRoute() {
                 (stops.length ? ' — ⏸️ عدد التوقفات: ' + stops.length : '') +
                 '<br><a href="' + buildGoogleMapsRouteUrl(pts[0], pts[pts.length - 1], stops) + '" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:6px 12px;border-radius:8px;background:linear-gradient(135deg,#0891b2,#0e7490);color:white;font-size:11.5px;font-weight:700;text-decoration:none;font-family:inherit">🧭 فتح المسار في خرائط جوجل (بداية، نهاية، ومحطات التوقف)</a>';
         }
+        var routeDrv = driversData.find(function(d) { return d.id === driverId; });
+        renderRouteAiInsight(routeDrv ? routeDrv.name : '', totalKm, durationText, stops);
     }).catch(function(e) {
         if (infoEl) infoEl.textContent = '❌ تعذّر تحميل المسار';
         console.warn(e);
