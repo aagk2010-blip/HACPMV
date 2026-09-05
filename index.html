@@ -17270,52 +17270,36 @@ function buildOvertimeAnomalyTextSummary() {
 
 function buildOvertimeAnomalyHtml() {
     var res = computeSuspiciousOvertime();
-    var currentPeriodLabel = rentalPeriodLabel(getRentalPeriodKey(localDateStr(new Date())));
-    if (!res) {
-        return '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد بيانات كافية للمقارنة خلال دورة (' + currentPeriodLabel + ') حاليًا (محتاجين على الأقل معدتين من نفس النوع بسجلات إضافي كفاية هذه الدورة).</div>';
+    if (!res || (!res.flaggedEquipment.length && !res.flaggedDays.length)) {
+        return '<div style="text-align:center;color:var(--success);padding:30px 0">✅ لا توجد حالات إضافي مشبوه حاليًا.</div>';
     }
 
-    var html = '<div style="font-size:12px;color:var(--gray);margin-bottom:14px;line-height:1.8">📊 هذا الفحص يقتصر على دورة <b>' + currentPeriodLabel + '</b> فقط (المدة الحالية اللي بيتم التسجيل فيها)، ويقارن متوسط الساعات الإضافية لكل معدة بمتوسط زميلاتها من نفس النوع (حفارة مع حفارات، لودر مع لودرات...)، ويحدد أي معدة أو يوم شاذ عن الطبيعي رياضيًا — بدون الحاجة لاستدعاء الذكاء الاصطناعي.</div>';
-
-    if (!res.flaggedEquipment.length && !res.flaggedDays.length) {
-        html += '<div style="text-align:center;color:var(--success);padding:16px 0">✅ لا توجد معدات أو أيام إضافي شاذة حاليًا مقارنة بمثيلاتها.</div>';
-    }
+    var html = '';
 
     if (res.flaggedEquipment.length) {
-        html += '<div style="font-weight:800;color:var(--primary);margin:6px 0 10px">⚠️ معدات إضافيها أعلى من المعتاد لنوعها</div>';
+        html += '<div style="font-weight:800;color:var(--primary);margin:6px 0 10px">⚠️ معدات إضافيها مشبوه</div>';
         res.flaggedEquipment.forEach(function(f) {
-            var pct = Math.round((f.ownMean / f.groupMean - 1) * 100);
             html += '<div class="detail-section" style="margin:0 0 10px 0;border-right:3px solid var(--warning)">' +
                 '<div style="font-weight:700;color:var(--primary);margin-bottom:4px">' + escapeHtml(f.label) + '</div>' +
-                (f.project ? '<div style="font-size:11px;color:var(--gray);margin-bottom:6px">📍 ' + escapeHtml(f.project) + '</div>' : '') +
-                '<div style="font-size:13px">متوسط إضافي المعدة: <b>' + f.ownMean.toFixed(1) + '</b> س/يوم — مقابل متوسط ' + f.groupEquipCount + ' معدة من نفس النوع (' + escapeHtml(f.type) + '): <b>' + f.groupMean.toFixed(1) + '</b> س/يوم ' +
-                '<span style="color:var(--danger);font-weight:700">(أعلى بـ ' + pct + '%)</span></div>' +
-                '<div style="font-size:11px;color:var(--gray);margin-top:4px">بناءً على ' + f.ownDays + ' يوم فيه إضافي</div>' +
+                (f.project ? '<div style="font-size:11px;color:var(--gray)">📍 ' + escapeHtml(f.project) + '</div>' : '') +
                 '</div>';
         });
     }
 
     if (res.flaggedDays.length) {
-        html += '<div style="font-weight:800;color:var(--primary);margin:16px 0 10px">🔍 أيام شاذة بعينها</div>';
+        html += '<div style="font-weight:800;color:var(--primary);margin:16px 0 10px">🔍 أيام إضافي مشبوهة</div>';
         res.flaggedDays.slice(0, 15).forEach(function(f) {
             html += '<div class="detail-section" style="margin:0 0 8px 0;border-right:3px solid var(--danger)">' +
                 '<div style="font-weight:700;color:var(--primary)">' + escapeHtml(f.label) + '</div>' +
-                '<div style="font-size:13px">📅 ' + f.date + ' — إضافي ' + f.extra.toFixed(1) + ' ساعة (متوسط نوعها ' + f.groupMean.toFixed(1) + ' س)</div>' +
+                '<div style="font-size:13px">📅 ' + f.date + '</div>' +
                 '</div>';
         });
         if (res.flaggedDays.length > 15) {
-            html += '<div style="font-size:11px;color:var(--gray);text-align:center">+' + (res.flaggedDays.length - 15) + ' يوم شاذ إضافي</div>';
+            html += '<div style="font-size:11px;color:var(--gray);text-align:center">+' + (res.flaggedDays.length - 15) + ' حالة إضافية</div>';
         }
     }
 
-    if (res.groupStats.length) {
-        html += '<div style="font-weight:800;color:var(--primary);margin:16px 0 10px">📈 متوسطات الأنواع المقارَنة</div>';
-        html += '<div style="font-size:12px;color:var(--gray);line-height:2">';
-        res.groupStats.forEach(function(g) {
-            html += escapeHtml(g.type) + ': متوسط ' + g.mean.toFixed(1) + ' س/يوم (' + g.equipCount + ' معدة، ' + g.count + ' يوم إضافي مسجل)<br>';
-        });
-        html += '</div>';
-    }
+    html += '<div style="font-size:12px;color:var(--gray);text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid #eee">ℹ️ تم رصد هذه الحالات تلقائيًا من خلال النظام، وتم إرسال إشعار للمسؤولين.</div>';
 
     return html;
 }
