@@ -1084,7 +1084,8 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
           <input type="date" id="rental-daily-date" style="flex:1;padding:10px;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;font-size:14px">
           <button id="add-rental-daily-btn" style="padding:10px 14px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">➕</button>
           <button onclick="exportRentalToExcel()" style="padding:10px 14px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer">📊</button>
-          <button onclick="printRentalDailyOvertimeReport()" title="طباعة تقرير الإضافي اليومي" style="padding:10px 14px;background:linear-gradient(135deg,#d97706,#b45309);color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer">🖨️</button>
+          <button onclick="printRentalDailyFullReport()" title="طباعة التقرير اليومي الشامل (حضور + ساعات + إضافي + ملاحظات)" style="padding:10px 14px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer">🖨️</button>
+          <button onclick="printRentalDailyOvertimeReport()" title="طباعة تقرير الإضافي اليومي فقط" style="padding:10px 14px;background:linear-gradient(135deg,#d97706,#b45309);color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer">⚡</button>
           <button id="rental-wa-btn" onclick="sendRentalWhatsApp()" style="padding:10px 14px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer">📱</button>
         </div>
         <div id="rental-daily-list"></div>
@@ -16297,6 +16298,108 @@ function exportSingleRentalPDF(rentalId) {
         (qrUrl ? '<script>window.addEventListener("load",function(){ new QRCode(document.getElementById("pdfQrBox"),{text:'+JSON.stringify(qrUrl)+',width:64,height:64,correctLevel:QRCode.CorrectLevel.M}); });<\/script>' : '')+
         '</body></html>');
     w.document.close();setTimeout(function(){ w.print(); },qrUrl?900:500);
+}
+
+// ==================== تقرير طباعة: التقرير اليومي الشامل لمعدات الإيجار (حضور + ساعات عمل + إضافي + ملاحظات) ====================
+function printRentalDailyFullReport() {
+    var dateEl = document.getElementById('rental-daily-date');
+    var dateFilter = dateEl && dateEl.value ? dateEl.value : localDateStr(new Date());
+
+    // كل عقود الإيجار السارية في هذا التاريخ (بدأت قبله أو فيه، ولسه ما انتهتش)
+    var activeContracts = rentalData.filter(function(r) {
+        if (r.startDate && r.startDate > dateFilter) return false;
+        if (r.endDate && r.endDate < dateFilter) return false;
+        return true;
+    });
+
+    var recordsByRentalId = {};
+    rentalDailyData.filter(function(d) { return d.date === dateFilter; }).forEach(function(d) {
+        recordsByRentalId[d.equipmentId] = d;
+    });
+
+    // نبني صف لكل عقد ساري؛ لو مفيش سجل لليوم ده نعتبره "لم يُسجل حضور"
+    var rowsData = activeContracts.map(function(rental) {
+        var eq = equipmentData.find(function(e) { return e.id === rental.equipmentId; });
+        var drv = driversData.find(function(d) { return d.id === rental.driverId; });
+        return { rental: rental, eq: eq, drv: drv, rec: recordsByRentalId[rental.id] || null };
+    });
+    // أي سجل يومي متسجل لمعدة مالهاش عقد إيجار ظاهر في القائمة (احتياطي) نضيفه في الآخر
+    Object.keys(recordsByRentalId).forEach(function(rid) {
+        if (!activeContracts.some(function(r) { return r.id === rid; })) {
+            var rental = rentalData.find(function(r) { return r.id === rid; });
+            var eq = rental ? equipmentData.find(function(e) { return e.id === rental.equipmentId; }) : null;
+            var drv = rental ? driversData.find(function(d) { return d.id === rental.driverId; }) : null;
+            rowsData.push({ rental: rental, eq: eq, drv: drv, rec: recordsByRentalId[rid] });
+        }
+    });
+
+    rowsData.sort(function(a, b) {
+        // الحاضرين أولاً (مرتبين أبجديًا)، والغياب في الآخر (مرتبين أبجديًا)
+        var aAbsent = a.rec ? 0 : 1, bAbsent = b.rec ? 0 : 1;
+        if (aAbsent !== bAbsent) return aAbsent - bAbsent;
+        var an = a.eq ? (a.eq.name || a.eq.type) : (a.rental ? a.rental.equipmentCode : '');
+        var bn = b.eq ? (b.eq.name || b.eq.type) : (b.rental ? b.rental.equipmentCode : '');
+        return (an || '').localeCompare(bn || '', 'ar');
+    });
+
+    var sb = 0, sk = 0, se = 0, presentCount = 0, absentCount = 0;
+    var rows = rowsData.map(function(item, idx) {
+        var eq = item.eq, drv = item.drv, r = item.rec, rental = item.rental;
+        var label = eq ? (eq.name || eq.type) : (rental ? rental.equipmentCode : '—');
+        var code = eq ? eq.code : '';
+        if (!r) {
+            absentCount++;
+            return '<tr style="background:#fee2e2"><td>' + (idx + 1) + '</td>' +
+                '<td style="font-weight:700">' + escapeHtml(label) + (code ? ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(code) + ')</span>' : '') + '</td>' +
+                '<td>' + (drv ? escapeHtml(drv.name) : '—') + '</td>' +
+                '<td colspan="4" style="text-align:center;color:#991b1b;font-weight:700">🚫 غياب</td></tr>';
+        }
+        presentCount++;
+        sb += (r.basicHours || 0); sk += (r.breakHours || 0); se += (r.extraHours || 0);
+        var recordedByHtml = r.recordedByName ? escapeHtml(r.recordedByName) : '<span style="color:#c3cad4">—</span>';
+        if (r.editedByName) recordedByHtml += '<div style="color:#dc2626;font-size:10px;font-weight:700">تعديل: ' + escapeHtml(r.editedByName) + '</div>';
+        return '<tr style="background:' + (idx % 2 ? '#f8fafc' : 'white') + '">' +
+            '<td>' + (idx + 1) + '</td>' +
+            '<td style="font-weight:700">' + escapeHtml(label) + (code ? ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(code) + ')</span>' : '') + '</td>' +
+            '<td>' + (drv ? escapeHtml(drv.name) : '—') + '</td>' +
+            '<td style="text-align:center">🟢 ' + (r.inTime || '—') + '<br>🔴 ' + (r.outTime || '—') + '</td>' +
+            '<td style="text-align:center;font-weight:700">' + (r.basicHours || 0).toFixed(2) + '</td>' +
+            '<td style="text-align:center;font-weight:800;color:' + (r.extraHours > 0 ? '#92400e' : '#94a3b8') + '">' + (r.extraHours || 0).toFixed(2) + '</td>' +
+            '<td>' + (r.notes ? escapeHtml(r.notes) : '<span style="color:#c3cad4">لا توجد ملاحظات</span>') + '</td>' +
+            '</tr>';
+    }).join('');
+
+    if (!rowsData.length) {
+        rows = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8">لا توجد عقود إيجار سارية في هذا التاريخ</td></tr>';
+    }
+
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>التقرير اليومي — معدات الإيجار</title><style>' +
+        'body{font-family:Arial;padding:22px;direction:rtl;color:#0d1b2a}' +
+        'table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px}' +
+        'th,td{border:1px solid #e2e8f0;padding:7px;text-align:right}' +
+        'th{background:#0d1b2a;color:white;font-size:11.5px}' +
+        '.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}' +
+        '.sum-box{background:#f1f5f9;border-radius:10px;padding:10px;text-align:center}' +
+        '.sum-box .num{font-size:20px;font-weight:800;color:#0d1b2a}' +
+        '.sum-box .lbl{font-size:10.5px;color:#64748b;margin-top:2px}' +
+        '@media print{ .no-print{display:none} }' +
+        '</style></head><body>' +
+        reportHeaderHtml('التقرير اليومي — حضور معدات الإيجار', 'التاريخ: ' + dateFilter) +
+        '<div class="summary">' +
+        '<div class="sum-box"><div class="num">' + rowsData.length + '</div><div class="lbl">إجمالي المعدات</div></div>' +
+        '<div class="sum-box" style="background:#d1fae5"><div class="num" style="color:#065f46">' + presentCount + '</div><div class="lbl">حاضر</div></div>' +
+        '<div class="sum-box" style="background:#fee2e2"><div class="num" style="color:#991b1b">' + absentCount + '</div><div class="lbl">غياب</div></div>' +
+        '<div class="sum-box"><div class="num">' + sb.toFixed(1) + '</div><div class="lbl">إجمالي ساعات العمل</div></div>' +
+        '<div class="sum-box" style="background:#fef3c7"><div class="num" style="color:#92400e">' + se.toFixed(1) + '</div><div class="lbl">إجمالي الإضافي</div></div>' +
+        '</div>' +
+        '<table><thead><tr><th>م</th><th>اسم المعدة</th><th>السائق</th><th>حضور / انصراف</th><th>ساعات العمل</th><th>الإضافي</th><th>ملاحظات</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+        '</table>' +
+        '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة</button>' +
+        '</body></html>');
+    w.document.close();
+    setTimeout(function() { w.print(); }, 500);
 }
 
 // ==================== تقرير طباعة: سجل يومي للمعدات المستأجرة — ملخص المعدات صاحبة الإضافي وأسبابه ====================
