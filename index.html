@@ -16561,16 +16561,22 @@ function printRentalDailyFullReport() {
     var dir = reportDir(), align = reportAlign();
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="' + dir + '"><head><meta charset="UTF-8"><title>' + (getAppLanguage() === 'en' ? 'Daily Report — Rental Equipment' : 'التقرير اليومي — معدات الإيجار') + '</title><style>' +
-        'body{font-family:Arial;padding:22px;direction:' + dir + ';color:#0d1b2a}' +
-        'table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px}' +
-        'th,td{border:1px solid #e2e8f0;padding:7px;text-align:' + align + '}' +
-        'th{background:#0d1b2a;color:white;font-size:11.5px}' +
-        '.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}' +
-        '.sum-box{background:#f1f5f9;border-radius:10px;padding:10px;text-align:center}' +
-        '.sum-box .num{font-size:20px;font-weight:800;color:#0d1b2a}' +
-        '.sum-box .lbl{font-size:10.5px;color:#64748b;margin-top:2px}' +
-        '@media print{ .no-print{display:none} }' +
+        '@page{size:A4 landscape;margin:8mm}' +
+        '*{box-sizing:border-box}' +
+        'html,body{padding:0;margin:0}' +
+        'body{font-family:Arial;direction:' + dir + ';color:#0d1b2a;font-size:11px}' +
+        '#print-wrap{transform-origin:top ' + (dir === 'rtl' ? 'right' : 'left') + ';padding:10px}' +
+        'table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10.5px}' +
+        'th,td{border:1px solid #e2e8f0;padding:4px 6px;text-align:' + align + ';vertical-align:middle}' +
+        'th{background:#0d1b2a;color:white;font-size:10px;font-weight:700}' +
+        'tr{page-break-inside:avoid}' +
+        '.summary{display:flex;gap:6px;margin-bottom:10px}' +
+        '.sum-box{flex:1;background:#f1f5f9;border-radius:8px;padding:6px 4px;text-align:center}' +
+        '.sum-box .num{font-size:15px;font-weight:800;color:#0d1b2a}' +
+        '.sum-box .lbl{font-size:9px;color:#64748b;margin-top:1px}' +
+        '@media print{ .no-print{display:none} * {-webkit-print-color-adjust:exact;print-color-adjust:exact} }' +
         '</style></head><body>' +
+        '<div id="print-wrap">' +
         reportHeaderHtml({ en: 'Daily Report — Rental Equipment Attendance', ar: 'التقرير اليومي — حضور معدات الإيجار' }, { en: 'Date: ' + dateFilter, ar: 'التاريخ: ' + dateFilter }) +
         '<div class="summary">' +
         '<div class="sum-box"><div class="num">' + rowsData.length + '</div><div class="lbl">' + RL('Total Equipment', 'إجمالي المعدات') + '</div></div>' +
@@ -16582,10 +16588,12 @@ function printRentalDailyFullReport() {
         '<table><thead><tr><th>' + RL('#', 'م') + '</th><th>' + RL('Equipment', 'اسم المعدة') + '</th><th>' + RL('Driver', 'السائق') + '</th><th>' + RL('In / Out', 'حضور / انصراف') + '</th><th>' + RL('Work Hours', 'ساعات العمل') + '</th><th>' + RL('Overtime (incl. break work)', 'الإضافي (شامل عمل الراحة)') + '</th><th>' + RL('Notes', 'ملاحظات') + '</th><th>' + RL('Recorded by', 'سجّلها') + '</th></tr></thead>' +
         '<tbody>' + rows + '</tbody>' +
         '</table>' +
-        '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ ' + RL('Print', 'طباعة') + '</button>' +
+        '</div>' +
+        '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer;margin:0 10px 10px">🖨️ ' + RL('Print', 'طباعة') + '</button>' +
+        '<script>(function(){function fit(){var wrap=document.getElementById("print-wrap");if(!wrap)return;wrap.style.zoom=1;var availW=1062,availH=733;var scale=Math.min(1, availW/wrap.scrollWidth, availH/wrap.scrollHeight);if(scale<0.45)scale=0.45;wrap.style.zoom=scale;}window.fitReportToPage=fit;fit();window.addEventListener("resize",fit);<\/script>' +
         '</body></html>');
     w.document.close();
-    setTimeout(function() { w.print(); }, 500);
+    setTimeout(function() { if (w.fitReportToPage) w.fitReportToPage(); w.print(); }, 500);
 }
 
 // ==================== تقرير طباعة: سجل يومي للمعدات المستأجرة — ملخص المعدات صاحبة الإضافي وأسبابه ====================
