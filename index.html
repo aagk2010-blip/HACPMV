@@ -16561,16 +16561,16 @@ function printRentalDailyFullReport() {
         var combinedExtra = (r.extraHours || 0) + (r.breakHours || 0);
         sb += (r.basicHours || 0); sk += (r.breakHours || 0); se += combinedExtra;
         var recordedByHtml = r.recordedByName ? escapeHtml(r.recordedByName) : '<span style="color:#c3cad4">—</span>';
-        if (r.editedByName) recordedByHtml += '<div style="color:#dc2626;font-size:10px;font-weight:700">' + RL('Edited by', 'تعديل') + ': ' + escapeHtml(r.editedByName) + '</div>';
+        if (r.editedByName) recordedByHtml += '<div style="color:#dc2626;font-size:8.5px;font-weight:700;line-height:1.1">' + RL('Edited by', 'تعديل') + ': ' + escapeHtml(r.editedByName) + '</div>';
         return '<tr style="background:' + (idx % 2 ? '#f8fafc' : 'white') + '">' +
             '<td>' + (idx + 1) + '</td>' +
-            '<td style="font-weight:700">' + escapeHtml(label) + (code ? ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(code) + ')</span>' : '') + '</td>' +
+            '<td style="font-weight:700">' + escapeHtml(label) + (code ? ' <span style="color:#94a3b8;font-size:9px;font-weight:400">(' + escapeHtml(code) + ')</span>' : '') + '</td>' +
             '<td>' + (drv ? escapeHtml(drv.name) : '—') + '</td>' +
-            '<td style="text-align:center">🟢 ' + (r.inTime || '—') + '<br>🔴 ' + (r.outTime || '—') + '</td>' +
+            '<td style="text-align:center;white-space:nowrap">🟢' + (r.inTime || '—') + ' / 🔴' + (r.outTime || '—') + '</td>' +
             '<td style="text-align:center;font-weight:700">' + (r.basicHours || 0).toFixed(2) + '</td>' +
-            '<td style="text-align:center;font-weight:800;color:' + (combinedExtra > 0 ? '#92400e' : '#94a3b8') + '">' + combinedExtra.toFixed(2) + (r.breakHours > 0 ? '<div style="font-size:9px;font-weight:400;color:#94a3b8">(' + RL('incl.', 'منها') + ' ' + (r.breakHours || 0).toFixed(2) + ' ' + RL('h break work', 'س عمل أثناء الراحة') + ')</div>' : '') + '</td>' +
+            '<td style="text-align:center;font-weight:800;color:' + (combinedExtra > 0 ? '#92400e' : '#94a3b8') + '">' + combinedExtra.toFixed(2) + (r.breakHours > 0 ? '<div style="font-size:8px;font-weight:400;color:#94a3b8;line-height:1.1">(' + RL('incl.', 'منها') + ' ' + (r.breakHours || 0).toFixed(2) + ' ' + RL('h break work', 'س عمل أثناء الراحة') + ')</div>' : '') + '</td>' +
             '<td>' + (r.notes ? escapeHtml(r.notes) : '<span style="color:#c3cad4">' + RL('No notes', 'لا توجد ملاحظات') + '</span>') + '</td>' +
-            '<td style="text-align:center;font-size:11px">' + recordedByHtml + '</td>' +
+            '<td style="text-align:center;font-size:10px">' + recordedByHtml + '</td>' +
             '</tr>';
     }).join('');
 
@@ -16585,16 +16585,18 @@ function printRentalDailyFullReport() {
         '<style>' +
         '*{box-sizing:border-box}' +
         'html,body{padding:0;margin:0}' +
-        'body{font-family:Arial;direction:' + dir + ';color:#0d1b2a;font-size:11px}' +
-        '#print-wrap{transform-origin:top ' + (dir === 'rtl' ? 'right' : 'left') + ';padding:10px}' +
-        'table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10.5px}' +
-        'th,td{border:1px solid #e2e8f0;padding:4px 6px;text-align:' + align + ';vertical-align:middle}' +
-        'th{background:#0d1b2a;color:white;font-size:10px;font-weight:700}' +
+        'body{font-family:Arial;direction:' + dir + ';color:#0d1b2a;font-size:11px;line-height:1.2}' +
+        '#print-wrap{transform-origin:top ' + (dir === 'rtl' ? 'right' : 'left') + ';padding:8px}' +
+        '#print-wrap > div:first-child{margin-bottom:8px !important;padding-bottom:6px !important}' +
+        '#print-wrap > div:first-child img{height:34px !important;width:auto !important}' +
+        'table{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:10px;line-height:1.15}' +
+        'th,td{border:1px solid #e2e8f0;padding:2.5px 5px;text-align:' + align + ';vertical-align:middle}' +
+        'th{background:#0d1b2a;color:white;font-size:9.5px;font-weight:700;padding:4px 5px}' +
         'tr{page-break-inside:avoid}' +
-        '.summary{display:flex;gap:6px;margin-bottom:10px}' +
-        '.sum-box{flex:1;background:#f1f5f9;border-radius:8px;padding:6px 4px;text-align:center}' +
-        '.sum-box .num{font-size:15px;font-weight:800;color:#0d1b2a}' +
-        '.sum-box .lbl{font-size:9px;color:#64748b;margin-top:1px}' +
+        '.summary{display:flex;gap:5px;margin-bottom:7px}' +
+        '.sum-box{flex:1;background:#f1f5f9;border-radius:6px;padding:4px 3px;text-align:center}' +
+        '.sum-box .num{font-size:13px;font-weight:800;color:#0d1b2a;line-height:1.1}' +
+        '.sum-box .lbl{font-size:8px;color:#64748b;margin-top:1px;line-height:1.1}' +
         '@media print{ .no-print{display:none} * {-webkit-print-color-adjust:exact;print-color-adjust:exact} }' +
         '</style></head><body>' +
         '<div id="print-wrap">' +
