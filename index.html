@@ -859,22 +859,22 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
     <div style="font-size:22px;font-weight:800;margin-bottom:5px;color:white">Equipment Maintenance Service</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:14px">Hassan Allam Holding</div>
-    <span class="login-eyebrow">⚙️ نظام إدارة المعدات المتكامل</span>
+    <span class="login-eyebrow">⚙️ Integrated Equipment Management System</span>
     <div class="login-trust-row">
-      <span class="login-trust-chip"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg>بيانات آمنة</span>
-      <span class="login-trust-chip"><svg viewBox="0 0 24 24"><use href="#ic-bolt"/></svg>تحديث لحظي</span>
-      <span class="login-trust-chip"><svg viewBox="0 0 24 24"><use href="#ic-chart"/></svg>تقارير دقيقة</span>
+      <span class="login-trust-chip"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg>Secure Data</span>
+      <span class="login-trust-chip"><svg viewBox="0 0 24 24"><use href="#ic-bolt"/></svg>Real-time Updates</span>
+      <span class="login-trust-chip"><svg viewBox="0 0 24 24"><use href="#ic-chart"/></svg>Accurate Reports</span>
     </div>
 
     <div id="login-preload-banner" style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(232,160,32,0.15);border:1px solid rgba(232,160,32,0.4);border-radius:12px;padding:10px;margin-bottom:16px;font-size:12px;color:#e8a020">
       <span style="animation:spin 1s linear infinite;display:inline-block">⏳</span>
-      <span>جاري تحميل بيانات الدخول، الرجاء الانتظار...</span>
+      <span>Loading login data, please wait...</span>
     </div>
 
     <!-- أزرار التبويب -->
     <div style="display:flex;gap:5px;margin-bottom:18px;background:rgba(255,255,255,0.05);border-radius:40px;padding:4px">
-      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:#e8a020;color:#0d1b2a;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🔐 دخول</button>
-      <button id="register-login-btn" onclick="setLoginMode('register')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">✨ تسجيل</button>
+      <button id="secure-login-btn" onclick="setLoginMode('secure')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:#e8a020;color:#0d1b2a;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">🔐 Login</button>
+      <button id="register-login-btn" onclick="setLoginMode('register')" style="flex:1;padding:9px 2px;border-radius:30px;border:none;background:rgba(255,255,255,0.1);color:white;font-weight:700;cursor:pointer;font-family:inherit;font-size:11px">✨ Register</button>
     </div>
 
     <!-- لوحة الدخول الآمن -->
@@ -882,19 +882,19 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">📧</span>
-          <input type="text" id="secure-username" placeholder="البريد الإلكتروني أو رقم الهاتف" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
+          <input type="text" id="secure-username" placeholder="Email or Phone Number" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
         </div>
       </div>
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:14px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">🔒</span>
-          <input type="password" id="secure-password" placeholder="كلمة المرور" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
+          <input type="password" id="secure-password" placeholder="Password" style="flex:1;background:transparent;border:none;outline:none;padding:14px 0;color:white;font-size:14px;font-family:inherit">
         </div>
       </div>
       <div id="login-error-msg" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:10px;margin-bottom:10px;font-size:12px;color:#fca5a5;text-align:center"></div>
-      <button id="secure-login-submit" style="width:100%;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">🔐 دخول</button>
+      <button id="secure-login-submit" style="width:100%;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">🔐 Login</button>
       <div style="margin-top:12px;text-align:center">
-        <button onclick="showForgotPassword()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline">نسيت كلمة المرور؟</button>
+        <button onclick="showForgotPassword()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline">Forgot password?</button>
       </div>
     </div>
 
@@ -903,41 +903,41 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">👤</span>
-          <input type="text" id="reg-name" placeholder="الاسم الكامل" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+          <input type="text" id="reg-name" placeholder="Full Name" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
         </div>
       </div>
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">📧</span>
-          <input type="text" id="reg-email" placeholder="البريد الإلكتروني أو رقم الهاتف" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+          <input type="text" id="reg-email" placeholder="Email or Phone Number" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
         </div>
       </div>
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">🔒</span>
-          <input type="password" id="reg-password" placeholder="كلمة المرور (6 احرف على الاقل)" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+          <input type="password" id="reg-password" placeholder="Password (at least 6 characters)" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
         </div>
       </div>
       <div style="background:rgba(255,255,255,0.05);border-radius:20px;padding:5px;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.3);border-radius:15px;padding:4px 18px">
           <span style="color:#e8a020;font-size:18px">🔒</span>
-          <input type="password" id="reg-password2" placeholder="تاكيد كلمة المرور" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
+          <input type="password" id="reg-password2" placeholder="Confirm Password" style="flex:1;background:transparent;border:none;outline:none;padding:13px 0;color:white;font-size:14px;font-family:inherit">
         </div>
       </div>
       <div id="reg-error-msg" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:10px;margin-bottom:10px;font-size:12px;color:#fca5a5;text-align:center"></div>
       <div id="reg-success-msg" style="display:none;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:10px;margin-bottom:10px;font-size:12px;color:#6ee7b7;text-align:center"></div>
-      <button id="register-submit-btn" onclick="registerNewUser()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">✨ انشاء حساب</button>
-      <div style="margin-top:8px;font-size:10px;color:rgba(255,255,255,0.3);text-align:center">بعد التسجيل يحتاج حسابك لموافقة المدير لتفعيل الصلاحيات</div>
+      <button id="register-submit-btn" onclick="registerNewUser()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;padding:15px;border-radius:30px;font-weight:800;font-size:16px;cursor:pointer;font-family:inherit">✨ Create Account</button>
+      <div style="margin-top:8px;font-size:10px;color:rgba(255,255,255,0.3);text-align:center">After registration, your account will need admin approval to activate permissions</div>
     </div>
 
     <!-- اعدادات -->
     <div style="margin-top:16px;padding:10px;background:rgba(255,255,255,0.03);border-radius:16px">
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:5px">⚙️ اعدادات النظام</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:5px">⚙️ System Settings</div>
       <label style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer">
-        <input type="checkbox" id="remember-mode"> تذكر اختياري
+        <input type="checkbox" id="remember-mode"> Remember my choice (optional)
       </label>
     </div>
-    <div style="margin-top:14px"><div style="font-size:9px;color:rgba(255,255,255,0.25)">© 2025 حسن علام القابضة</div></div>
+    <div style="margin-top:14px"><div style="font-size:9px;color:rgba(255,255,255,0.25)">© 2025 Hassan Allam Holding</div></div>
 
   </div>
 </div>
@@ -16462,7 +16462,25 @@ function exportSingleRentalPDF(rentalId) {
     var qrUrl = eq ? generateEquipmentQRUrl(eq) : '';
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">'+
         '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>'+
-        '<style>body{font-family:Arial;padding:20px;direction:rtl}h2{color:#7c3aed}.info{background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:15px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px}.info-text{flex:1}.info-qr{text-align:center;flex-shrink:0}.info-qr .lbl{font-size:9px;color:#64748b;margin-top:3px}.summary{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;margin-bottom:15px}.sum-box{background:#7c3aed;color:white;padding:12px;border-radius:8px;text-align:center}.sum-box .num{font-size:22px;font-weight:bold}.sum-box .lbl{font-size:11px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#7c3aed;color:white;padding:7px;text-align:center}td{padding:6px 7px;border-bottom:1px solid #e2e8f0;text-align:center}tfoot td{background:#f1f5f9;font-weight:bold}</style></head><body>'+
+        '<style id="pageOrient">@page{size:A4 portrait;margin:8mm}</style>'+
+        '<style>'+
+        '*{box-sizing:border-box}'+
+        'html,body{padding:0;margin:0}'+
+        'body{font-family:Arial;direction:rtl;font-size:11px}'+
+        '#print-wrap{transform-origin:top right;padding:10px}'+
+        'h2{color:#7c3aed}'+
+        '.info{background:#f1f5f9;padding:8px 10px;border-radius:8px;margin-bottom:8px;font-size:11px;display:flex;justify-content:space-between;align-items:center;gap:10px}'+
+        '.info-text{flex:1}.info-qr{text-align:center;flex-shrink:0}.info-qr img,.info-qr canvas{width:46px !important;height:46px !important}.info-qr .lbl{font-size:8.5px;color:#64748b;margin-top:2px}'+
+        '.summary{display:flex;gap:6px;margin-bottom:8px}'+
+        '.sum-box{flex:1;background:#7c3aed;color:white;padding:6px 4px;border-radius:8px;text-align:center}.sum-box .num{font-size:15px;font-weight:bold}.sum-box .lbl{font-size:9px}'+
+        'table{width:100%;border-collapse:collapse;font-size:10.5px}'+
+        'th{background:#7c3aed;color:white;padding:4px 5px;text-align:center;font-size:10px}'+
+        'td{padding:3px 5px;border-bottom:1px solid #e2e8f0;text-align:center}'+
+        'tr{page-break-inside:avoid}'+
+        'tfoot td{background:#f1f5f9;font-weight:bold}'+
+        '@media print{ .no-print{display:none} * {-webkit-print-color-adjust:exact;print-color-adjust:exact} }'+
+        '</style></head><body>'+
+        '<div id="print-wrap">'+
         reportHeaderHtml('تقرير معدة إيجار', (eq?eq.name:'') )+
         '<div class="info"><div class="info-text"><b>المعدة:</b> '+(eq?eq.type+' — '+eq.name:'—')+'&nbsp;&nbsp;<b>الكود:</b> '+(eq?eq.code:'—')+'&nbsp;&nbsp;<b>السائق:</b> '+(drv?drv.name:'—')+'<br>'+
         '<b>الشركة:</b> '+(rental?rental.company||'—':'—')+'&nbsp;&nbsp;<b>الفترة:</b> '+periodLabel+'&nbsp;&nbsp;<b>الطباعة:</b> '+new Date().toLocaleDateString('ar-EG')+'</div>'+
@@ -16477,9 +16495,11 @@ function exportSingleRentalPDF(rentalId) {
         '<tbody>'+rows+'</tbody>'+
         '<tfoot><tr><td colspan="3">الإجمالي</td><td>'+sb.toFixed(2)+'</td><td>'+sk.toFixed(2)+'</td><td>'+se.toFixed(2)+'</td><td>'+(sb+sk+se).toFixed(2)+'</td><td></td></tr></tfoot>'+
         '</table>'+
+        '</div>'+
         (qrUrl ? '<script>window.addEventListener("load",function(){ new QRCode(document.getElementById("pdfQrBox"),{text:'+JSON.stringify(qrUrl)+',width:64,height:64,correctLevel:QRCode.CorrectLevel.M}); });<\/script>' : '')+
+        '<script>(function(){function fit(){var wrap=document.getElementById("print-wrap");var pageTag=document.getElementById("pageOrient");if(!wrap||!pageTag)return;wrap.style.zoom=1;var pW=733,pH=1062,lW=1062,lH=733;var w0=wrap.scrollWidth,h0=wrap.scrollHeight;var scaleP=Math.min(1,pW/w0,pH/h0);var scaleL=Math.min(1,lW/w0,lH/h0);if(scaleP>=0.55||scaleP>=scaleL){pageTag.textContent="@page{size:A4 portrait;margin:8mm}";wrap.style.zoom=Math.max(scaleP,0.45);}else{pageTag.textContent="@page{size:A4 landscape;margin:8mm}";wrap.style.zoom=Math.max(scaleL,0.45);}}window.fitReportToPage=fit;window.addEventListener("load",function(){setTimeout(fit,qrUrl?400:50);});<\/script>'+
         '</body></html>');
-    w.document.close();setTimeout(function(){ w.print(); },qrUrl?900:500);
+    w.document.close();setTimeout(function(){ if(w.fitReportToPage) w.fitReportToPage(); w.print(); },qrUrl?900:500);
 }
 
 // ==================== تقرير طباعة: التقرير اليومي الشامل لمعدات الإيجار (حضور + ساعات عمل + إضافي + ملاحظات) ====================
@@ -16560,8 +16580,9 @@ function printRentalDailyFullReport() {
 
     var dir = reportDir(), align = reportAlign();
     var w = window.open('', '_blank');
-    w.document.write('<!DOCTYPE html><html dir="' + dir + '"><head><meta charset="UTF-8"><title>' + (getAppLanguage() === 'en' ? 'Daily Report — Rental Equipment' : 'التقرير اليومي — معدات الإيجار') + '</title><style>' +
-        '@page{size:A4 landscape;margin:8mm}' +
+    w.document.write('<!DOCTYPE html><html dir="' + dir + '"><head><meta charset="UTF-8"><title>' + (getAppLanguage() === 'en' ? 'Daily Report — Rental Equipment' : 'التقرير اليومي — معدات الإيجار') + '</title>' +
+        '<style id="pageOrient">@page{size:A4 portrait;margin:8mm}</style>' +
+        '<style>' +
         '*{box-sizing:border-box}' +
         'html,body{padding:0;margin:0}' +
         'body{font-family:Arial;direction:' + dir + ';color:#0d1b2a;font-size:11px}' +
@@ -16590,7 +16611,7 @@ function printRentalDailyFullReport() {
         '</table>' +
         '</div>' +
         '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer;margin:0 10px 10px">🖨️ ' + RL('Print', 'طباعة') + '</button>' +
-        '<script>(function(){function fit(){var wrap=document.getElementById("print-wrap");if(!wrap)return;wrap.style.zoom=1;var availW=1062,availH=733;var scale=Math.min(1, availW/wrap.scrollWidth, availH/wrap.scrollHeight);if(scale<0.45)scale=0.45;wrap.style.zoom=scale;}window.fitReportToPage=fit;fit();window.addEventListener("resize",fit);<\/script>' +
+        '<script>(function(){function fit(){var wrap=document.getElementById("print-wrap");var pageTag=document.getElementById("pageOrient");if(!wrap||!pageTag)return;wrap.style.zoom=1;var pW=733,pH=1062,lW=1062,lH=733;var w0=wrap.scrollWidth,h0=wrap.scrollHeight;var scaleP=Math.min(1,pW/w0,pH/h0);var scaleL=Math.min(1,lW/w0,lH/h0);if(scaleP>=0.55||scaleP>=scaleL){pageTag.textContent="@page{size:A4 portrait;margin:8mm}";wrap.style.zoom=Math.max(scaleP,0.45);}else{pageTag.textContent="@page{size:A4 landscape;margin:8mm}";wrap.style.zoom=Math.max(scaleL,0.45);}}window.fitReportToPage=fit;fit();window.addEventListener("resize",fit);<\/script>' +
         '</body></html>');
     w.document.close();
     setTimeout(function() { if (w.fitReportToPage) w.fitReportToPage(); w.print(); }, 500);
