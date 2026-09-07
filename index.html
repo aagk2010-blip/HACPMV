@@ -16352,7 +16352,8 @@ function printRentalDailyFullReport() {
             return '<tr style="background:#fee2e2"><td>' + (idx + 1) + '</td>' +
                 '<td style="font-weight:700">' + escapeHtml(label) + (code ? ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(code) + ')</span>' : '') + '</td>' +
                 '<td>' + (drv ? escapeHtml(drv.name) : '—') + '</td>' +
-                '<td colspan="4" style="text-align:center;color:#991b1b;font-weight:700">🚫 غياب</td></tr>';
+                '<td colspan="4" style="text-align:center;color:#991b1b;font-weight:700">🚫 غياب</td>' +
+                '<td style="text-align:center;color:#c3cad4">—</td></tr>';
         }
         presentCount++;
         sb += (r.basicHours || 0); sk += (r.breakHours || 0); se += (r.extraHours || 0);
@@ -16366,11 +16367,12 @@ function printRentalDailyFullReport() {
             '<td style="text-align:center;font-weight:700">' + (r.basicHours || 0).toFixed(2) + '</td>' +
             '<td style="text-align:center;font-weight:800;color:' + (r.extraHours > 0 ? '#92400e' : '#94a3b8') + '">' + (r.extraHours || 0).toFixed(2) + '</td>' +
             '<td>' + (r.notes ? escapeHtml(r.notes) : '<span style="color:#c3cad4">لا توجد ملاحظات</span>') + '</td>' +
+            '<td style="text-align:center;font-size:11px">' + recordedByHtml + '</td>' +
             '</tr>';
     }).join('');
 
     if (!rowsData.length) {
-        rows = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8">لا توجد عقود إيجار سارية في هذا التاريخ</td></tr>';
+        rows = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#94a3b8">لا توجد عقود إيجار سارية في هذا التاريخ</td></tr>';
     }
 
     var w = window.open('', '_blank');
@@ -16393,7 +16395,7 @@ function printRentalDailyFullReport() {
         '<div class="sum-box"><div class="num">' + sb.toFixed(1) + '</div><div class="lbl">إجمالي ساعات العمل</div></div>' +
         '<div class="sum-box" style="background:#fef3c7"><div class="num" style="color:#92400e">' + se.toFixed(1) + '</div><div class="lbl">إجمالي الإضافي</div></div>' +
         '</div>' +
-        '<table><thead><tr><th>م</th><th>اسم المعدة</th><th>السائق</th><th>حضور / انصراف</th><th>ساعات العمل</th><th>الإضافي</th><th>ملاحظات</th></tr></thead>' +
+        '<table><thead><tr><th>م</th><th>اسم المعدة</th><th>السائق</th><th>حضور / انصراف</th><th>ساعات العمل</th><th>الإضافي</th><th>ملاحظات</th><th>سجّلها</th></tr></thead>' +
         '<tbody>' + rows + '</tbody>' +
         '</table>' +
         '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة</button>' +
