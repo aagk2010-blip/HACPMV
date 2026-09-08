@@ -1060,7 +1060,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     </div>
   </div>
   
-  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="openPredictiveMaintenanceModal()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#0e7490,#0369a1)">🔮 الصيانة التنبؤية الذكية</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button><div id="maintenance-list"></div></div></div>
+  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button onclick="openIssueVouchersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95)">🧾 أذون الصرف من المخزن (SAP)</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="openPredictiveMaintenanceModal()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#0e7490,#0369a1)">🔮 الصيانة التنبؤية الذكية</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button><div id="maintenance-list"></div></div></div>
   
   <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box" style="margin-bottom:8px"><span>🔍</span><input type="text" id="search-inventory" placeholder="بحث باسم أو رقم قطعة..."></div><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><button id="add-inventory-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,var(--purple),var(--pink))">📦 إضافة صنف جديد</button><button id="export-inventory-excel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير المخزون Excel</button><button id="order-report-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,var(--danger),var(--warning))">📋 إنشاء طلبية للنواقص (1000 ساعة)</button><button id="delete-all-inventory-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع أصناف المخزون</button><button id="fix-filter-category-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0891b2,#155e75)" onclick="fixMiscategorizedFilters()">🔍 فحص وتصحيح تصنيف الفلاتر المسجّلة كزيوت</button><div id="inv-list"></div></div></div>
   
@@ -5128,7 +5128,8 @@ function openEquipmentDetail(id) {
             '<button onclick="completeCurrentMaintenanceStage(\'' + equipment.id + '\')" style="flex:1;padding:9px;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">✅ إتمام والانتقال للتالية</button>' +
             '</div>'
         ) : '') +
-        '<button onclick="createMaintenanceWorkOrderForEquipment(\'' + equipment.id + '\')" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">🖨️ عمل إذن صيانة بقطع المرحلة الحالية</button>' +
+        '<button onclick="createMaintenanceWorkOrderForEquipment(\'' + equipment.id + '\')" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:8px">🖨️ عمل إذن صيانة بقطع المرحلة الحالية</button>' +
+        '<button onclick="openIssueVouchersView(\'' + equipment.id + '\')" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">🧾 أذون الصرف الخاصة بهذه المعدة</button>' +
         '</div>';
     contentHtml += '<div class="grid-2" style="margin:12px 14px">';
     if (hasPermission('all')) {
@@ -15362,6 +15363,243 @@ var editingRentalDailyId = null;
         '<div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="wo-notes" placeholder="ملاحظات إضافية..."></textarea></div></div>' +
         '<button class="save-btn" onclick="saveWorkOrder()">✅ حفظ أمر العمل</button></div></div>';
     document.body.insertAdjacentHTML('beforeend', woOverlay + woModal);
+})();
+
+// ==================== نظام أذون الصرف من المخزن (SAP) — تصوير الإذن وتسجيله تلقائيًا مربوطًا بكل معدة ====================
+var issueVouchers = [];
+var editingIssueVoucherId = null;
+var pendingIssueVoucherPhotoDataUrl = null;
+
+function listenIssueVouchers() {
+    if (!fbDb) return;
+    fbDb.ref('issueVouchers').on('value', function(snapshot) {
+        if (!snapshot.val()) { issueVouchers = []; renderIssueVouchers(); return; }
+        issueVouchers = Object.entries(snapshot.val()).map(function(e) { var o = Object.assign({}, e[1]); o.id = e[0]; return o; });
+        renderIssueVouchers();
+    });
+}
+
+function openIssueVouchersView(equipmentId) {
+    document.getElementById('issue-vouchers-overlay').classList.add('active');
+    var filterSel = document.getElementById('ivo-filter-eq');
+    if (filterSel) {
+        filterSel.innerHTML = '<option value="">كل المعدات</option>' +
+            equipmentData.map(function(e) { return '<option value="' + e.id + '">' + escapeHtml(e.code + ' — ' + e.name) + '</option>'; }).join('');
+        filterSel.value = equipmentId || '';
+    }
+    listenIssueVouchers();
+}
+
+function filterIssueVouchers() { renderIssueVouchers(); }
+
+function renderIssueVouchers() {
+    var c = document.getElementById('ivo-list');
+    if (!c) return;
+    var filterEqId = (document.getElementById('ivo-filter-eq') || {}).value || '';
+    var list = filterEqId ? issueVouchers.filter(function(v) { return v.equipmentId === filterEqId; }) : issueVouchers.slice();
+    list.sort(function(a, b) { return new Date(b.createdAt || 0) - new Date(a.createdAt || 0); });
+    var open = list.filter(function(v) { return v.status !== 'مقفول'; });
+    var closed = list.filter(function(v) { return v.status === 'مقفول'; });
+    var counts = document.getElementById('ivo-counts');
+    if (counts) counts.innerHTML = '🔵 مفتوحة: <strong>' + open.length + '</strong> &nbsp;|&nbsp; ✅ مقفولة: <strong>' + closed.length + '</strong>';
+    if (!list.length) { c.innerHTML = '<div class="empty-state">🧾 لا توجد أذون صرف مسجّلة بعد</div>'; return; }
+    function card(v) {
+        var eq = equipmentData.find(function(e) { return e.id === v.equipmentId; });
+        var isOpen = v.status !== 'مقفول';
+        var statusColor = isOpen ? '#0e7490' : '#10b981';
+        return '<div style="background:white;border-radius:16px;border-right:4px solid ' + statusColor + ';padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+            '<div style="display:flex;gap:10px">' +
+            (v.photo ? '<img src="' + v.photo + '" onclick="window.open(this.src,\'_blank\')" style="width:56px;height:56px;object-fit:cover;border-radius:10px;cursor:pointer;flex-shrink:0">' : '<div style="width:56px;height:56px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🧾</div>') +
+            '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">' +
+            '<div style="font-size:14px;font-weight:700;color:#0d1b2a">🧾 إذن رقم ' + escapeHtml(v.voucherNo || '—') + '</div>' +
+            '<span style="background:' + statusColor + '22;color:' + statusColor + ';padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap">' + (isOpen ? '🔵 مفتوح' : '✅ مقفول') + '</span>' +
+            '</div>' +
+            '<div style="font-size:12px;color:#6b7a8d;margin-top:2px">🏗️ ' + (eq ? escapeHtml(eq.name + ' (' + eq.code + ')') : escapeHtml(v.equipmentName || '—')) + '</div>' +
+            '<div style="font-size:11px;color:#6b7a8d">📅 ' + escapeHtml(v.date || '—') + '</div>' +
+            '</div></div>' +
+            (v.items ? '<div style="background:#f8fafc;border-radius:10px;padding:8px;margin-top:8px;font-size:12px;white-space:pre-line;color:#334155">' + escapeHtml(v.items) + '</div>' : '') +
+            (v.notes ? '<div style="font-size:11px;color:#6b7a8d;background:#f0f4f8;padding:6px 10px;border-radius:8px;margin-top:8px">📝 ' + escapeHtml(v.notes) + '</div>' : '') +
+            '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">' +
+            '<button onclick="openEditIssueVoucher(\'' + v.id + '\')" style="flex:1;padding:7px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">✏️ تعديل</button>' +
+            '<button onclick="toggleIssueVoucherStatus(\'' + v.id + '\')" style="flex:1;padding:7px;background:linear-gradient(135deg,' + (isOpen ? '#10b981,#059669' : '#0e7490,#155e75') + ');color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">' + (isOpen ? '✅ تأكيد القفل' : '🔓 إعادة الفتح') + '</button>' +
+            '<button onclick="deleteIssueVoucher(\'' + v.id + '\')" style="padding:7px 12px;background:#fee2e2;color:#dc2626;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🗑️</button>' +
+            '</div></div>';
+    }
+    var html = '';
+    if (open.length) html += '<div style="font-size:12px;font-weight:700;color:#0e7490;margin-bottom:8px;padding:0 2px">🔵 مفتوحة (' + open.length + ')</div>' + open.map(card).join('');
+    if (closed.length) html += '<div style="font-size:12px;font-weight:700;color:#10b981;margin-bottom:8px;padding:0 2px;margin-top:14px">✅ مقفولة (' + closed.length + ')</div>' + closed.map(card).join('');
+    c.innerHTML = html;
+}
+
+function openAddIssueVoucher(equipmentId) {
+    editingIssueVoucherId = null;
+    pendingIssueVoucherPhotoDataUrl = null;
+    document.getElementById('ivo-modal-title').textContent = '➕ تسجيل إذن صرف جديد';
+    document.getElementById('ivo-eq-select').innerHTML = '<option value="">-- اختر المعدة --</option>' +
+        equipmentData.map(function(e) { return '<option value="' + e.id + '">' + escapeHtml(e.code + ' — ' + e.name) + '</option>'; }).join('');
+    if (equipmentId) document.getElementById('ivo-eq-select').value = equipmentId;
+    document.getElementById('ivo-voucher-no').value = '';
+    document.getElementById('ivo-date').value = localDateStr(new Date());
+    document.getElementById('ivo-status').value = 'مفتوح';
+    document.getElementById('ivo-items').value = '';
+    document.getElementById('ivo-notes').value = '';
+    document.getElementById('ivo-photo-preview').innerHTML = '';
+    document.getElementById('ivo-photo-status').style.display = 'none';
+    document.getElementById('ivo-modal').classList.add('active');
+}
+
+function openEditIssueVoucher(id) {
+    var v = issueVouchers.find(function(x) { return x.id === id; });
+    if (!v) return;
+    editingIssueVoucherId = id;
+    pendingIssueVoucherPhotoDataUrl = v.photo || null;
+    document.getElementById('ivo-modal-title').textContent = '✏️ تعديل إذن صرف';
+    document.getElementById('ivo-eq-select').innerHTML = '<option value="">-- اختر المعدة --</option>' +
+        equipmentData.map(function(e) { return '<option value="' + e.id + '"' + (e.id === v.equipmentId ? ' selected' : '') + '>' + escapeHtml(e.code + ' — ' + e.name) + '</option>'; }).join('');
+    document.getElementById('ivo-voucher-no').value = v.voucherNo || '';
+    document.getElementById('ivo-date').value = v.date || '';
+    document.getElementById('ivo-status').value = v.status || 'مفتوح';
+    document.getElementById('ivo-items').value = v.items || '';
+    document.getElementById('ivo-notes').value = v.notes || '';
+    document.getElementById('ivo-photo-preview').innerHTML = v.photo ? '<img src="' + v.photo + '" style="width:80px;height:80px;object-fit:cover;border-radius:10px">' : '';
+    document.getElementById('ivo-photo-status').style.display = 'none';
+    document.getElementById('ivo-modal').classList.add('active');
+}
+
+function handleIssueVoucherPhoto(file) {
+    if (!file) return;
+    var statusEl = document.getElementById('ivo-photo-status');
+    var previewEl = document.getElementById('ivo-photo-preview');
+    statusEl.style.display = 'block';
+    statusEl.style.color = '#6b7a8d';
+    statusEl.textContent = '⏳ جاري تجهيز الصورة...';
+    compressImageForUpload(file, 1300, 0.8, function(dataUrl) {
+        if (!dataUrl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '❌ تعذّر قراءة الصورة'; return; }
+        pendingIssueVoucherPhotoDataUrl = dataUrl;
+        previewEl.innerHTML = '<img src="' + dataUrl + '" style="width:80px;height:80px;object-fit:cover;border-radius:10px">';
+        statusEl.style.color = '#6b7a8d';
+        statusEl.textContent = '🔍 جاري تحليل الصورة واستخراج بيانات الإذن (Gemini)...';
+        var prompt = 'دي صورة شاشة من نظام SAP لإذن صرف مخزني (Goods Issue) لقطع غيار معدات. ' +
+            'استخرج البيانات دي فقط وارجعها في صورة JSON صالح، بدون أي نص أو شرح إضافي وبدون علامات markdown، بالشكل ده بالظبط: ' +
+            '{"voucherNo":"رقم المستند أو الإذن","date":"التاريخ بصيغة YYYY-MM-DD لو موجود وإلا نص فاضي","equipmentName":"اسم أو كود المعدة لو مذكور وإلا نص فاضي","items":"سطر لكل صنف بالشكل: اسم الصنف - الكمية - الوحدة، افصل الأسطر بعلامة \\n"}. ' +
+            'لو أي قيمة مش موجودة في الصورة سيبها نص فاضي.';
+        callGeminiVisionAPI(prompt, dataUrl, function(err, text) {
+            if (err) {
+                statusEl.style.color = '#dc2626';
+                statusEl.textContent = '⚠️ ' + err + ' — اكتب البيانات يدويًا';
+                return;
+            }
+            try {
+                var clean = text.replace(/```json|```/g, '').trim();
+                var jsonMatch = clean.match(/\{[\s\S]*\}/);
+                var parsed = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
+                if (parsed.voucherNo) document.getElementById('ivo-voucher-no').value = parsed.voucherNo;
+                if (parsed.date) document.getElementById('ivo-date').value = parsed.date;
+                if (parsed.items) document.getElementById('ivo-items').value = parsed.items;
+                if (parsed.equipmentName) {
+                    var sel = document.getElementById('ivo-eq-select');
+                    var q = String(parsed.equipmentName).toLowerCase();
+                    var match = equipmentData.find(function(e) {
+                        return (e.code && q.indexOf(String(e.code).toLowerCase()) !== -1) ||
+                            (e.sapCode && q.indexOf(String(e.sapCode).toLowerCase()) !== -1) ||
+                            (e.name && q.indexOf(String(e.name).toLowerCase()) !== -1);
+                    });
+                    if (match && sel) sel.value = match.id;
+                }
+                statusEl.style.color = '#059669';
+                statusEl.textContent = '✅ تم استخراج البيانات — راجعها كويس قبل الحفظ';
+            } catch (e) {
+                statusEl.style.color = '#dc2626';
+                statusEl.textContent = '⚠️ معرفناش نقرأ بيانات واضحة من الصورة — اكتب البيانات يدويًا';
+            }
+        });
+    });
+}
+
+function saveIssueVoucher() {
+    var eqId = document.getElementById('ivo-eq-select').value;
+    if (!eqId) { showToast('اختر المعدة', true); return; }
+    var eq = equipmentData.find(function(e) { return e.id === eqId; });
+    var record = {
+        equipmentId: eqId,
+        equipmentName: eq ? (eq.code + ' — ' + eq.name) : '',
+        voucherNo: document.getElementById('ivo-voucher-no').value.trim(),
+        date: document.getElementById('ivo-date').value,
+        status: document.getElementById('ivo-status').value,
+        items: document.getElementById('ivo-items').value.trim(),
+        notes: document.getElementById('ivo-notes').value.trim(),
+        photo: pendingIssueVoucherPhotoDataUrl || null,
+        updatedAt: new Date().toISOString()
+    };
+    if (editingIssueVoucherId) {
+        var existing = issueVouchers.find(function(v) { return v.id === editingIssueVoucherId; });
+        record.createdAt = existing ? (existing.createdAt || record.updatedAt) : record.updatedAt;
+        fbDb.ref('issueVouchers/' + editingIssueVoucherId).set(record).then(function() {
+            closeModal('ivo-modal'); showToast('✅ تم تحديث إذن الصرف');
+        }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
+    } else {
+        record.createdAt = new Date().toISOString();
+        fbDb.ref('issueVouchers').push(record).then(function() {
+            closeModal('ivo-modal'); showToast('✅ تم تسجيل إذن الصرف');
+        }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
+    }
+}
+
+function toggleIssueVoucherStatus(id) {
+    var v = issueVouchers.find(function(x) { return x.id === id; });
+    if (!v) return;
+    var newStatus = v.status === 'مقفول' ? 'مفتوح' : 'مقفول';
+    fbDb.ref('issueVouchers/' + id + '/status').set(newStatus).then(function() {
+        showToast(newStatus === 'مقفول' ? '✅ تم قفل الإذن' : '🔓 تم إعادة فتح الإذن');
+    }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
+}
+
+function deleteIssueVoucher(id) {
+    if (!confirm('حذف إذن الصرف ده نهائيًا؟')) return;
+    fbDb.ref('issueVouchers/' + id).remove().then(function() { showToast('🗑️ تم الحذف'); }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
+}
+
+window.openIssueVouchersView = openIssueVouchersView;
+window.filterIssueVouchers = filterIssueVouchers;
+window.openAddIssueVoucher = openAddIssueVoucher;
+window.openEditIssueVoucher = openEditIssueVoucher;
+window.handleIssueVoucherPhoto = handleIssueVoucherPhoto;
+window.saveIssueVoucher = saveIssueVoucher;
+window.toggleIssueVoucherStatus = toggleIssueVoucherStatus;
+window.deleteIssueVoucher = deleteIssueVoucher;
+
+(function injectIssueVoucherUI() {
+    var overlay = '<div class="modal-overlay" id="issue-vouchers-overlay">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">' +
+        '<div class="modal-title">🧾 أذون الصرف من المخزن</div>' +
+        '<button class="modal-close" onclick="closeModal(\'issue-vouchers-overlay\')">✕</button></div>' +
+        '<div style="padding:14px">' +
+        '<button onclick="openAddIssueVoucher()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;border-radius:14px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:10px">📷 تسجيل إذن صرف جديد (بالتصوير)</button>' +
+        '<select class="form-select" id="ivo-filter-eq" onchange="filterIssueVouchers()" style="border:1px solid #e2e8f0;border-radius:12px;padding:8px;width:100%;margin-bottom:8px;background:white"><option value="">كل المعدات</option></select>' +
+        '<div id="ivo-counts" style="font-size:12px;color:#475569;margin-bottom:12px"></div>' +
+        '<div id="ivo-list"></div></div></div>';
+    var modal = '<div class="modal-overlay" id="ivo-modal">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">' +
+        '<div class="modal-title" id="ivo-modal-title">➕ تسجيل إذن صرف جديد</div>' +
+        '<button class="modal-close" onclick="closeModal(\'ivo-modal\')">✕</button></div>' +
+        '<div><div class="form-group">' +
+        '<div class="form-field">' +
+        '<label class="form-label">📷 صورة الإذن (من شاشة SAP)</label>' +
+        '<input type="file" accept="image/*" capture="environment" id="ivo-photo-file" style="display:none" onchange="handleIssueVoucherPhoto(this.files[0])">' +
+        '<button type="button" onclick="document.getElementById(\'ivo-photo-file\').click()" style="width:100%;padding:10px;border:2px dashed #cbd5e1;border-radius:12px;background:#f8fafc;font-family:inherit;font-size:13px;font-weight:700;color:#0d1b2a;cursor:pointer">📷 صوّر الإذن أو ارفع صورة</button>' +
+        '<div id="ivo-photo-preview" style="margin-top:8px"></div>' +
+        '<div id="ivo-photo-status" style="font-size:11px;margin-top:6px;display:none"></div>' +
+        '</div>' +
+        '<div class="form-field"><label class="form-label">🏗️ المعدة *</label><select class="form-select" id="ivo-eq-select"><option value="">-- اختر المعدة --</option></select></div>' +
+        '<div class="form-field"><label class="form-label">🧾 رقم الإذن (SAP)</label><input class="form-input" id="ivo-voucher-no" placeholder="مثال: 5000012345"></div>' +
+        '<div class="form-field"><label class="form-label">📅 التاريخ</label><input class="form-input" type="date" id="ivo-date"></div>' +
+        '<div class="form-field"><label class="form-label">الحالة</label><select class="form-select" id="ivo-status"><option value="مفتوح">🔵 مفتوح</option><option value="مقفول">✅ مقفول</option></select></div>' +
+        '<div class="form-field"><label class="form-label">📦 الأصناف المنصرفة</label><textarea class="form-textarea" id="ivo-items" placeholder="اسم الصنف - الكمية - الوحدة (سطر لكل صنف)"></textarea></div>' +
+        '<div class="form-field"><label class="form-label">📝 ملاحظات</label><textarea class="form-textarea" id="ivo-notes"></textarea></div>' +
+        '</div>' +
+        '<button class="save-btn" onclick="saveIssueVoucher()">✅ حفظ إذن الصرف</button></div></div>';
+    document.body.insertAdjacentHTML('beforeend', overlay + modal);
 })();
 
 (function injectRentalModals() {
