@@ -16536,9 +16536,18 @@ function printRentalDailyFullReport() {
     });
 
     rowsData.sort(function(a, b) {
-        // الحاضرين أولاً (مرتبين أبجديًا)، والغياب في الآخر (مرتبين أبجديًا)
+        // 1) الحاضرين بإضافي أولاً (مرتبين تنازليًا حسب عدد ساعات الإضافي)
+        // 2) بعدهم الحاضرين بدون إضافي (مرتبين أبجديًا)
+        // 3) الغياب في الآخر (مرتبين أبجديًا)
         var aAbsent = a.rec ? 0 : 1, bAbsent = b.rec ? 0 : 1;
         if (aAbsent !== bAbsent) return aAbsent - bAbsent;
+        if (!aAbsent) {
+            var aExtra = (a.rec.extraHours || 0) + (a.rec.breakHours || 0);
+            var bExtra = (b.rec.extraHours || 0) + (b.rec.breakHours || 0);
+            var aHasOT = aExtra > 0 ? 0 : 1, bHasOT = bExtra > 0 ? 0 : 1;
+            if (aHasOT !== bHasOT) return aHasOT - bHasOT;
+            if (aHasOT === 0 && bExtra !== aExtra) return bExtra - aExtra;
+        }
         var an = a.eq ? (a.eq.name || a.eq.type) : (a.rental ? a.rental.equipmentCode : '');
         var bn = b.eq ? (b.eq.name || b.eq.type) : (b.rental ? b.rental.equipmentCode : '');
         return (an || '').localeCompare(bn || '', 'ar');
