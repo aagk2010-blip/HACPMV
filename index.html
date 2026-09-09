@@ -995,12 +995,12 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   
   <div id="view-employees" style="display:none"><div style="padding:14px">
     <div id="employees-subtabs" style="display:flex;gap:8px;margin-bottom:12px;background:#eef1f5;padding:4px;border-radius:14px">
-      <button class="emp-subtab-btn active" data-subtab="employees" onclick="switchEmployeesSubTab('employees')">👥 الموظفين</button>
-      <button class="emp-subtab-btn" data-subtab="drivers" onclick="switchEmployeesSubTab('drivers')">👨‍✈️ السائقين</button>
+      <button class="emp-subtab-btn active" data-subtab="employees" onclick="switchEmployeesSubTab('employees')">👥 <span class="i18n-label" data-en="Employees" data-ar="الموظفين"></span></button>
+      <button class="emp-subtab-btn" data-subtab="drivers" onclick="switchEmployeesSubTab('drivers')">👨‍✈️ <span class="i18n-label" data-en="Drivers" data-ar="السائقين"></span></button>
     </div>
 
     <div id="emp-panel-employees">
-      <div class="search-box"><span>🔍</span><input type="text" id="search-employee" placeholder="بحث باسم الموظف..." oninput="debouncedRefresh()"></div>
+      <div class="search-box"><span>🔍</span><input type="text" id="search-employee" placeholder="Search by employee name... / بحث باسم الموظف..." oninput="debouncedRefresh()"></div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <select id="employee-project-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
           <option value="">🏗️ كل المواقع</option>
@@ -1013,14 +1013,14 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       </div>
       <div id="employees-stats-bar" style="display:flex;gap:8px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
-        <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#059669,#047857)" onclick="exportEmployeesExcel()">📊 تصدير Excel</button>
-        <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#dc2626,#991b1b)" onclick="exportEmployeesPDF()">📄 تصدير PDF</button>
+        <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#059669,#047857)" onclick="exportEmployeesExcel()">📊 <span class="i18n-label" data-en="Export Excel" data-ar="تصدير Excel"></span></button>
+        <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#dc2626,#991b1b)" onclick="exportEmployeesPDF()">📄 <span class="i18n-label" data-en="Export PDF" data-ar="تصدير PDF"></span></button>
       </div>
       <div id="employees-list"></div>
     </div>
 
     <div id="emp-panel-drivers" style="display:none">
-      <div class="search-box"><span>🔍</span><input type="text" id="search-driver" placeholder="بحث باسم السائق..." oninput="debouncedRefresh()"></div>
+      <div class="search-box"><span>🔍</span><input type="text" id="search-driver" placeholder="Search by driver name... / بحث باسم السائق..." oninput="debouncedRefresh()"></div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <select id="driver-project-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
           <option value="">🏗️ كل المشاريع</option>
@@ -1033,7 +1033,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         </select>
       </div>
       <div id="drivers-stats-bar" style="display:flex;gap:8px;margin-bottom:10px"></div>
-      <button onclick="openDriverBehaviorModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🤖 تحليل سلوك السائقين الذكي (المسافة + التوقفات + انقطاع التتبع)</button>
+      <button onclick="openDriverBehaviorModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🤖 <span class="i18n-label" data-en="Smart Driver Behavior Analysis (distance + stops + tracking loss)" data-ar="تحليل سلوك السائقين الذكي (المسافة + التوقفات + انقطاع التتبع)"></span></button>
       <div id="drivers-list"></div>
     </div>
   </div></div>
@@ -1060,7 +1060,16 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     </div>
   </div>
   
-  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button onclick="openIssueVouchersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95)">🧾 أذون الصرف من المخزن (SAP)</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="openPredictiveMaintenanceModal()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#0e7490,#0369a1)">🔮 الصيانة التنبؤية الذكية</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button><div id="maintenance-list"></div></div></div>
+  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button onclick="openIssueVouchersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95)">🧾 أذون الصرف من المخزن (SAP)</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="openPredictiveMaintenanceModal()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#0e7490,#0369a1)">🔮 الصيانة التنبؤية الذكية</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button>
+    <div style="background:#f8fafc;border-radius:16px;padding:14px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:800;color:#0d1b2a">🧾 أذون الصرف المفتوحة</div>
+        <span id="maintenance-open-vouchers-count" style="background:#0e7490;color:white;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700">0</span>
+      </div>
+      <div id="maintenance-open-vouchers-list"><div style="text-align:center;padding:16px;color:#94a3b8;font-size:12.5px">⏳ جاري التحميل...</div></div>
+      <button onclick="openIssueVouchersView()" style="width:100%;padding:9px;margin-top:6px;background:transparent;border:1px dashed #cbd5e1;border-radius:10px;color:#475569;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">عرض كل الأذون (مفتوحة ومقفولة) ›</button>
+    </div>
+    <div id="maintenance-list"></div></div></div>
   
   <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box" style="margin-bottom:8px"><span>🔍</span><input type="text" id="search-inventory" placeholder="بحث باسم أو رقم قطعة..."></div><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><button id="add-inventory-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,var(--purple),var(--pink))">📦 إضافة صنف جديد</button><button id="export-inventory-excel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير المخزون Excel</button><button id="order-report-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,var(--danger),var(--warning))">📋 إنشاء طلبية للنواقص (1000 ساعة)</button><button id="delete-all-inventory-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع أصناف المخزون</button><button id="fix-filter-category-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0891b2,#155e75)" onclick="fixMiscategorizedFilters()">🔍 فحص وتصحيح تصنيف الفلاتر المسجّلة كزيوت</button><div id="inv-list"></div></div></div>
   
@@ -1117,30 +1126,48 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
   <div id="view-import" style="display:none">
     <div style="padding:14px">
-      <div style="background:white; border-radius:18px; padding:20px; margin-bottom:16px; text-align:center">
-        <div style="font-size:32px; margin-bottom:10px">🏗️</div>
-        <div style="font-weight:700; margin-bottom:8px">رفع ملف معدات الموقع</div>
-        <div style="font-size:12px; color:var(--gray); margin-bottom:16px">تحديث ساعات العمل ومواعيد الصيانة والوقود اليومي</div>
+      <div style="font-size:13px;font-weight:800;color:#0d1b2a;margin:2px 4px 12px">📥 استيراد البيانات من ملفات إكسل</div>
+
+      <div style="background:white; border-radius:16px; padding:16px; margin-bottom:12px; display:flex; align-items:center; gap:14px; box-shadow:0 1px 3px rgba(0,0,0,.06)">
+        <div style="width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg,#0e7490,#065f46); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0">🏗️</div>
+        <div style="flex:1; min-width:0">
+          <div style="font-weight:800; font-size:14px; color:#0d1b2a; margin-bottom:2px">ملف معدات الموقع</div>
+          <div style="font-size:11.5px; color:var(--gray); line-height:1.5">تحديث ساعات العمل ومواعيد الصيانة والوقود اليومي</div>
+        </div>
         <input type="file" id="equipment-excel-input" accept=".xlsx, .xls" style="display:none">
-        <button id="upload-equipment-excel-btn" class="save-btn" style="margin:0; background:linear-gradient(135deg,#0e7490,#065f46); width:100%">📂 رفع ملف المعدات</button>
+        <button id="upload-equipment-excel-btn" style="padding:9px 16px; border:none; border-radius:10px; background:linear-gradient(135deg,#0e7490,#065f46); color:white; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer; flex-shrink:0; white-space:nowrap">📂 رفع</button>
       </div>
-      
-      <div style="background:white; border-radius:18px; padding:20px; margin-bottom:16px; text-align:center">
-        <div style="font-size:32px; margin-bottom:10px">📦</div>
-        <div style="font-weight:700; margin-bottom:8px">رفع ملف المخزون (SOH)</div>
-        <div style="font-size:12px; color:var(--gray); margin-bottom:16px">تحديث بيانات الفلاتر والزيوت وقطع الغيار</div>
+
+      <div style="background:white; border-radius:16px; padding:16px; margin-bottom:12px; display:flex; align-items:center; gap:14px; box-shadow:0 1px 3px rgba(0,0,0,.06)">
+        <div style="width:48px; height:48px; border-radius:12px; background:#0d1b2a; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0">📦</div>
+        <div style="flex:1; min-width:0">
+          <div style="font-weight:800; font-size:14px; color:#0d1b2a; margin-bottom:2px">ملف المخزون (SOH)</div>
+          <div style="font-size:11.5px; color:var(--gray); line-height:1.5">تحديث بيانات الفلاتر والزيوت وقطع الغيار</div>
+        </div>
         <input type="file" id="inventory-excel-input" accept=".xlsx, .xls" style="display:none">
-        <button id="upload-inventory-soh-btn" class="save-btn" style="margin:0; background:#0d1b2a; color:white; font-weight:bold; width:100%">📂 رفع ملف SOH</button>
+        <button id="upload-inventory-soh-btn" style="padding:9px 16px; border:none; border-radius:10px; background:#0d1b2a; color:white; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer; flex-shrink:0; white-space:nowrap">📂 رفع</button>
       </div>
-      
-      <div style="background:white; border-radius:18px; padding:20px; margin-bottom:16px; text-align:center">
-        <div style="font-size:32px; margin-bottom:10px">🔧</div>
-        <div style="font-weight:700; margin-bottom:8px">رفع ملف سجل الصيانات (PM)</div>
-        <div style="font-size:12px; color:var(--gray); margin-bottom:16px">استيراد تاريخ الصيانات الدورية والفلاتر والزيوت المستخدمة لكل معدة</div>
+
+      <div style="background:white; border-radius:16px; padding:16px; margin-bottom:12px; display:flex; align-items:center; gap:14px; box-shadow:0 1px 3px rgba(0,0,0,.06)">
+        <div style="width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg,#d97706,#b45309); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0">🔧</div>
+        <div style="flex:1; min-width:0">
+          <div style="font-weight:800; font-size:14px; color:#0d1b2a; margin-bottom:2px">ملف سجل الصيانات (PM)</div>
+          <div style="font-size:11.5px; color:var(--gray); line-height:1.5">استيراد تاريخ الصيانات الدورية والفلاتر والزيوت المستخدمة لكل معدة</div>
+        </div>
         <input type="file" id="pm-history-excel-input" accept=".xlsx, .xls" style="display:none">
-        <button id="upload-pm-history-btn" class="save-btn" style="margin:0; background:linear-gradient(135deg,#d97706,#b45309); width:100%">📂 رفع ملف PM</button>
-        <div id="pm-import-status" style="display:none;margin-top:12px;padding:10px;border-radius:10px;font-size:13px"></div>
+        <button id="upload-pm-history-btn" style="padding:9px 16px; border:none; border-radius:10px; background:linear-gradient(135deg,#d97706,#b45309); color:white; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer; flex-shrink:0; white-space:nowrap">📂 رفع</button>
       </div>
+      <div id="pm-import-status" style="display:none; margin:-4px 0 12px; padding:10px; border-radius:10px; font-size:13px"></div>
+
+      <div style="background:white; border-radius:16px; padding:16px; margin-bottom:16px; display:flex; align-items:center; gap:14px; box-shadow:0 1px 3px rgba(0,0,0,.06); border:1px solid #dcfce7">
+        <div style="width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg,#166534,#14532d); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0">🧾</div>
+        <div style="flex:1; min-width:0">
+          <div style="font-weight:800; font-size:14px; color:#0d1b2a; margin-bottom:2px">أذون الصرف من المخزن (SAP)</div>
+          <div style="font-size:11.5px; color:var(--gray); line-height:1.5">استيراد أذون الصرف المسحوبة من SAP وربطها تلقائيًا بكل معدة</div>
+        </div>
+        <button onclick="openIssueVoucherImportModal()" style="padding:9px 16px; border:none; border-radius:10px; background:linear-gradient(135deg,#166534,#14532d); color:white; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer; flex-shrink:0; white-space:nowrap">📂 رفع</button>
+      </div>
+
 <div id="import-preview" style="display:none; background:white; border-radius:18px; padding:16px; margin-bottom:16px"><div class="section-title" style="margin-bottom:12px">📋 معاينة البيانات</div><div id="preview-content" class="import-preview"></div><div class="grid-2" style="margin-top:16px; gap:10px"><button id="confirm-import-btn" class="save-btn" style="margin:0; background:var(--success)">✅ تأكيد الاستيراد</button><button id="cancel-import-btn" class="save-btn" style="margin:0; background:var(--gray)">❌ <span class="i18n-label" data-en="Cancel" data-ar="إلغاء"></span></button></div></div>
       
       <div id="inventory-import-preview" style="display:none; background:white; border-radius:18px; padding:16px; margin-bottom:16px"><div class="section-title" style="margin-bottom:12px">📋 معاينة بيانات المخزون (SOH)</div><div id="inventory-preview-content" class="import-preview"></div><div class="grid-2" style="margin-top:16px; gap:10px"><button id="confirm-inventory-import-btn" class="save-btn" style="margin:0; background:var(--success)">✅ تأكيد استيراد المخزون</button><button id="cancel-inventory-import-btn" class="save-btn" style="margin:0; background:var(--gray)">❌ <span class="i18n-label" data-en="Cancel" data-ar="إلغاء"></span></button></div></div>
@@ -2892,6 +2919,41 @@ function applyLanguageMode() {
     var mode = getAppLanguage();
     document.documentElement.setAttribute('data-lang', mode);
     document.querySelectorAll('.i18n-label').forEach(function(el) { applyLanguageToElement(el, mode); });
+    document.querySelectorAll('option').forEach(function(o) { translateOptionEl(o, mode); });
+}
+var I18N_OPTION_DICT = {
+    'حفارة':'Excavator','لودر':'Loader','رافعة':'Crane','بلدوزر':'Bulldozer','شاحنة':'Truck','جرار':'Tractor',
+    'مولد كهربائي':'Generator','برج إنارة':'Light Tower','ماكينة لحام':'Welding Machine','دكاك':'Compactor',
+    'هزاز':'Vibratory Roller','رافعة شوكية 14':'Forklift 14','رافعة شوكية 17':'Forklift 17',
+    'مقطورة سطحة':'Flatbed Trailer','مقطورة تانك':'Tank Trailer','أخرى':'Other',
+    'يعمل':'Working','صيانة':'Maintenance','متوقف':'Stopped',
+    '🔑 ملك':'🔑 Owned','📋 إيجار':'📋 Rented','⛽ ديزل':'⛽ Diesel','⛽ بنزين':'⛽ Gasoline',
+    'نشط':'Active','في إجازة':'On Leave','منتهي العقد':'Contract Ended','منتهي الخدمة':'Terminated',
+    '✅ نشط':'✅ Active','🏖️ في إجازة':'🏖️ On Leave','❌ منتهي العقد':'❌ Contract Ended',
+    'معين':'Permanent','سركي':'Daily Wage','📌 معين':'📌 Permanent','🧾 سركي':'🧾 Daily Wage',
+    '👤 معين وسركي':'👤 Permanent & Daily Wage','👤 كل الحالات':'👤 All Statuses',
+    '🏗️ كل المواقع':'🏗️ All Sites','🏗️ كل المشاريع':'🏗️ All Projects',
+    'فلتر':'Filter','زيت':'Oil','إطار':'Tire','قطعة غيار':'Spare Part',
+    'قطعة':'Piece','لتر':'Liter','جالون':'Gallon','كجم':'Kg',
+    'صيانة دورية':'Routine Maintenance','صيانة طارئة':'Emergency Maintenance','فحص دوري':'Periodic Inspection',
+    'تغيير زيت':'Oil Change','تغيير فلاتر':'Filter Change'
+};
+function translateOptionEl(opt, mode) {
+    if (!opt.hasAttribute('data-ar-orig')) opt.setAttribute('data-ar-orig', opt.textContent);
+    var origAr = opt.getAttribute('data-ar-orig');
+    if (mode !== 'en') { opt.textContent = origAr; return; }
+    var trimmed = origAr.trim();
+    var m = trimmed.match(/^كل (\d+) ساعة$/);
+    if (m) { opt.textContent = 'Every ' + m[1] + ' hours'; return; }
+    var m2 = trimmed.match(/^آخر (\d+) (يوم|أيام)$/);
+    if (m2) { opt.textContent = 'Last ' + m2[1] + ' days'; return; }
+    if (I18N_OPTION_DICT.hasOwnProperty(trimmed)) { opt.textContent = I18N_OPTION_DICT[trimmed]; return; }
+    opt.textContent = origAr;
+}
+function translateOptionsWithin(root, mode) {
+    if (!root) return;
+    if (root.tagName === 'OPTION') { translateOptionEl(root, mode); return; }
+    if (root.querySelectorAll) root.querySelectorAll('option').forEach(function(o) { translateOptionEl(o, mode); });
 }
 // معظم شاشات البرنامج بتتبنى بتحديث innerHTML كامل بدل ما تعيد تشغيل applyLanguageMode() بنفسها،
 // فبنراقب أي عنصر i18n-label جديد بينضاف للصفحة (حتى داخل مودال أو كارت اتعمله render لاحقًا) ونترجمه فورًا تلقائيًا
@@ -2904,6 +2966,7 @@ var _i18nObserver = new MutationObserver(function(mutations) {
             if (node.querySelectorAll) {
                 node.querySelectorAll('.i18n-label').forEach(function(el) { applyLanguageToElement(el, mode); });
             }
+            translateOptionsWithin(node, mode);
         });
     });
 });
@@ -6524,7 +6587,7 @@ function openDriverDetail(id) {
         '</div></div>';
     
     if (assigned.length) {
-        contentHtml += '<div class="detail-section"><div class="detail-label">🚜 المعدات</div>' +
+        contentHtml += '<div class="detail-section"><div class="detail-label">🚜 '+RL('Equipment','المعدات')+'</div>' +
             assigned.map(function(e) { return '<div>• ' + escapeHtml(e.name) + ' (' + escapeHtml(e.code) + ')</div>'; }).join('') + '</div>';
     }
     if (driver.notes) {
@@ -6536,29 +6599,29 @@ function openDriverDetail(id) {
         if (loc && loc.updatedAt) {
             var minsAgo = (new Date() - new Date(loc.updatedAt)) / 60000;
             var locColor = minsAgo <= 15 ? 'var(--success)' : minsAgo <= 120 ? 'var(--warning)' : 'var(--gray)';
-            var timeAgoText = minsAgo < 1 ? 'الآن' : minsAgo < 60 ? Math.round(minsAgo) + ' دقيقة' : Math.round(minsAgo / 60) + ' ساعة';
-            locStatusHtml = '<span style="color:' + locColor + ';font-weight:700">📍 آخر تحديث: منذ ' + timeAgoText + '</span>';
+            var timeAgoText = minsAgo < 1 ? RL('now','الآن') : minsAgo < 60 ? Math.round(minsAgo) + ' '+RL('min','دقيقة') : Math.round(minsAgo / 60) + ' '+RL('h','ساعة');
+            locStatusHtml = '<span style="color:' + locColor + ';font-weight:700">📍 '+RL('Last update: ','آخر تحديث: ')+RL('','منذ ')+timeAgoText + '</span>';
             // لو قفل الصفحة فعليًا بعد آخر تحديث (مش بس انقطاع نت)، بنوريها كتحذير واضح عشان تتصل بيه
             if (loc.closedAt && new Date(loc.closedAt) > new Date(loc.updatedAt)) {
                 var closedMinsAgo = Math.round((new Date() - new Date(loc.closedAt)) / 60000);
-                locStatusHtml += '<div style="margin-top:6px;color:var(--danger);font-weight:800">🔴 قفل السائق الصفحة منذ ' + (closedMinsAgo < 1 ? 'لحظات' : closedMinsAgo + ' دقيقة') + ' — اتصل بيه</div>';
+                locStatusHtml += '<div style="margin-top:6px;color:var(--danger);font-weight:800">🔴 '+RL('Driver closed the page ','قفل السائق الصفحة منذ ')+ (closedMinsAgo < 1 ? RL('moments ago','منذ لحظات') : RL('','منذ ')+closedMinsAgo + ' '+RL('min ago','دقيقة')) + ' — '+RL('call them','اتصل بيه')+'</div>';
             }
         } else {
-            locStatusHtml = '<span style="color:var(--gray)">⚪ لسه ماشاركش موقعه</span>';
+            locStatusHtml = '<span style="color:var(--gray)">⚪ '+RL('Has not shared their location yet','لسه ماشاركش موقعه')+'</span>';
         }
         // صورة العداد بتتعرض بس لو اتصورت النهارده — تختفي تلقائيًا تاني يوم حتى لو محدش رفع صورة جديدة
         var meterPhotoHtml = '';
         if (loc && loc.meterPhoto && loc.meterPhoto.data) {
             var todayKey = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0');
             if (loc.meterPhoto.dateKey === todayKey) {
-                meterPhotoHtml = '<div style="margin-top:8px"><div style="font-size:11px;font-weight:700;color:#6b7a8d;margin-bottom:4px">📸 آخر صورة عداد اليوم</div>' +
+                meterPhotoHtml = '<div style="margin-top:8px"><div style="font-size:11px;font-weight:700;color:#6b7a8d;margin-bottom:4px">📸 '+RL("Today's latest meter photo",'آخر صورة عداد اليوم')+'</div>' +
                     '<img src="' + loc.meterPhoto.data + '" style="max-width:100%;border-radius:10px;border:1px solid #e2e8f0" onclick="window.open(this.src)"></div>';
             }
         }
-        contentHtml += '<div class="detail-section"><div class="detail-label">📍 تتبّع الموقع (GPS)</div><div class="detail-value">' + locStatusHtml + '</div>' + meterPhotoHtml +
+        contentHtml += '<div class="detail-section"><div class="detail-label">📍 '+RL('Location Tracking (GPS)','تتبّع الموقع (GPS)')+'</div><div class="detail-value">' + locStatusHtml + '</div>' + meterPhotoHtml +
             '<div class="grid-2" style="margin-top:8px">' +
-            '<button class="save-btn" style="margin:0;background:var(--info)" onclick="copyDriverShareLink(\'' + driver.id + '\')">📋 نسخ رابط المشاركة</button>' +
-            '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#25d366,#128c7e)" onclick="shareDriverLinkWhatsApp(\'' + driver.id + '\',\'' + escapeHtml(driver.name).replace(/'/g,"\\'") + '\')">📲 إرسال واتساب</button>' +
+            '<button class="save-btn" style="margin:0;background:var(--info)" onclick="copyDriverShareLink(\'' + driver.id + '\')">📋 '+RL('Copy Share Link','نسخ رابط المشاركة')+'</button>' +
+            '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#25d366,#128c7e)" onclick="shareDriverLinkWhatsApp(\'' + driver.id + '\',\'' + escapeHtml(driver.name).replace(/'/g,"\\'") + '\')">📲 '+RL('Send WhatsApp','إرسال واتساب')+'</button>' +
             '</div></div>';
     }
     contentHtml += '<div class="grid-2" style="margin:12px 14px">';
@@ -6575,14 +6638,14 @@ function openDriverDetail(id) {
 
 function editDriver(id) {
     if (!hasPermission('all')) {
-        showToast('غير مصرح', true);
+        showToast(RL('Not authorized','غير مصرح'), true);
         return;
     }
     var driver = driversData.find(function(d) { return d.id === id; });
     if (!driver) return;
     
     editingDriverId = id;
-    document.getElementById('modal-title-driver').innerHTML = 'تعديل بيانات السائق';
+    document.getElementById('modal-title-driver').innerHTML = RL('Edit Driver Info','تعديل بيانات السائق');
     document.getElementById('driver-name').value = driver.name || '';
     document.getElementById('driver-phone').value = driver.phone || '';
     document.getElementById('driver-license').value = driver.licenseNumber || '';
@@ -6597,10 +6660,10 @@ function getLicenseWarningBadge(driver) {
     if (!driver || !driver.licenseExpiry) return '';
     var days = Math.ceil((new Date(driver.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
     if (days < 0) {
-        return '<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:10px;display:inline-block;margin-top:4px">❌ رخصة منتهية</span>';
+        return '<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:10px;display:inline-block;margin-top:4px">❌ '+RL('Expired license','رخصة منتهية')+'</span>';
     }
     if (days <= 30) {
-        return '<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:10px;display:inline-block;margin-top:4px">⚠️ تنتهي خلال ' + days + ' يوم</span>';
+        return '<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:10px;display:inline-block;margin-top:4px">⚠️ '+RL('Expires in ','تنتهي خلال ')+ days + ' '+RL('day(s)','يوم')+'</span>';
     }
     return '';
 }
@@ -6618,11 +6681,11 @@ function populateEmployeeLocationsDatalist() {
 
 function openAddEmployeeModal() {
     if (!canAdd('employees') && !hasPermission('all')) {
-        showToast('غير مصرح بإضافة موظفين', true);
+        showToast(RL('Not authorized to add employees','غير مصرح بإضافة موظفين'), true);
         return;
     }
     editingEmployeeId = null;
-    document.getElementById('modal-title-employee').innerHTML = 'إضافة موظف جديد';
+    document.getElementById('modal-title-employee').innerHTML = RL('Add New Employee','إضافة موظف جديد');
     var fields = ['employee-name', 'employee-title', 'employee-project', 'employee-phone', 'employee-code', 'employee-notes'];
     fields.forEach(function(id) {
         var el = document.getElementById(id);
@@ -6649,31 +6712,31 @@ function saveEmployee() {
     };
 
     if (!employee.name) {
-        showToast('أدخل اسم الموظف', true);
+        showToast(RL('Enter the employee name','أدخل اسم الموظف'), true);
         return;
     }
     if (!employee.title) {
-        showToast('أدخل المهنة / الوظيفة', true);
+        showToast(RL('Enter the job title / role','أدخل المهنة / الوظيفة'), true);
         return;
     }
     if (!employee.projectSite) {
-        showToast('أدخل الموقع / المشروع', true);
+        showToast(RL('Enter the site / project','أدخل الموقع / المشروع'), true);
         return;
     }
 
     if (editingEmployeeId) {
         var existingEmployee = employeesData.find(function(e) { return e.id === editingEmployeeId; });
         if (existingEmployee && !checkDocumentOwnership(existingEmployee)) {
-            showToast('⛔ لا يمكنك تعديل موظف لا تملكه', true);
+            showToast('⛔ '+RL('You cannot edit an employee you do not own','لا يمكنك تعديل موظف لا تملكه'), true);
             return;
         }
         if (existingEmployee && existingEmployee.ownerId) employee.ownerId = existingEmployee.ownerId;
         saveToFirebase('employees', Object.assign({ id: editingEmployeeId }, employee));
-        showToast('تم تحديث بيانات الموظف');
+        showToast(RL('Employee info updated','تم تحديث بيانات الموظف'));
     } else {
         employee.createdAt = new Date().toISOString();
         saveToFirebase('employees', employee);
-        showToast('تم إضافة الموظف');
+        showToast(RL('Employee added','تم إضافة الموظف'));
     }
     closeModal('employee-modal');
 }
@@ -6684,10 +6747,10 @@ function openEmployeeDetail(id) {
 
     var contentHtml = '<div class="detail-section"><div class="grid-2">' +
         '<div><div class="detail-label"><span class="i18n-label" data-en="Profession" data-ar="المهنة"></span></div><div class="detail-value">' + escapeHtml(employee.title || '—') + '</div></div>' +
-        '<div><div class="detail-label">🏗️ الموقع / المشروع</div><div class="detail-value">' + escapeHtml(employee.projectSite || '—') + '</div></div>' +
+        '<div><div class="detail-label">🏗️ '+RL('Site / Project','الموقع / المشروع')+'</div><div class="detail-value">' + escapeHtml(employee.projectSite || '—') + '</div></div>' +
         '<div><div class="detail-label"><span class="i18n-label" data-en="Phone" data-ar="الهاتف"></span></div><div class="detail-value">' + escapeHtml(employee.phone || '—') + '</div></div>' +
         '<div><div class="detail-label"><span class="i18n-label" data-en="Job Code" data-ar="الكود الوظيفي"></span></div><div class="detail-value">' + escapeHtml(employee.jobCode || '—') + '</div></div>' +
-        '<div><div class="detail-label">معين / سركي</div><div class="detail-value">' + escapeHtml(employee.employmentType || '—') + '</div></div>' +
+        '<div><div class="detail-label">'+RL('Permanent / Daily Wage','معين / سركي')+'</div><div class="detail-value">' + escapeHtml(employee.employmentType || '—') + '</div></div>' +
         '<div><div class="detail-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></div><div class="detail-value">' + escapeHtml(employee.status || '—') + '</div></div>' +
         '</div></div>';
 
@@ -6710,14 +6773,14 @@ function openEmployeeDetail(id) {
 
 function editEmployee(id) {
     if (!hasPermission('all') && !canEdit('employees')) {
-        showToast('غير مصرح', true);
+        showToast(RL('Not authorized','غير مصرح'), true);
         return;
     }
     var employee = employeesData.find(function(e) { return e.id === id; });
     if (!employee) return;
 
     editingEmployeeId = id;
-    document.getElementById('modal-title-employee').innerHTML = 'تعديل بيانات الموظف';
+    document.getElementById('modal-title-employee').innerHTML = RL('Edit Employee Info','تعديل بيانات الموظف');
     document.getElementById('employee-name').value = employee.name || '';
     document.getElementById('employee-title').value = employee.title || '';
     document.getElementById('employee-project').value = employee.projectSite || '';
@@ -13828,7 +13891,7 @@ function refreshUI() {
             });
             allProjects.sort();
             var currentProj = projectSel.value;
-            projectSel.innerHTML = '<option value="">🏗️ كل المشاريع</option>' +
+            projectSel.innerHTML = '<option value="">🏗️ '+RL('All Projects','كل المشاريع')+'</option>' +
                 allProjects.map(function(p) {
                     return '<option value="' + escapeHtml(p) + '"' + (p === currentProj ? ' selected' : '') + '>' + escapeHtml(p) + '</option>';
                 }).join('');
@@ -13860,10 +13923,10 @@ function refreshUI() {
             var leaveD = filtered.filter(function(d){ return d.status === 'في إجازة'; }).length;
             var expiredD = filtered.filter(function(d){ return d.licenseExpiry && new Date(d.licenseExpiry) < new Date(); }).length;
             statsBar.innerHTML =
-                '<div style="background:white;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.07)">👥 ' + totalD + ' سائق</div>' +
-                '<div style="background:#d1fae5;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#065f46">✅ ' + activeD + ' نشط</div>' +
-                (leaveD ? '<div style="background:#fef3c7;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#78350f">🏖️ ' + leaveD + ' إجازة</div>' : '') +
-                (expiredD ? '<div style="background:#fee2e2;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#7f1d1d">⚠️ ' + expiredD + ' رخصة منتهية</div>' : '');
+                '<div style="background:white;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.07)">👥 ' + totalD + ' '+RL('drivers','سائق')+'</div>' +
+                '<div style="background:#d1fae5;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#065f46">✅ ' + activeD + ' '+RL('active','نشط')+'</div>' +
+                (leaveD ? '<div style="background:#fef3c7;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#78350f">🏖️ ' + leaveD + ' '+RL('on leave','إجازة')+'</div>' : '') +
+                (expiredD ? '<div style="background:#fee2e2;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#7f1d1d">⚠️ ' + expiredD + ' '+RL('expired license','رخصة منتهية')+'</div>' : '');
         }
 
         function renderDriverCard(d) {
@@ -13878,7 +13941,7 @@ function refreshUI() {
             var metaParts = [];
             if (d.phone) metaParts.push('📱 ' + escapeHtml(d.phone));
             metaParts.push('🚜 ' + (assigned.map(function(e){ return escapeHtml(e.name); }).join(', ') || '—'));
-            metaParts.push('🏗️ ' + (projects.length ? escapeHtml(projects.join(', ')) : 'عام'));
+            metaParts.push('🏗️ ' + (projects.length ? escapeHtml(projects.join(', ')) : RL('General','عام')));
             if (d.licenseExpiry) metaParts.push('📜 ' + (expired ? '<span style="color:var(--danger)">' : '') + escapeHtml(d.licenseExpiry) + (expired ? '</span>' : ''));
             return '<div class="driver-card" onclick="openDriverDetail(\'' + d.id + '\')">' +
                 '<div class="drv-row1"><span class="drv-name"><span class="c-ico">👨‍✈️</span> ' + escapeHtml(d.name) + '</span>' +
@@ -13888,7 +13951,7 @@ function refreshUI() {
         }
 
         if (filtered.length === 0) {
-            document.getElementById('drivers-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:40px;margin-bottom:8px">👨‍✈️</div><div style="font-size:14px;font-weight:600">لا يوجد سائقون</div><div style="font-size:12px;margin-top:4px">جرّب تغيير الفلتر أو البحث</div></div>';
+            document.getElementById('drivers-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:40px;margin-bottom:8px">👨‍✈️</div><div style="font-size:14px;font-weight:600">'+RL('No drivers found','لا يوجد سائقون')+'</div><div style="font-size:12px;margin-top:4px">'+RL('Try changing the filter or search','جرّب تغيير الفلتر أو البحث')+'</div></div>';
         } else if (projectFilter) {
             // عند تحديد مشروع: عرض عادي بدون تجميع
             document.getElementById('drivers-list').innerHTML = filtered.map(renderDriverCard).join('');
@@ -13918,11 +13981,11 @@ function refreshUI() {
             var generalStyle = 'margin-bottom:4px;padding:8px 12px;background:linear-gradient(135deg,#fafafa,#f3f4f6);border-radius:12px;font-size:12px;font-weight:700;color:#6b7280;display:flex;align-items:center;gap:6px;border-right:3px solid #9ca3af';
 
             Object.keys(groups).sort().forEach(function(proj) {
-                html += '<div style="' + sectionStyle + '">🏗️ ' + escapeHtml(proj) + ' <span style="font-size:10px;font-weight:400;color:#6b7280">(' + groups[proj].length + ' سائق)</span></div>';
+                html += '<div style="' + sectionStyle + '">🏗️ ' + escapeHtml(proj) + ' <span style="font-size:10px;font-weight:400;color:#6b7280">(' + groups[proj].length + ' '+RL('drivers','سائق')+')</span></div>';
                 html += groups[proj].map(renderDriverCard).join('');
             });
             if (generalDrivers.length > 0) {
-                html += '<div style="' + generalStyle + '">📋 عام <span style="font-size:10px;font-weight:400;color:#9ca3af">(' + generalDrivers.length + ' سائق — غير مسند لمشروع)</span></div>';
+                html += '<div style="' + generalStyle + '">📋 '+RL('General','عام')+' <span style="font-size:10px;font-weight:400;color:#9ca3af">(' + generalDrivers.length + ' '+RL('drivers — not assigned to a project','سائق — غير مسند لمشروع')+')</span></div>';
                 html += generalDrivers.map(renderDriverCard).join('');
             }
             document.getElementById('drivers-list').innerHTML = html;
@@ -13947,7 +14010,7 @@ function refreshUI() {
             });
             allEmpProjects.sort();
             var currentEmpProj = empProjectSel.value;
-            empProjectSel.innerHTML = '<option value="">🏗️ كل المواقع</option>' +
+            empProjectSel.innerHTML = '<option value="">🏗️ '+RL('All Sites','كل المواقع')+'</option>' +
                 allEmpProjects.map(function(p) {
                     return '<option value="' + escapeHtml(p) + '"' + (p === currentEmpProj ? ' selected' : '') + '>' + escapeHtml(p) + '</option>';
                 }).join('');
@@ -13969,10 +14032,10 @@ function refreshUI() {
             var casualE = filteredEmployees.filter(function(e){ return e.employmentType === 'سركي'; }).length;
             var inactiveE = filteredEmployees.filter(function(e){ return e.status === 'منتهي الخدمة'; }).length;
             empStatsBar.innerHTML =
-                '<div style="background:white;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.07)">👥 ' + totalE + ' موظف</div>' +
-                '<div style="background:#d1fae5;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#065f46">📌 ' + hiredE + ' معين</div>' +
-                '<div style="background:#e0e7ff;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#3730a3">🧾 ' + casualE + ' سركي</div>' +
-                (inactiveE ? '<div style="background:#fee2e2;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#7f1d1d">❌ ' + inactiveE + ' منتهي خدمة</div>' : '');
+                '<div style="background:white;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.07)">👥 ' + totalE + ' '+RL('employees','موظف')+'</div>' +
+                '<div style="background:#d1fae5;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#065f46">📌 ' + hiredE + ' '+RL('permanent','معين')+'</div>' +
+                '<div style="background:#e0e7ff;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#3730a3">🧾 ' + casualE + ' '+RL('daily wage','سركي')+'</div>' +
+                (inactiveE ? '<div style="background:#fee2e2;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:#7f1d1d">❌ ' + inactiveE + ' '+RL('terminated','منتهي خدمة')+'</div>' : '');
         }
 
         function renderEmployeeCard(e) {
@@ -13988,7 +14051,7 @@ function refreshUI() {
         }
 
         if (filteredEmployees.length === 0) {
-            document.getElementById('employees-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:40px;margin-bottom:8px">👤</div><div style="font-size:14px;font-weight:600">لا يوجد موظفون</div><div style="font-size:12px;margin-top:4px">جرّب تغيير الفلتر أو البحث</div></div>';
+            document.getElementById('employees-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:40px;margin-bottom:8px">👤</div><div style="font-size:14px;font-weight:600">'+RL('No employees found','لا يوجد موظفون')+'</div><div style="font-size:12px;margin-top:4px">'+RL('Try changing the filter or search','جرّب تغيير الفلتر أو البحث')+'</div></div>';
         } else if (empProjectFilter) {
             // عند تحديد موقع: عرض عادي بدون تجميع
             document.getElementById('employees-list').innerHTML = filteredEmployees.map(renderEmployeeCard).join('');
@@ -14011,11 +14074,11 @@ function refreshUI() {
             var empGeneralStyle = 'margin-bottom:4px;padding:8px 12px;background:linear-gradient(135deg,#fafafa,#f3f4f6);border-radius:12px;font-size:12px;font-weight:700;color:#6b7280;display:flex;align-items:center;gap:6px;border-right:3px solid #9ca3af';
 
             Object.keys(empGroups).sort().forEach(function(proj) {
-                empHtml += '<div style="' + empSectionStyle + '">🏗️ ' + escapeHtml(proj) + ' <span style="font-size:10px;font-weight:400;color:#6b7280">(' + empGroups[proj].length + ' موظف)</span></div>';
+                empHtml += '<div style="' + empSectionStyle + '">🏗️ ' + escapeHtml(proj) + ' <span style="font-size:10px;font-weight:400;color:#6b7280">(' + empGroups[proj].length + ' '+RL('employees','موظف')+')</span></div>';
                 empHtml += empGroups[proj].map(renderEmployeeCard).join('');
             });
             if (unassignedEmployees.length > 0) {
-                empHtml += '<div style="' + empGeneralStyle + '">📋 غير محدد <span style="font-size:10px;font-weight:400;color:#9ca3af">(' + unassignedEmployees.length + ' موظف)</span></div>';
+                empHtml += '<div style="' + empGeneralStyle + '">📋 '+RL('Unassigned','غير محدد')+' <span style="font-size:10px;font-weight:400;color:#9ca3af">(' + unassignedEmployees.length + ' '+RL('employees','موظف')+')</span></div>';
                 empHtml += unassignedEmployees.map(renderEmployeeCard).join('');
             }
             document.getElementById('employees-list').innerHTML = empHtml;
@@ -14414,6 +14477,7 @@ function switchView(view) {
     });
     if (view === 'map') refreshMapView();
     else stopMapColorTimer();
+    if (view === 'maintenance') listenIssueVouchers();
     var titles = {
         home: '📊 لوحة القيادة',
         sites: '🏢 لوحة المواقع',
@@ -15370,14 +15434,43 @@ var issueVouchers = [];
 var editingIssueVoucherId = null;
 var pendingIssueVoucherPhotoDataUrl = null;
 
+var issueVouchersListenerAttached = false;
 function listenIssueVouchers() {
     if (!fbDb) return;
+    if (issueVouchersListenerAttached) { renderIssueVouchers(); renderMaintenanceOpenVouchers(); return; }
+    issueVouchersListenerAttached = true;
     fbDb.ref('issueVouchers').on('value', function(snapshot) {
-        if (!snapshot.val()) { issueVouchers = []; renderIssueVouchers(); return; }
+        if (!snapshot.val()) { issueVouchers = []; renderIssueVouchers(); renderMaintenanceOpenVouchers(); return; }
         issueVouchers = Object.entries(snapshot.val()).map(function(e) { var o = Object.assign({}, e[1]); o.id = e[0]; return o; });
         renderIssueVouchers();
+        renderMaintenanceOpenVouchers();
     });
 }
+
+function renderMaintenanceOpenVouchers() {
+    var c = document.getElementById('maintenance-open-vouchers-list');
+    if (!c) return;
+    var open = issueVouchers.filter(function(v) { return v.status !== 'مقفول'; });
+    open.sort(function(a, b) { return new Date(b.createdAt || 0) - new Date(a.createdAt || 0); });
+    var countBadge = document.getElementById('maintenance-open-vouchers-count');
+    if (countBadge) countBadge.textContent = open.length;
+    if (!open.length) {
+        c.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12.5px">✅ لا توجد أذون صرف مفتوحة حاليًا</div>';
+        return;
+    }
+    c.innerHTML = open.map(function(v) {
+        var eq = equipmentData.find(function(e) { return e.id === v.equipmentId; });
+        return '<div style="background:white;border-radius:14px;border-right:4px solid #0e7490;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;align-items:center;gap:10px">' +
+            '<button onclick="markIssueVoucherClosed(\'' + v.id + '\')" title="تأكيد قفل الإذن" style="width:38px;height:38px;border-radius:50%;border:2px solid #10b981;background:white;color:#10b981;font-size:17px;font-weight:900;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">✓</button>' +
+            '<div style="flex:1;min-width:0" onclick="openEditIssueVoucher(\'' + v.id + '\')">' +
+            '<div style="font-size:13px;font-weight:700;color:#0d1b2a">🧾 إذن رقم ' + escapeHtml(v.voucherNo || '—') + '</div>' +
+            '<div style="font-size:11.5px;color:#6b7a8d;margin-top:1px">🏗️ ' + (eq ? escapeHtml(eq.name + ' (' + eq.code + ')') : escapeHtml(v.equipmentName || '—')) + ' &nbsp; 📅 ' + escapeHtml(v.date || '—') + '</div>' +
+            '</div>' +
+            '<span style="background:#0e749022;color:#0e7490;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0">🔵 مفتوح</span>' +
+            '</div>';
+    }).join('');
+}
+window.renderMaintenanceOpenVouchers = renderMaintenanceOpenVouchers;
 
 function openIssueVouchersView(equipmentId) {
     document.getElementById('issue-vouchers-overlay').classList.add('active');
@@ -15406,23 +15499,27 @@ function renderIssueVouchers() {
     function card(v) {
         var eq = equipmentData.find(function(e) { return e.id === v.equipmentId; });
         var isOpen = v.status !== 'مقفول';
-        var statusColor = isOpen ? '#0e7490' : '#10b981';
-        return '<div style="background:white;border-radius:16px;border-right:4px solid ' + statusColor + ';padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        var borderColor = isOpen ? '#0e7490' : '#10b981';
+        var bg = isOpen ? 'white' : '#f0fdf4';
+        return '<div style="background:' + bg + ';border-radius:16px;border-right:4px solid ' + borderColor + ';padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
             '<div style="display:flex;gap:10px">' +
-            (v.photo ? '<img src="' + v.photo + '" onclick="window.open(this.src,\'_blank\')" style="width:56px;height:56px;object-fit:cover;border-radius:10px;cursor:pointer;flex-shrink:0">' : '<div style="width:56px;height:56px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🧾</div>') +
+            (isOpen ?
+                '<button onclick="markIssueVoucherClosed(\'' + v.id + '\')" title="تأكيد قفل الإذن" style="width:44px;height:44px;border-radius:50%;border:2px solid #10b981;background:white;color:#10b981;font-size:20px;font-weight:900;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">✓</button>' :
+                '<div style="width:44px;height:44px;border-radius:50%;background:#10b981;color:white;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">✓</div>') +
             '<div style="flex:1;min-width:0">' +
             '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">' +
             '<div style="font-size:14px;font-weight:700;color:#0d1b2a">🧾 إذن رقم ' + escapeHtml(v.voucherNo || '—') + '</div>' +
-            '<span style="background:' + statusColor + '22;color:' + statusColor + ';padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap">' + (isOpen ? '🔵 مفتوح' : '✅ مقفول') + '</span>' +
+            '<span style="background:' + borderColor + '22;color:' + borderColor + ';padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap">' + (isOpen ? '🔵 مفتوح' : '✅ مقفول') + '</span>' +
             '</div>' +
             '<div style="font-size:12px;color:#6b7a8d;margin-top:2px">🏗️ ' + (eq ? escapeHtml(eq.name + ' (' + eq.code + ')') : escapeHtml(v.equipmentName || '—')) + '</div>' +
             '<div style="font-size:11px;color:#6b7a8d">📅 ' + escapeHtml(v.date || '—') + '</div>' +
             '</div></div>' +
-            (v.items ? '<div style="background:#f8fafc;border-radius:10px;padding:8px;margin-top:8px;font-size:12px;white-space:pre-line;color:#334155">' + escapeHtml(v.items) + '</div>' : '') +
+            (v.photo ? '<img src="' + v.photo + '" onclick="window.open(this.src,\'_blank\')" style="max-width:100%;max-height:140px;object-fit:contain;border-radius:10px;cursor:pointer;margin-top:8px;border:1px solid #e2e8f0">' : '') +
+            (v.items ? '<div style="background:rgba(255,255,255,.6);border-radius:10px;padding:8px;margin-top:8px;font-size:12px;white-space:pre-line;color:#334155">' + escapeHtml(v.items) + '</div>' : '') +
             (v.notes ? '<div style="font-size:11px;color:#6b7a8d;background:#f0f4f8;padding:6px 10px;border-radius:8px;margin-top:8px">📝 ' + escapeHtml(v.notes) + '</div>' : '') +
             '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">' +
             '<button onclick="openEditIssueVoucher(\'' + v.id + '\')" style="flex:1;padding:7px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">✏️ تعديل</button>' +
-            '<button onclick="toggleIssueVoucherStatus(\'' + v.id + '\')" style="flex:1;padding:7px;background:linear-gradient(135deg,' + (isOpen ? '#10b981,#059669' : '#0e7490,#155e75') + ');color:white;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">' + (isOpen ? '✅ تأكيد القفل' : '🔓 إعادة الفتح') + '</button>' +
+            (!isOpen ? '<button onclick="toggleIssueVoucherStatus(\'' + v.id + '\')" style="flex:1;padding:7px;background:#e2e8f0;color:#334155;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🔓 إعادة الفتح</button>' : '') +
             '<button onclick="deleteIssueVoucher(\'' + v.id + '\')" style="padding:7px 12px;background:#fee2e2;color:#dc2626;border:none;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">🗑️</button>' +
             '</div></div>';
     }
@@ -15546,6 +15643,12 @@ function saveIssueVoucher() {
     }
 }
 
+function markIssueVoucherClosed(id) {
+    fbDb.ref('issueVouchers/' + id + '/status').set('مقفول').then(function() {
+        showToast('✅ تم قفل الإذن');
+    }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
+}
+
 function toggleIssueVoucherStatus(id) {
     var v = issueVouchers.find(function(x) { return x.id === id; });
     if (!v) return;
@@ -15560,6 +15663,275 @@ function deleteIssueVoucher(id) {
     fbDb.ref('issueVouchers/' + id).remove().then(function() { showToast('🗑️ تم الحذف'); }).catch(function(e) { showToast('خطأ: ' + e.message, true); });
 }
 
+function openIssueVoucherReportModal() {
+    var today = localDateStr(new Date());
+    var monthAgo = localDateStr(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+    document.getElementById('ivr-from').value = monthAgo;
+    document.getElementById('ivr-to').value = today;
+    document.getElementById('ivr-modal').classList.add('active');
+}
+
+function generateIssueVoucherReport() {
+    var from = document.getElementById('ivr-from').value;
+    var to = document.getElementById('ivr-to').value;
+    if (!from || !to) { showToast('اختر تاريخ البداية والنهاية', true); return; }
+    var list = issueVouchers.filter(function(v) {
+        return v.date && v.date >= from && v.date <= to;
+    });
+    list.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
+    var openCount = list.filter(function(v) { return v.status !== 'مقفول'; }).length;
+    var closedCount = list.length - openCount;
+
+    var rowsHtml = list.length ? list.map(function(v, idx) {
+        var eq = equipmentData.find(function(e) { return e.id === v.equipmentId; });
+        var isOpen = v.status !== 'مقفول';
+        var statusColor = isOpen ? '#0e7490' : '#10b981';
+        return '<tr>' +
+            '<td>' + (idx + 1) + '</td>' +
+            '<td>' + escapeHtml(v.voucherNo || '—') + '</td>' +
+            '<td>' + escapeHtml(v.date || '—') + '</td>' +
+            '<td style="text-align:right">' + (eq ? escapeHtml(eq.name + ' (' + eq.code + ')') : escapeHtml(v.equipmentName || '—')) + '</td>' +
+            '<td style="text-align:right;white-space:pre-line">' + escapeHtml(v.items || '—') + '</td>' +
+            '<td><span class="status-badge" style="background:' + statusColor + '22;color:' + statusColor + '">' + (isOpen ? 'مفتوح' : 'مقفول') + '</span></td>' +
+            '<td style="width:60px"></td>' +
+            '</tr>';
+    }).join('') : '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px">لا توجد أذون صرف في الفترة المحددة</td></tr>';
+
+    var w2 = window.open('', '_blank');
+    w2.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير أذون الصرف</title><style>' +
+        'body{font-family:Arial;padding:22px;direction:rtl;color:#0d1b2a}' +
+        '.meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 16px;background:#f8fafc;border-radius:10px;padding:14px;margin:16px 0;font-size:13px}' +
+        '.meta div b{color:#475569}' +
+        'table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}' +
+        'th{background:#0d1b2a;color:white;padding:8px;text-align:center}' +
+        'td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:center}' +
+        '.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}' +
+        '.footer{margin-top:26px;font-size:10px;color:#999;text-align:center}' +
+        '@media print{ .no-print{display:none} }' +
+        '</style></head><body>' +
+        reportHeaderHtml('تقرير أذون الصرف من المخزن (SAP)', 'من ' + escapeHtml(from) + ' إلى ' + escapeHtml(to)) +
+        '<div class="meta">' +
+        '<div><b>إجمالي عدد الأذون:</b> ' + list.length + '</div>' +
+        '<div><b>🔵 مفتوحة:</b> ' + openCount + '</div>' +
+        '<div><b>✅ مقفولة:</b> ' + closedCount + '</div>' +
+        '</div>' +
+        '<table><thead><tr><th>#</th><th>رقم الإذن</th><th>التاريخ</th><th>المعدة</th><th>الأصناف المنصرفة</th><th>الحالة</th><th>مراجعة يدوية</th></tr></thead><tbody>' +
+        rowsHtml +
+        '</tbody></table>' +
+        '<div class="footer">تم إصدار هذا التقرير آليًا من برنامج متابعة المعدات — ' + new Date().toLocaleString('ar-EG') + '</div>' +
+        '<div class="no-print" style="text-align:center;margin-top:18px"><button onclick="window.print()" style="padding:10px 30px;background:#e8a020;border:none;border-radius:10px;font-weight:700;cursor:pointer">🖨️ طباعة</button></div>' +
+        '</body></html>');
+    w2.document.close();
+}
+
+// ---- استيراد أذون الصرف من ملف إكسل مسحوب من SAP ----
+var ivoImportHeaderRow = [];
+var ivoImportDataRows = [];
+var ivoImportPendingRecords = [];
+
+function openIssueVoucherImportModal() {
+    document.getElementById('ivo-import-filename').style.display = 'none';
+    document.getElementById('ivo-import-mapping').style.display = 'none';
+    document.getElementById('ivo-import-mapping').innerHTML = '';
+    document.getElementById('ivo-import-preview').innerHTML = '';
+    document.getElementById('ivo-import-file').value = '';
+    ivoImportHeaderRow = []; ivoImportDataRows = []; ivoImportPendingRecords = [];
+    document.getElementById('ivo-import-modal').classList.add('active');
+}
+
+function guessImportColumn(headerRow, patterns) {
+    for (var i = 0; i < headerRow.length; i++) {
+        var cell = String(headerRow[i] || '').toLowerCase().trim();
+        if (!cell) continue;
+        for (var p = 0; p < patterns.length; p++) {
+            if (cell.indexOf(patterns[p]) !== -1) return i;
+        }
+    }
+    return -1;
+}
+
+function handleIssueVoucherExcelFile(file) {
+    if (!file) return;
+    var fnEl = document.getElementById('ivo-import-filename');
+    fnEl.style.display = 'block';
+    fnEl.textContent = '⏳ جاري قراءة الملف: ' + file.name;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            var data = new Uint8Array(e.target.result);
+            var workbook = XLSX.read(data, { type: 'array' });
+            var sheet = workbook.Sheets[workbook.SheetNames[0]];
+            var rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false });
+            // نتخطى أي صفوف فاضية في الأول لحد ما نلاقي صف فيه بيانات (عنوان الأعمدة)
+            var headerIdx = 0;
+            while (headerIdx < rows.length && rows[headerIdx].every(function(c) { return !String(c || '').trim(); })) headerIdx++;
+            ivoImportHeaderRow = rows[headerIdx] || [];
+            ivoImportDataRows = rows.slice(headerIdx + 1).filter(function(r) { return r.some(function(c) { return String(c || '').trim(); }); });
+            if (!ivoImportDataRows.length) {
+                fnEl.textContent = '⚠️ الملف فاضي أو معرفناش نلاقي بيانات فيه';
+                return;
+            }
+            fnEl.textContent = '✅ ' + file.name + ' — تم قراءة ' + ivoImportDataRows.length + ' صف';
+            renderImportMappingUI();
+        } catch (err) {
+            fnEl.textContent = '❌ تعذّر قراءة الملف: ' + err.message;
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function renderImportMappingUI() {
+    var headerRow = ivoImportHeaderRow;
+    var options = '<option value="-1">-- لا يوجد --</option>' +
+        headerRow.map(function(h, i) { return '<option value="' + i + '">' + escapeHtml(String(h || '(عمود ' + (i + 1) + ')')) + '</option>'; }).join('');
+
+    var guessVoucher = guessImportColumn(headerRow, ['material document', 'matl doc', 'mat. doc', 'doc.no', 'document no', 'gi doc', 'رقم المستند', 'رقم الإذن', 'رقم الاذن', 'مستند']);
+    var guessDate = guessImportColumn(headerRow, ['posting date', 'doc.date', 'document date', 'تاريخ الترحيل', 'تاريخ المستند', 'تاريخ']);
+    var guessEquip = guessImportColumn(headerRow, ['equipment', 'functional loc', 'asset', 'order', 'cost center', 'معدة', 'أمر', 'مركز التكلفة']);
+    var guessItem = guessImportColumn(headerRow, ['material description', 'short text', 'material text', 'description', 'بيان', 'وصف', 'اسم الصنف']);
+    if (guessItem === -1) guessItem = guessImportColumn(headerRow, ['material', 'صنف']);
+    var guessQty = guessImportColumn(headerRow, ['quantity', 'qty', 'الكمية', 'كمية']);
+    var guessUnit = guessImportColumn(headerRow, ['unit', 'uom', 'الوحدة', 'وحدة']);
+
+    function field(id, label) {
+        return '<div class="form-field"><label class="form-label">' + label + '</label>' +
+            '<select class="form-select" id="' + id + '">' + options + '</select></div>';
+    }
+    var html = '<div style="font-size:12px;font-weight:700;color:#166534;margin:10px 0 4px">حدّد كل عمود في ملفك بيمثل إيه:</div>' +
+        field('ivo-map-voucher', '🧾 رقم الإذن / المستند') +
+        field('ivo-map-date', '📅 التاريخ') +
+        field('ivo-map-equip', '🏗️ كود/اسم المعدة أو الأمر') +
+        field('ivo-map-item', '📦 اسم/بيان الصنف') +
+        field('ivo-map-qty', '🔢 الكمية') +
+        field('ivo-map-unit', '📏 الوحدة') +
+        '<button type="button" onclick="previewIssueVoucherImport()" style="width:100%;padding:10px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;margin-top:8px">🔍 معاينة البيانات</button>';
+    var mapEl = document.getElementById('ivo-import-mapping');
+    mapEl.style.display = 'block';
+    mapEl.innerHTML = html;
+    document.getElementById('ivo-map-voucher').value = String(guessVoucher);
+    document.getElementById('ivo-map-date').value = String(guessDate);
+    document.getElementById('ivo-map-equip').value = String(guessEquip);
+    document.getElementById('ivo-map-item').value = String(guessItem);
+    document.getElementById('ivo-map-qty').value = String(guessQty);
+    document.getElementById('ivo-map-unit').value = String(guessUnit);
+}
+
+function matchEquipmentFromText(raw) {
+    if (!raw) return null;
+    var q = String(raw).toLowerCase().trim();
+    if (!q) return null;
+    var eq = equipmentData.find(function(e) { return e.sapCode && String(e.sapCode).toLowerCase().trim() === q; });
+    if (eq) return eq;
+    eq = equipmentData.find(function(e) { return e.code && String(e.code).toLowerCase().trim() === q; });
+    if (eq) return eq;
+    eq = equipmentData.find(function(e) {
+        return (e.sapCode && q.indexOf(String(e.sapCode).toLowerCase()) !== -1) ||
+            (e.code && q.indexOf(String(e.code).toLowerCase()) !== -1) ||
+            (e.name && q.indexOf(String(e.name).toLowerCase()) !== -1);
+    });
+    return eq || null;
+}
+
+function parseSapDateStr(val) {
+    var s = String(val || '').trim();
+    if (!s) return '';
+    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return m[1] + '-' + m[2] + '-' + m[3];
+    m = s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/);
+    if (m) {
+        var d = parseInt(m[1], 10), mo = parseInt(m[2], 10), y = parseInt(m[3], 10);
+        if (mo > 12 && d <= 12) { var t = d; d = mo; mo = t; } // مرونة لو الترتيب كان شهر/يوم
+        if (y < 100) y += 2000;
+        return y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    }
+    var parsed = Date.parse(s);
+    if (!isNaN(parsed)) return new Date(parsed).toISOString().slice(0, 10);
+    return s;
+}
+
+function previewIssueVoucherImport() {
+    var iVoucher = parseInt(document.getElementById('ivo-map-voucher').value, 10);
+    var iDate = parseInt(document.getElementById('ivo-map-date').value, 10);
+    var iEquip = parseInt(document.getElementById('ivo-map-equip').value, 10);
+    var iItem = parseInt(document.getElementById('ivo-map-item').value, 10);
+    var iQty = parseInt(document.getElementById('ivo-map-qty').value, 10);
+    var iUnit = parseInt(document.getElementById('ivo-map-unit').value, 10);
+
+    if (iVoucher === -1) { showToast('لازم تحدد عمود رقم الإذن على الأقل', true); return; }
+
+    var groups = {};
+    var order = [];
+    ivoImportDataRows.forEach(function(row) {
+        var voucherNo = String(row[iVoucher] || '').trim();
+        if (!voucherNo) return;
+        if (!groups[voucherNo]) { groups[voucherNo] = { voucherNo: voucherNo, date: '', equipmentRaw: '', itemLines: [] }; order.push(voucherNo); }
+        var g = groups[voucherNo];
+        if (!g.date && iDate !== -1) g.date = parseSapDateStr(row[iDate]);
+        if (!g.equipmentRaw && iEquip !== -1) g.equipmentRaw = String(row[iEquip] || '').trim();
+        var itemName = iItem !== -1 ? String(row[iItem] || '').trim() : '';
+        var qty = iQty !== -1 ? String(row[iQty] || '').trim() : '';
+        var unit = iUnit !== -1 ? String(row[iUnit] || '').trim() : '';
+        if (itemName || qty) g.itemLines.push([itemName, qty, unit].filter(Boolean).join(' - '));
+    });
+
+    var existingVoucherNos = {};
+    issueVouchers.forEach(function(v) { if (v.voucherNo) existingVoucherNos[String(v.voucherNo).trim()] = true; });
+
+    var records = [];
+    var duplicates = 0, matched = 0;
+    order.forEach(function(vNo) {
+        if (existingVoucherNos[vNo]) { duplicates++; return; }
+        var g = groups[vNo];
+        var eq = matchEquipmentFromText(g.equipmentRaw);
+        if (eq) matched++;
+        records.push({
+            voucherNo: g.voucherNo,
+            date: g.date,
+            equipmentId: eq ? eq.id : '',
+            equipmentName: eq ? (eq.code + ' — ' + eq.name) : g.equipmentRaw,
+            items: g.itemLines.join('\n'),
+            status: 'مفتوح',
+            notes: eq ? '' : 'مستورد من إكسل — لم يتم التعرف على المعدة تلقائيًا، برجاء تحديدها يدويًا',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        });
+    });
+    ivoImportPendingRecords = records;
+
+    var previewEl = document.getElementById('ivo-import-preview');
+    if (!records.length) {
+        previewEl.innerHTML = '<div class="empty-state">لا توجد أذون جديدة للاستيراد' + (duplicates ? ' (تم تجاهل ' + duplicates + ' إذن موجود مسبقًا)' : '') + '</div>';
+        return;
+    }
+    var rowsHtml = records.slice(0, 100).map(function(r) {
+        return '<tr><td>' + escapeHtml(r.voucherNo) + '</td><td>' + escapeHtml(r.date || '—') + '</td>' +
+            '<td style="text-align:right">' + (r.equipmentId ? escapeHtml(r.equipmentName) : '<span style="color:#dc2626">⚠️ ' + escapeHtml(r.equipmentName || 'غير محدد') + '</span>') + '</td>' +
+            '<td>' + r.items.split('\n').filter(Boolean).length + ' صنف</td></tr>';
+    }).join('');
+    previewEl.innerHTML =
+        '<div style="font-size:12.5px;background:#f8fafc;border-radius:10px;padding:10px;margin-bottom:8px">' +
+        '📋 هيتم استيراد <strong>' + records.length + '</strong> إذن جديد &nbsp;|&nbsp; ✅ متطابق مع معدة: <strong>' + matched + '</strong> &nbsp;|&nbsp; ⏭️ متجاهل (موجود مسبقًا): <strong>' + duplicates + '</strong>' +
+        '</div>' +
+        '<div style="max-height:220px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px">' +
+        '<table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead style="position:sticky;top:0"><tr style="background:#0d1b2a;color:white"><th style="padding:6px">رقم الإذن</th><th style="padding:6px">التاريخ</th><th style="padding:6px">المعدة</th><th style="padding:6px">الأصناف</th></tr></thead>' +
+        '<tbody>' + rowsHtml + '</tbody></table></div>' +
+        '<button type="button" onclick="confirmIssueVoucherImport()" style="width:100%;padding:11px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;margin-top:10px">✅ تأكيد استيراد ' + records.length + ' إذن</button>';
+}
+
+function confirmIssueVoucherImport() {
+    if (!ivoImportPendingRecords.length) { showToast('لا توجد بيانات للاستيراد', true); return; }
+    var updates = {};
+    ivoImportPendingRecords.forEach(function(rec) {
+        var key = fbDb.ref('issueVouchers').push().key;
+        updates[key] = rec;
+    });
+    fbDb.ref('issueVouchers').update(updates).then(function() {
+        showToast('✅ تم استيراد ' + ivoImportPendingRecords.length + ' إذن بنجاح');
+        closeModal('ivo-import-modal');
+        ivoImportPendingRecords = [];
+    }).catch(function(e) { showToast('خطأ أثناء الاستيراد: ' + e.message, true); });
+}
+
 window.openIssueVouchersView = openIssueVouchersView;
 window.filterIssueVouchers = filterIssueVouchers;
 window.openAddIssueVoucher = openAddIssueVoucher;
@@ -15567,7 +15939,14 @@ window.openEditIssueVoucher = openEditIssueVoucher;
 window.handleIssueVoucherPhoto = handleIssueVoucherPhoto;
 window.saveIssueVoucher = saveIssueVoucher;
 window.toggleIssueVoucherStatus = toggleIssueVoucherStatus;
+window.markIssueVoucherClosed = markIssueVoucherClosed;
 window.deleteIssueVoucher = deleteIssueVoucher;
+window.openIssueVoucherReportModal = openIssueVoucherReportModal;
+window.generateIssueVoucherReport = generateIssueVoucherReport;
+window.openIssueVoucherImportModal = openIssueVoucherImportModal;
+window.handleIssueVoucherExcelFile = handleIssueVoucherExcelFile;
+window.previewIssueVoucherImport = previewIssueVoucherImport;
+window.confirmIssueVoucherImport = confirmIssueVoucherImport;
 
 (function injectIssueVoucherUI() {
     var overlay = '<div class="modal-overlay" id="issue-vouchers-overlay">' +
@@ -15575,7 +15954,8 @@ window.deleteIssueVoucher = deleteIssueVoucher;
         '<div class="modal-title">🧾 أذون الصرف من المخزن</div>' +
         '<button class="modal-close" onclick="closeModal(\'issue-vouchers-overlay\')">✕</button></div>' +
         '<div style="padding:14px">' +
-        '<button onclick="openAddIssueVoucher()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;border-radius:14px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:10px">📷 تسجيل إذن صرف جديد (بالتصوير)</button>' +
+        '<button onclick="openAddIssueVoucher()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;border-radius:14px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px">📷 تسجيل إذن صرف جديد (بالتصوير)</button>' +
+        '<button onclick="openIssueVoucherReportModal()" style="width:100%;padding:11px;background:linear-gradient(135deg,#0e7490,#155e75);color:white;border:none;border-radius:14px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:10px">📊 طباعة تقرير أذون فترة معيّنة</button>' +
         '<select class="form-select" id="ivo-filter-eq" onchange="filterIssueVouchers()" style="border:1px solid #e2e8f0;border-radius:12px;padding:8px;width:100%;margin-bottom:8px;background:white"><option value="">كل المعدات</option></select>' +
         '<div id="ivo-counts" style="font-size:12px;color:#475569;margin-bottom:12px"></div>' +
         '<div id="ivo-list"></div></div></div>';
@@ -15599,7 +15979,29 @@ window.deleteIssueVoucher = deleteIssueVoucher;
         '<div class="form-field"><label class="form-label">📝 ملاحظات</label><textarea class="form-textarea" id="ivo-notes"></textarea></div>' +
         '</div>' +
         '<button class="save-btn" onclick="saveIssueVoucher()">✅ حفظ إذن الصرف</button></div></div>';
-    document.body.insertAdjacentHTML('beforeend', overlay + modal);
+    var reportModal = '<div class="modal-overlay" id="ivr-modal">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#0e7490,#155e75)">' +
+        '<div class="modal-title">📊 تقرير أذون الصرف</div>' +
+        '<button class="modal-close" onclick="closeModal(\'ivr-modal\')">✕</button></div>' +
+        '<div><div class="form-group">' +
+        '<div class="form-field"><label class="form-label">📅 من تاريخ</label><input class="form-input" type="date" id="ivr-from"></div>' +
+        '<div class="form-field"><label class="form-label">📅 إلى تاريخ</label><input class="form-input" type="date" id="ivr-to"></div>' +
+        '</div>' +
+        '<button class="save-btn" onclick="generateIssueVoucherReport()">🖨️ إنشاء وطباعة التقرير</button></div></div>';
+
+    var importModal = '<div class="modal-overlay" id="ivo-import-modal">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#166534,#14532d)">' +
+        '<div class="modal-title">📥 استيراد أذون من ملف إكسل (SAP)</div>' +
+        '<button class="modal-close" onclick="closeModal(\'ivo-import-modal\')">✕</button></div>' +
+        '<div>' +
+        '<div style="font-size:12.5px;color:#6b7a8d;background:#f0fdf4;border-radius:10px;padding:10px;margin-bottom:10px;line-height:1.7">اسحب من SAP تقرير حركة الصرف (Excel) واختاره هنا، بعدين حدّد تحت كل عمود في الملف بيمثل إيه — البرنامج هيجمع الأصناف اللي ليها نفس رقم الإذن مع بعض تلقائيًا.</div>' +
+        '<input type="file" id="ivo-import-file" accept=".xlsx,.xls" style="display:none" onchange="handleIssueVoucherExcelFile(this.files[0])">' +
+        '<button type="button" onclick="document.getElementById(\'ivo-import-file\').click()" style="width:100%;padding:10px;border:2px dashed #cbd5e1;border-radius:12px;background:#f8fafc;font-family:inherit;font-size:13px;font-weight:700;color:#0d1b2a;cursor:pointer;margin-bottom:8px">📁 اختيار ملف Excel</button>' +
+        '<div id="ivo-import-filename" style="font-size:11.5px;color:#166534;font-weight:700;margin-bottom:8px;display:none"></div>' +
+        '<div id="ivo-import-mapping" style="display:none"></div>' +
+        '<div id="ivo-import-preview" style="margin-top:10px"></div>' +
+        '</div></div>';
+    document.body.insertAdjacentHTML('beforeend', overlay + modal + reportModal + importModal);
 })();
 
 (function injectRentalModals() {
@@ -16029,14 +16431,14 @@ function saveRentalInlineNotes(rentalId, dateStr, value) {
 
 function openAddDailyModal(rentalId) {
     editingRentalDailyId=null;
-    if (!rentalData.length) { showToast('أضف عقد إيجار أولاً',true); return; }
+    if (!rentalData.length) { showToast(RL('Add a rental contract first','أضف عقد إيجار أولاً'),true); return; }
     var sel=document.getElementById('rental-daily-eq');
-    sel.innerHTML='<option value="">-- اختر --</option>'+rentalData.map(function(r){
+    sel.innerHTML='<option value="">-- '+RL('Select','اختر')+' --</option>'+rentalData.map(function(r){
         var eq=equipmentData.find(function(e){ return e.id===r.equipmentId; });
         var label=(eq?eq.type+' — '+eq.code:r.equipmentCode||r.id)+(r.company?' ('+r.company+')':'');
         return '<option value="'+r.id+'"'+(r.id===rentalId?' selected':'')+'>'+escapeHtml(label)+'</option>';
     }).join('');
-    document.getElementById('rental-daily-modal-title').textContent='📋 تسجيل يوم عمل';
+    document.getElementById('rental-daily-modal-title').innerHTML='📋 '+RL('Record Work Day','تسجيل يوم عمل');
     document.getElementById('rental-daily-date-input').value=businessDateStr(new Date());
     document.getElementById('rental-daily-in').value='08:00';
     document.getElementById('rental-daily-out').value='17:00';
@@ -16057,12 +16459,12 @@ function openAddDailyModal(rentalId) {
         var h=calcRentalHours(inT,outT,brk,rentalStandardHours(selRental?selRental.equipmentType:''));
         var div=document.getElementById('rental-daily-calc');
         div.style.display='block';
-        div.innerHTML='<div style="font-weight:700;margin-bottom:6px;color:#065f46">⏱️ ملخص الساعات</div>'+
+        div.innerHTML='<div style="font-weight:700;margin-bottom:6px;color:#065f46">⏱️ '+RL('Hours Summary','ملخص الساعات')+'</div>'+
             '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+
-            '<div style="background:white;padding:6px 10px;border-radius:8px">📊 إجمالي: <strong>'+h.total.toFixed(1)+'س</strong></div>'+
-            '<div style="background:white;padding:6px 10px;border-radius:8px">✅ أساسي: <strong>'+h.basic.toFixed(1)+'س</strong></div>'+
-            (h.break>0?'<div style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:8px">☕ ساعة راحة (اشتغلت): <strong>'+h.break.toFixed(1)+'س</strong></div>':'<div style="background:white;padding:6px 10px;border-radius:8px;color:var(--gray)">☕ راحة عادية (غير محسوبة)</div>')+
-            (h.extra>0?'<div style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:8px">⚡ إضافي (بعد 5م): <strong>'+h.extra.toFixed(2)+'س</strong></div>':'<div style="background:white;padding:6px 10px;border-radius:8px;color:var(--gray)">⚡ لا إضافي</div>')+
+            '<div style="background:white;padding:6px 10px;border-radius:8px">📊 '+RL('Total','إجمالي')+': <strong>'+h.total.toFixed(1)+RL('h','س')+'</strong></div>'+
+            '<div style="background:white;padding:6px 10px;border-radius:8px">✅ '+RL('Basic','أساسي')+': <strong>'+h.basic.toFixed(1)+RL('h','س')+'</strong></div>'+
+            (h.break>0?'<div style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:8px">☕ '+RL('Break hour (worked)','ساعة راحة (اشتغلت)')+': <strong>'+h.break.toFixed(1)+RL('h','س')+'</strong></div>':'<div style="background:white;padding:6px 10px;border-radius:8px;color:var(--gray)">☕ '+RL('Normal break (not counted)','راحة عادية (غير محسوبة)')+'</div>')+
+            (h.extra>0?'<div style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:8px">⚡ '+RL('Overtime (after 5pm)','إضافي (بعد 5م)')+': <strong>'+h.extra.toFixed(2)+RL('h','س')+'</strong></div>':'<div style="background:white;padding:6px 10px;border-radius:8px;color:var(--gray)">⚡ '+RL('No overtime','لا إضافي')+'</div>')+
             '</div>';
     }
     ['rental-daily-in','rental-daily-out'].forEach(function(id){ var el=document.getElementById(id); if(el) el.oninput=updCalc; });
@@ -16077,12 +16479,12 @@ function detectRentalDailyDataAnomaly(record, rId) {
 
     // 1) إجمالي ساعات غير منطقي ليوم واحد (احتمال خطأ في وقت الحضور/الانصراف)
     if (total > 16) {
-        warnings.push('⏱️ إجمالي الساعات المسجلة ' + total.toFixed(1) + ' ساعة في يوم واحد — تأكد من وقت الحضور والانصراف.');
+        warnings.push('⏱️ ' + RL('Total recorded hours are ','إجمالي الساعات المسجلة ') + total.toFixed(1) + RL(' hours in a single day — check the check-in/check-out time.',' ساعة في يوم واحد — تأكد من وقت الحضور والانصراف.'));
     }
 
     // 2) إضافي مرتفع جدًا في المطلق
     if (extra >= 6) {
-        warnings.push('🔺 الساعات الإضافية المدخلة (' + extra.toFixed(1) + ' س) مرتفعة جدًا — راجع الرقم قبل الحفظ.');
+        warnings.push('🔺 ' + RL('The entered overtime hours (','الساعات الإضافية المدخلة (') + extra.toFixed(1) + RL(' h) are very high — review the number before saving.',' س) مرتفعة جدًا — راجع الرقم قبل الحفظ.'));
     }
 
     // نقصر المقارنات على دورة التسجيل نفسها (21 الشهر - 20 الشهر التالي) بدل كل التاريخ
@@ -16093,7 +16495,7 @@ function detectRentalDailyDataAnomaly(record, rId) {
     if (ownLogs.length >= 3) {
         var ownAvg = ownLogs.reduce(function(a, d) { return a + (d.extraHours || 0); }, 0) / ownLogs.length;
         if (extra > 0 && ownAvg > 0 && extra > ownAvg * 1.8 && (extra - ownAvg) >= 1.5) {
-            warnings.push('📊 الإضافي المدخل (' + extra.toFixed(1) + ' س) أعلى بكثير من متوسط هذه المعدة نفسها خلال نفس الدورة (' + ownAvg.toFixed(1) + ' س/يوم).');
+            warnings.push('📊 ' + RL('The entered overtime (','الإضافي المدخل (') + extra.toFixed(1) + RL(' h) is much higher than this equipment\'s own average for the same cycle (','س) أعلى بكثير من متوسط هذه المعدة نفسها خلال نفس الدورة (') + ownAvg.toFixed(1) + RL(' h/day).',' س/يوم).'));
         }
     }
 
@@ -16111,7 +16513,7 @@ function detectRentalDailyDataAnomaly(record, rId) {
             var pVar = peerValues.reduce(function(a, b) { return a + Math.pow(b - pMean, 2); }, 0) / peerValues.length;
             var pStd = Math.sqrt(pVar);
             if (pStd > 0 && extra > pMean + 2 * pStd && extra >= 2) {
-                warnings.push('📈 الإضافي المدخل (' + extra.toFixed(1) + ' س) أعلى من الطبيعي مقارنة بمتوسط معدات "' + type + '" الأخرى خلال نفس الدورة (' + pMean.toFixed(1) + ' س/يوم).');
+                warnings.push('📈 ' + RL('The entered overtime (','الإضافي المدخل (') + extra.toFixed(1) + RL(' h) is higher than normal compared to the average of other "','س) أعلى من الطبيعي مقارنة بمتوسط معدات "') + type + RL('" equipment in the same cycle (','" الأخرى خلال نفس الدورة (') + pMean.toFixed(1) + RL(' h/day).',' س/يوم).'));
             }
         }
     }
@@ -16125,16 +16527,16 @@ function saveRentalDaily() {
     var outT=document.getElementById('rental-daily-out').value;
     var brk=document.getElementById('rental-daily-break').checked;
     var notes=document.getElementById('rental-daily-notes').value.trim();
-    if (!rId) { showToast('اختر المعدة',true); return; }
-    if (!date) { showToast('أدخل التاريخ',true); return; }
-    if (!inT||!outT) { showToast('أدخل وقت الحضور والانصراف',true); return; }
+    if (!rId) { showToast(RL('Select the equipment','اختر المعدة'),true); return; }
+    if (!date) { showToast(RL('Enter the date','أدخل التاريخ'),true); return; }
+    if (!inT||!outT) { showToast(RL('Enter check-in and check-out time','أدخل وقت الحضور والانصراف'),true); return; }
 
     // منع تكرار نفس التاريخ لنفس المعدة
     var existing = rentalDailyData.find(function(d){
         return d.equipmentId===rId && d.date===date && d.id !== editingRentalDailyId;
     });
     if (existing) {
-        showToast('⚠️ هذا اليوم مسجّل بالفعل — استخدم زر التعديل ✏️', true);
+        showToast('⚠️ '+RL('This day is already recorded — use the edit ✏️ button','هذا اليوم مسجّل بالفعل — استخدم زر التعديل ✏️'), true);
         return;
     }
 
@@ -16149,7 +16551,7 @@ function saveRentalDaily() {
     // تنبيه تلقائي لو البيانات المدخلة تبدو غير منطقية (قبل الحفظ الفعلي)
     var anomalyWarnings = detectRentalDailyDataAnomaly(record, rId);
     if (anomalyWarnings.length) {
-        var proceedAnyway = confirm('⚠️ تنبيه — البيانات المدخلة تبدو غير معتادة:\n\n' + anomalyWarnings.join('\n') + '\n\nهل أنت متأكد من صحة الأرقام وتريد المتابعة والحفظ؟');
+        var proceedAnyway = confirm('⚠️ '+RL('Warning — the entered data looks unusual:','تنبيه — البيانات المدخلة تبدو غير معتادة:')+'\n\n' + anomalyWarnings.join('\n') + '\n\n'+RL('Are you sure the numbers are correct and want to proceed and save?','هل أنت متأكد من صحة الأرقام وتريد المتابعة والحفظ؟'));
         if (!proceedAnyway) return;
     }
 
@@ -16177,7 +16579,7 @@ function saveRentalDaily() {
     }
 
     var ref=editingRentalDailyId?fbDb.ref('rentalDaily/'+editingRentalDailyId):fbDb.ref('rentalDaily').push();
-    ref.set(record).then(function(){ closeModal('rental-daily-modal'); showToast('تم الحفظ ✅'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
+    ref.set(record).then(function(){ closeModal('rental-daily-modal'); showToast(RL('Saved','تم الحفظ')+' ✅'); }).catch(function(err){ showToast(RL('Error: ','خطأ: ')+err.message,true); });
 }
 function editRentalDaily(id) {
     var r=rentalDailyData.find(function(x){ return x.id===id; });
@@ -16190,12 +16592,12 @@ function editRentalDaily(id) {
         document.getElementById('rental-daily-out').value=r.outTime||'';
         document.getElementById('rental-daily-break').checked=!!r.breakWorked;
         document.getElementById('rental-daily-notes').value=r.notes||'';
-        document.getElementById('rental-daily-modal-title').textContent='✏️ تعديل يوم عمل';
+        document.getElementById('rental-daily-modal-title').innerHTML='✏️ '+RL('Edit Work Day','تعديل يوم عمل');
         var attrEl = document.getElementById('rental-daily-attribution');
         if (attrEl) {
             if (r.recordedByName) {
                 attrEl.style.display = 'block';
-                attrEl.innerHTML = '👤 ' + escapeHtml(r.recordedByName) + (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— التعديل بواسطة ' + escapeHtml(r.editedByName) + '</span>' : '');
+                attrEl.innerHTML = '👤 ' + escapeHtml(r.recordedByName) + (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— '+RL('Edited by','التعديل بواسطة')+' ' + escapeHtml(r.editedByName) + '</span>' : '');
             } else {
                 attrEl.style.display = 'none';
             }
@@ -16204,14 +16606,14 @@ function editRentalDaily(id) {
     },60);
 }
 function deleteRentalDaily(id) {
-    if (!confirm('حذف هذا اليوم؟')) return;
-    fbDb.ref('rentalDaily/'+id).remove().then(function(){ showToast('تم الحذف'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
+    if (!confirm(RL('Delete this day?','حذف هذا اليوم؟'))) return;
+    fbDb.ref('rentalDaily/'+id).remove().then(function(){ showToast(RL('Deleted','تم الحذف')); }).catch(function(err){ showToast(RL('Error: ','خطأ: ')+err.message,true); });
 }
 function updateRentalTimes(id) {
     var inT=(document.getElementById('upd-in-'+id)||{}).value||'';
     var outT=(document.getElementById('upd-out-'+id)||{}).value||'';
     var brk=!!(document.getElementById('upd-brk-'+id)||{}).checked;
-    if (!inT||!outT) { showToast('أدخل وقت الحضور والانصراف',true); return; }
+    if (!inT||!outT) { showToast(RL('Enter check-in and check-out time','أدخل وقت الحضور والانصراف'),true); return; }
     var existingRecord = rentalDailyData.find(function(d){ return d.id === id; });
     var h=calcRentalHours(inT,outT,brk,rentalStandardHours(existingRecord?existingRecord.equipmentType:''));
     var updates={ inTime:inT,outTime:outT,breakWorked:brk,breakHours:h.break,totalHours:h.total,basicHours:h.basic,extraHours:h.extra,updatedAt:new Date().toISOString() };
@@ -16225,7 +16627,7 @@ function updateRentalTimes(id) {
     }
 
     fbDb.ref('rentalDaily/'+id).update(updates)
-        .then(function(){ showToast('تم التحديث'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
+        .then(function(){ showToast(RL('Updated','تم التحديث')); }).catch(function(err){ showToast(RL('Error: ','خطأ: ')+err.message,true); });
 }
 
 function renderRentalDailyView() {
@@ -16235,7 +16637,7 @@ function renderRentalDailyView() {
     var dateFilter=(document.getElementById('rental-daily-date')||{}).value||'';
     var filtered=dateFilter?rentalDailyData.filter(function(d){ return d.date===dateFilter; }):rentalDailyData.slice();
     filtered.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
-    if (!filtered.length) { c.innerHTML='<div style="text-align:center;padding:30px;color:var(--gray)">'+(dateFilter?'لا سجلات لهذا اليوم':'لا توجد سجلات')+'</div>'; return; }
+    if (!filtered.length) { c.innerHTML='<div style="text-align:center;padding:30px;color:var(--gray)">'+(dateFilter?RL('No records for this day','لا سجلات لهذا اليوم'):RL('No records','لا توجد سجلات'))+'</div>'; return; }
     var grouped={};
     filtered.forEach(function(r){ var d=r.date||'—'; if(!grouped[d]) grouped[d]=[]; grouped[d].push(r); });
     var html='';
@@ -16244,7 +16646,7 @@ function renderRentalDailyView() {
         var sb=recs.reduce(function(s,r){ return s+(r.basicHours||0); },0);
         var sk=recs.reduce(function(s,r){ return s+(r.breakHours||0); },0);
         var se=recs.reduce(function(s,r){ return s+(r.extraHours||0); },0);
-        html+='<div class="rental-date-header" style="background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border-radius:12px;padding:9px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><strong>📅 '+date+'</strong><span style="font-size:12px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px">'+recs.length+' معدة | أساسي '+sb.toFixed(1)+'س'+(sk>0?' | راحة '+sk.toFixed(1)+'س':'')+(se>0?' | إضافي '+se.toFixed(1)+'س':'')+'</span></div>';
+        html+='<div class="rental-date-header" style="background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border-radius:12px;padding:9px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><strong>📅 '+date+'</strong><span style="font-size:12px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px">'+recs.length+' '+RL('equipment','معدة')+' | '+RL('basic','أساسي')+' '+sb.toFixed(1)+RL('h','س')+(sk>0?' | '+RL('break','راحة')+' '+sk.toFixed(1)+RL('h','س'):'')+(se>0?' | '+RL('overtime','إضافي')+' '+se.toFixed(1)+RL('h','س'):'')+'</span></div>';
         recs.forEach(function(r){
             var rental=rentalData.find(function(x){ return x.id===r.equipmentId; });
             var eq=rental?equipmentData.find(function(e){ return e.id===rental.equipmentId; }):null;
@@ -16252,16 +16654,16 @@ function renderRentalDailyView() {
             var label=eq?(eq.type+' — '+eq.code):(r.equipmentCode||'—');
             html+='<div class="rental-card" style="background:white;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:9px;overflow:hidden;max-width:600px"><div style="padding:10px 14px">'+
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px">'+
-                '<div style="min-width:0;flex:1;overflow:hidden"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(label)+'"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:11.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:10.5px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 '+escapeHtml(r.recordedByName)+(r.editedByName?' <span style="color:#dc2626;font-weight:700">— التعديل بواسطة '+escapeHtml(r.editedByName)+'</span>':'')+'</div>':'')+'</div>'+
+                '<div style="min-width:0;flex:1;overflow:hidden"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(label)+'"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:11.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:10.5px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 '+escapeHtml(r.recordedByName)+(r.editedByName?' <span style="color:#dc2626;font-weight:700">— '+RL('Edited by','التعديل بواسطة')+' '+escapeHtml(r.editedByName)+'</span>':'')+'</div>':'')+'</div>'+
                 (isAdmin?'<div style="display:flex;gap:5px;flex-shrink:0">'+
                 '<button data-action="edit-daily" data-id="'+r.id+'" style="background:#e0e7ff;color:#4338ca;border:none;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer">✏️</button>'+
                 '<button data-action="del-daily" data-id="'+r.id+'" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer">🗑️</button></div>':'')+'</div>'+
                 '<div style="display:grid;grid-template-columns:1fr 0.7fr 0.7fr'+(r.breakHours>0?' 0.7fr':'')+';gap:6px;font-size:11px">'+
                 '<div style="background:var(--light);padding:6px 8px;border-radius:8px;text-align:center">🟢 '+(r.inTime||'—')+'<br>🔴 '+(r.outTime||'—')+'</div>'+
-                '<div style="background:var(--light);padding:6px 8px;border-radius:8px;text-align:center">✅ أساسي<br><strong style="font-size:13px">'+(r.basicHours||0).toFixed(1)+'س</strong></div>'+
-                (r.breakHours>0?'<div style="background:#fef3c7;color:#92400e;padding:6px 8px;border-radius:8px;text-align:center">☕ راحة<br><strong style="font-size:13px">'+(r.breakHours||0).toFixed(1)+'س</strong></div>':'')+
-                '<div style="background:'+(r.extraHours>0?'#fef3c7':'var(--light)')+';color:'+(r.extraHours>0?'#92400e':'inherit')+';padding:6px 8px;border-radius:8px;text-align:center">⚡ إضافي<br><strong style="font-size:13px">'+(r.extraHours||0).toFixed(2)+'س</strong></div></div>'+
-                '<div style="margin-top:7px;font-size:11.5px;color:'+(r.notes?'var(--gray)':'#c3cad4')+';background:var(--light);padding:5px 10px;border-radius:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 '+(r.notes?escapeHtml(r.notes):'لا توجد ملاحظات')+'</div></div></div>';
+                '<div style="background:var(--light);padding:6px 8px;border-radius:8px;text-align:center">✅ '+RL('Basic','أساسي')+'<br><strong style="font-size:13px">'+(r.basicHours||0).toFixed(1)+RL('h','س')+'</strong></div>'+
+                (r.breakHours>0?'<div style="background:#fef3c7;color:#92400e;padding:6px 8px;border-radius:8px;text-align:center">☕ '+RL('Break','راحة')+'<br><strong style="font-size:13px">'+(r.breakHours||0).toFixed(1)+RL('h','س')+'</strong></div>':'')+
+                '<div style="background:'+(r.extraHours>0?'#fef3c7':'var(--light)')+';color:'+(r.extraHours>0?'#92400e':'inherit')+';padding:6px 8px;border-radius:8px;text-align:center">⚡ '+RL('Overtime','إضافي')+'<br><strong style="font-size:13px">'+(r.extraHours||0).toFixed(2)+RL('h','س')+'</strong></div></div>'+
+                '<div style="margin-top:7px;font-size:11.5px;color:'+(r.notes?'var(--gray)':'#c3cad4')+';background:var(--light);padding:5px 10px;border-radius:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 '+(r.notes?escapeHtml(r.notes):RL('No notes','لا توجد ملاحظات'))+'</div></div></div>';
         });
     });
     c.innerHTML=html;
@@ -16286,27 +16688,27 @@ function showRentalReport(rentalId) {
     var defTo   = activeCycle.to;
     var title=eq?(eq.type+' — '+eq.code):(rental.equipmentCode||'—');
     window._currentRentalReportId=rentalId;
-    document.getElementById('detail-title').innerHTML='📋 تقرير: '+escapeHtml(title);
+    document.getElementById('detail-title').innerHTML='📋 '+RL('Report','تقرير')+': '+escapeHtml(title);
     var infoHtml='';
-    if (drv) infoHtml+='<div>👨\u200d✈️ السائق: <strong>'+escapeHtml(drv.name)+'</strong></div>';
-    if (rental.company) infoHtml+='<div>🏢 الشركة: <strong>'+escapeHtml(rental.company)+'</strong></div>';
-    if (rental.startDate) infoHtml+='<div>📅 بداية العقد: '+rental.startDate+'</div>';
+    if (drv) infoHtml+='<div>👨\u200d✈️ '+RL('Driver','السائق')+': <strong>'+escapeHtml(drv.name)+'</strong></div>';
+    if (rental.company) infoHtml+='<div>🏢 '+RL('Company','الشركة')+': <strong>'+escapeHtml(rental.company)+'</strong></div>';
+    if (rental.startDate) infoHtml+='<div>📅 '+RL('Contract Start','بداية العقد')+': '+rental.startDate+'</div>';
     document.getElementById('detail-content').innerHTML=
         '<div style="padding:0 14px 14px">'+
         (infoHtml?'<div style="background:#f1f5f9;border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:13px">'+infoHtml+'</div>':'')+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">'+
-        '<div><div style="font-size:11px;color:var(--gray);margin-bottom:3px">من</div>'+
+        '<div><div style="font-size:11px;color:var(--gray);margin-bottom:3px">'+RL('From','من')+'</div>'+
         '<input type="date" id="rental-report-date-from" value="'+defFrom+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px"></div>'+
-        '<div><div style="font-size:11px;color:var(--gray);margin-bottom:3px">إلى</div>'+
+        '<div><div style="font-size:11px;color:var(--gray);margin-bottom:3px">'+RL('To','إلى')+'</div>'+
         '<input type="date" id="rental-report-date-to" value="'+defTo+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px"></div>'+
         '</div>'+
         '<div style="display:flex;gap:8px;margin-bottom:8px">'+
-        '<button id="rental-report-apply-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">🔍 عرض</button>'+
+        '<button id="rental-report-apply-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">🔍 '+RL('View','عرض')+'</button>'+
         '<button id="rental-report-excel-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">📊 Excel</button>'+
         '<button id="rental-report-pdf-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">📄 PDF</button>'+
         '</div>'+
         '<div style="margin-bottom:10px">'+
-        '<button id="rental-report-anomaly-btn" style="width:100%;padding:8px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700">🕵️ فحص التناقضات (ساعات مسجّلة مقابل GPS)</button>'+
+        '<button id="rental-report-anomaly-btn" style="width:100%;padding:8px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700">🕵️ '+RL('Check Discrepancies (recorded hours vs GPS)','فحص التناقضات (ساعات مسجّلة مقابل GPS)')+'</button>'+
         '<div id="rental-anomaly-summary" style="display:none;margin-top:8px"></div>'+
         '</div>'+
         '<div id="rental-report-content"></div></div>';
@@ -16339,7 +16741,7 @@ function runRentalAnomalyCheck(rentalId, dateFrom, dateTo) {
     var btn = document.getElementById('rental-report-anomaly-btn');
     if (!summaryEl) return;
     var rental = rentalData.find(function(r){ return r.id===rentalId; });
-    if (!rental || !rental.driverId) { showToast('مفيش سائق مربوط بعقد الإيجار ده', true); return; }
+    if (!rental || !rental.driverId) { showToast(RL('No driver linked to this rental contract','مفيش سائق مربوط بعقد الإيجار ده'), true); return; }
     var driverId = rental.driverId;
 
     var dayData = buildRentalDayEntries(rentalId, dateFrom, dateTo);
@@ -16347,13 +16749,13 @@ function runRentalAnomalyCheck(rentalId, dateFrom, dateTo) {
 
     if (!recordedDays.length) {
         summaryEl.style.display = 'block';
-        summaryEl.innerHTML = '<div style="background:#f1f5f9;border-radius:10px;padding:12px;font-size:12.5px;color:#64748b;text-align:center">مفيش أيام مسجّلة بحضور وانصراف في الفترة دي للفحص</div>';
+        summaryEl.innerHTML = '<div style="background:#f1f5f9;border-radius:10px;padding:12px;font-size:12.5px;color:#64748b;text-align:center">'+RL('No days with check-in/check-out recorded in this period to check','مفيش أيام مسجّلة بحضور وانصراف في الفترة دي للفحص')+'</div>';
         return;
     }
 
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري الفحص...'; }
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ '+RL('Checking...','جاري الفحص...'); }
     summaryEl.style.display = 'block';
-    summaryEl.innerHTML = '<div style="text-align:center;padding:10px;color:#94a3b8;font-size:12.5px">⏳ جاري تحميل بيانات الموقع لكل يوم...</div>';
+    summaryEl.innerHTML = '<div style="text-align:center;padding:10px;color:#94a3b8;font-size:12.5px">⏳ '+RL('Loading location data for each day...','جاري تحميل بيانات الموقع لكل يوم...')+'</div>';
 
     var fetches = recordedDays.map(function(d) {
         return fbDb.ref('driverLocationHistory/' + driverId + '/' + d.date).once('value')
@@ -16362,7 +16764,7 @@ function runRentalAnomalyCheck(rentalId, dateFrom, dateTo) {
     });
 
     Promise.all(fetches).then(function(results) {
-        if (btn) { btn.disabled = false; btn.textContent = '🕵️ فحص التناقضات (ساعات مسجّلة مقابل GPS)'; }
+        if (btn) { btn.disabled = false; btn.textContent = '🕵️ '+RL('Check Discrepancies (recorded hours vs GPS)','فحص التناقضات (ساعات مسجّلة مقابل GPS)'); }
         var flagged = [];
 
         results.forEach(function(res) {
@@ -16371,7 +16773,7 @@ function runRentalAnomalyCheck(rentalId, dateFrom, dateTo) {
             var loggedHours = (r.basicHours||0) + (r.breakHours||0) + (r.extraHours||0);
 
             if (!pts.length) {
-                flagged.push({ date: r.date, level: 'high', reason: '🚫 مفيش أي بيانات موقع مسجّلة لليوم ده رغم إنه مسجّل ' + loggedHours.toFixed(1) + ' ساعة' });
+                flagged.push({ date: r.date, level: 'high', reason: '🚫 '+RL('No location data recorded for this day even though ','مفيش أي بيانات موقع مسجّلة لليوم ده رغم إنه مسجّل ') + loggedHours.toFixed(1) + RL(' hours were logged',' ساعة') });
                 return;
             }
 
@@ -16381,14 +16783,14 @@ function runRentalAnomalyCheck(rentalId, dateFrom, dateTo) {
             var gpsSpanHours = (new Date(pts[pts.length-1].updatedAt) - new Date(pts[0].updatedAt)) / 3600000;
 
             if (totalKm < 0.15 && loggedHours >= 2) {
-                flagged.push({ date: r.date, level: 'medium', reason: '⚠️ الموقع تقريبًا لم يتحرك (' + totalKm.toFixed(2) + ' كم) رغم تسجيل ' + loggedHours.toFixed(1) + ' ساعة عمل' });
+                flagged.push({ date: r.date, level: 'medium', reason: '⚠️ '+RL('Location barely moved (','الموقع تقريبًا لم يتحرك (') + totalKm.toFixed(2) + RL(' km) despite logging ',' كم) رغم تسجيل ') + loggedHours.toFixed(1) + RL(' work hours',' ساعة عمل') });
             } else if (loggedHours > 0 && gpsSpanHours < loggedHours * 0.4) {
-                flagged.push({ date: r.date, level: 'low', reason: '⏱️ مدة نشاط GPS الفعلية (' + gpsSpanHours.toFixed(1) + ' س) أقل بكتير من الساعات المسجَّلة (' + loggedHours.toFixed(1) + ' س)' });
+                flagged.push({ date: r.date, level: 'low', reason: '⏱️ '+RL('Actual GPS activity span (','مدة نشاط GPS الفعلية (') + gpsSpanHours.toFixed(1) + RL(' h) is much less than logged hours (','س) أقل بكتير من الساعات المسجَّلة (') + loggedHours.toFixed(1) + RL(' h)',' س)') });
             }
         });
 
         if (!flagged.length) {
-            summaryEl.innerHTML = '<div style="background:#d1fae5;border-radius:10px;padding:12px;font-size:12.5px;color:#065f46;text-align:center">✅ مفيش تناقضات ملحوظة بين الساعات المسجّلة ومسار الموقع في الفترة دي</div>';
+            summaryEl.innerHTML = '<div style="background:#d1fae5;border-radius:10px;padding:12px;font-size:12.5px;color:#065f46;text-align:center">✅ '+RL('No notable discrepancies between logged hours and location path in this period','مفيش تناقضات ملحوظة بين الساعات المسجّلة ومسار الموقع في الفترة دي')+'</div>';
             return;
         }
 
@@ -16396,18 +16798,18 @@ function runRentalAnomalyCheck(rentalId, dateFrom, dateTo) {
         var levelBg = { high: '#fee2e2', medium: '#fef3c7', low: '#e0f2fe' };
         summaryEl.innerHTML =
             '<div style="background:white;border:1px solid #fde68a;border-radius:10px;padding:10px 12px">' +
-            '<div style="font-size:12.5px;font-weight:800;color:#92400e;margin-bottom:8px">⚠️ ' + flagged.length + ' يوم محتاج مراجعة:</div>' +
+            '<div style="font-size:12.5px;font-weight:800;color:#92400e;margin-bottom:8px">⚠️ ' + flagged.length + ' '+RL('day(s) need review:','يوم محتاج مراجعة:')+'</div>' +
             flagged.map(function(f) {
                 return '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 8px;background:' + levelBg[f.level] + ';border-radius:8px;margin-bottom:5px;font-size:11.5px">' +
                     '<span style="font-weight:700;color:' + levelColor[f.level] + ';white-space:nowrap">' + f.date + '</span>' +
                     '<span style="color:#475569;text-align:right;flex:1">' + f.reason + '</span>' +
                 '</div>';
             }).join('') +
-            '<div style="font-size:10px;color:#9ca3af;margin-top:6px">فحص تلقائي بقواعد بسيطة — يحتاج مراجعة بشرية قبل أي إجراء</div>' +
+            '<div style="font-size:10px;color:#9ca3af;margin-top:6px">'+RL('Automatic rule-based check — needs human review before any action','فحص تلقائي بقواعد بسيطة — يحتاج مراجعة بشرية قبل أي إجراء')+'</div>' +
             '</div>';
     }).catch(function(err) {
-        if (btn) { btn.disabled = false; btn.textContent = '🕵️ فحص التناقضات (ساعات مسجّلة مقابل GPS)'; }
-        summaryEl.innerHTML = '<div style="color:#dc2626;font-size:12px;text-align:center">❌ تعذّر إتمام الفحص: ' + err.message + '</div>';
+        if (btn) { btn.disabled = false; btn.textContent = '🕵️ '+RL('Check Discrepancies (recorded hours vs GPS)','فحص التناقضات (ساعات مسجّلة مقابل GPS)'); }
+        summaryEl.innerHTML = '<div style="color:#dc2626;font-size:12px;text-align:center">❌ '+RL('Could not complete the check: ','تعذّر إتمام الفحص: ') + err.message + '</div>';
     });
 }
 
@@ -16473,26 +16875,26 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo) {
     var html='<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border-radius:14px;padding:14px;color:white;margin-bottom:10px">'+
         '<div style="font-weight:700;margin-bottom:8px">\u{1F4CA} '+periodLabel+'</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin-bottom:6px">'+
-        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+records.length+'</div><div>\u064A\u0648\u0645 \u0639\u0645\u0644 (\u0623\u0633\u0627\u0633 8\u0633/\u064A\u0648\u0645)</div></div>'+
-        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+st.toFixed(1)+'</div><div>\u0625\u062C\u0645\u0627\u0644\u064A \u0627\u0644\u0633\u0627\u0639\u0627\u062A</div></div>'+
+        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+records.length+'</div><div>'+RL('Work days (base 8h/day)','يوم عمل (أساس 8س/يوم)')+'</div></div>'+
+        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+st.toFixed(1)+'</div><div>'+RL('Total Hours','إجمالي الساعات')+'</div></div>'+
         '</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;font-size:13px">'+
-        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:20px;font-weight:700">'+sb.toFixed(1)+'</div><div>\u0623\u0633\u0627\u0633\u064A</div></div>'+
-        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:20px;font-weight:700;color:#fbbf24">'+sk.toFixed(1)+'</div><div>\u0633\u0627\u0639\u0629 \u0631\u0627\u062D\u0629</div></div>'+
-        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:20px;font-weight:700;color:#fbbf24">'+se.toFixed(1)+'</div><div>\u0625\u0636\u0627\u0641\u064A</div></div>'+
-        '<div style="background:'+(absentCount?'rgba(220,38,38,.35)':'rgba(255,255,255,.15)')+';padding:8px;border-radius:8px;text-align:center"><div style="font-size:20px;font-weight:700">'+absentCount+'</div><div>\u{1F6AB} \u063A\u064A\u0627\u0628</div></div>'+
+        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:20px;font-weight:700">'+sb.toFixed(1)+'</div><div>'+RL('Basic','أساسي')+'</div></div>'+
+        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:20px;font-weight:700;color:#fbbf24">'+sk.toFixed(1)+'</div><div>'+RL('Break hour','ساعة راحة')+'</div></div>'+
+        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:20px;font-weight:700;color:#fbbf24">'+se.toFixed(1)+'</div><div>'+RL('Overtime','إضافي')+'</div></div>'+
+        '<div style="background:'+(absentCount?'rgba(220,38,38,.35)':'rgba(255,255,255,.15)')+';padding:8px;border-radius:8px;text-align:center"><div style="font-size:20px;font-weight:700">'+absentCount+'</div><div>\u{1F6AB} '+RL('Absent','غياب')+'</div></div>'+
         '</div></div>';
-    if (!days.length) { html+='<div style="text-align:center;padding:30px;color:var(--gray)">\u0644\u0627 \u0633\u062C\u0644\u0627\u062A \u0644\u0647\u0630\u0647 \u0627\u0644\u0641\u062A\u0631\u0629</div>'; cont.innerHTML=html; return; }
+    if (!days.length) { html+='<div style="text-align:center;padding:30px;color:var(--gray)">'+RL('No records for this period','لا سجلات لهذه الفترة')+'</div>'; cont.innerHTML=html; return; }
     var colTemplate = isAdmin ? '52px 36px 36px 30px 28px 30px 32px 44px' : '62px 42px 42px 34px 32px 34px 36px';
-    var editHeader = isAdmin ? '<span style="text-align:center">\u062A\u0639\u062F\u064A\u0644</span>' : '';
+    var editHeader = isAdmin ? '<span style="text-align:center">'+RL('Edit','تعديل')+'</span>' : '';
     html+='<div style="background:white;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;overflow-x:auto">'+
         '<div style="background:var(--light);padding:8px 12px;display:grid;grid-template-columns:'+colTemplate+';gap:3px;font-size:11px;font-weight:700">'+
-        '<span>\u0627\u0644\u062A\u0627\u0631\u064A\u062E</span><span style="text-align:center">\u062D\u0636\u0648\u0631</span><span style="text-align:center">\u0627\u0646\u0635\u0631\u0627\u0641</span><span style="text-align:center">\u0623\u0633\u0627\u0633\u064A</span><span style="text-align:center">\u0631\u0627\u062D\u0629</span><span style="text-align:center">\u0625\u0636\u0627\u0641\u064A</span><span style="text-align:center">\u0627\u0644\u0645\u062C\u0645\u0648\u0639</span>'+editHeader+'</div>';
+        '<span>'+RL('Date','التاريخ')+'</span><span style="text-align:center">'+RL('In','حضور')+'</span><span style="text-align:center">'+RL('Out','انصراف')+'</span><span style="text-align:center">'+RL('Basic','أساسي')+'</span><span style="text-align:center">'+RL('Break','راحة')+'</span><span style="text-align:center">'+RL('Overtime','إضافي')+'</span><span style="text-align:center">'+RL('Total','المجموع')+'</span>'+editHeader+'</div>';
     days.forEach(function(dayEntry,i){
         var r = dayEntry.record;
         if (!r) {
             var isAbsent = dayEntry.status === 'absent';
-            var label = isAbsent ? '\u{1F6AB} \u063A\u064A\u0627\u0628' : '\u23F3 \u0644\u0645 \u064A\u064F\u0633\u062C\u0644 \u0628\u0639\u062F';
+            var label = isAbsent ? '\u{1F6AB} '+RL('Absent','غياب') : '\u23F3 '+RL('Not recorded yet','لم يُسجل بعد');
             var rowColor = isAbsent ? '#fee2e2' : (i%2?'#f8fafc':'white');
             var textColor = isAbsent ? '#991b1b' : 'var(--gray)';
             html+='<div style="background:'+rowColor+';padding:8px 12px;display:grid;grid-template-columns:'+colTemplate+';gap:3px;font-size:11px;border-top:1px solid #f1f5f9;align-items:center;color:'+textColor+'">'+
@@ -16515,11 +16917,11 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo) {
             '<span style="text-align:center;font-weight:700;color:#065f46">'+rowTotal.toFixed(1)+'</span>'+
             editBtns+'</div>'+
             (r.notes?'<div style="padding:2px 12px 5px;font-size:10px;color:var(--gray);background:'+(i%2?'#f8fafc':'white')+';white-space:pre-line">\u{1F4DD} '+escapeHtml(r.notes)+'</div>':'')+
-            (r.recordedByName?'<div style="padding:0 12px 6px;font-size:9.5px;color:#9ca3af;background:'+(i%2?'#f8fafc':'white')+'">\u{1F464} '+escapeHtml(r.recordedByName)+(r.editedByName?' <span style="color:#dc2626;font-weight:700">\u2014 \u0627\u0644\u062A\u0639\u062F\u064A\u0644 \u0628\u0648\u0627\u0633\u0637\u0629 '+escapeHtml(r.editedByName)+'</span>':'')+'</div>':'');
+            (r.recordedByName?'<div style="padding:0 12px 6px;font-size:9.5px;color:#9ca3af;background:'+(i%2?'#f8fafc':'white')+'">\u{1F464} '+escapeHtml(r.recordedByName)+(r.editedByName?' <span style="color:#dc2626;font-weight:700">\u2014 '+RL('Edited by','التعديل بواسطة')+' '+escapeHtml(r.editedByName)+'</span>':'')+'</div>':'');
     });
     var emptyCol = isAdmin ? '<span></span>' : '';
     html+='<div style="background:#f1f5f9;padding:8px 12px;display:grid;grid-template-columns:'+colTemplate+';gap:3px;font-size:11px;font-weight:700;border-top:2px solid #e2e8f0">'+
-        '<span>\u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A</span><span></span><span></span><span style="text-align:center;color:#0e7490">'+sb.toFixed(1)+'</span><span style="text-align:center;color:#d97706">'+sk.toFixed(1)+'</span><span style="text-align:center;color:#d97706">'+se.toFixed(1)+'</span><span style="text-align:center;color:#065f46">'+st.toFixed(1)+'</span>'+emptyCol+'</div>';
+        '<span>'+RL('Total','الإجمالي')+'</span><span></span><span></span><span style="text-align:center;color:#0e7490">'+sb.toFixed(1)+'</span><span style="text-align:center;color:#d97706">'+sk.toFixed(1)+'</span><span style="text-align:center;color:#d97706">'+se.toFixed(1)+'</span><span style="text-align:center;color:#065f46">'+st.toFixed(1)+'</span>'+emptyCol+'</div>';
     html+='</div>';
     cont.innerHTML=html;
     if (isAdmin) {
@@ -16537,7 +16939,7 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo) {
 
 function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
     var entry = rentalDailyData.find(function(d){ return d.id === entryId; });
-    if (!entry) { showToast('\u0644\u0645 \u064A\u0648\u062C\u062F \u0627\u0644\u0633\u062C\u0644', true); return; }
+    if (!entry) { showToast(RL('Record not found','لم يوجد السجل'), true); return; }
     // Remove old modal if exists
     var old = document.getElementById('edit-daily-entry-modal');
     if (old) old.remove();
@@ -16547,24 +16949,24 @@ function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
     modal.innerHTML =
         '<div style="background:white;border-radius:18px;width:100%;max-width:360px;padding:20px;direction:rtl">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'+
-        '<div style="font-size:16px;font-weight:800;color:#7c3aed">\u270F\uFE0F \u062A\u0639\u062F\u064A\u0644 \u0633\u062C\u0644 \u0627\u0644\u0633\u0627\u0639\u0627\u062A</div>'+
+        '<div style="font-size:16px;font-weight:800;color:#7c3aed">\u270F\uFE0F '+RL('Edit Hours Record','تعديل سجل الساعات')+'</div>'+
         '<button id="edit-daily-close" style="background:#f1f5f9;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px">\u2715</button>'+
         '</div>'+
-        '<div style="background:#ede9fe;border-radius:10px;padding:8px 12px;font-size:12px;color:#4c1d95;margin-bottom:14px">\u{1F4C5} \u0627\u0644\u062A\u0627\u0631\u064A\u062E: <strong>'+entry.date+'</strong></div>'+
-        (entry.recordedByName ? '<div style="font-size:11px;color:#9ca3af;margin-bottom:14px">\u{1F464} \u0633\u062C\u0651\u0644\u0647\u0627: '+escapeHtml(entry.recordedByName)+(entry.editedByName?' <span style="color:#dc2626;font-weight:700">\u2014 \u062A\u0645 \u0627\u0644\u062A\u0639\u062F\u064A\u0644 \u0628\u0648\u0627\u0633\u0637\u0629: '+escapeHtml(entry.editedByName)+'</span>':'')+'</div>' : '')+
+        '<div style="background:#ede9fe;border-radius:10px;padding:8px 12px;font-size:12px;color:#4c1d95;margin-bottom:14px">\u{1F4C5} '+RL('Date','التاريخ')+': <strong>'+entry.date+'</strong></div>'+
+        (entry.recordedByName ? '<div style="font-size:11px;color:#9ca3af;margin-bottom:14px">\u{1F464} '+RL('Recorded by','سجّلها')+': '+escapeHtml(entry.recordedByName)+(entry.editedByName?' <span style="color:#dc2626;font-weight:700">\u2014 '+RL('Edited by','تم التعديل بواسطة')+': '+escapeHtml(entry.editedByName)+'</span>':'')+'</div>' : '')+
         '<div style="display:grid;gap:10px">'+
-        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">\u0648\u0642\u062A \u0627\u0644\u062D\u0636\u0648\u0631</label>'+
+        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">'+RL('Check-in Time','وقت الحضور')+'</label>'+
         '<input type="time" id="edit-entry-in" value="'+(entry.inTime||'08:00')+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>'+
-        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">\u0648\u0642\u062A \u0627\u0644\u0627\u0646\u0635\u0631\u0627\u0641</label>'+
+        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">'+RL('Check-out Time','وقت الانصراف')+'</label>'+
         '<input type="time" id="edit-entry-out" value="'+(entry.outTime||'')+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>'+
         '<div style="display:flex;align-items:center;gap:8px;background:#fff7ed;border-radius:10px;padding:8px 10px">'+
         '<input type="checkbox" id="edit-entry-brk" '+(entry.breakWorked?'checked':'')+' style="width:18px;height:18px">'+
-        '<label for="edit-entry-brk" style="font-size:12px;color:#92400e;margin:0">\u2615 \u0627\u0634\u062A\u063A\u0644\u062A \u0627\u0644\u0645\u0639\u062F\u0629 \u0633\u0627\u0639\u0629 \u0627\u0644\u0631\u0627\u062D\u0629\u061F</label></div>'+
-        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">\u0645\u0644\u0627\u062D\u0638\u0627\u062A</label>'+
+        '<label for="edit-entry-brk" style="font-size:12px;color:#92400e;margin:0">\u2615 '+RL('Did the equipment work during the break hour?','اشتغلت المعدة ساعة الراحة؟')+'</label></div>'+
+        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">'+RL('Notes','ملاحظات')+'</label>'+
         '<textarea id="edit-entry-notes" rows="2" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;resize:none">'+(entry.notes||'')+'</textarea></div>'+
         '</div>'+
         '<div id="edit-entry-calc" style="margin-top:10px;background:#f0fdf4;border-radius:10px;padding:10px;font-size:13px;display:none"></div>'+
-        '<button id="edit-daily-save-btn" style="width:100%;margin-top:14px;padding:12px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">\u2705 \u062D\u0641\u0638 \u0627\u0644\u062A\u0639\u062F\u064A\u0644</button>'+
+        '<button id="edit-daily-save-btn" style="width:100%;margin-top:14px;padding:12px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">\u2705 '+RL('Save Changes','حفظ التعديل')+'</button>'+
         '</div>';
     document.body.appendChild(modal);
 
@@ -16576,9 +16978,9 @@ function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
         if (inT && outT) {
             var h = calcRentalHours(inT, outT, brk, rentalStandardHours(entry.equipmentType));
             calcDiv.style.display = 'block';
-            calcDiv.innerHTML = '\u2705 \u0623\u0633\u0627\u0633\u064A: <strong>'+h.basic.toFixed(1)+'</strong>\u0633'+
-                (h.break>0?' | \u2615 \u0631\u0627\u062D\u0629: <strong style="color:#d97706">'+h.break.toFixed(1)+'</strong>\u0633':'')+
-                ' | \u0625\u0636\u0627\u0641\u064A: <strong style="color:#d97706">'+h.extra.toFixed(2)+'</strong>\u0633';
+            calcDiv.innerHTML = '\u2705 '+RL('Basic','أساسي')+': <strong>'+h.basic.toFixed(1)+'</strong>'+RL('h','س')+
+                (h.break>0?' | \u2615 '+RL('Break','راحة')+': <strong style="color:#d97706">'+h.break.toFixed(1)+'</strong>'+RL('h','س'):'')+
+                ' | '+RL('Overtime','إضافي')+': <strong style="color:#d97706">'+h.extra.toFixed(2)+'</strong>'+RL('h','س');
         } else { calcDiv.style.display = 'none'; }
     }
     document.getElementById('edit-entry-in').oninput = calcAndShow;
@@ -16594,7 +16996,7 @@ function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
         var outT = document.getElementById('edit-entry-out').value;
         var brk = document.getElementById('edit-entry-brk').checked;
         var notes = document.getElementById('edit-entry-notes').value;
-        if (!inT || !outT) { showToast('\u0623\u062F\u062E\u0644 \u0648\u0642\u062A \u0627\u0644\u062D\u0636\u0648\u0631 \u0648\u0627\u0644\u0627\u0646\u0635\u0631\u0627\u0641', true); return; }
+        if (!inT || !outT) { showToast(RL('Enter check-in and check-out time','أدخل وقت الحضور والانصراف'), true); return; }
         var h = calcRentalHours(inT, outT, brk, rentalStandardHours(entry.equipmentType));
         var updated = Object.assign({}, entry, {
             inTime: inT, outTime: outT, breakWorked: !!brk, breakHours: h.break,
@@ -16612,22 +17014,22 @@ function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
 
         fbDb.ref('rentalDaily/' + entryId).set(updated)
             .then(function(){
-                showToast('\u2705 \u062A\u0645 \u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0633\u062C\u0644 \u0628\u0646\u062C\u0627\u062D');
+                showToast('\u2705 '+RL('Record updated successfully','تم تعديل السجل بنجاح'));
                 modal.remove();
                 setTimeout(function(){ renderRentalReportContent(rentalId, dateFrom, dateTo); }, 600);
             })
-            .catch(function(err){ showToast('\u062E\u0637\u0623: '+err.message, true); });
+            .catch(function(err){ showToast(RL('Error: ','خطأ: ')+err.message, true); });
     };
 }
 
 function deleteDailyEntry(entryId, rentalId, dateFrom, dateTo) {
-    if (!confirm('\u062D\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u0633\u062C\u0644\u061F')) return;
+    if (!confirm(RL('Delete this record?','حذف هذا السجل؟'))) return;
     fbDb.ref('rentalDaily/' + entryId).remove()
         .then(function(){
-            showToast('\u{1F5D1}\uFE0F \u062A\u0645 \u062D\u0630\u0641 \u0627\u0644\u0633\u062C\u0644');
+            showToast('\u{1F5D1}\uFE0F '+RL('Record deleted','تم حذف السجل'));
             setTimeout(function(){ renderRentalReportContent(rentalId, dateFrom, dateTo); }, 600);
         })
-        .catch(function(err){ showToast('\u062E\u0637\u0623: '+err.message, true); });
+        .catch(function(err){ showToast(RL('Error: ','خطأ: ')+err.message, true); });
 }
 
 
@@ -17253,7 +17655,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- مودال كشف الإضافي المشبوه (مقارنة رياضية مباشرة بين المعدات المتشابهة، بدون AI) -->
 <div class="modal-overlay" id="overtime-anomaly-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-    <div class="modal-title">⚠️ كشف الإضافي المشبوه</div>
+    <div class="modal-title">⚠️ <span class="i18n-label" data-en="Detect Suspicious Overtime" data-ar="كشف الإضافي المشبوه"></span></div>
     <button class="modal-close" onclick="closeModal('overtime-anomaly-modal')">✕</button>
   </div>
   <div id="overtime-anomaly-content" style="padding:16px;padding-bottom:24px;line-height:1.9;font-size:14px"></div>
@@ -17262,7 +17664,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- مودال تحليل سلوك السائقين الذكي -->
 <div class="modal-overlay" id="driver-behavior-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
-    <div class="modal-title">🤖 تحليل سلوك السائقين</div>
+    <div class="modal-title">🤖 <span class="i18n-label" data-en="Driver Behavior Analysis" data-ar="تحليل سلوك السائقين"></span></div>
     <button class="modal-close" onclick="closeModal('driver-behavior-modal')">✕</button>
   </div>
   <div style="padding:14px 14px 0">
@@ -17274,7 +17676,7 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
   <div id="driver-behavior-content" style="padding:16px;padding-bottom:10px;white-space:pre-wrap;line-height:1.9;font-size:14px"></div>
   <div style="position:sticky;bottom:0;background:var(--light);padding:14px;display:none" id="driver-behavior-actions">
-    <button class="save-btn" style="background:#0d1b2a" onclick="printAiTextAsPdf('🤖 تحليل سلوك السائقين', lastAiDriverBehaviorText)">🖨️ طباعة PDF</button>
+    <button class="save-btn" style="background:#0d1b2a" onclick="printAiTextAsPdf('🤖 '+RL('Driver Behavior Analysis','تحليل سلوك السائقين'), lastAiDriverBehaviorText)">🖨️ <span class="i18n-label" data-en="Print PDF" data-ar="طباعة PDF"></span></button>
   </div>
 </div>
 
@@ -17798,13 +18200,13 @@ function computeSuspiciousOvertime() {
 function buildOvertimeAnomalyHtml() {
     var res = computeSuspiciousOvertime();
     if (!res || (!res.flaggedEquipment.length && !res.flaggedDays.length)) {
-        return '<div style="text-align:center;color:var(--success);padding:30px 0">✅ لا توجد حالات إضافي مشبوه حاليًا.</div>';
+        return '<div style="text-align:center;color:var(--success);padding:30px 0">✅ '+RL('No suspicious overtime cases currently.','لا توجد حالات إضافي مشبوه حاليًا.')+'</div>';
     }
 
     var html = '';
 
     if (res.flaggedEquipment.length) {
-        html += '<div style="font-weight:800;color:var(--primary);margin:6px 0 10px">⚠️ معدات إضافيها مشبوه</div>';
+        html += '<div style="font-weight:800;color:var(--primary);margin:6px 0 10px">⚠️ '+RL('Equipment with suspicious overtime','معدات إضافيها مشبوه')+'</div>';
         res.flaggedEquipment.forEach(function(f) {
             html += '<div class="detail-section" style="margin:0 0 10px 0;border-right:3px solid var(--warning)">' +
                 '<div style="font-weight:700;color:var(--primary);margin-bottom:4px">' + escapeHtml(f.label) + '</div>' +
@@ -17814,7 +18216,7 @@ function buildOvertimeAnomalyHtml() {
     }
 
     if (res.flaggedDays.length) {
-        html += '<div style="font-weight:800;color:var(--primary);margin:16px 0 10px">🔍 أيام إضافي مشبوهة</div>';
+        html += '<div style="font-weight:800;color:var(--primary);margin:16px 0 10px">🔍 '+RL('Suspicious overtime days','أيام إضافي مشبوهة')+'</div>';
         res.flaggedDays.slice(0, 15).forEach(function(f) {
             html += '<div class="detail-section" style="margin:0 0 8px 0;border-right:3px solid var(--danger)">' +
                 '<div style="font-weight:700;color:var(--primary)">' + escapeHtml(f.label) + '</div>' +
@@ -17822,11 +18224,11 @@ function buildOvertimeAnomalyHtml() {
                 '</div>';
         });
         if (res.flaggedDays.length > 15) {
-            html += '<div style="font-size:11px;color:var(--gray);text-align:center">+' + (res.flaggedDays.length - 15) + ' حالة إضافية</div>';
+            html += '<div style="font-size:11px;color:var(--gray);text-align:center">+' + (res.flaggedDays.length - 15) + ' '+RL('more case(s)','حالة إضافية')+'</div>';
         }
     }
 
-    html += '<div style="font-size:12px;color:var(--gray);text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid #eee">ℹ️ تم رصد هذه الحالات تلقائيًا من خلال النظام، وتم إرسال إشعار للمسؤولين.</div>';
+    html += '<div style="font-size:12px;color:var(--gray);text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid #eee">ℹ️ '+RL('These cases were detected automatically by the system, and a notification was sent to admins.','تم رصد هذه الحالات تلقائيًا من خلال النظام، وتم إرسال إشعار للمسؤولين.')+'</div>';
 
     return html;
 }
@@ -17966,13 +18368,13 @@ function openDriverBehaviorModal(forceRefresh) {
     modal.classList.add('active');
     if (actions) actions.style.display = 'none';
     var days = parseInt((periodSel && periodSel.value) || '7', 10);
-    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري تحميل مسارات GPS وتحليلها (ممكن ياخد شوية حسب عدد السائقين)...</div></div>';
+    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">'+RL('Loading and analyzing GPS routes (may take a while depending on the number of drivers)...','جاري تحميل مسارات GPS وتحليلها (ممكن ياخد شوية حسب عدد السائقين)...')+'</div></div>';
 
     setTimeout(function() {
         try {
             buildDriverBehaviorData(days, function(summary) {
                 if (!summary) {
-                    content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد بيانات GPS كافية لتحليل سلوك السائقين في الفترة دي.</div>';
+                    content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 0">'+RL('Not enough GPS data to analyze driver behavior for this period.','لا توجد بيانات GPS كافية لتحليل سلوك السائقين في الفترة دي.')+'</div>';
                     return;
                 }
                 var cacheKey = 'driver_behavior_' + days;
@@ -17982,12 +18384,13 @@ function openDriverBehaviorModal(forceRefresh) {
                     lastAiDriverBehaviorText = cached.text;
                     content.textContent = cached.text;
                     var minsAgo = Math.max(1, Math.round((Date.now() - cached.ts) / 60000));
-                    content.innerHTML += '<div style="margin-top:14px;font-size:11px;color:var(--gray);text-align:center">📦 نتيجة محفوظة من قبل ' + minsAgo + ' دقيقة (نفس البيانات) — <a href="#" onclick="openDriverBehaviorModal(true);return false;" style="color:var(--purple)">تحديث الآن</a></div>';
+                    content.innerHTML += '<div style="margin-top:14px;font-size:11px;color:var(--gray);text-align:center">📦 '+RL('Cached result from ','نتيجة محفوظة من قبل ') + minsAgo + ' '+RL('min ago (same data)','دقيقة (نفس البيانات)')+' — <a href="#" onclick="openDriverBehaviorModal(true);return false;" style="color:var(--purple)">'+RL('Refresh now','تحديث الآن')+'</a></div>';
                     if (actions) actions.style.display = 'block';
                     return;
                 }
 
-                var prompt = 'أنت محلل عمليات لشركة مقاولات كبرى بمصر، ومهمتك تحليل بيانات GPS لسائقي المعدات لرصد أي سلوك يستاهل مراجعة (استخدام غير رسمي، توقفات مطولة غير مبررة، تعطيل تتبع الموقع عمدًا). حلل البيانات دي بالعربية، باختصار ووضوح وبدون مقدمات طويلة:\n' +
+                var _respLang = (getAppLanguage() === 'en') ? 'in English' : 'بالعربية';
+                var prompt = 'You are an operations analyst for a major construction company in Egypt. Your job is to analyze GPS data for equipment drivers to flag any behavior worth reviewing (unofficial use, unexplained long stops, deliberately disabling location tracking). Analyze this data ' + _respLang + ', briefly and clearly with no long intros:\n' +
                     '1) أي سائق نسبة وقت توقفه مرتفعة جدًا مقارنة بمسافة الحركة، أو عنده توقفات طويلة متكررة أثناء وقت العمل — وضح احتمالية السبب (استراحة طويلة، مشوار شخصي، مشكلة بالمعدة).\n' +
                     '2) أي سائق قافل تتبع الموقع دلوقتي أو تتبعه ناقص/متقطع بشكل ملحوظ خلال الفترة — ده ممكن يعني تعمد إخفاء الموقع.\n' +
                     '3) رتب السائقين من الأكثر استحقاقًا للمراجعة للأقل، واستخدم عناوين قصيرة وإيموجي مناسب. لو كل حاجة طبيعية قول كده بوضوح من غير تهويل.\n' +
@@ -18005,7 +18408,7 @@ function openDriverBehaviorModal(forceRefresh) {
                 });
             });
         } catch(e) {
-            content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ حصل خطأ أثناء تجهيز التحليل: ' + escapeHtml(e.message || String(e)) + '</div>';
+            content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ '+RL('An error occurred while preparing the analysis: ','حصل خطأ أثناء تجهيز التحليل: ') + escapeHtml(e.message || String(e)) + '</div>';
         }
     }, 30);
 }
