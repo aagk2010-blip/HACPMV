@@ -5217,6 +5217,41 @@ function openEquipmentDetail(id) {
 }
 
 // ===== استيراد سجل الصيانات PM =====
+var pendingPMHistoryImport = null;
+
+function confirmPMHistoryImport() {
+    var statusDiv = document.getElementById('pm-import-status');
+    if (!pendingPMHistoryImport) { showToast('لا توجد بيانات للحفظ', true); return; }
+    var eqCount = Object.keys(pendingPMHistoryImport).length;
+    if (!fbDb) { showToast('لا يوجد اتصال بقاعدة البيانات', true); return; }
+    statusDiv.innerHTML = '⏳ جاري الحفظ...';
+    // نستخدم update بدل set عشان ندمج مع البيانات القديمة لباقي المعدات مش نمسحها
+    fbDb.ref('pmHistory').update(pendingPMHistoryImport)
+        .then(function() {
+            Object.assign(pmHistory, pendingPMHistoryImport);
+            pendingPMHistoryImport = null;
+            statusDiv.style.background = '#d1fae5';
+            statusDiv.style.color = '#065f46';
+            statusDiv.innerHTML = '✅ تم حفظ بيانات ' + eqCount + ' معدة بنجاح';
+        }).catch(function(err) {
+            statusDiv.style.background = '#fee2e2';
+            statusDiv.style.color = '#991b1b';
+            statusDiv.innerHTML = '❌ خطأ في الحفظ: ' + err.message;
+        });
+}
+
+function cancelPMHistoryImport() {
+    pendingPMHistoryImport = null;
+    var statusDiv = document.getElementById('pm-import-status');
+    statusDiv.style.display = 'none';
+    statusDiv.innerHTML = '';
+    var input = document.getElementById('pm-history-excel-input');
+    if (input) input.value = '';
+    showToast('تم إلغاء الاستيراد');
+}
+window.confirmPMHistoryImport = confirmPMHistoryImport;
+window.cancelPMHistoryImport = cancelPMHistoryImport;
+
 function importPMHistory(file) {
     var statusDiv = document.getElementById('pm-import-status');
     statusDiv.style.display = 'block';
@@ -5403,7 +5438,6 @@ function importPMHistory(file) {
                 }
             });
 
-            pmHistory = result;
             var eqCount = Object.keys(result).length;
 
             if (eqCount === 0) {
@@ -5413,23 +5447,28 @@ function importPMHistory(file) {
                 return;
             }
 
-            var summary = '✅ تم استيراد <strong>' + eqCount + '</strong> معدة | <strong>' + totalSessions + '</strong> صيانة';
-            if (fbDb) {
-                fbDb.ref('pmHistory').set(result)
-                    .then(function() {
-                        statusDiv.style.background = '#d1fae5';
-                        statusDiv.style.color = '#065f46';
-                        statusDiv.innerHTML = summary + ' — تم الحفظ ✔';
-                    }).catch(function(err) {
-                        statusDiv.style.background = '#fee2e2';
-                        statusDiv.style.color = '#991b1b';
-                        statusDiv.innerHTML = '❌ خطأ في الحفظ: ' + err.message;
-                    });
-            } else {
-                statusDiv.style.background = '#d1fae5';
-                statusDiv.style.color = '#065f46';
-                statusDiv.innerHTML = summary;
-            }
+            pendingPMHistoryImport = result;
+
+            var rowsHtml = Object.keys(result).map(function(k) {
+                var entry = result[k];
+                var lastSession = entry.sessions[entry.sessions.length - 1];
+                return '<tr><td style="padding:5px 6px;border-bottom:1px solid #fde68a">' + escapeHtml(entry.originalCode || k) + '</td>' +
+                    '<td style="padding:5px 6px;border-bottom:1px solid #fde68a;text-align:center">' + entry.sessions.length + '</td>' +
+                    '<td style="padding:5px 6px;border-bottom:1px solid #fde68a;text-align:center">' + escapeHtml(lastSession ? (lastSession.date || '—') : '—') + '</td></tr>';
+            }).join('');
+
+            statusDiv.style.background = '#fef3c7';
+            statusDiv.style.color = '#92400e';
+            statusDiv.innerHTML =
+                '📋 راجع البيانات قبل الحفظ: <strong>' + eqCount + '</strong> معدة | <strong>' + totalSessions + '</strong> صيانة مكتشفة' +
+                '<div style="max-height:180px;overflow-y:auto;margin-top:8px;background:white;border-radius:8px">' +
+                '<table style="width:100%;border-collapse:collapse;font-size:11.5px;color:#0d1b2a">' +
+                '<thead><tr style="background:#fde68a"><th style="padding:5px 6px">كود المعدة</th><th style="padding:5px 6px">عدد الصيانات</th><th style="padding:5px 6px">آخر تاريخ</th></tr></thead>' +
+                '<tbody>' + rowsHtml + '</tbody></table></div>' +
+                '<div style="display:flex;gap:8px;margin-top:10px">' +
+                '<button onclick="confirmPMHistoryImport()" style="flex:1;padding:9px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">✅ تأكيد وحفظ البيانات دي</button>' +
+                '<button onclick="cancelPMHistoryImport()" style="flex:1;padding:9px;background:#e2e8f0;color:#334155;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">❌ إلغاء</button>' +
+                '</div>';
         } catch(err) {
             statusDiv.style.background = '#fee2e2';
             statusDiv.style.color = '#991b1b';
@@ -11666,18 +11705,51 @@ function handleEquipmentFileUpload(inputElement) {
             
             var totalEquipment = Math.max(0, equipmentRows.length - 1);
             var totalFuelRecords = Math.max(0, dailyRows.length - 1);
+
+            // ---- تجهيز جدول معاينة تفصيلي لكل معدة قبل الحفظ ----
+            var previewHeaders = equipmentRows[0] || [];
+            var pCol = { code: -1, sapCode: -1, name: -1, currentHours: -1 };
+            for (var hi = 0; hi < previewHeaders.length; hi++) {
+                var hTxt = previewHeaders[hi] ? previewHeaders[hi].toString().trim() : '';
+                var hLow = hTxt.toLowerCase();
+                if (hTxt === 'SAP CODE' || hLow.indexOf('sap') !== -1) pCol.sapCode = hi;
+                if (hTxt === 'الرقم التعريفي للمعدة' || hLow.indexOf('تعريفي') !== -1 || (hLow.indexOf('code') !== -1 && hLow.indexOf('sap') === -1)) pCol.code = hi;
+                if (hTxt === 'اسم المعدة' || hLow.indexOf('اسم') !== -1 || hLow.indexOf('name') !== -1) pCol.name = hi;
+                if (hTxt === 'العداد الحالي' || hLow.indexOf('current') !== -1 || hLow.indexOf('عداد حالي') !== -1) pCol.currentHours = hi;
+            }
+            if (pCol.code === -1 && pCol.sapCode !== -1) pCol.code = pCol.sapCode;
+            if (pCol.code === -1) pCol.code = 0;
+
+            var previewRowsHtml = '';
+            var newCount = 0, updateCount = 0;
+            for (var pr = 1; pr < equipmentRows.length; pr++) {
+                var prow = equipmentRows[pr];
+                if (!prow || prow.length < 2) continue;
+                var pCode = prow[pCol.code] ? prow[pCol.code].toString().trim() : '';
+                if (!pCode || pCode.indexOf('الاجمالي') !== -1 || pCode.toLowerCase().indexOf('total') !== -1) continue;
+                var pName = pCol.name !== -1 && prow[pCol.name] ? prow[pCol.name].toString().trim() : '—';
+                var pHours = pCol.currentHours !== -1 && prow[pCol.currentHours] !== '' ? prow[pCol.currentHours] : '—';
+                var existsAlready = equipmentData.some(function(e) { return String(e.code || '').trim().toLowerCase() === pCode.toLowerCase(); });
+                if (existsAlready) updateCount++; else newCount++;
+                previewRowsHtml += '<tr><td style="padding:5px 6px;border-bottom:1px solid #e2e8f0">' + escapeHtml(pCode) + '</td>' +
+                    '<td style="padding:5px 6px;border-bottom:1px solid #e2e8f0;text-align:right">' + escapeHtml(pName) + '</td>' +
+                    '<td style="padding:5px 6px;border-bottom:1px solid #e2e8f0;text-align:center">' + escapeHtml(String(pHours)) + '</td>' +
+                    '<td style="padding:5px 6px;border-bottom:1px solid #e2e8f0;text-align:center">' + (existsAlready ? '<span style="color:#0e7490">🔄 تحديث</span>' : '<span style="color:#166534">🆕 جديدة</span>') + '</td></tr>';
+            }
             
             var html = '<h4>📊 ملخص البيانات المستوردة:</h4><div class="grid-3" style="margin:10px 0">' +
                 '<div class="stat-card"><div class="stat-number">' + totalEquipment + '</div><div class="stat-label">معدات</div></div>' +
-                '<div class="stat-card"><div class="stat-number">' + totalFuelRecords + '</div><div class="stat-label">سجلات وقود</div></div>' +
-                '</div><hr>';
-            
-            if (totalEquipment > 0) html += '<div class="status-badge status-success" style="margin:5px">✅ سيتم تحديث ' + totalEquipment + ' معدة</div>';
-            if (totalFuelRecords > 0) html += '<div class="status-badge status-success" style="margin:5px">⛽ سيتم إضافة ' + totalFuelRecords + ' سجل تزويد وقود</div>';
+                '<div class="stat-card"><div class="stat-number">' + newCount + '</div><div class="stat-label">🆕 جديدة</div></div>' +
+                '<div class="stat-card"><div class="stat-number">' + updateCount + '</div><div class="stat-label">🔄 تحديث</div></div>' +
+                '</div>' +
+                (totalFuelRecords > 0 ? '<div class="status-badge status-success" style="margin:5px">⛽ سيتم إضافة ' + totalFuelRecords + ' سجل تزويد وقود</div>' : '') +
+                '<div style="max-height:220px;overflow-y:auto;margin-top:10px;border:1px solid #e2e8f0;border-radius:8px">' +
+                '<table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead style="position:sticky;top:0"><tr style="background:#0d1b2a;color:white"><th style="padding:6px">الكود</th><th style="padding:6px">اسم المعدة</th><th style="padding:6px">العداد الحالي</th><th style="padding:6px">النوع</th></tr></thead>' +
+                '<tbody>' + (previewRowsHtml || '<tr><td colspan="4" style="text-align:center;padding:12px;color:#94a3b8">لا توجد صفوف معدات صالحة</td></tr>') + '</tbody></table></div>';
             
             document.getElementById('preview-content').innerHTML = html;
             var _ip=document.getElementById('import-preview'); if(_ip) _ip.style.display='block';
-            showToast('تم قراءة الملف - ' + totalEquipment + ' معدة، ' + totalFuelRecords + ' سجل وقود');
+            showToast('تم قراءة الملف - راجع البيانات ثم اضغط تأكيد الاستيراد');
             isImporting = false;
         } catch (err) {
             showToast('خطأ في قراءة الملف: ' + err.message, true);
