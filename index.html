@@ -18646,10 +18646,12 @@ function openAiAnalysisModal() {
     if (!modal || !content) return;
     modal.classList.add('active');
     if (actions) actions.style.display = 'none';
-    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري تحليل البيانات...</div></div>';
+    content.innerHTML = buildAiProgressHtml('🤖 جاري تحليل البيانات...');
+    startAiFakeProgress();
     var summary = buildAiDataSummary();
     var prompt = 'أنت مساعد فني لإدارة أسطول معدات في شركة مقاولات كبرى بمصر. حلل البيانات التالية عن حالة المعدات والصيانة والمخزون والسائقين، واكتب تحليل موجز وعملي بالعربية (بدون مقدمات طويلة): أهم النقاط اللي محتاجة تدخل فوري، وتوصيات مختصرة مرتبة حسب الأولوية. البيانات:\n\n' + summary;
     callGeminiAPI(prompt, function(err, text) {
+        stopAiFakeProgress(true);
         if (err) {
             content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
             return;
@@ -18695,6 +18697,14 @@ function generateCustomAiReport() {
 }
 // ---- شريط تقدّم تفاعلي أثناء انتظار رد الذكاء الاصطناعي (Gemini مش بيدعم تتبع تقدم حقيقي لأنه مش Streaming،
 // فبنحاكي نسبة تقدّم منطقية: بتزيد بسرعة الأول وبتتباطأ كل ما قربت من النهاية لحد ما يوصل الرد الفعلي) ----
+// ---- HTML مشترك لشريط التقدّم التفاعلي، يُستخدم في كل شاشات انتظار الذكاء الاصطناعي/التحليل الطويل ----
+function buildAiProgressHtml(message) {
+    return '<div style="text-align:center;padding:30px 10px">' +
+        '<div style="font-size:13px;color:var(--gray);margin-bottom:12px">' + message + '</div>' +
+        '<div class="progress-bar" style="height:10px;max-width:260px;margin:0 auto"><div id="ai-report-progress-fill" class="progress-fill" style="width:0%;background:linear-gradient(135deg,#8b5cf6,#6366f1);transition:width 0.35s ease"></div></div>' +
+        '<div id="ai-report-progress-pct" style="margin-top:8px;font-size:13px;font-weight:800;color:#6366f1">0%</div>' +
+        '</div>';
+}
 var _aiProgressTimer = null;
 function startAiFakeProgress() {
     stopAiFakeProgress(false);
@@ -18726,11 +18736,7 @@ function runAiReportGeneration(prompt) {
     var actions = document.getElementById('ai-report-actions');
     if (!content) return;
     if (actions) actions.style.display = 'none';
-    content.innerHTML = '<div style="text-align:center;padding:30px 10px">' +
-        '<div style="font-size:13px;color:var(--gray);margin-bottom:12px">🤖 جاري إعداد التقرير...</div>' +
-        '<div class="progress-bar" style="height:10px;max-width:260px;margin:0 auto"><div id="ai-report-progress-fill" class="progress-fill" style="width:0%;background:linear-gradient(135deg,#8b5cf6,#6366f1);transition:width 0.35s ease"></div></div>' +
-        '<div id="ai-report-progress-pct" style="margin-top:8px;font-size:13px;font-weight:800;color:#6366f1">0%</div>' +
-        '</div>';
+    content.innerHTML = buildAiProgressHtml('🤖 جاري إعداد التقرير...');
     startAiFakeProgress();
     callGeminiAPI(prompt, function(err, text) {
         stopAiFakeProgress(true);
@@ -19040,12 +19046,14 @@ function openDriverBehaviorModal(forceRefresh) {
     modal.classList.add('active');
     if (actions) actions.style.display = 'none';
     var days = parseInt((periodSel && periodSel.value) || '7', 10);
-    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">'+RL('Loading and analyzing GPS routes (may take a while depending on the number of drivers)...','جاري تحميل مسارات GPS وتحليلها (ممكن ياخد شوية حسب عدد السائقين)...')+'</div></div>';
+    content.innerHTML = buildAiProgressHtml(RL('Loading and analyzing GPS routes (may take a while depending on the number of drivers)...','جاري تحميل مسارات GPS وتحليلها (ممكن ياخد شوية حسب عدد السائقين)...'));
+    startAiFakeProgress();
 
     setTimeout(function() {
         try {
             buildDriverBehaviorData(days, function(summary) {
                 if (!summary) {
+                    stopAiFakeProgress(false);
                     content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 0">'+RL('Not enough GPS data to analyze driver behavior for this period.','لا توجد بيانات GPS كافية لتحليل سلوك السائقين في الفترة دي.')+'</div>';
                     return;
                 }
@@ -19053,6 +19061,7 @@ function openDriverBehaviorModal(forceRefresh) {
                 var hash = aiCacheHash(summary);
                 var cached = forceRefresh ? null : aiCacheGet(cacheKey);
                 if (cached && cached.hash === hash) {
+                    stopAiFakeProgress(false);
                     lastAiDriverBehaviorText = cached.text;
                     content.textContent = cached.text;
                     var minsAgo = Math.max(1, Math.round((Date.now() - cached.ts) / 60000));
@@ -19069,6 +19078,7 @@ function openDriverBehaviorModal(forceRefresh) {
                     'البيانات:\n\n' + summary;
 
                 callGeminiAPI(prompt, function(err, text) {
+                    stopAiFakeProgress(true);
                     if (err) {
                         content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
                         return;
@@ -19080,6 +19090,7 @@ function openDriverBehaviorModal(forceRefresh) {
                 });
             });
         } catch(e) {
+            stopAiFakeProgress(false);
             content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ '+RL('An error occurred while preparing the analysis: ','حصل خطأ أثناء تجهيز التحليل: ') + escapeHtml(e.message || String(e)) + '</div>';
         }
     }, 30);
@@ -19177,17 +19188,20 @@ function openPredictiveMaintenanceModal(forceRefresh) {
     if (!modal || !content) return;
     modal.classList.add('active');
     if (actions) actions.style.display = 'none';
-    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري تحليل معدلات الاستخدام والتنبؤ بمواعيد الصيانة...</div></div>';
+    content.innerHTML = buildAiProgressHtml('🤖 جاري تحليل معدلات الاستخدام والتنبؤ بمواعيد الصيانة...');
+    startAiFakeProgress();
 
     setTimeout(function() {
         var summary;
         try {
             summary = buildPredictiveMaintenanceData();
         } catch(e) {
+            stopAiFakeProgress(false);
             content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ حصل خطأ أثناء تجهيز التحليل: ' + escapeHtml(e.message || String(e)) + '</div>';
             return;
         }
         if (!summary) {
+            stopAiFakeProgress(false);
             content.innerHTML = '<div style="text-align:center;color:var(--gray);padding:30px 0">لا توجد معدات نشطة كافية للتحليل حاليًا.</div>';
             return;
         }
@@ -19196,6 +19210,7 @@ function openPredictiveMaintenanceModal(forceRefresh) {
         var hash = aiCacheHash(summary);
         var cached = forceRefresh ? null : aiCacheGet(cacheKey);
         if (cached && cached.hash === hash) {
+            stopAiFakeProgress(false);
             lastAiPredictiveMaintenanceText = cached.text;
             content.textContent = cached.text;
             var minsAgo = Math.max(1, Math.round((Date.now() - cached.ts) / 60000));
@@ -19212,6 +19227,7 @@ function openPredictiveMaintenanceModal(forceRefresh) {
             'استخدم عناوين قصيرة وإيموجي مناسب. البيانات:\n\n' + summary;
 
         callGeminiAPI(prompt, function(err, text) {
+            stopAiFakeProgress(true);
             if (err) {
                 content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
                 return;
