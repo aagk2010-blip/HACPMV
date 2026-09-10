@@ -16920,6 +16920,55 @@ function computeAccountsMonthTotal(monthStr) {
     return total;
 }
 
+// ---- نفس الحساب السابق لكن مقصور على مقاول واحد بعينه (contractorId = null يعني معدات بدون مقاول محدد) ----
+function computeContractorMonthTotal(contractorId, monthStr) {
+    var range = getPeriodRange(monthStr);
+    var total = 0;
+    rentalData.forEach(function(r) {
+        var rate = r.dailyRate || 0;
+        if (!rate) return;
+        if ((r.contractorId || null) !== contractorId) return;
+        var dayData = buildRentalDayEntries(r.id, range.from, range.to);
+        var records = dayData.records;
+        var hours = records.reduce(function(s, d) { return s + (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0); }, 0);
+        total += (hours / 8) * rate;
+    });
+    return total;
+}
+
+// ---- شريط تفاعلي: يوضح قيمة الدورة الحالية كنسبة من أعلى دورة سابقة، وبيفتح تفاصيل عند الضغط عليه ----
+function accountsBarRowHtml(rowKey, label, currentTotal, pastTotals, mainColor) {
+    var maxPast = pastTotals.length ? Math.max.apply(null, pastTotals) : 0;
+    var pct = maxPast > 0 ? (currentTotal / maxPast) * 100 : (currentTotal > 0 ? 100 : 0);
+    var barWidth = Math.min(100, pct);
+    var over = pct > 100;
+    var barColor = over ? '#dc2626' : mainColor;
+    var pctLabel = maxPast > 0 ? pct.toFixed(0) + '%' : '—';
+    var detailId = 'acc-bar-detail-' + rowKey;
+    var detailText = maxPast > 0
+        ? ('أعلى دورة سابقة: ' + maxPast.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' — الدورات السابقة: ' +
+            pastTotals.map(function(v) { return v.toLocaleString(undefined, { maximumFractionDigits: 0 }); }).join('، '))
+        : 'لا توجد دورات سابقة لعرضها';
+    return '<div style="margin-bottom:12px">' +
+        '<div onclick="toggleAccountsBarDetail(\'' + detailId + '\')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;margin-bottom:5px">' +
+        '<span style="font-weight:700;color:#0d1b2a">' + label + '</span>' +
+        '<span style="font-weight:800;color:' + mainColor + '">' + currentTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span>' +
+        '</div>' +
+        '<div style="background:#e2e8f0;border-radius:20px;height:9px;overflow:hidden">' +
+        '<div style="background:' + barColor + ';height:100%;width:' + barWidth + '%;border-radius:20px;transition:width .4s"></div>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:flex-end;margin-top:3px"><span style="font-size:10.5px;color:' + (over ? '#dc2626' : '#6b7a8d') + ';font-weight:700">' +
+        pctLabel + (maxPast > 0 ? ' من أعلى دورة سابقة (اضغط للتفاصيل)' : '') + '</span></div>' +
+        '<div id="' + detailId + '" style="display:none;margin-top:6px;background:#f8fafc;border-radius:8px;padding:8px 10px;font-size:10.5px;color:#475569;line-height:1.6">' + detailText + '</div>' +
+        '</div>';
+}
+function toggleAccountsBarDetail(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+}
+window.toggleAccountsBarDetail = toggleAccountsBarDetail;
+
 var accountsTrendChartInstance = null;
 function renderAccountsSummary() {
     var summaryEl = document.getElementById('accounts-total-summary');
@@ -16928,26 +16977,42 @@ function renderAccountsSummary() {
     var months = [];
     var cursor = getCurrentCycleMonthStr();
     for (var i = 0; i < 6; i++) { months.unshift(cursor); cursor = getPreviousCycleMonthStr(cursor); }
+    var currentMonth = months[months.length - 1];
+    var pastMonths = months.slice(0, months.length - 1);
 
     var totals = months.map(function(m) { return computeAccountsMonthTotal(m); });
     var currentTotal = totals[totals.length - 1];
-    var prevTotal = totals[totals.length - 2] || 0;
-    var pctChange = prevTotal > 0 ? ((currentTotal - prevTotal) / prevTotal) * 100 : null;
-    var currentRange = getPeriodRange(months[months.length - 1]);
+    var currentRange = getPeriodRange(currentMonth);
 
-    var trendHtml = '';
-    if (pctChange !== null) {
-        var up = pctChange >= 0;
-        trendHtml = '<span style="background:' + (up ? '#fee2e2' : '#dcfce7') + ';color:' + (up ? '#991b1b' : '#166534') + ';padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700">' +
-            (up ? '▲' : '▼') + ' ' + Math.abs(pctChange).toFixed(1) + '% عن الدورة السابقة</span>';
-    }
+    // كل المقاولين اللي ليهم معدات مُسعّرة (بما فيهم "بدون مقاول")
+    var contractorKeys = {};
+    var contractorOrder = [];
+    rentalData.forEach(function(r) {
+        if (!((r.dailyRate || 0) > 0)) return;
+        var key = r.contractorId || '__none__';
+        if (!contractorKeys[key]) {
+            var ct = contractorsData.find(function(c) { return c.id === r.contractorId; });
+            contractorKeys[key] = ct ? ct.name : 'بدون مقاول';
+            contractorOrder.push(key);
+        }
+    });
+
+    var rowsHtml = contractorOrder.map(function(key, idx) {
+        var name = contractorKeys[key];
+        var actualId = key === '__none__' ? null : key;
+        var curr = computeContractorMonthTotal(actualId, currentMonth);
+        var hist = pastMonths.map(function(m) { return computeContractorMonthTotal(actualId, m); });
+        return accountsBarRowHtml('c' + idx, '👷 ' + escapeHtml(name), curr, hist, '#166534');
+    }).join('');
+
+    var histOverall = pastMonths.map(function(m) { return computeAccountsMonthTotal(m); });
+    var totalRowHtml = accountsBarRowHtml('grand', '💰 الإجمالي الكلي', currentTotal, histOverall, '#0d1b2a');
 
     summaryEl.innerHTML =
-        '<div style="font-size:12px;color:#6b7a8d;margin-bottom:4px">💰 إجمالي مستخلص كل معدات الإيجار — الدورة الحالية (' + currentRange.from + ' → ' + currentRange.to + ')</div>' +
-        '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">' +
-        '<div style="font-size:30px;font-weight:800;color:#166534">' + currentTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</div>' +
-        trendHtml +
-        '</div>';
+        '<div style="font-size:12px;color:#6b7a8d;margin-bottom:10px">💰 مستخلص المقاولين — الدورة الحالية (' + currentRange.from + ' → ' + currentRange.to + ')</div>' +
+        (rowsHtml || '<div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">لا توجد معدات إيجار مُسعّرة بعد</div>') +
+        '<div style="border-top:1px dashed #e2e8f0;margin:6px 0 12px"></div>' +
+        totalRowHtml;
 
     var canvas = document.getElementById('accounts-trend-chart');
     if (!canvas || typeof Chart === 'undefined') return;
