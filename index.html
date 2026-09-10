@@ -18693,13 +18693,47 @@ function generateCustomAiReport() {
     var prompt = 'أنت مساعد فني لإدارة أسطول معدات لشركة مقاولات بمصر. المستخدم طلب التقرير التالي بالضبط: "' + userRequest + '". اكتب هذا التقرير بالعربية، احترافي ومنظم بعناوين وإيموجي مناسب، جاهز للإرسال على واتساب لو احتاج، بناءً على البيانات المتاحة فقط. لو البيانات المتاحة مش كافية للإجابة على الطلب بدقة، وضّح ده في التقرير بدل ما تختلق أرقام. تاريخ التقرير: ' + today + '. البيانات المتاحة:\n\n' + summary;
     runAiReportGeneration(prompt);
 }
+// ---- شريط تقدّم تفاعلي أثناء انتظار رد الذكاء الاصطناعي (Gemini مش بيدعم تتبع تقدم حقيقي لأنه مش Streaming،
+// فبنحاكي نسبة تقدّم منطقية: بتزيد بسرعة الأول وبتتباطأ كل ما قربت من النهاية لحد ما يوصل الرد الفعلي) ----
+var _aiProgressTimer = null;
+function startAiFakeProgress() {
+    stopAiFakeProgress(false);
+    var pct = 0;
+    var fill = document.getElementById('ai-report-progress-fill');
+    var label = document.getElementById('ai-report-progress-pct');
+    if (fill) fill.style.width = '0%';
+    if (label) label.textContent = '0%';
+    _aiProgressTimer = setInterval(function() {
+        var step = pct < 50 ? 6 : (pct < 75 ? 3 : (pct < 90 ? 1 : 0));
+        pct = Math.min(90, pct + step);
+        var f = document.getElementById('ai-report-progress-fill');
+        var l = document.getElementById('ai-report-progress-pct');
+        if (f) f.style.width = pct + '%';
+        if (l) l.textContent = pct + '%';
+    }, 350);
+}
+function stopAiFakeProgress(finish) {
+    if (_aiProgressTimer) { clearInterval(_aiProgressTimer); _aiProgressTimer = null; }
+    if (finish) {
+        var f = document.getElementById('ai-report-progress-fill');
+        var l = document.getElementById('ai-report-progress-pct');
+        if (f) f.style.width = '100%';
+        if (l) l.textContent = '100%';
+    }
+}
 function runAiReportGeneration(prompt) {
     var content = document.getElementById('ai-report-content');
     var actions = document.getElementById('ai-report-actions');
     if (!content) return;
     if (actions) actions.style.display = 'none';
-    content.innerHTML = '<div style="text-align:center;padding:30px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:24px">⏳</span><div style="margin-top:10px;color:var(--gray)">جاري إعداد التقرير...</div></div>';
+    content.innerHTML = '<div style="text-align:center;padding:30px 10px">' +
+        '<div style="font-size:13px;color:var(--gray);margin-bottom:12px">🤖 جاري إعداد التقرير...</div>' +
+        '<div class="progress-bar" style="height:10px;max-width:260px;margin:0 auto"><div id="ai-report-progress-fill" class="progress-fill" style="width:0%;background:linear-gradient(135deg,#8b5cf6,#6366f1);transition:width 0.35s ease"></div></div>' +
+        '<div id="ai-report-progress-pct" style="margin-top:8px;font-size:13px;font-weight:800;color:#6366f1">0%</div>' +
+        '</div>';
+    startAiFakeProgress();
     callGeminiAPI(prompt, function(err, text) {
+        stopAiFakeProgress(true);
         if (err) {
             content.innerHTML = '<div style="text-align:center;color:var(--danger);padding:20px 0">❌ ' + escapeHtml(err) + '</div>';
             return;
