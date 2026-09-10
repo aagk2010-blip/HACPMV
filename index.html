@@ -17281,8 +17281,9 @@ function printFullAccountsStatement() {
     var groupOrder = [];
     rows.forEach(function(row) {
         var key = row.contractorName || '__none__';
-        if (!groups[key]) { groups[key] = { name: row.contractorName || 'بدون مقاول', total: 0 }; groupOrder.push(key); }
+        if (!groups[key]) { groups[key] = { name: row.contractorName || 'بدون مقاول', total: 0, rows: [] }; groupOrder.push(key); }
         groups[key].total += row.total;
+        groups[key].rows.push(row);
     });
     var grandTotal = rows.reduce(function(s, row) { return s + row.total; }, 0);
 
@@ -17292,9 +17293,18 @@ function printFullAccountsStatement() {
             '<span>👷 ' + escapeHtml(g.name) + '</span><span style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>';
     }).join('');
 
-    var rowsHtml = rows.map(function(row, idx) {
-        return '<tr><td>' + (idx + 1) + '</td><td style="text-align:right">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.contractorName || '—') + '</td>' +
-            '<td style="font-weight:bold">' + row.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td></tr>';
+    // ترتيب صفوف الجدول مجمّعة حسب المقاول: كل معدات المقاول تحت بعضها، مع صف فرعي بإجمالي المقاول
+    var rowCounter = 0;
+    var rowsHtml = groupOrder.map(function(key) {
+        var g = groups[key];
+        var headerRow = '<tr style="background:#eef2f6"><td colspan="3" style="text-align:right;font-weight:800;padding:8px 10px">👷 ' + escapeHtml(g.name) + '</td>' +
+            '<td style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td></tr>';
+        var itemsHtml = g.rows.map(function(row) {
+            rowCounter++;
+            return '<tr><td>' + rowCounter + '</td><td style="text-align:right">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.contractorName || '—') + '</td>' +
+                '<td style="font-weight:bold">' + row.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td></tr>';
+        }).join('');
+        return headerRow + itemsHtml;
     }).join('');
 
     var w = window.open('', '_blank');
