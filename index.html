@@ -1104,7 +1104,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     </div>
   </div>
 
-  <div id="view-accounts" style="display:none">
+  <div id="view-accounts" data-section="accounts" style="display:none">
     <div style="padding:14px">
       <div style="background:linear-gradient(135deg,#166534,#14532d);border-radius:16px;padding:16px;color:white;margin-bottom:14px">
         <div style="font-weight:800;font-size:15px;margin-bottom:4px">💰 حسابات إيجار المعدات</div>
@@ -1112,7 +1112,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       </div>
 
       <div style="display:flex;gap:8px;margin-bottom:14px">
-        <button onclick="openContractorsModal()" style="flex:1;padding:11px;background:#e8a020;color:#0d1b2a;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">👷 المقاولين</button>
+        <button class="edit-btn" onclick="openContractorsModal()" style="flex:1;padding:11px;background:#e8a020;color:#0d1b2a;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">👷 المقاولين</button>
         <button onclick="printFullAccountsStatement()" style="flex:1.4;padding:11px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة المستخلص الكامل</button>
       </div>
 
@@ -4429,7 +4429,7 @@ function proceedToApp() {
     if (!isAdmin) {
         // CSS ديناميكي بحسب صلاحيات كل قسم
         var css = '';
-        var sections = ['home','equipment','fuel','maintenance','inventory','rental','drivers','employees','equipmentChecks'];
+        var sections = ['home','equipment','fuel','maintenance','inventory','rental','accounts','drivers','employees','equipmentChecks'];
         sections.forEach(function(sec) {
             if (!canAdd(sec)) {
                 css += '[data-section="' + sec + '"] .add-btn,' +
@@ -17118,7 +17118,7 @@ function renderAccountsRentalList() {
             '<div style="font-size:11.5px;color:#6b7a8d;margin-top:4px">🏢 ' + escapeHtml(r.company || '—') + (drv ? ' &nbsp;|&nbsp; 👨‍✈️ ' + escapeHtml(drv.name) : '') + (contractor ? ' &nbsp;|&nbsp; 👷 ' + escapeHtml(contractor.name) : '') + '</div>' +
             '<div style="display:flex;gap:6px;margin-top:10px">' +
             '<button onclick="showRentalReport(\'' + r.id + '\', \'accounts\')" style="flex:1;padding:9px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">🧾 حساب المستخلص</button>' +
-            '<button onclick="openEditRentalRate(\'' + r.id + '\')" style="padding:9px 12px;background:#e8a020;color:#0d1b2a;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">💰 تعديل السعر</button>' +
+            '<button class="edit-btn" onclick="openEditRentalRate(\'' + r.id + '\')" style="padding:9px 12px;background:#e8a020;color:#0d1b2a;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">💰 تعديل السعر</button>' +
             '</div></div>';
     }).join('');
 }
@@ -17127,6 +17127,7 @@ window.renderAccountsRentalList = renderAccountsRentalList;
 // ---- تعديل قيمة يوم العمل لعقد إيجار معيّن (بيانات مالية بحتة تتحكم فيها من هنا فقط) ----
 var editingRentalRateId = null;
 function openEditRentalRate(rentalId) {
+    if (!canEdit('accounts')) { showToast('⛔ غير مصرح لك بالتعديل — صلاحيتك مشاهدة فقط', true); return; }
     var r = rentalData.find(function(x) { return x.id === rentalId; });
     if (!r) return;
     editingRentalRateId = rentalId;
@@ -17140,6 +17141,7 @@ function openEditRentalRate(rentalId) {
     document.getElementById('rate-edit-modal').classList.add('active');
 }
 function saveRentalRate() {
+    if (!canEdit('accounts')) { showToast('⛔ غير مصرح لك بالتعديل — صلاحيتك مشاهدة فقط', true); return; }
     if (!editingRentalRateId) return;
     var val = parseFloat(document.getElementById('rate-edit-input').value) || 0;
     var contractorId = document.getElementById('rate-edit-contractor').value || null;
@@ -17168,12 +17170,14 @@ function renderContractorsList() {
 window.renderContractorsList = renderContractorsList;
 
 function openContractorsModal() {
+    if (!canEdit('accounts')) { showToast('⛔ غير مصرح لك بالتعديل — صلاحيتك مشاهدة فقط', true); return; }
     renderContractorsList();
     document.getElementById('contractors-modal').classList.add('active');
 }
 window.openContractorsModal = openContractorsModal;
 
 function addContractor() {
+    if (!canEdit('accounts')) { showToast('⛔ غير مصرح لك بالتعديل — صلاحيتك مشاهدة فقط', true); return; }
     var input = document.getElementById('new-contractor-name');
     var name = (input.value || '').trim();
     if (!name) { showToast('اكتب اسم المقاول أولاً', true); return; }
@@ -17186,6 +17190,7 @@ function addContractor() {
 window.addContractor = addContractor;
 
 function deleteContractor(id) {
+    if (!canEdit('accounts')) { showToast('⛔ غير مصرح لك بالتعديل — صلاحيتك مشاهدة فقط', true); return; }
     if (!confirm('تأكيد حذف هذا المقاول؟ (لن يتم حذف عقود الإيجار المرتبطة به، فقط سيصبح تصنيفها بدون مقاول)')) return;
     fbDb.ref('contractors/' + id).remove().then(function() {
         showToast('✅ تم الحذف');
