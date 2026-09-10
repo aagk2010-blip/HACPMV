@@ -18883,6 +18883,7 @@ function saveDismissedOvertimeAnomalies(obj) {
     try { localStorage.setItem('dismissedOvertimeAnomalies', JSON.stringify(obj)); } catch(e) {}
 }
 function reviewOvertimeAnomaly(key) {
+    if (!currentUser || currentUser.role !== 'admin') { showToast('⛔ '+RL('Only full-access admins can review this','هذا الإجراء متاح فقط لصاحب كامل الصلاحيات'), true); return; }
     var dismissed = getDismissedOvertimeAnomalies();
     dismissed[key] = Date.now();
     saveDismissedOvertimeAnomalies(dismissed);
@@ -18895,6 +18896,7 @@ function buildOvertimeAnomalyHtml() {
     var res = computeSuspiciousOvertime();
     var dismissed = getDismissedOvertimeAnomalies();
     var periodKey = getRentalPeriodKey(localDateStr(new Date()));
+    var isFullAdmin = !!(currentUser && currentUser.role === 'admin');
     if (res) {
         res.flaggedEquipment = res.flaggedEquipment.filter(function(f) { return !dismissed['eq_' + f.eqId + '_' + periodKey]; });
         res.flaggedDays = res.flaggedDays.filter(function(f) { return !dismissed['day_' + f.eqId + '_' + f.date]; });
@@ -18914,7 +18916,7 @@ function buildOvertimeAnomalyHtml() {
                 '<div style="font-weight:700;color:var(--primary);margin-bottom:4px">' + escapeHtml(f.label) + '</div>' +
                 (f.project ? '<div style="font-size:11px;color:var(--gray)">📍 ' + escapeHtml(f.project) + '</div>' : '') +
                 '</div>' +
-                '<button onclick="reviewOvertimeAnomaly(\'' + key + '\')" style="flex-shrink:0;background:#dcfce7;color:#166534;border:none;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap">✅ ' + RL('Reviewed','تمت المراجعة') + '</button>' +
+                (isFullAdmin ? '<button onclick="reviewOvertimeAnomaly(\'' + key + '\')" style="flex-shrink:0;background:#dcfce7;color:#166534;border:none;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap">✅ ' + RL('Reviewed','تمت المراجعة') + '</button>' : '') +
                 '</div>';
         });
     }
@@ -18928,7 +18930,7 @@ function buildOvertimeAnomalyHtml() {
                 '<div style="font-weight:700;color:var(--primary)">' + escapeHtml(f.label) + '</div>' +
                 '<div style="font-size:13px">📅 ' + f.date + '</div>' +
                 '</div>' +
-                '<button onclick="reviewOvertimeAnomaly(\'' + key + '\')" style="flex-shrink:0;background:#dcfce7;color:#166534;border:none;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap">✅ ' + RL('Reviewed','تمت المراجعة') + '</button>' +
+                (isFullAdmin ? '<button onclick="reviewOvertimeAnomaly(\'' + key + '\')" style="flex-shrink:0;background:#dcfce7;color:#166534;border:none;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap">✅ ' + RL('Reviewed','تمت المراجعة') + '</button>' : '') +
                 '</div>';
         });
         if (res.flaggedDays.length > 15) {
