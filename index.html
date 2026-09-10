@@ -3898,7 +3898,7 @@ function attachFirebaseListeners() {
         rentalDailyData = snapshotToArray(snapshot);
         renderRentalEquipment();
         renderRentalDailyView();
-        setTimeout(function() { checkRentalDailyLogExceptions(); checkRentalAbsenceAfterDayClose(); }, 500);
+        setTimeout(function() { checkRentalDailyLogExceptions(); checkRentalAbsenceAfterDayClose(); autoMergeDuplicateRentalDaily(); }, 500);
     });
 
     listen('rentalDailyRequests', function(snapshot) {
@@ -16462,10 +16462,18 @@ function approveRentalRequest(requestId) {
         inTime: req.inTime, outTime: req.outTime, totalHours: req.totalHours, basicHours: req.basicHours,
         breakWorked: !!req.breakWorked, breakHours: req.breakHours, extraHours: req.extraHours,
         notes: (existing ? existing.notes||'' : ''),
-        // معتمد من المشرف بناءً على طلب أرسله السائق
-        recordedByName: reviewerName + ' (معتمد من طلب السائق)',
         updatedAt: new Date().toISOString()
     };
+    if (existing) {
+        // فيه سجل موجود بالفعل لنفس المعدة ونفس اليوم — اعتماد الطلب هنا بيبقى تعديلاً على سجل موجود،
+        // مش تسجيلاً جديدًا؛ فلازم نحافظ على اسم أول شخص سجّله، ونوضّح إن المشرف هو اللي اعتمد/عدّل عليه دلوقتي
+        record.recordedByName = existing.recordedByName || 'غير معروف (سجل قديم)';
+        record.editedByName = reviewerName + ' (اعتماد طلب سائق)';
+        record.editedAt = new Date().toISOString();
+    } else {
+        // تسجيل جديد بالكامل، مفيش سجل سابق لنفس المعدة/اليوم
+        record.recordedByName = reviewerName + ' (معتمد من طلب السائق)';
+    }
     var dailyRef = existing ? fbDb.ref('rentalDaily/'+existing.id) : fbDb.ref('rentalDaily').push();
     dailyRef.set(record).then(function() {
         return fbDb.ref('rentalDailyRequests/'+requestId).update({ status:'approved', reviewedAt:new Date().toISOString(), reviewedByName:reviewerName });
@@ -16767,6 +16775,52 @@ function deleteRentalDaily(id) {
     if (!confirm(RL('Delete this day?','حذف هذا اليوم؟'))) return;
     fbDb.ref('rentalDaily/'+id).remove().then(function(){ showToast(RL('Deleted','تم الحذف')); }).catch(function(err){ showToast(RL('Error: ','خطأ: ')+err.message,true); });
 }
+// ---- دمج تلقائي للسجلات المكررة (نفس المعدة + نفس اليوم): يعمل لوحده كل ما تتغير البيانات، من غير أي زر ----
+// بيحتفظ بآخر سجل تم تحديثه (باعتباره "آخر تسجيل")، وبيحافظ على اسم أول شخص سجّل ("سجل بواسطة") واسم آخر شخص عدّل ("التعديل بواسطة")
+var _rentalDailyAutoMergeBusy = false;
+function autoMergeDuplicateRentalDaily() {
+    if (_rentalDailyAutoMergeBusy) return; // منع التنفيذ المتكرر فوق بعضه لحد ما الدمج الحالي يخلص
+    if (!currentUser || currentUser.role !== 'admin') return; // نفس صلاحية زر الدمج القديم: حسابات الإدارة فقط
+    var groups = {};
+    (rentalDailyData || []).forEach(function(r) {
+        var k = (r.equipmentId || '—') + '|' + (r.date || '—');
+        (groups[k] = groups[k] || []).push(r);
+    });
+    var dupKeys = Object.keys(groups).filter(function(k) { return groups[k].length > 1; });
+    if (!dupKeys.length) return;
+    _rentalDailyAutoMergeBusy = true;
+    var mergedNotices = [];
+    var tasks = dupKeys.map(function(k) {
+        var dups = groups[k].slice().sort(function(a, b) { return (a.updatedAt || '').localeCompare(b.updatedAt || ''); });
+        var earliest = dups[0];                 // أول سجل (نعتبره صاحب "تسجيل اليوم" الأصلي)
+        var keep = dups[dups.length - 1];        // آخر سجل تم تحديثه = "آخر تسجيل" اللي هيتحتفظ ببياناته
+        var remove = dups.filter(function(d) { return d.id !== keep.id; });
+        var merged = Object.assign({}, keep);
+        delete merged.id;
+        merged.recordedByName = earliest.recordedByName || keep.recordedByName || 'غير معروف (سجل قديم)';
+        if (keep.id !== earliest.id) {
+            merged.editedByName = keep.editedByName || keep.recordedByName || merged.recordedByName;
+            merged.editedAt = keep.editedAt || keep.updatedAt || new Date().toISOString();
+        } else if (keep.editedByName) {
+            merged.editedByName = keep.editedByName;
+            merged.editedAt = keep.editedAt;
+        }
+        mergedNotices.push({ date: keep.date, recordedByName: merged.recordedByName, editedByName: merged.editedByName });
+        return fbDb.ref('rentalDaily/' + keep.id).update(merged)
+            .then(function() { return Promise.all(remove.map(function(d) { return fbDb.ref('rentalDaily/' + d.id).remove(); })); });
+    });
+    Promise.all(tasks).then(function() {
+        mergedNotices.forEach(function(n) {
+            showToast('🔗 ' + RL('Duplicate record auto-merged (', 'تم دمج سجل مكرر تلقائيًا (') + n.date + ') — ' +
+                RL('recorded by', 'سجل بواسطة') + ' ' + escapeHtml(n.recordedByName) +
+                (n.editedByName ? ' — ' + RL('edited by', 'التعديل بواسطة') + ' ' + escapeHtml(n.editedByName) : ''));
+        });
+    }).catch(function(err) {
+        console.error('autoMergeDuplicateRentalDaily error', err);
+    }).then(function() { _rentalDailyAutoMergeBusy = false; });
+}
+window.autoMergeDuplicateRentalDaily = autoMergeDuplicateRentalDaily;
+
 function updateRentalTimes(id) {
     var inT=(document.getElementById('upd-in-'+id)||{}).value||'';
     var outT=(document.getElementById('upd-out-'+id)||{}).value||'';
@@ -16801,16 +16855,22 @@ function renderRentalDailyView() {
     var html='';
     Object.keys(grouped).sort(function(a,b){ return b.localeCompare(a); }).forEach(function(date){
         var recs=grouped[date];
+        // فحص تكرار: أكتر من سجل بنفس المعدة في نفس اليوم (بيسبب احتساب الإضافي مرتين في التقارير)
+        var byEquip={};
+        recs.forEach(function(r){ var k=r.equipmentId||'—'; (byEquip[k]=byEquip[k]||[]).push(r); });
+        var dupEquipIds=Object.keys(byEquip).filter(function(k){ return byEquip[k].length>1; });
         var sb=recs.reduce(function(s,r){ return s+(r.basicHours||0); },0);
         var sk=recs.reduce(function(s,r){ return s+(r.breakHours||0); },0);
         var se=recs.reduce(function(s,r){ return s+(r.extraHours||0); },0);
-        html+='<div class="rental-date-header" style="background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border-radius:12px;padding:9px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><strong>📅 '+date+'</strong><span style="font-size:12px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px">'+recs.length+' '+RL('equipment','معدة')+' | '+RL('basic','أساسي')+' '+sb.toFixed(1)+RL('h','س')+(sk>0?' | '+RL('break','راحة')+' '+sk.toFixed(1)+RL('h','س'):'')+(se>0?' | '+RL('overtime','إضافي')+' '+se.toFixed(1)+RL('h','س'):'')+'</span></div>';
+        html+='<div class="rental-date-header" style="background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border-radius:12px;padding:9px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><strong>📅 '+date+'</strong><span style="display:flex;gap:6px;flex-wrap:wrap">'+(dupEquipIds.length?'<span style="font-size:11px;background:#dc2626;padding:2px 10px;border-radius:99px;font-weight:700">⚠️ '+dupEquipIds.length+' '+RL('duplicate equipment','معدة مكررة')+'</span>':'')+'<span style="font-size:12px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px">'+recs.length+' '+RL('equipment','معدة')+' | '+RL('basic','أساسي')+' '+sb.toFixed(1)+RL('h','س')+(sk>0?' | '+RL('break','راحة')+' '+sk.toFixed(1)+RL('h','س'):'')+(se>0?' | '+RL('overtime','إضافي')+' '+se.toFixed(1)+RL('h','س'):'')+'</span></span></div>';
         recs.forEach(function(r){
             var rental=rentalData.find(function(x){ return x.id===r.equipmentId; });
             var eq=rental?equipmentData.find(function(e){ return e.id===rental.equipmentId; }):null;
             var drv=rental?driversData.find(function(d){ return d.id===rental.driverId; }):null;
             var label=eq?(eq.type+' — '+eq.code):(r.equipmentCode||'—');
-            html+='<div class="rental-card" style="background:white;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:9px;overflow:hidden;max-width:600px"><div style="padding:10px 14px">'+
+            var isDup=dupEquipIds.indexOf(r.equipmentId)!==-1;
+            html+='<div class="rental-card" style="background:white;border-radius:14px;border:1px solid '+(isDup?'#dc2626':'#e2e8f0')+';margin-bottom:9px;overflow:hidden;max-width:600px"><div style="padding:10px 14px">'+
+                (isDup?'<div style="background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;padding:4px 8px;border-radius:8px;margin-bottom:7px">⚠️ '+RL('This equipment has more than one record for this day — the overtime is being counted twice in reports','هذه المعدة مسجّلة أكتر من مرة في نفس اليوم — الإضافي بيتحسب مرتين في التقارير')+'</div>':'')+
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px">'+
                 '<div style="min-width:0;flex:1;overflow:hidden"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(label)+'"><span class="c-ico">🚧</span> '+escapeHtml(label)+'</div>'+(drv?'<div style="font-size:11.5px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👨‍✈️ '+escapeHtml(drv.name)+'</div>':'')+(r.recordedByName?'<div style="font-size:10.5px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 '+escapeHtml(r.recordedByName)+(r.editedByName?' <span style="color:#dc2626;font-weight:700">— '+RL('Edited by','التعديل بواسطة')+' '+escapeHtml(r.editedByName)+'</span>':'')+'</div>':'')+'</div>'+
                 (isAdmin?'<div style="display:flex;gap:5px;flex-shrink:0">'+
