@@ -1110,6 +1110,12 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <div style="font-weight:800;font-size:15px;margin-bottom:4px">💰 حسابات إيجار المعدات</div>
         <div style="font-size:12px;opacity:.9">احسب مستخلص كل معدة إيجار بناءً على الساعات المسجّلة وقيمة يوم العمل، واطبع مستخلص رسمي جاهز للتسليم.</div>
       </div>
+
+      <div id="accounts-total-card" style="background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div id="accounts-total-summary"></div>
+        <div style="margin-top:12px"><canvas id="accounts-trend-chart" height="150"></canvas></div>
+      </div>
+
       <div class="search-box" style="margin-bottom:10px"><span>🔍</span><input type="text" id="accounts-search" placeholder="بحث باسم أو كود المعدة..." oninput="renderAccountsRentalList()"></div>
       <div id="accounts-rental-list"></div>
     </div>
@@ -14431,6 +14437,7 @@ function renderHomeAppGrid(stats) {
         { view: 'maintenance',icon: '🔧', label: 'الصيانة',  color: 'linear-gradient(135deg,#ef4444,#b91c1c)', section: 'maintenance', badge: stats.scheduled > 0 ? stats.scheduled : null },
         { view: 'inventory',  icon: '📦', label: 'المخزن',   color: 'linear-gradient(135deg,#0d1b2a,#6d28d9)', section: 'inventory', badge: stats.shortagesCount > 0 ? stats.shortagesCount : null },
         { view: 'rental',     icon: '🚧', label: 'الإيجار',  color: 'linear-gradient(135deg,#7c3aed,#4f46e5)', section: 'rental' },
+        { view: 'accounts',   icon: '💰', label: 'الحسابات', color: 'linear-gradient(135deg,#166534,#14532d)', section: 'accounts' },
         { view: 'map',        icon: '🗺️', label: 'خريطة المعدات', color: 'linear-gradient(135deg,#0891b2,#155e75)', section: 'map' },
         { view: 'sites',      icon: '🏢', label: 'لوحة المواقع', color: 'linear-gradient(135deg,#0d1b2a,#334155)', section: 'sites' },
         { view: 'analytics',  icon: '📈', label: 'التحليلات', color: 'linear-gradient(135deg,#06b6d4,#0e7490)', section: 'analytics' },
@@ -14594,7 +14601,7 @@ function switchView(view) {
     if (view === 'map') refreshMapView();
     else stopMapColorTimer();
     if (view === 'maintenance') listenIssueVouchers();
-    if (view === 'accounts') renderAccountsRentalList();
+    if (view === 'accounts') { renderAccountsRentalList(); renderAccountsSummary(); }
     var titles = {
         home: '📊 لوحة القيادة',
         sites: '🏢 لوحة المواقع',
@@ -16869,6 +16876,70 @@ function showRentalReport(rentalId, mode) {
 // طول المدة المسجَّلة، أو مفيش بيانات موقع خالص، أو المسافة المقطوعة أقل بكتير مما يوحي بيوم عمل كامل.
 // ده فحص بقواعد بسيطة (مش محتاج أي API خارجي أو تكلفة) بيعتمد على بيانات الموقع الموجودة بالفعل في النظام.
 // ==================== طباعة مستخلص إيجار رسمي (قيمة العقد للفترة بناءً على إجمالي الساعات) ====================
+// ---- حساب إجمالي قيمة مستخلص كل معدات الإيجار مجتمعة لدورة شهرية معيّنة (21 → 20) ----
+function computeAccountsMonthTotal(monthStr) {
+    var range = getPeriodRange(monthStr);
+    var total = 0;
+    rentalData.forEach(function(r) {
+        var rate = r.dailyRate || 0;
+        if (!rate) return;
+        var dayData = buildRentalDayEntries(r.id, range.from, range.to);
+        var records = dayData.records;
+        var hours = records.reduce(function(s, d) { return s + (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0); }, 0);
+        total += (hours / 8) * rate;
+    });
+    return total;
+}
+
+var accountsTrendChartInstance = null;
+function renderAccountsSummary() {
+    var summaryEl = document.getElementById('accounts-total-summary');
+    if (!summaryEl) return;
+
+    var months = [];
+    var cursor = getCurrentCycleMonthStr();
+    for (var i = 0; i < 6; i++) { months.unshift(cursor); cursor = getPreviousCycleMonthStr(cursor); }
+
+    var totals = months.map(function(m) { return computeAccountsMonthTotal(m); });
+    var currentTotal = totals[totals.length - 1];
+    var prevTotal = totals[totals.length - 2] || 0;
+    var pctChange = prevTotal > 0 ? ((currentTotal - prevTotal) / prevTotal) * 100 : null;
+    var currentRange = getPeriodRange(months[months.length - 1]);
+
+    var trendHtml = '';
+    if (pctChange !== null) {
+        var up = pctChange >= 0;
+        trendHtml = '<span style="background:' + (up ? '#fee2e2' : '#dcfce7') + ';color:' + (up ? '#991b1b' : '#166534') + ';padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700">' +
+            (up ? '▲' : '▼') + ' ' + Math.abs(pctChange).toFixed(1) + '% عن الدورة السابقة</span>';
+    }
+
+    summaryEl.innerHTML =
+        '<div style="font-size:12px;color:#6b7a8d;margin-bottom:4px">💰 إجمالي مستخلص كل معدات الإيجار — الدورة الحالية (' + currentRange.from + ' → ' + currentRange.to + ')</div>' +
+        '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">' +
+        '<div style="font-size:30px;font-weight:800;color:#166534">' + currentTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</div>' +
+        trendHtml +
+        '</div>';
+
+    var canvas = document.getElementById('accounts-trend-chart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (accountsTrendChartInstance) { accountsTrendChartInstance.destroy(); accountsTrendChartInstance = null; }
+    var labels = months.map(function(m) { return rentalPeriodLabel(m); });
+    var bgColors = months.map(function(m, idx) { return idx === months.length - 1 ? '#166534' : '#a7c4b5'; });
+    accountsTrendChartInstance = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{ label: 'قيمة المستخلص', data: totals, backgroundColor: bgColors, borderRadius: 6 }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, title: { display: true, text: 'مقارنة آخر 6 دورات', font: { size: 12 } } },
+            scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return v.toLocaleString(); } } } }
+        }
+    });
+}
+window.renderAccountsSummary = renderAccountsSummary;
+
 function renderAccountsRentalList() {
     var c = document.getElementById('accounts-rental-list');
     if (!c) return;
@@ -16915,6 +16986,7 @@ function saveRentalRate() {
     fbDb.ref('rental/' + editingRentalRateId + '/dailyRate').set(val).then(function() {
         closeModal('rate-edit-modal');
         showToast('✅ تم تحديث قيمة اليوم');
+        renderAccountsSummary();
     }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
 }
 window.openEditRentalRate = openEditRentalRate;
