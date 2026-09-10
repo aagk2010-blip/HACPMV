@@ -1111,6 +1111,11 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <div style="font-size:12px;opacity:.9">احسب مستخلص كل معدة إيجار بناءً على الساعات المسجّلة وقيمة يوم العمل، واطبع مستخلص رسمي جاهز للتسليم.</div>
       </div>
 
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button onclick="openContractorsModal()" style="flex:1;padding:11px;background:#e8a020;color:#0d1b2a;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">👷 المقاولين</button>
+        <button onclick="printFullAccountsStatement()" style="flex:1.4;padding:11px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة المستخلص الكامل</button>
+      </div>
+
       <div id="accounts-total-card" style="background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
         <div id="accounts-total-summary"></div>
         <div style="margin-top:12px"><canvas id="accounts-trend-chart" height="150"></canvas></div>
@@ -1130,7 +1135,23 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <div id="rate-edit-eq-name" style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:10px"></div>
       <div class="form-field"><label class="form-label">قيمة يوم العمل (8 ساعات)</label>
         <input class="form-input" type="number" id="rate-edit-input" placeholder="مثال: 2500" step="0.01"></div>
+      <div class="form-field"><label class="form-label">👷 المقاول</label>
+        <select class="form-select" id="rate-edit-contractor"><option value="">بدون مقاول</option></select></div>
       <button class="save-btn" style="background:linear-gradient(135deg,#166534,#14532d)" onclick="saveRentalRate()">✅ حفظ</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="contractors-modal">
+    <div class="modal-header" style="background:linear-gradient(135deg,#166534,#14532d)">
+      <div class="modal-title">👷 المقاولين</div>
+      <button class="modal-close" onclick="closeModal('contractors-modal')">✕</button>
+    </div>
+    <div style="padding:16px">
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <input class="form-input" id="new-contractor-name" placeholder="اسم المقاول الجديد" style="flex:1">
+        <button class="save-btn" style="margin:0;width:auto;padding:0 16px" onclick="addContractor()">➕ إضافة</button>
+      </div>
+      <div id="contractors-list"></div>
     </div>
   </div>
   <div id="view-map" style="display:none">
@@ -2678,6 +2699,7 @@ let filterAlternatives = [];
 let pmHistory = {};
 let rentalData = [];
 let rentalDailyData = [];
+let contractorsData = [];
 let rentalDailyRequests = []; // طلبات تسجيل حضور/انصراف مرسلة من السائقين (بانتظار موافقة المشرف)
 let transferLogs = []; // سجل نقل المعدات بين المواقع
 let changeLogs = []; // سجل حركة/تعديل المعدات (من عدّل وامتى)
@@ -3863,6 +3885,13 @@ function attachFirebaseListeners() {
         rentalData = snapshotToArray(snapshot);
         renderRentalEquipment();
         setTimeout(function() { checkRentalExpiryAlerts(); checkRentalAbsenceAfterDayClose(); }, 500);
+    });
+
+    listen('contractors', function(snapshot) {
+        contractorsData = snapshotToArray(snapshot);
+        renderContractorsList();
+        var activeTabBtn = document.querySelector('.tab-btn.active');
+        if (activeTabBtn && activeTabBtn.dataset.view === 'accounts') renderAccountsRentalList();
     });
 
     listen('rentalDaily', function(snapshot) {
@@ -16954,13 +16983,14 @@ function renderAccountsRentalList() {
     c.innerHTML = list.map(function(r) {
         var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
         var drv = driversData.find(function(d) { return d.id === r.driverId; });
+        var contractor = contractorsData.find(function(ct) { return ct.id === r.contractorId; });
         var hasRate = (r.dailyRate || 0) > 0;
         return '<div style="background:white;border-radius:16px;border-right:4px solid #166534;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
             '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">' +
             '<div style="font-size:14px;font-weight:700;color:#0d1b2a">🚧 ' + escapeHtml(eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentCode || '—')) + '</div>' +
             (hasRate ? '<span style="background:#16653422;color:#166534;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap">' + (r.dailyRate).toLocaleString() + ' / يوم</span>' : '<span style="background:#fef3c7;color:#92400e;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap">⚠️ لا يوجد سعر</span>') +
             '</div>' +
-            '<div style="font-size:11.5px;color:#6b7a8d;margin-top:4px">🏢 ' + escapeHtml(r.company || '—') + (drv ? ' &nbsp;|&nbsp; 👨‍✈️ ' + escapeHtml(drv.name) : '') + '</div>' +
+            '<div style="font-size:11.5px;color:#6b7a8d;margin-top:4px">🏢 ' + escapeHtml(r.company || '—') + (drv ? ' &nbsp;|&nbsp; 👨‍✈️ ' + escapeHtml(drv.name) : '') + (contractor ? ' &nbsp;|&nbsp; 👷 ' + escapeHtml(contractor.name) : '') + '</div>' +
             '<div style="display:flex;gap:6px;margin-top:10px">' +
             '<button onclick="showRentalReport(\'' + r.id + '\', \'accounts\')" style="flex:1;padding:9px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">🧾 حساب المستخلص</button>' +
             '<button onclick="openEditRentalRate(\'' + r.id + '\')" style="padding:9px 12px;background:#e8a020;color:#0d1b2a;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">💰 تعديل السعر</button>' +
@@ -16978,19 +17008,65 @@ function openEditRentalRate(rentalId) {
     var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
     document.getElementById('rate-edit-eq-name').textContent = eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentCode || '—');
     document.getElementById('rate-edit-input').value = r.dailyRate || '';
+    var sel = document.getElementById('rate-edit-contractor');
+    sel.innerHTML = '<option value="">بدون مقاول</option>' + contractorsData.map(function(ct) {
+        return '<option value="' + ct.id + '"' + (r.contractorId === ct.id ? ' selected' : '') + '>' + escapeHtml(ct.name) + '</option>';
+    }).join('');
     document.getElementById('rate-edit-modal').classList.add('active');
 }
 function saveRentalRate() {
     if (!editingRentalRateId) return;
     var val = parseFloat(document.getElementById('rate-edit-input').value) || 0;
-    fbDb.ref('rental/' + editingRentalRateId + '/dailyRate').set(val).then(function() {
+    var contractorId = document.getElementById('rate-edit-contractor').value || null;
+    fbDb.ref('rental/' + editingRentalRateId).update({ dailyRate: val, contractorId: contractorId }).then(function() {
         closeModal('rate-edit-modal');
         showToast('✅ تم تحديث قيمة اليوم');
         renderAccountsSummary();
+        renderAccountsRentalList();
     }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
 }
 window.openEditRentalRate = openEditRentalRate;
 window.saveRentalRate = saveRentalRate;
+
+// ==================== إدارة المقاولين (تُستخدم لتصنيف مستخلصات معدات الإيجار حسب المقاول) ====================
+function renderContractorsList() {
+    var c = document.getElementById('contractors-list');
+    if (!c) return;
+    if (!contractorsData.length) { c.innerHTML = '<div class="empty-state">🚧 لا يوجد مقاولين مسجّلين</div>'; return; }
+    c.innerHTML = contractorsData.map(function(ct) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;background:white;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-bottom:8px">' +
+            '<div style="font-size:13.5px;font-weight:700;color:#0d1b2a">👷 ' + escapeHtml(ct.name) + '</div>' +
+            '<button onclick="deleteContractor(\'' + ct.id + '\')" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">🗑️ حذف</button>' +
+            '</div>';
+    }).join('');
+}
+window.renderContractorsList = renderContractorsList;
+
+function openContractorsModal() {
+    renderContractorsList();
+    document.getElementById('contractors-modal').classList.add('active');
+}
+window.openContractorsModal = openContractorsModal;
+
+function addContractor() {
+    var input = document.getElementById('new-contractor-name');
+    var name = (input.value || '').trim();
+    if (!name) { showToast('اكتب اسم المقاول أولاً', true); return; }
+    var id = fbDb.ref('contractors').push().key;
+    fbDb.ref('contractors/' + id).set({ name: name }).then(function() {
+        input.value = '';
+        showToast('✅ تم إضافة المقاول');
+    }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+}
+window.addContractor = addContractor;
+
+function deleteContractor(id) {
+    if (!confirm('تأكيد حذف هذا المقاول؟ (لن يتم حذف عقود الإيجار المرتبطة به، فقط سيصبح تصنيفها بدون مقاول)')) return;
+    fbDb.ref('contractors/' + id).remove().then(function() {
+        showToast('✅ تم الحذف');
+    }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+}
+window.deleteContractor = deleteContractor;
 
 function printRentalStatement(rentalId, dateFrom, dateTo) {
     if (!canView('accounts')) { showToast('⛔ غير مصرح لك بالوصول لبيانات الحسابات', true); return; }
@@ -17057,6 +17133,84 @@ function printRentalStatement(rentalId, dateFrom, dateTo) {
     w.document.close();
 }
 window.printRentalStatement = printRentalStatement;
+
+// ==================== طباعة مستخلص شامل لكل معدات الإيجار مجتمعة، مقسّم حسب المقاول ====================
+function printFullAccountsStatement() {
+    if (!canView('accounts')) { showToast('⛔ غير مصرح لك بالوصول لبيانات الحسابات', true); return; }
+    var monthStr = getCurrentCycleMonthStr();
+    var range = getPeriodRange(monthStr);
+
+    var rows = rentalData.filter(function(r) { return (r.dailyRate || 0) > 0; }).map(function(r) {
+        var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
+        var name = eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentCode || '—');
+        var dayData = buildRentalDayEntries(r.id, range.from, range.to);
+        var hours = dayData.records.reduce(function(s, d) { return s + (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0); }, 0);
+        var total = (hours / 8) * r.dailyRate;
+        var contractor = contractorsData.find(function(ct) { return ct.id === r.contractorId; });
+        return { name: name, total: total, contractorName: contractor ? contractor.name : '' };
+    });
+
+    if (!rows.length) { showToast('لا توجد معدات إيجار لها سعر محدد لحساب المستخلص', true); return; }
+
+    var groups = {};
+    var groupOrder = [];
+    rows.forEach(function(row) {
+        var key = row.contractorName || '__none__';
+        if (!groups[key]) { groups[key] = { name: row.contractorName || 'بدون مقاول', total: 0 }; groupOrder.push(key); }
+        groups[key].total += row.total;
+    });
+    var grandTotal = rows.reduce(function(s, row) { return s + row.total; }, 0);
+
+    var contractorsSummaryHtml = groupOrder.map(function(key) {
+        var g = groups[key];
+        return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.2);font-size:13px">' +
+            '<span>👷 ' + escapeHtml(g.name) + '</span><span style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>';
+    }).join('');
+
+    var rowsHtml = rows.map(function(row, idx) {
+        return '<tr><td>' + (idx + 1) + '</td><td style="text-align:right">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.contractorName || '—') + '</td>' +
+            '<td style="font-weight:bold">' + row.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td></tr>';
+    }).join('');
+
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>المستخلص الشهري الكامل</title><style>' +
+        'body{font-family:Arial;padding:22px;direction:rtl;color:#0d1b2a}' +
+        'table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}' +
+        'th{background:#0d1b2a;color:white;padding:8px}' +
+        'td{padding:7px;border-bottom:1px solid #e2e8f0;text-align:center}' +
+        '.summary-box{background:linear-gradient(135deg,#166534,#14532d);color:white;border-radius:14px;padding:16px 18px;margin:16px 0}' +
+        '.summary-box .grand{display:flex;justify-content:space-between;padding-top:10px;margin-top:6px;font-size:16px;font-weight:800}' +
+        '.deduct-box{background:#f8fafc;border-radius:14px;padding:16px;margin:16px 0;font-size:13px}' +
+        '.deduct-box input{width:150px;padding:8px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;font-family:inherit;text-align:center}' +
+        '.final-box{background:#0d1b2a;color:white;border-radius:14px;padding:18px;margin:16px 0;text-align:center}' +
+        '.final-box .value{font-size:32px;font-weight:800;margin-top:6px}' +
+        '.footer{margin-top:26px;font-size:10px;color:#999;text-align:center}' +
+        '@media print{ .no-print{display:none} }' +
+        '</style></head><body>' +
+        reportHeaderHtml('المستخلص الشهري الكامل لمعدات الإيجار', rentalPeriodLabel(monthStr) + ' (' + range.from + ' → ' + range.to + ')') +
+        '<div class="summary-box">' +
+        '<div style="font-size:13px;opacity:.9;margin-bottom:6px">إجمالي المستخلص حسب المقاول</div>' +
+        contractorsSummaryHtml +
+        '<div class="grand"><span>الإجمالي الكلي</span><span id="grand-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>' +
+        '</div>' +
+        '<table><thead><tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>التكلفة خلال الشهر</th></tr></thead><tbody>' +
+        rowsHtml +
+        '</tbody></table>' +
+        '<div class="deduct-box">' +
+        '<label style="display:block;margin-bottom:8px;font-weight:700">➖ خصومات (إن وجدت)</label>' +
+        '<input type="number" id="deduction-input" value="0" step="0.01" oninput="updateFullStatementTotal()">' +
+        '</div>' +
+        '<div class="final-box">' +
+        '<div>الإجمالي النهائي بعد الخصم</div>' +
+        '<div class="value" id="final-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</div>' +
+        '</div>' +
+        '<div class="footer">تم إصدار هذا المستخلص آليًا من برنامج متابعة المعدات — ' + new Date().toLocaleString('ar-EG') + '</div>' +
+        '<div class="no-print" style="text-align:center;margin-top:18px"><button onclick="window.print()" style="padding:10px 30px;background:#e8a020;border:none;border-radius:10px;font-weight:700;cursor:pointer">🖨️ طباعة</button></div>' +
+        '<script>var GRAND_TOTAL=' + grandTotal + ';function updateFullStatementTotal(){var d=parseFloat(document.getElementById("deduction-input").value)||0;document.getElementById("final-total-display").textContent=(GRAND_TOTAL-d).toLocaleString(undefined,{maximumFractionDigits:2});}<\/script>' +
+        '</body></html>');
+    w.document.close();
+}
+window.printFullAccountsStatement = printFullAccountsStatement;
 
 function runRentalAnomalyCheck(rentalId, dateFrom, dateTo) {
     var summaryEl = document.getElementById('rental-anomaly-summary');
