@@ -16368,7 +16368,7 @@ function quickSaveRentalDay(rentalId,date,existingId,inTime,outTime,brk) {
         notes:(existingRecord?existingRecord.notes||'':''),
         updatedAt:new Date().toISOString() };
 
-    // نفس منطق التتبع المستخدم في باقي شاشات التعديل: نحافظ على اسم أول شخص سجّل، ونسجّل مين عدّل لو مش المدير
+    // نفس منطق التتبع المستخدم في باقي شاشات التعديل: نحافظ على اسم أول شخص سجّل، ونسجّل مين عدّل لو مش نفس الشخص ومش المدير
     var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
     var isAdminActing = currentUser && currentUser.role === 'admin';
     if (existingRecord) {
@@ -16582,7 +16582,7 @@ function saveRentalInlineNotes(rentalId, dateStr, value) {
     if ((rec.notes || '') === trimmed) return; // مفيش تغيير فعلي
     var updates = { notes: trimmed, updatedAt: new Date().toISOString() };
 
-    // نفس منطق التتبع: لو حساب غير المدير عدّل الملاحظة، نسجّل مين اللي عدّل
+    // نفس منطق التتبع: لو حساب غير المدير وغير نفس اللي سجّل عدّل الملاحظة، نسجّل مين اللي عدّل
     var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
     var isAdminActing = currentUser && currentUser.role === 'admin';
     if (!isAdminActing && actingUserName !== (rec.recordedByName || '')) {
@@ -16721,21 +16721,20 @@ function saveRentalDaily() {
         if (!proceedAnyway) return;
     }
 
-    // نحافظ على اسم أول شخص سجّل البيانات، وننبّه في الملاحظات لو حصل تعديل بعد كده من حساب غير حساب المدير
+    // نحافظ على اسم أول شخص سجّل البيانات، وننبّه لو حصل تعديل بعد كده من حساب مش هو نفسه ومش المدير
     var existingRecord = editingRentalDailyId ? rentalDailyData.find(function(d){ return d.id === editingRentalDailyId; }) : null;
     var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
     var isAdminActing = currentUser && currentUser.role === 'admin';
 
     if (existingRecord) {
         // تعديل على سجل موجود بالفعل
-        // نحافظ على اسم أول شخص سجّل البيانات، وننبّه لو حصل تعديل بعد كده من حساب غير حساب المدير.
         // ملحوظة: السجلات القديمة (قبل إضافة هذه الميزة) مفيهاش اسم مسجّل أصلي محفوظ؛ بدل ما ننسبها غلط للشخص اللي بيعدّلها دلوقتي، نحطّلها قيمة محايدة توضح إنها سجل قديم
         record.recordedByName = existingRecord.recordedByName || 'غير معروف (سجل قديم)';
         if (!isAdminActing && actingUserName !== record.recordedByName) {
             record.editedByName = actingUserName;
             record.editedAt = new Date().toISOString();
         } else if (existingRecord.editedByName) {
-            // لسه محتفظين بتاريخ التعديل السابق لو المدير هو اللي بيعدّل دلوقتي (مش بنمسحه)
+            // لسه محتفظين بتاريخ التعديل السابق لو المدير أو نفس الشخص هو اللي بيعدّل دلوقتي (مش بنمسحه)
             record.editedByName = existingRecord.editedByName;
             record.editedAt = existingRecord.editedAt;
         }
@@ -16830,7 +16829,7 @@ function updateRentalTimes(id) {
     var h=calcRentalHours(inT,outT,brk,rentalStandardHours(existingRecord?existingRecord.equipmentType:''));
     var updates={ inTime:inT,outTime:outT,breakWorked:brk,breakHours:h.break,totalHours:h.total,basicHours:h.basic,extraHours:h.extra,updatedAt:new Date().toISOString() };
 
-    // نفس منطق التتبع في نافذة التعديل الكاملة: لو حساب غير المدير عدّل، نسجّل مين اللي عدّل
+    // نفس منطق التتبع في نافذة التعديل الكاملة: لو حساب غير المدير وغير نفس اللي سجّل عدّل، نسجّل مين اللي عدّل
     var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
     var isAdminActing = currentUser && currentUser.role === 'admin';
     if (existingRecord && !isAdminActing && actingUserName !== (existingRecord.recordedByName || '')) {
@@ -17642,7 +17641,7 @@ function openEditDailyEntryModal(entryId, rentalId, dateFrom, dateTo) {
             notes: notes, updatedAt: new Date().toISOString()
         });
 
-        // نفس منطق التتبع: لو حساب غير المدير عدّل، نسجّل مين اللي عدّل
+        // نفس منطق التتبع: لو حساب غير المدير وغير نفس اللي سجّل عدّل، نسجّل مين اللي عدّل
         var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
         var isAdminActing = currentUser && currentUser.role === 'admin';
         if (!isAdminActing && actingUserName !== (entry.recordedByName || '')) {
