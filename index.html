@@ -1527,6 +1527,9 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     <!-- طلبات الحسابات الجديدة -->
     <div id="account-requests-list"></div>
 
+    <!-- طلبات استعادة كلمة المرور -->
+    <div id="password-reset-requests-list"></div>
+
     <!-- قائمة المستخدمين -->
     <div id="admin-users-list"><div class="empty-state">⏳ جاري التحميل...</div></div>
   </div>
@@ -1847,6 +1850,7 @@ function loadAdminUsers() {
     if (!listEl) return;
     renderUsersList(listEl);
     renderAccountRequests();
+    renderPasswordResetRequestsList();
 }
 
 function renderUsersList(listEl) {
@@ -3936,6 +3940,8 @@ function initFirebase() {
         watchAppUsers();
         // مراقبة طلبات الحسابات الجديدة
         watchAccountRequests();
+        // مراقبة طلبات استعادة كلمة المرور
+        watchPasswordResetRequests();
         // تهيئة Firestore لإدارة المستخدمين
         initFirestoreUsers();
         fbDb.ref('.info/connected').on('value', function(snapshot) {
@@ -4345,25 +4351,123 @@ function rejectAccountRequest(id) {
 }
 
 // ==================== نسيت كلمة المرور ====================
+// النظام مش بيستخدم إيميل فعلي لتسجيل الدخول (اسم مستخدم + كلمة مرور مخزّنة في قاعدة البيانات)،
+// فبدل رابط إعادة تعيين، المستخدم بيبعت طلب فيه اسم المستخدم ورقم تليفونه، وبيظهر إشعار للمدير عشان يبعتله كلمة المرور واتساب
 function showForgotPassword() {
-    var email = (document.getElementById('secure-username').value || '').trim();
-    if (!email || !email.includes('@')) {
-        var inp = prompt('أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور:');
-        if (!inp) return;
-        email = inp.trim();
-    }
-    if (!email || !email.includes('@')) {
-        showToast('بريد إلكتروني غير صالح', true);
-        return;
-    }
-    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    firebase.auth().sendPasswordResetEmail(email).then(function() {
-        showToast('تم إرسال رابط إعادة التعيين إلى ' + email);
+    var old = document.getElementById('forgot-password-modal');
+    if (old) old.remove();
+    var modal = document.createElement('div');
+    modal.id = 'forgot-password-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    modal.innerHTML =
+        '<div style="background:white;border-radius:18px;width:100%;max-width:340px;padding:20px;direction:rtl">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2a">🔑 نسيت كلمة المرور</div>' +
+        '<button onclick="document.getElementById(\'forgot-password-modal\').remove()" style="background:#f1f5f9;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px">✕</button>' +
+        '</div>' +
+        '<div style="font-size:12px;color:var(--gray);margin-bottom:14px">اكتب اسم المستخدم ورقم تليفونك، وهيوصل طلبك للمدير عشان يبعتلك كلمة المرور على واتساب.</div>' +
+        '<div style="display:grid;gap:10px">' +
+        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">اسم المستخدم</label>' +
+        '<input type="text" id="forgot-pass-username" placeholder="اسم المستخدم" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px;box-sizing:border-box"></div>' +
+        '<div><label style="font-size:12px;color:var(--gray);display:block;margin-bottom:4px">رقم التليفون</label>' +
+        '<input type="tel" id="forgot-pass-phone" placeholder="مثال: 01012345678" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px;box-sizing:border-box"></div>' +
+        '</div>' +
+        '<button id="forgot-pass-submit" onclick="submitForgotPasswordRequest()" style="width:100%;margin-top:16px;padding:11px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer">📤 إرسال الطلب للمدير</button>' +
+        '</div>';
+    document.body.appendChild(modal);
+}
+
+function submitForgotPasswordRequest() {
+    var username = (document.getElementById('forgot-pass-username').value || '').trim();
+    var phone = (document.getElementById('forgot-pass-phone').value || '').trim();
+    if (!username) { showToast('اكتب اسم المستخدم', true); return; }
+    if (!phone || phone.replace(/[^0-9]/g, '').length < 8) { showToast('اكتب رقم تليفون صحيح', true); return; }
+    if (!fbDb) { showToast('لا يوجد اتصال بقاعدة البيانات، حاول مرة أخرى لاحقاً', true); return; }
+
+    var matchedUser = APP_USERS.find(function(u) { return u.username.toLowerCase() === username.toLowerCase(); });
+    if (!matchedUser) { showToast('⛔ اسم المستخدم ده مش موجود في النظام', true); return; }
+
+    var btn = document.getElementById('forgot-pass-submit');
+    if (btn) { btn.disabled = true; btn.innerHTML = '⏳ جاري الإرسال...'; }
+
+    fbDb.ref('passwordResetRequests').once('value').then(function(snap) {
+        var data = snap.val() || {};
+        var alreadyPending = Object.values(data).some(function(r) { return r.username && r.username.toLowerCase() === username.toLowerCase(); });
+        if (alreadyPending) {
+            showToast('تم إرسال طلب بنفس اسم المستخدم من قبل، انتظر رد المدير', true);
+            if (btn) { btn.disabled = false; btn.innerHTML = '📤 إرسال الطلب للمدير'; }
+            return;
+        }
+        return fbDb.ref('passwordResetRequests').push({
+            username: matchedUser.username,
+            name: matchedUser.name || '',
+            phone: phone,
+            requestedAt: new Date().toISOString()
+        }).then(function() {
+            showToast('✅ تم إرسال طلبك، هيتواصل معاك المدير على واتساب قريبًا');
+            var m = document.getElementById('forgot-password-modal');
+            if (m) m.remove();
+        });
     }).catch(function(err) {
-        var msg = err.code === 'auth/user-not-found' ? 'البريد غير مسجل في النظام' :
-                  'خطأ: ' + err.message;
-        showToast(msg, true);
+        showToast('خطأ: ' + err.message, true);
+        if (btn) { btn.disabled = false; btn.innerHTML = '📤 إرسال الطلب للمدير'; }
     });
+}
+
+// ---- جانب المدير: عرض الطلبات وإرسال كلمة المرور عبر واتساب ----
+var passwordResetRequestsData = [];
+
+function watchPasswordResetRequests() {
+    if (!fbDb) return;
+    fbDb.ref('passwordResetRequests').on('value', function(snap) {
+        var data = snap.val();
+        passwordResetRequestsData = data ? Object.entries(data).map(function(e) {
+            var obj = Object.assign({}, e[1]); obj.id = e[0]; return obj;
+        }) : [];
+        if (currentUser && currentUser.role === 'admin') runSmartAlertsRefresh();
+        renderPasswordResetRequestsList();
+    });
+}
+
+function getPendingPasswordResetRequests() {
+    return passwordResetRequestsData || [];
+}
+
+function renderPasswordResetRequestsList() {
+    var listEl = document.getElementById('password-reset-requests-list');
+    if (!listEl) return;
+    if (!passwordResetRequestsData.length) { listEl.innerHTML = ''; return; }
+    listEl.innerHTML = '<div style="font-weight:800;font-size:13px;color:#6d28d9;margin:10px 0 8px">🔑 طلبات استعادة كلمة مرور (' + passwordResetRequestsData.length + ')</div>' +
+        passwordResetRequestsData.map(passwordResetRequestCardHtml).join('');
+}
+
+function passwordResetRequestCardHtml(r) {
+    var when = r.requestedAt ? new Date(r.requestedAt).toLocaleString('ar-EG') : '';
+    return '<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:12px;padding:10px 12px;margin-bottom:8px">' +
+        '<div style="font-weight:700;font-size:13px;color:#0d1b2a">' + escapeHtml(r.name || r.username) + '</div>' +
+        '<div style="font-size:11.5px;color:#64748b;margin-top:2px">👤 ' + escapeHtml(r.username) + ' &nbsp;|&nbsp; 📱 ' + escapeHtml(r.phone || '') + '</div>' +
+        (when ? '<div style="font-size:10.5px;color:#94a3b8;margin-top:1px">🕒 ' + when + '</div>' : '') +
+        '<div style="display:flex;gap:6px;margin-top:8px">' +
+        '<button onclick="sendPasswordResetWhatsApp(\'' + r.id + '\')" style="flex:1;background:#25D366;color:white;border:none;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer">📱 إرسال واتساب</button>' +
+        '<button onclick="dismissPasswordResetRequest(\'' + r.id + '\')" style="background:#64748b;color:white;border:none;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer">🗑️</button>' +
+        '</div></div>';
+}
+
+function sendPasswordResetWhatsApp(id) {
+    var req = passwordResetRequestsData.find(function(r) { return r.id === id; });
+    if (!req) return;
+    var user = APP_USERS.find(function(u) { return u.username.toLowerCase() === req.username.toLowerCase(); });
+    if (!user) { showToast('⛔ هذا المستخدم لم يعد موجودًا في النظام', true); return; }
+    var text = 'مرحبا ' + (user.name || '') + '\nبيانات الدخول الخاصة بك:\nاسم المستخدم: ' + user.username + '\nكلمة المرور: ' + user.password;
+    var phoneDigits = (req.phone || '').replace(/[^0-9]/g, '');
+    window.open('https://wa.me/' + phoneDigits + '?text=' + encodeURIComponent(text), '_blank');
+}
+
+function dismissPasswordResetRequest(id) {
+    if (!fbDb) return;
+    fbDb.ref('passwordResetRequests/' + id).remove().then(function() {
+        showToast('✅ تم حذف الطلب');
+    }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
 }
 
 function saveLoginMode() {
@@ -11357,9 +11461,11 @@ function getAllSmartAlerts() {
     totalCount += pendingChecks.length;
     var pendingAccountRequests = (currentUser && currentUser.role === 'admin') ? getPendingAccountRequests() : [];
     totalCount += pendingAccountRequests.length;
+    var pendingPasswordResets = (currentUser && currentUser.role === 'admin') ? getPendingPasswordResetRequests() : [];
+    totalCount += pendingPasswordResets.length;
     return {
         maintOverdue:maintOverdue, maintSoon:maintSoon, licExpired:licExpired, licSoon:licSoon, lowStock:lowStock, rentExpired:rentExpired, rentSoon:rentSoon, rentAbsence:rentAbsence,
-        pendingReports:pendingReports, pendingApprovals:pendingApprovals, pendingFaults:pendingFaults, pendingChecks:pendingChecks, pendingAccountRequests:pendingAccountRequests, totalCount:totalCount,
+        pendingReports:pendingReports, pendingApprovals:pendingApprovals, pendingFaults:pendingFaults, pendingChecks:pendingChecks, pendingAccountRequests:pendingAccountRequests, pendingPasswordResets:pendingPasswordResets, totalCount:totalCount,
         _raw: { maintOverdue:maintOverdueRaw, maintSoon:maintSoonRaw, licExpired:licExpiredRaw, licSoon:licSoonRaw, lowStock:lowStockRaw, rentExpired:rentExpiredRaw, rentSoon:rentSoonRaw, rentAbsence:rentAbsenceRaw }
     };
 }
@@ -11402,6 +11508,7 @@ function showSmartAlertBar() {
     if (a.pendingFaults.length) parts.push('🚨 ' + a.pendingFaults.length + ' بلاغ عطل جديد');
     if (a.pendingChecks.length) parts.push('🔍 ' + a.pendingChecks.length + ' مراجعة معدة محتاجة متابعة');
     if (a.pendingAccountRequests.length) parts.push('👤 ' + a.pendingAccountRequests.length + ' طلب حساب جديد بانتظار الموافقة');
+    if (a.pendingPasswordResets.length) parts.push('🔑 ' + a.pendingPasswordResets.length + ' طلب استعادة كلمة مرور');
     if (!parts.length) { alertDiv.style.display = 'none'; return; }
     var msg = parts.join(' | ') + ' — <button onclick="openNotifCenter()" style="background:rgba(0,0,0,.15);border:none;color:inherit;border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">عرض التفاصيل</button>';
     alertDiv.innerHTML = '<div class="smart-alert-bar"><span>' + msg + '</span><button class="close-alert" onclick="document.getElementById(\'alert-bar\').style.display=\'none\'">✕</button></div>';
@@ -11536,6 +11643,10 @@ function openNotifCenter() {
     if (a.pendingAccountRequests.length) {
         html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#92400e;margin-bottom:6px">👤 طلبات حسابات جديدة (' + a.pendingAccountRequests.length + ')</div>' +
             a.pendingAccountRequests.map(accountRequestCardHtml).join('') + '</div>';
+    }
+    if (a.pendingPasswordResets.length) {
+        html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#6d28d9;margin-bottom:6px">🔑 طلبات استعادة كلمة مرور (' + a.pendingPasswordResets.length + ')</div>' +
+            a.pendingPasswordResets.map(passwordResetRequestCardHtml).join('') + '</div>';
     }
     if (!a.totalCount) html = '<div style="text-align:center;padding:30px;color:var(--gray)">✅ لا توجد تنبيهات حالياً — كل شيء تمام</div>';
     var hasClearable = a.maintOverdue.length || a.maintSoon.length || a.licExpired.length || a.licSoon.length || a.lowStock.length || a.rentExpired.length || a.rentSoon.length || a.rentAbsence.length;
