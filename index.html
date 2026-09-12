@@ -1062,7 +1062,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     </div>
   </div>
   
-  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button onclick="openIssueVouchersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95)">🧾 أذون الصرف من المخزن (SAP)</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="openPredictiveMaintenanceModal()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#0e7490,#0369a1)">🔮 الصيانة التنبؤية الذكية</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button>
+  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button onclick="openIssueVouchersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95)">🧾 أذون الصرف من المخزن (SAP)</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="openPredictiveMaintenanceModal()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#0e7490,#0369a1)">🔮 الصيانة التنبؤية الذكية</button><button onclick="openDowntimeRcaView()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#7f1d1d)">⏱️ توقف المعدات وتحليل الأسباب RCA</button><button onclick="openTireManagementView()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#1e293b,#0f172a)">🛞 إدارة الإطارات (Tire Management)</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button>
     <div style="background:#f8fafc;border-radius:16px;padding:14px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div style="font-size:13px;font-weight:800;color:#0d1b2a">🧾 أذون الصرف المفتوحة</div>
@@ -1347,7 +1347,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
 <div class="modal-overlay" id="import-progress-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--success),var(--info))"><div class="modal-title">📊 جاري استيراد البيانات...</div><button class="modal-close" onclick="closeModal('import-progress-modal')">✕</button></div><div style="padding:20px; text-align:center"><div style="font-size:40px; margin-bottom:15px">⏳</div><div id="import-progress-text" style="margin-bottom:10px">جارٍ قراءة الملف...</div><div class="progress-bar" style="height:10px"><div id="import-progress-bar" class="progress-fill" style="width:0%"></div></div><div id="import-status-list" style="margin-top:15px; font-size:12px; text-align:right; max-height:200px; overflow:auto"></div></div></div>
 
-<div class="modal-overlay" id="notif-settings-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 إعدادات الإشعارات</div><button class="modal-close" onclick="closeModal('notif-settings-modal')">✕</button></div><div style="padding:16px"><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">📱 رقم واتساب لاستقبال التنبيهات</div><input class="form-input" id="whatsapp-number" type="tel" placeholder="مثال: 201012345678" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%; font-size:14px"><div style="font-size:11px; color:var(--gray); margin-top:6px">أدخل الرقم مع كود الدولة بدون + مثلاً 201012345678</div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">⏰ إشعار عند باقي (ساعات)</div><select class="form-select" id="notif-threshold" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%"><option value="10">10 ساعات فأقل</option><option value="25">25 ساعة فأقل</option><option value="50" selected>50 ساعة فأقل</option><option value="100">100 ساعة فأقل</option></select></div><div class="detail-section" style="margin:0 0 12px 0; display:flex; justify-content:space-between; align-items:center"><div><div class="detail-label">🔔 إشعارات المتصفح</div><div style="font-size:11px; color:var(--gray)">تنبيه تلقائي عند فتح التطبيق</div></div><div id="notif-permission-status" style="font-size:12px; font-weight:600"></div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">🔔 أنواع التنبيهات التي تريد استلامها</div><div style="display:flex;flex-direction:column;gap:8px"><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-maintenance" style="width:18px;height:18px">🔧 صيانة المعدات (متأخرة / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-licenses" style="width:18px;height:18px">📜 رخص السائقين (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-inventory" style="width:18px;height:18px">📦 المخزون المنخفض</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental" style="width:18px;height:18px">📄 عقود الإيجار (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-hours-anomaly" style="width:18px;height:18px">⏱️ استثناءات في تسجيل الساعات (قفزة غير منطقية / نقص)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-value-edits" style="width:18px;height:18px">✏️ تعديل قيم مسجلة سابقاً (أي مستخدم)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental-daily" style="width:18px;height:18px">📋 استثناءات التسجيل اليومي وغياب معدات الإيجار</label></div></div><button id="enable-notif-btn" class="save-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5); margin-bottom:10px">🔔 تفعيل إشعارات المتصفح</button><button id="send-wa-report-btn" class="save-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير واتساب الآن</button><button id="save-notif-settings-btn" class="save-btn">✅ حفظ الإعدادات</button></div></div>
+<div class="modal-overlay" id="notif-settings-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 إعدادات الإشعارات</div><button class="modal-close" onclick="closeModal('notif-settings-modal')">✕</button></div><div style="padding:16px"><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">📱 رقم واتساب لاستقبال التنبيهات</div><input class="form-input" id="whatsapp-number" type="tel" placeholder="مثال: 201012345678" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%; font-size:14px"><div style="font-size:11px; color:var(--gray); margin-top:6px">أدخل الرقم مع كود الدولة بدون + مثلاً 201012345678</div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">⏰ إشعار عند باقي (ساعات)</div><select class="form-select" id="notif-threshold" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%"><option value="10">10 ساعات فأقل</option><option value="25">25 ساعة فأقل</option><option value="50" selected>50 ساعة فأقل</option><option value="100">100 ساعة فأقل</option></select></div><div class="detail-section" style="margin:0 0 12px 0; display:flex; justify-content:space-between; align-items:center"><div><div class="detail-label">🔔 إشعارات المتصفح</div><div style="font-size:11px; color:var(--gray)">تنبيه تلقائي عند فتح التطبيق</div></div><div id="notif-permission-status" style="font-size:12px; font-weight:600"></div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">🔔 أنواع التنبيهات التي تريد استلامها</div><div style="display:flex;flex-direction:column;gap:8px"><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-maintenance" style="width:18px;height:18px">🔧 صيانة المعدات (متأخرة / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-licenses" style="width:18px;height:18px">📜 رخص السائقين (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-inventory" style="width:18px;height:18px">📦 المخزون المنخفض</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental" style="width:18px;height:18px">📄 عقود الإيجار (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-hours-anomaly" style="width:18px;height:18px">⏱️ استثناءات في تسجيل الساعات (قفزة غير منطقية / نقص)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-value-edits" style="width:18px;height:18px">✏️ تعديل قيم مسجلة سابقاً (أي مستخدم)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental-daily" style="width:18px;height:18px">📋 استثناءات التسجيل اليومي وغياب معدات الإيجار</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-tires" style="width:18px;height:18px">🛞 الإطارات (محتاجة قياس / قريبة من نهاية العمر)</label></div></div><button id="enable-notif-btn" class="save-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5); margin-bottom:10px">🔔 تفعيل إشعارات المتصفح</button><button id="send-wa-report-btn" class="save-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير واتساب الآن</button><button id="save-notif-settings-btn" class="save-btn">✅ حفظ الإعدادات</button></div></div>
 
 <div class="modal-overlay" id="notif-center-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 مركز التنبيهات</div><button class="modal-close" onclick="closeNotifCenter()">✕</button></div><div id="notif-center-body" style="padding:14px"></div></div>
 
@@ -2707,6 +2707,8 @@ let contractorsData = [];
 let rentalDailyRequests = []; // طلبات تسجيل حضور/انصراف مرسلة من السائقين (بانتظار موافقة المشرف)
 let transferLogs = []; // سجل نقل المعدات بين المواقع
 let changeLogs = []; // سجل حركة/تعديل المعدات (من عدّل وامتى)
+let tiresData = []; // إدارة الإطارات (Tire Management)
+let tireCostEvents = []; // أحداث تكلفة الإطارات (شراء/إعادة تغطية) مربوطة بالمشروع/المقاول
 // ==================== نظام المستخدمين - Firebase ====================
 var APP_USERS = [
     {
@@ -2928,11 +2930,11 @@ let lastAlertCheck = 0;
 let notifSettings = { whatsappNumber: '', threshold: 50 };
 
 // تفضيلات أنواع التنبيهات التي يريد المستخدم استلامها (محفوظة على هذا الجهاز)
-var notifPrefs = { maintenance: true, licenses: true, inventory: true, rental: true, hoursAnomaly: true, valueEdits: true, rentalDaily: true };
+var notifPrefs = { maintenance: true, licenses: true, inventory: true, rental: true, hoursAnomaly: true, valueEdits: true, rentalDaily: true, tires: true };
 function loadNotifPrefs() {
     try {
         var saved = JSON.parse(localStorage.getItem('notifPrefs') || 'null');
-        if (saved && typeof saved === 'object') notifPrefs = Object.assign({ maintenance:true, licenses:true, inventory:true, rental:true, hoursAnomaly:true, valueEdits:true, rentalDaily:true }, saved);
+        if (saved && typeof saved === 'object') notifPrefs = Object.assign({ maintenance:true, licenses:true, inventory:true, rental:true, hoursAnomaly:true, valueEdits:true, rentalDaily:true, tires:true }, saved);
     } catch (e) {}
 }
 function saveNotifPrefs(prefs) {
@@ -3916,6 +3918,18 @@ function attachFirebaseListeners() {
 
     listen('changeLogs', function(snapshot) {
         changeLogs = snapshotToArray(snapshot);
+    });
+
+    listen('tires', function(snapshot) {
+        tiresData = snapshotToArray(snapshot);
+        if (currentUser && currentUser.role === 'admin') runSmartAlertsRefresh();
+        renderTireMgmtView();
+        setTimeout(function() { checkTireAlerts(); }, 500);
+    });
+
+    listen('tireCostEvents', function(snapshot) {
+        tireCostEvents = snapshotToArray(snapshot);
+        renderTireMgmtView();
     });
 
     isListeningAttached = true;
@@ -9095,7 +9109,8 @@ function saveNotifSettings() {
         rental: document.getElementById('notif-pref-rental').checked,
         hoursAnomaly: document.getElementById('notif-pref-hours-anomaly').checked,
         valueEdits: document.getElementById('notif-pref-value-edits').checked,
-        rentalDaily: document.getElementById('notif-pref-rental-daily').checked
+        rentalDaily: document.getElementById('notif-pref-rental-daily').checked,
+        tires: document.getElementById('notif-pref-tires').checked
     });
     // حفظ في Firebase مباشرة
     if (fbDb) {
@@ -9120,6 +9135,7 @@ function openNotifSettings() {
     document.getElementById('notif-pref-hours-anomaly').checked = notifPrefs.hoursAnomaly !== false;
     document.getElementById('notif-pref-value-edits').checked = notifPrefs.valueEdits !== false;
     document.getElementById('notif-pref-rental-daily').checked = notifPrefs.rentalDaily !== false;
+    document.getElementById('notif-pref-tires').checked = notifPrefs.tires !== false;
     var permission = Notification.permission;
     var statusEl = document.getElementById('notif-permission-status');
     if (permission === 'granted') {
@@ -10857,6 +10873,27 @@ function checkRentalDailyLogExceptions() {
         });
     }
 }
+
+var lastTireAlertCheck = 0;
+function checkTireAlerts() {
+    if (!tiresData || !tiresData.length || !notifPrefs.tires) { runSmartAlertsRefresh(); return; }
+    var now = Date.now();
+    if (now - lastTireAlertCheck < 5 * 60 * 1000) { runSmartAlertsRefresh(); return; }
+    lastTireAlertCheck = now;
+    var needMeasure = getTiresNeedingMeasurement();
+    var nearEndOfLife = getTiresNearEndOfLife();
+    if ((needMeasure.length || nearEndOfLife.length) && Notification.permission === 'granted') {
+        var body = '';
+        if (nearEndOfLife.length) body += '🔴 قريبة من نهاية العمر: ' + nearEndOfLife.map(function(t) { return t.serialNo || '—'; }).join('، ') + '\n';
+        if (needMeasure.length) body += '📏 محتاجة قياس مداس: ' + needMeasure.map(function(t) { return t.serialNo || '—'; }).join('، ');
+        new Notification('🛞 تنبيه إطارات - ' + (needMeasure.length + nearEndOfLife.length) + ' إطار', {
+            body: body.trim(),
+            icon: 'https://cdn-icons-png.flaticon.com/512/1995/1995562.png'
+        });
+    }
+    runSmartAlertsRefresh();
+}
+
 function rentalAbsenceLabel(r) {
     var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
     return (eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentType || 'معدة')) + (r.company ? ' - ' + r.company : '');
@@ -11463,9 +11500,12 @@ function getAllSmartAlerts() {
     totalCount += pendingAccountRequests.length;
     var pendingPasswordResets = (currentUser && currentUser.role === 'admin') ? getPendingPasswordResetRequests() : [];
     totalCount += pendingPasswordResets.length;
+    var tiresNeedMeasurement = notifPrefs.tires ? getTiresNeedingMeasurement() : [];
+    var tiresNearEndOfLife = notifPrefs.tires ? getTiresNearEndOfLife() : [];
+    totalCount += tiresNeedMeasurement.length + tiresNearEndOfLife.length;
     return {
         maintOverdue:maintOverdue, maintSoon:maintSoon, licExpired:licExpired, licSoon:licSoon, lowStock:lowStock, rentExpired:rentExpired, rentSoon:rentSoon, rentAbsence:rentAbsence,
-        pendingReports:pendingReports, pendingApprovals:pendingApprovals, pendingFaults:pendingFaults, pendingChecks:pendingChecks, pendingAccountRequests:pendingAccountRequests, pendingPasswordResets:pendingPasswordResets, totalCount:totalCount,
+        pendingReports:pendingReports, pendingApprovals:pendingApprovals, pendingFaults:pendingFaults, pendingChecks:pendingChecks, pendingAccountRequests:pendingAccountRequests, pendingPasswordResets:pendingPasswordResets, tiresNeedMeasurement:tiresNeedMeasurement, tiresNearEndOfLife:tiresNearEndOfLife, totalCount:totalCount,
         _raw: { maintOverdue:maintOverdueRaw, maintSoon:maintSoonRaw, licExpired:licExpiredRaw, licSoon:licSoonRaw, lowStock:lowStockRaw, rentExpired:rentExpiredRaw, rentSoon:rentSoonRaw, rentAbsence:rentAbsenceRaw }
     };
 }
@@ -11509,6 +11549,8 @@ function showSmartAlertBar() {
     if (a.pendingChecks.length) parts.push('🔍 ' + a.pendingChecks.length + ' مراجعة معدة محتاجة متابعة');
     if (a.pendingAccountRequests.length) parts.push('👤 ' + a.pendingAccountRequests.length + ' طلب حساب جديد بانتظار الموافقة');
     if (a.pendingPasswordResets.length) parts.push('🔑 ' + a.pendingPasswordResets.length + ' طلب استعادة كلمة مرور');
+    if (a.tiresNeedMeasurement.length) parts.push('📏 ' + a.tiresNeedMeasurement.length + ' إطار محتاج قياس مداس');
+    if (a.tiresNearEndOfLife.length) parts.push('🛞 ' + a.tiresNearEndOfLife.length + ' إطار قريب من نهاية عمره الافتراضي');
     if (!parts.length) { alertDiv.style.display = 'none'; return; }
     var msg = parts.join(' | ') + ' — <button onclick="openNotifCenter()" style="background:rgba(0,0,0,.15);border:none;color:inherit;border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">عرض التفاصيل</button>';
     alertDiv.innerHTML = '<div class="smart-alert-bar"><span>' + msg + '</span><button class="close-alert" onclick="document.getElementById(\'alert-bar\').style.display=\'none\'">✕</button></div>';
@@ -11647,6 +11689,10 @@ function openNotifCenter() {
     if (a.pendingPasswordResets.length) {
         html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#6d28d9;margin-bottom:6px">🔑 طلبات استعادة كلمة مرور (' + a.pendingPasswordResets.length + ')</div>' +
             a.pendingPasswordResets.map(passwordResetRequestCardHtml).join('') + '</div>';
+    }
+    if (a.tiresNeedMeasurement.length || a.tiresNearEndOfLife.length) {
+        html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#0f172a;margin-bottom:6px">🛞 تنبيهات الإطارات (' + (a.tiresNeedMeasurement.length + a.tiresNearEndOfLife.length) + ')</div>' +
+            '<button onclick="closeNotifCenter();openTireManagementView();" style="width:100%;padding:9px;background:#1e293b;color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">فتح شاشة إدارة الإطارات</button></div>';
     }
     if (!a.totalCount) html = '<div style="text-align:center;padding:30px;color:var(--gray)">✅ لا توجد تنبيهات حالياً — كل شيء تمام</div>';
     var hasClearable = a.maintOverdue.length || a.maintSoon.length || a.licExpired.length || a.licSoon.length || a.lowStock.length || a.rentExpired.length || a.rentSoon.length || a.rentAbsence.length;
@@ -15694,6 +15740,849 @@ var editingRentalDailyId = null;
     document.body.insertAdjacentHTML('beforeend', woOverlay + woModal);
 })();
 
+// ==================== Downtime & RCA — توقف المعدات وتحليل الأسباب الجذرية ====================
+var downtimeEvents = [];
+var downtimeEventsListenerAttached = false;
+var downtimeParetoChartInstance = null;
+var editingDowntimeEventId = null;
+
+var DOWNTIME_CATEGORIES = [
+    ['electrical', '⚡ كهربائي', '#f59e0b'],
+    ['mechanical', '⚙️ ميكانيكي', '#64748b'],
+    ['hydraulic', '🛢️ هيدروليكي', '#0891b2'],
+    ['driver', '🧑\u200d✈️ سائق', '#7c3aed'],
+    ['awaiting_parts', '📦 انتظار قطع غيار', '#dc2626'],
+    ['other', '📝 أخرى', '#0d1b2a']
+];
+function downtimeCategoryMeta(cat) {
+    var found = DOWNTIME_CATEGORIES.find(function(c) { return c[0] === cat; });
+    return found ? { label: found[1], color: found[2] } : { label: '📝 أخرى', color: '#0d1b2a' };
+}
+
+(function injectDowntimeRcaUI() {
+    var dtOverlay = '<div class="modal-overlay" id="downtime-rca-overlay">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#7f1d1d,#450a0a)">' +
+        '<div class="modal-title">⏱️ توقف المعدات وتحليل الأسباب (Downtime & RCA)</div>' +
+        '<button class="modal-close" onclick="closeModal(\'downtime-rca-overlay\')">✕</button></div>' +
+        '<div style="padding:14px">' +
+        '<div style="display:flex;gap:8px;margin-bottom:10px">' +
+        '<select id="dt-filter-equipment" onchange="renderDowntimeRcaView()" style="flex:1;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:12.5px;background:white"><option value="">كل المعدات</option></select>' +
+        '<select id="dt-filter-period" onchange="renderDowntimeRcaView()" style="flex:1;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:12.5px;background:white">' +
+        '<option value="30">آخر 30 يوم</option><option value="90">آخر 90 يوم</option><option value="365">آخر سنة</option><option value="all">كل الفترة</option></select>' +
+        '</div>' +
+        '<button id="dt-add-btn" onclick="openAddDowntimeEvent()" style="width:100%;padding:12px;background:linear-gradient(135deg,#dc2626,#991b1b);color:white;border:none;border-radius:14px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:14px">➕ تسجيل توقف جديد</button>' +
+        '<div id="dt-kpi-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px"></div>' +
+        '<div style="background:white;border-radius:14px;padding:10px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        '<div style="font-size:12.5px;font-weight:700;color:#0d1b2a;margin-bottom:6px">📊 Pareto — الأسباب الأكثر تكرارًا</div>' +
+        '<canvas id="downtime-pareto-chart" height="200"></canvas>' +
+        '<div id="dt-pareto-empty" style="display:none;text-align:center;color:var(--gray);font-size:12px;padding:20px 0">لا توجد بيانات كافية بعد</div>' +
+        '</div>' +
+        '<div id="dt-events-list"></div>' +
+        '</div></div>';
+
+    var dtModal = '<div class="modal-overlay" id="downtime-event-modal">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#7f1d1d,#450a0a)">' +
+        '<div class="modal-title" id="dt-modal-title">➕ تسجيل توقف جديد</div>' +
+        '<button class="modal-close" onclick="closeModal(\'downtime-event-modal\')">✕</button></div>' +
+        '<div><div class="form-group">' +
+        '<div class="form-field"><label class="form-label">🏗️ المعدة *</label><select class="form-select" id="dt-eq-select" onchange="onDowntimeEquipmentChange()"><option value="">-- اختر المعدة --</option></select></div>' +
+        '<div class="form-field"><label class="form-label">🏷️ تصنيف السبب</label><select class="form-select" id="dt-category">' +
+        DOWNTIME_CATEGORIES.map(function(c) { return '<option value="' + c[0] + '">' + c[1] + '</option>'; }).join('') +
+        '</select></div>' +
+        '<div class="form-field"><label class="form-label">📝 وصف السبب</label><textarea class="form-textarea" id="dt-reason" placeholder="تفاصيل سبب التوقف..."></textarea></div>' +
+        '<div class="form-field"><label class="form-label">🕐 بداية التوقف *</label><input class="form-input" type="datetime-local" id="dt-start"></div>' +
+        '<div class="form-field"><label class="form-label">🕐 نهاية التوقف (سيبها فاضية لو لسه مستمر)</label><input class="form-input" type="datetime-local" id="dt-end"></div>' +
+        '<div class="form-field"><label class="form-label">🔧 ربط بسجل صيانة (اختياري)</label><select class="form-select" id="dt-maint-link" onchange="onDowntimeMaintLinkChange()"><option value="">-- بدون ربط --</option></select></div>' +
+        '<div class="form-field"><label class="form-label">💰 تكلفة الإصلاح (ج.م)</label><input class="form-input" type="number" id="dt-cost" placeholder="0" step="0.01"></div>' +
+        '</div></div>' +
+        '<button class="save-btn" onclick="saveDowntimeEvent()">✅ حفظ التوقف</button></div></div>';
+
+    document.body.insertAdjacentHTML('beforeend', dtOverlay + dtModal);
+})();
+
+function listenDowntimeEvents() {
+    if (!fbDb) return;
+    if (downtimeEventsListenerAttached) { renderDowntimeRcaView(); return; }
+    downtimeEventsListenerAttached = true;
+    fbDb.ref('downtimeEvents').on('value', function(snapshot) {
+        downtimeEvents = snapshot.val() ? Object.entries(snapshot.val()).map(function(e) { var o = Object.assign({}, e[1]); o.id = e[0]; return o; }) : [];
+        renderDowntimeRcaView();
+    });
+}
+
+function openDowntimeRcaView() {
+    if (!canView('maintenance')) { showAccessDeniedModal(); return; }
+    var eqSelect = document.getElementById('dt-filter-equipment');
+    if (eqSelect) {
+        var current = eqSelect.value;
+        eqSelect.innerHTML = '<option value="">كل المعدات</option>' +
+            equipmentData.map(function(e) { return '<option value="' + e.id + '">' + escapeHtml(e.name) + ' (' + escapeHtml(e.code || '') + ')</option>'; }).join('');
+        eqSelect.value = current || '';
+    }
+    var addBtn = document.getElementById('dt-add-btn');
+    if (addBtn) addBtn.style.display = canAdd('maintenance') ? 'block' : 'none';
+    document.getElementById('downtime-rca-overlay').classList.add('active');
+    listenDowntimeEvents();
+}
+
+function renderDowntimeRcaView() {
+    var listEl = document.getElementById('dt-events-list');
+    if (!listEl) return; // الشاشة لسه ما اتفتحتش
+
+    var eqFilter = (document.getElementById('dt-filter-equipment') || {}).value || '';
+    var periodVal = (document.getElementById('dt-filter-period') || {}).value || '30';
+
+    var filtered = downtimeEvents.filter(function(ev) { return !eqFilter || ev.equipmentId === eqFilter; });
+
+    var now = new Date();
+    var periodStart;
+    if (periodVal === 'all') {
+        var starts = filtered.map(function(ev) { return new Date(ev.startAt).getTime(); }).filter(function(t) { return !isNaN(t); });
+        periodStart = starts.length ? new Date(Math.min.apply(null, starts)) : new Date(now.getTime() - 30 * 86400000);
+    } else {
+        periodStart = new Date(now.getTime() - parseInt(periodVal) * 86400000);
+    }
+
+    var inPeriod = filtered.filter(function(ev) {
+        var s = new Date(ev.startAt);
+        var e = ev.endAt ? new Date(ev.endAt) : now;
+        return e >= periodStart && s <= now;
+    });
+
+    renderDowntimeKpiCards(inPeriod, periodStart, now);
+    renderDowntimeParetoChart(inPeriod);
+
+    var sorted = filtered.slice().sort(function(a, b) { return (b.startAt || '').localeCompare(a.startAt || ''); });
+    if (!sorted.length) { listEl.innerHTML = '<div class="empty-state">⏱️ لا توجد فترات توقف مسجلة بعد</div>'; return; }
+    listEl.innerHTML = sorted.map(downtimeEventCardHtml).join('');
+}
+
+function renderDowntimeKpiCards(events, periodStart, now) {
+    var cardsEl = document.getElementById('dt-kpi-cards');
+    if (!cardsEl) return;
+    var totalSpanMs = Math.max(1, now.getTime() - periodStart.getTime());
+    var totalDowntimeMs = 0;
+    var costSum = 0, costHoursSum = 0;
+    var failureCount = events.length;
+    events.forEach(function(ev) {
+        var s = Math.max(new Date(ev.startAt).getTime(), periodStart.getTime());
+        var e = Math.min(ev.endAt ? new Date(ev.endAt).getTime() : now.getTime(), now.getTime());
+        var dur = Math.max(0, e - s);
+        totalDowntimeMs += dur;
+        if (ev.cost && ev.endAt) {
+            var fullDurHours = (new Date(ev.endAt).getTime() - new Date(ev.startAt).getTime()) / 3600000;
+            if (fullDurHours > 0) { costSum += parseFloat(ev.cost); costHoursSum += fullDurHours; }
+        }
+    });
+    var uptimeMs = Math.max(0, totalSpanMs - totalDowntimeMs);
+    var mtbfHours = failureCount > 0 ? (uptimeMs / failureCount) / 3600000 : 0;
+    var mttrHours = failureCount > 0 ? (totalDowntimeMs / failureCount) / 3600000 : 0;
+    var availabilityPct = totalSpanMs > 0 ? (uptimeMs / totalSpanMs) * 100 : 100;
+    var costPerHour = costHoursSum > 0 ? costSum / costHoursSum : 0;
+
+    function card(icon, label, value, color) {
+        return '<div style="background:white;border-radius:12px;padding:10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06);border-right:3px solid ' + color + '">' +
+            '<div style="font-size:11px;color:var(--gray);margin-bottom:3px">' + icon + ' ' + label + '</div>' +
+            '<div style="font-size:16px;font-weight:800;color:' + color + '">' + value + '</div></div>';
+    }
+    cardsEl.innerHTML =
+        card('⏳', 'MTBF (متوسط بين الأعطال)', mtbfHours.toFixed(1) + ' س', '#059669') +
+        card('🔧', 'MTTR (متوسط زمن الإصلاح)', mttrHours.toFixed(1) + ' س', '#d97706') +
+        card('✅', 'Availability', availabilityPct.toFixed(1) + '%', availabilityPct >= 90 ? '#059669' : (availabilityPct >= 75 ? '#d97706' : '#dc2626')) +
+        card('💰', 'تكلفة ساعة التوقف', costPerHour > 0 ? formatNumber(costPerHour) + ' ج.م/س' : '—', '#7c3aed') +
+        '<div style="grid-column:1/-1;text-align:center;font-size:10.5px;color:var(--gray)">📌 عدد فترات التوقف في الفترة المحددة: ' + failureCount + '</div>';
+}
+
+function renderDowntimeParetoChart(events) {
+    var canvas = document.getElementById('downtime-pareto-chart');
+    var emptyEl = document.getElementById('dt-pareto-empty');
+    if (!canvas || !window.Chart) return;
+    if (downtimeParetoChartInstance) { downtimeParetoChartInstance.destroy(); downtimeParetoChartInstance = null; }
+    if (!events.length) { canvas.style.display = 'none'; if (emptyEl) emptyEl.style.display = 'block'; return; }
+    canvas.style.display = 'block'; if (emptyEl) emptyEl.style.display = 'none';
+
+    var byCategory = {};
+    events.forEach(function(ev) {
+        var key = ev.category || 'other';
+        var durHours = ((ev.endAt ? new Date(ev.endAt).getTime() : Date.now()) - new Date(ev.startAt).getTime()) / 3600000;
+        byCategory[key] = (byCategory[key] || 0) + Math.max(0, durHours);
+    });
+    var rows = Object.keys(byCategory).map(function(k) { return { key: k, hours: byCategory[k], meta: downtimeCategoryMeta(k) }; })
+        .sort(function(a, b) { return b.hours - a.hours; });
+    var total = rows.reduce(function(s, r) { return s + r.hours; }, 0) || 1;
+    var cum = 0;
+    var cumPercents = rows.map(function(r) { cum += r.hours; return (cum / total) * 100; });
+
+    downtimeParetoChartInstance = new Chart(canvas, {
+        data: {
+            labels: rows.map(function(r) { return r.meta.label; }),
+            datasets: [
+                { type: 'bar', label: 'ساعات التوقف', data: rows.map(function(r) { return +r.hours.toFixed(1); }), backgroundColor: rows.map(function(r) { return r.meta.color; }), borderRadius: 6, yAxisID: 'y' },
+                { type: 'line', label: 'النسبة التراكمية %', data: cumPercents.map(function(p) { return +p.toFixed(1); }), borderColor: '#0d1b2a', backgroundColor: '#0d1b2a', yAxisID: 'y1', tension: .3 }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 10 }, padding: 10 } } },
+            scales: {
+                y: { beginAtZero: true, position: 'left', title: { display: true, text: 'ساعات' } },
+                y1: { beginAtZero: true, max: 100, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: '%' } }
+            }
+        }
+    });
+}
+
+function downtimeEventCardHtml(ev) {
+    var eq = equipmentData.find(function(e) { return e.id === ev.equipmentId; });
+    var meta = downtimeCategoryMeta(ev.category);
+    var start = ev.startAt ? new Date(ev.startAt) : null;
+    var end = ev.endAt ? new Date(ev.endAt) : null;
+    var isOngoing = !!(start && !end);
+    var durHours = start ? ((end ? end.getTime() : Date.now()) - start.getTime()) / 3600000 : 0;
+    var costPerHour = (ev.cost && end && durHours > 0) ? (parseFloat(ev.cost) / durHours) : null;
+    return '<div style="background:white;border-radius:14px;border-right:4px solid ' + meta.color + ';padding:12px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px">' +
+        '<div><div style="font-size:13.5px;font-weight:700;color:#0d1b2a">' + (eq ? escapeHtml(eq.name) + ' (' + escapeHtml(eq.code || '') + ')' : '—') + '</div>' +
+        '<div style="font-size:11.5px;color:' + meta.color + ';font-weight:700;margin-top:2px">' + meta.label + '</div></div>' +
+        (isOngoing ? '<span style="background:#fee2e2;color:#dc2626;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:800;white-space:nowrap">🔴 مستمر الآن</span>' : '<span style="background:#dcfce7;color:#166534;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap">✅ انتهى</span>') +
+        '</div>' +
+        (ev.reason ? '<div style="font-size:12px;color:#374151;margin-bottom:6px">📝 ' + escapeHtml(ev.reason) + '</div>' : '') +
+        '<div style="font-size:11.5px;color:var(--gray);margin-bottom:4px">🕐 من ' + (start ? start.toLocaleString('ar-EG') : '—') + (end ? (' إلى ' + end.toLocaleString('ar-EG')) : '') + '</div>' +
+        '<div style="font-size:11.5px;font-weight:700;color:#0d1b2a;margin-bottom:6px">⏳ المدة: ' + durHours.toFixed(1) + ' ساعة' + (ev.cost ? (' &nbsp;|&nbsp; 💰 ' + formatNumber(ev.cost) + ' ج.م' + (costPerHour !== null ? (' (' + formatNumber(costPerHour) + ' ج.م/ساعة)') : '')) : '') + '</div>' +
+        '<div style="display:flex;gap:6px">' +
+        (isOngoing && canEdit('maintenance') ? '<button onclick="endDowntimeEventNow(\'' + ev.id + '\')" style="flex:1;background:#dcfce7;color:#166534;border:none;border-radius:9px;padding:7px;font-size:11.5px;font-weight:700;cursor:pointer">⏹️ إنهاء التوقف الآن</button>' : '') +
+        (canEdit('maintenance') ? '<button onclick="openEditDowntimeEvent(\'' + ev.id + '\')" style="flex:1;background:#e0e7ff;color:#4338ca;border:none;border-radius:9px;padding:7px;font-size:11.5px;font-weight:700;cursor:pointer">✏️ تعديل</button>' : '') +
+        (canEdit('maintenance') ? '<button onclick="deleteDowntimeEvent(\'' + ev.id + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:9px;padding:7px 12px;font-size:11.5px;font-weight:700;cursor:pointer">🗑️</button>' : '') +
+        '</div></div>';
+}
+
+function openAddDowntimeEvent() {
+    if (!canAdd('maintenance')) { showToast('⛔ غير مصرح لك بإضافة سجلات توقف', true); return; }
+    editingDowntimeEventId = null;
+    document.getElementById('dt-modal-title').textContent = '➕ تسجيل توقف جديد';
+    var eqSelect = document.getElementById('dt-eq-select');
+    eqSelect.innerHTML = '<option value="">-- اختر المعدة --</option>' + equipmentData.map(function(e) { return '<option value="' + e.id + '">' + escapeHtml(e.name) + ' (' + escapeHtml(e.code || '') + ')</option>'; }).join('');
+    eqSelect.value = '';
+    document.getElementById('dt-category').value = 'mechanical';
+    document.getElementById('dt-reason').value = '';
+    var nowLocal = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById('dt-start').value = nowLocal;
+    document.getElementById('dt-end').value = '';
+    document.getElementById('dt-cost').value = '';
+    onDowntimeEquipmentChange();
+    document.getElementById('downtime-event-modal').classList.add('active');
+}
+
+function openEditDowntimeEvent(id) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك بالتعديل', true); return; }
+    var ev = downtimeEvents.find(function(x) { return x.id === id; });
+    if (!ev) return;
+    editingDowntimeEventId = id;
+    document.getElementById('dt-modal-title').textContent = '✏️ تعديل سجل توقف';
+    var eqSelect = document.getElementById('dt-eq-select');
+    eqSelect.innerHTML = '<option value="">-- اختر المعدة --</option>' + equipmentData.map(function(e) { return '<option value="' + e.id + '">' + escapeHtml(e.name) + ' (' + escapeHtml(e.code || '') + ')</option>'; }).join('');
+    eqSelect.value = ev.equipmentId || '';
+    document.getElementById('dt-category').value = ev.category || 'mechanical';
+    document.getElementById('dt-reason').value = ev.reason || '';
+    document.getElementById('dt-start').value = ev.startAt ? ev.startAt.slice(0, 16) : '';
+    document.getElementById('dt-end').value = ev.endAt ? ev.endAt.slice(0, 16) : '';
+    document.getElementById('dt-cost').value = ev.cost || '';
+    onDowntimeEquipmentChange();
+    var maintSel = document.getElementById('dt-maint-link');
+    if (maintSel && ev.maintenanceId) maintSel.value = ev.maintenanceId;
+    document.getElementById('downtime-event-modal').classList.add('active');
+}
+
+function onDowntimeEquipmentChange() {
+    var eqId = document.getElementById('dt-eq-select').value;
+    var maintSel = document.getElementById('dt-maint-link');
+    if (!maintSel) return;
+    var related = (typeof maintenanceSchedules !== 'undefined' ? maintenanceSchedules : []).filter(function(m) { return m.equipmentId === eqId; })
+        .slice().sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+    maintSel.innerHTML = '<option value="">-- بدون ربط --</option>' + related.map(function(m) {
+        return '<option value="' + m.id + '">' + escapeHtml(m.type || 'صيانة') + ' — ' + escapeHtml(m.date || '') + (m.estimatedCost ? (' (' + formatNumber(m.estimatedCost) + ' ج.م)') : '') + '</option>';
+    }).join('');
+}
+
+function onDowntimeMaintLinkChange() {
+    var maintId = document.getElementById('dt-maint-link').value;
+    if (!maintId) return;
+    var m = (typeof maintenanceSchedules !== 'undefined' ? maintenanceSchedules : []).find(function(x) { return x.id === maintId; });
+    if (m && m.estimatedCost) document.getElementById('dt-cost').value = m.estimatedCost;
+}
+
+function logDowntimeToChangeLog(eq, record) {
+    if (!eq) return;
+    var meta = downtimeCategoryMeta(record.category);
+    var durText = record.endAt ? (((new Date(record.endAt) - new Date(record.startAt)) / 3600000).toFixed(1) + ' ساعة') : 'مستمر حاليًا';
+    var costText = record.cost ? (' — تكلفة الإصلاح: ' + formatNumber(record.cost) + ' ج.م') : '';
+    var who = (currentUser && (currentUser.name || currentUser.username)) || 'غير معروف';
+    saveToFirebase('changeLogs', {
+        equipmentId: eq.id,
+        equipmentCode: eq.code || '',
+        equipmentName: eq.name || '',
+        changedBy: who,
+        changedAt: new Date().toISOString(),
+        changes: [{ field: 'downtime', label: '⏱️ توقف معدة', oldValue: meta.label, newValue: (record.reason || '—') + ' — المدة: ' + durText + costText }]
+    });
+}
+
+function saveDowntimeEvent() {
+    if (!canAdd('maintenance') && !canEdit('maintenance')) { showToast('⛔ غير مصرح لك', true); return; }
+    var equipmentId = document.getElementById('dt-eq-select').value;
+    if (!equipmentId) { showToast('اختر المعدة', true); return; }
+    var startVal = document.getElementById('dt-start').value;
+    if (!startVal) { showToast('حدد بداية التوقف', true); return; }
+    var endVal = document.getElementById('dt-end').value;
+    var startAt = new Date(startVal).toISOString();
+    var endAt = endVal ? new Date(endVal).toISOString() : null;
+    if (endAt && new Date(endAt) <= new Date(startAt)) { showToast('نهاية التوقف لازم تكون بعد البداية', true); return; }
+
+    var eq = equipmentData.find(function(e) { return e.id === equipmentId; });
+    var record = {
+        equipmentId: equipmentId,
+        category: document.getElementById('dt-category').value,
+        reason: document.getElementById('dt-reason').value.trim(),
+        startAt: startAt,
+        endAt: endAt,
+        maintenanceId: document.getElementById('dt-maint-link').value || null,
+        cost: parseFloat(document.getElementById('dt-cost').value) || 0,
+        recordedByName: (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم',
+        updatedAt: new Date().toISOString()
+    };
+    if (editingDowntimeEventId) record.id = editingDowntimeEventId;
+
+    saveToFirebase('downtimeEvents', record);
+    logDowntimeToChangeLog(eq, record);
+    closeModal('downtime-event-modal');
+    showToast('✅ تم حفظ سجل التوقف');
+}
+
+function endDowntimeEventNow(id) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك', true); return; }
+    var ev = downtimeEvents.find(function(x) { return x.id === id; });
+    if (!ev || !fbDb) return;
+    var nowIso = new Date().toISOString();
+    fbDb.ref('downtimeEvents/' + id).update({ endAt: nowIso }).then(function() {
+        var eq = equipmentData.find(function(e) { return e.id === ev.equipmentId; });
+        logDowntimeToChangeLog(eq, Object.assign({}, ev, { endAt: nowIso }));
+        showToast('✅ تم إنهاء فترة التوقف');
+    }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+}
+
+function deleteDowntimeEvent(id) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك', true); return; }
+    if (!confirm('حذف سجل التوقف ده؟')) return;
+    if (!fbDb) return;
+    fbDb.ref('downtimeEvents/' + id).remove().then(function() { showToast('🗑️ تم الحذف'); }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+}
+
+// ==================== إدارة الإطارات (Tire Management) ====================
+var editingTireId = null;
+var tireMgmtActiveTab = 'list';
+var currentTreadTireId = null;
+var TIRE_TREAD_CHECK_DAYS = 30;
+
+var TIRE_POSITIONS = [
+    ['FL', 'أمامي يسار'], ['FR', 'أمامي يمين'],
+    ['RL_OUT', 'خلفي يسار خارجي'], ['RL_IN', 'خلفي يسار داخلي'],
+    ['RR_OUT', 'خلفي يمين خارجي'], ['RR_IN', 'خلفي يمين داخلي'],
+    ['SPARE', 'احتياطي'], ['OTHER', 'أخرى']
+];
+function tirePositionLabel(p) { var f = TIRE_POSITIONS.find(function(x) { return x[0] === p; }); return f ? f[1] : (p || '—'); }
+
+function getTireCurrentCycle(tire) {
+    var cycles = tire.cycles || [];
+    return cycles.length ? cycles[cycles.length - 1] : null;
+}
+function getTireLatestTread(tire) {
+    var r = tire.treadReadings || [];
+    return r.length ? r[r.length - 1] : null;
+}
+function getTireTotalHoursServed(tire) {
+    var total = 0;
+    (tire.cycles || []).forEach(function(c) {
+        var eq = equipmentData.find(function(e) { return e.id === c.equipmentId; });
+        var endHours = (c.removedAt != null) ? c.removeHours : (eq ? (eq.hours || 0) : c.installHours);
+        var diff = (endHours || 0) - (c.installHours || 0);
+        if (diff > 0) total += diff;
+    });
+    return total;
+}
+function getTireTotalCost(tire) {
+    var retreadsCost = tireCostEvents.filter(function(e) { return e.tireId === tire.id && e.type === 'retread'; }).reduce(function(s, e) { return s + (e.cost || 0); }, 0);
+    return (tire.purchaseCost || 0) + retreadsCost;
+}
+function getTireCPH(tire) {
+    var hours = getTireTotalHoursServed(tire);
+    var cost = getTireTotalCost(tire);
+    return hours > 0 ? cost / hours : 0;
+}
+function getTireTreadStatus(tire) {
+    var latest = getTireLatestTread(tire);
+    if (!latest) return { level: 'unknown', label: '⚪ لا يوجد قياس بعد', color: '#94a3b8' };
+    var min = tire.minTreadMm || 3;
+    var max = tire.maxTreadMm || 18;
+    var ratio = (latest.treadMm - min) / Math.max(1, (max - min));
+    if (latest.treadMm <= min) return { level: 'critical', label: '🔴 وصل الحد الأدنى — يحتاج تغيير/تغطية', color: '#dc2626' };
+    if (ratio <= 0.25) return { level: 'warning', label: '🟡 قريب من نهاية العمر الافتراضي', color: '#d97706' };
+    return { level: 'good', label: '🟢 سليم', color: '#059669' };
+}
+function daysSinceLastTreadReading(tire) {
+    var latest = getTireLatestTread(tire);
+    var refDate = latest ? latest.date : (tire.purchaseDate || tire.createdAt);
+    if (!refDate) return null;
+    return Math.floor((Date.now() - new Date(refDate).getTime()) / 86400000);
+}
+function getEquipmentProjectContractor(eq) {
+    var project = (eq && (eq.projectSite || eq.location)) || 'غير محدد';
+    var contractorName = 'بدون مقاول';
+    if (eq) {
+        var rental = rentalData.find(function(r) { return r.equipmentId === eq.id; });
+        if (rental && rental.contractorId) {
+            var ct = contractorsData.find(function(c) { return c.id === rental.contractorId; });
+            if (ct) contractorName = ct.name;
+        }
+    }
+    return { project: project, contractorName: contractorName };
+}
+function getTiresNeedingMeasurement() {
+    return (tiresData || []).filter(function(t) {
+        if (t.status === 'scrapped') return false;
+        var d = daysSinceLastTreadReading(t);
+        return d === null || d >= TIRE_TREAD_CHECK_DAYS;
+    });
+}
+function getTiresNearEndOfLife() {
+    return (tiresData || []).filter(function(t) {
+        if (t.status === 'scrapped') return false;
+        var s = getTireTreadStatus(t);
+        return s.level === 'warning' || s.level === 'critical';
+    });
+}
+
+(function injectTireManagementUI() {
+    var tmOverlay = '<div class="modal-overlay" id="tire-mgmt-overlay">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a)">' +
+        '<div class="modal-title">🛞 إدارة الإطارات (Tire Management)</div>' +
+        '<button class="modal-close" onclick="closeModal(\'tire-mgmt-overlay\')">✕</button></div>' +
+        '<div style="padding:14px">' +
+        '<div id="tire-mgmt-tabs" style="display:flex;gap:6px;margin-bottom:12px"></div>' +
+        '<div id="tire-mgmt-content"></div>' +
+        '</div></div>';
+
+    var tmAddModal = '<div class="modal-overlay" id="tire-add-modal">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a)">' +
+        '<div class="modal-title" id="tire-add-modal-title">➕ تسجيل إطار جديد</div>' +
+        '<button class="modal-close" onclick="closeModal(\'tire-add-modal\')">✕</button></div>' +
+        '<div><div class="form-group">' +
+        '<div class="form-field"><label class="form-label">🔢 الرقم التسلسلي *</label><input class="form-input" type="text" id="tire-serial" placeholder="Serial No."></div>' +
+        '<div class="form-field"><label class="form-label">🏭 الماركة</label><input class="form-input" type="text" id="tire-brand" placeholder="مثال: Bridgestone"></div>' +
+        '<div class="form-field"><label class="form-label">📏 المقاس</label><input class="form-input" type="text" id="tire-size" placeholder="مثال: 12.00-24"></div>' +
+        '<div class="form-field"><label class="form-label">💰 تكلفة الشراء (ج.م)</label><input class="form-input" type="number" id="tire-purchase-cost" placeholder="0" step="0.01"></div>' +
+        '<div class="form-field"><label class="form-label">📅 تاريخ الشراء</label><input class="form-input" type="date" id="tire-purchase-date"></div>' +
+        '<div class="form-field"><label class="form-label">📐 أقصى عمق مداس عند الجديد (مم)</label><input class="form-input" type="number" id="tire-max-tread" value="18" step="0.1"></div>' +
+        '<div class="form-field"><label class="form-label">⚠️ الحد الأدنى المسموح للمداس (مم)</label><input class="form-input" type="number" id="tire-min-tread" value="3" step="0.1"></div>' +
+        '</div></div>' +
+        '<button class="save-btn" onclick="saveTireBasicInfo()">✅ حفظ</button></div></div>';
+
+    var tmInstallModal = '<div class="modal-overlay" id="tire-install-modal">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a)">' +
+        '<div class="modal-title">🔧 تركيب إطار على معدة</div>' +
+        '<button class="modal-close" onclick="closeModal(\'tire-install-modal\')">✕</button></div>' +
+        '<div><div class="form-group">' +
+        '<div class="form-field"><label class="form-label">🏗️ المعدة *</label><select class="form-select" id="tire-install-eq" onchange="onTireInstallEquipmentChange()"><option value="">-- اختر المعدة --</option></select></div>' +
+        '<div class="form-field"><label class="form-label">📍 الموضع على المعدة *</label><select class="form-select" id="tire-install-position">' +
+        TIRE_POSITIONS.map(function(p) { return '<option value="' + p[0] + '">' + p[1] + '</option>'; }).join('') +
+        '</select></div>' +
+        '<div class="form-field"><label class="form-label">📅 تاريخ التركيب</label><input class="form-input" type="date" id="tire-install-date"></div>' +
+        '<div class="form-field"><label class="form-label">🔢 قراءة العداد عند التركيب</label><input class="form-input" type="number" id="tire-install-hours" placeholder="0"></div>' +
+        '</div></div>' +
+        '<button class="save-btn" onclick="saveTireInstall()">✅ تركيب</button></div></div>';
+
+    var tmTreadModal = '<div class="modal-overlay" id="tire-tread-modal">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a)">' +
+        '<div class="modal-title">📏 تسجيل قياس عمق المداس</div>' +
+        '<button class="modal-close" onclick="closeModal(\'tire-tread-modal\')">✕</button></div>' +
+        '<div><div class="form-group">' +
+        '<div class="form-field"><label class="form-label">📐 عمق المداس (مم) *</label><input class="form-input" type="number" id="tire-tread-value" step="0.1" placeholder="مثال: 9.5"></div>' +
+        '<div class="form-field"><label class="form-label">📅 تاريخ القياس</label><input class="form-input" type="date" id="tire-tread-date"></div>' +
+        '<div class="form-field"><label class="form-label">📝 ملاحظات</label><textarea class="form-textarea" id="tire-tread-notes" placeholder="اختياري"></textarea></div>' +
+        '</div></div>' +
+        '<button class="save-btn" onclick="saveTireTreadReading()">✅ حفظ القياس</button></div></div>';
+
+    var tmHistoryModal = '<div class="modal-overlay" id="tire-history-modal">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a)">' +
+        '<div class="modal-title" id="tire-history-modal-title">📜 سجل الإطار</div>' +
+        '<button class="modal-close" onclick="closeModal(\'tire-history-modal\')">✕</button></div>' +
+        '<div style="padding:14px" id="tire-history-content"></div></div>';
+
+    document.body.insertAdjacentHTML('beforeend', tmOverlay + tmAddModal + tmInstallModal + tmTreadModal + tmHistoryModal);
+})();
+
+function tireMgmtTabsHtml() {
+    var tabs = [['list', '🛞 الإطارات'], ['stock', '📦 المخزون وإعادة التغطية'], ['report', '💰 التكلفة حسب المشروع']];
+    return tabs.map(function(t) {
+        var active = tireMgmtActiveTab === t[0];
+        return '<button onclick="switchTireMgmtTab(\'' + t[0] + '\')" style="flex:1;padding:9px 4px;border:none;border-radius:10px;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer;background:' + (active ? '#0f172a' : '#f1f5f9') + ';color:' + (active ? 'white' : '#475569') + '">' + t[1] + '</button>';
+    }).join('');
+}
+
+function switchTireMgmtTab(tab) {
+    tireMgmtActiveTab = tab;
+    renderTireMgmtView();
+}
+
+function openTireManagementView() {
+    if (!canView('maintenance')) { showAccessDeniedModal(); return; }
+    document.getElementById('tire-mgmt-overlay').classList.add('active');
+    renderTireMgmtView();
+}
+
+function renderTireMgmtView() {
+    var tabsEl = document.getElementById('tire-mgmt-tabs');
+    var contentEl = document.getElementById('tire-mgmt-content');
+    if (!tabsEl || !contentEl) return; // الشاشة لسه ما اتفتحتش
+    tabsEl.innerHTML = tireMgmtTabsHtml();
+    if (tireMgmtActiveTab === 'stock') contentEl.innerHTML = renderTireStockTabHtml();
+    else if (tireMgmtActiveTab === 'report') contentEl.innerHTML = renderTireCostReportTabHtml();
+    else contentEl.innerHTML = renderTireListTabHtml();
+}
+
+function renderTireListTabHtml() {
+    var addBtn = canAdd('maintenance') ? '<button onclick="openAddTireModal()" style="width:100%;padding:11px;background:linear-gradient(135deg,#0f172a,#1e293b);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;margin-bottom:12px">➕ تسجيل إطار جديد</button>' : '';
+    var tires = (tiresData || []).slice().sort(function(a, b) {
+        var order = { installed: 0, in_stock: 1, retreading: 2, scrapped: 3 };
+        return (order[a.status] - order[b.status]) || (a.serialNo || '').localeCompare(b.serialNo || '');
+    });
+    var listHtml = tires.length ? tires.map(tireCardHtml).join('') : '<div class="empty-state">🛞 لا توجد إطارات مسجلة بعد</div>';
+    return addBtn + listHtml;
+}
+
+function tireCardHtml(tire) {
+    var cycle = getTireCurrentCycle(tire);
+    var eq = (tire.status === 'installed' && cycle) ? equipmentData.find(function(e) { return e.id === cycle.equipmentId; }) : null;
+    var treadStatus = getTireTreadStatus(tire);
+    var daysSince = daysSinceLastTreadReading(tire);
+    var needsMeasure = tire.status !== 'scrapped' && (daysSince === null || daysSince >= TIRE_TREAD_CHECK_DAYS);
+    var cph = getTireCPH(tire);
+
+    var statusBadge = {
+        installed: '<span style="background:#dbeafe;color:#1d4ed8;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:800">🔧 مُركَّب</span>',
+        in_stock: '<span style="background:#f1f5f9;color:#475569;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:800">📦 في المخزون</span>',
+        retreading: '<span style="background:#fef3c7;color:#92400e;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:800">♻️ في إعادة التغطية</span>',
+        scrapped: '<span style="background:#f3f4f6;color:#6b7280;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:800">🗑️ خارج الخدمة</span>'
+    }[tire.status] || '';
+
+    var actions = '<button onclick="openTireHistoryModal(\'' + tire.id + '\')" style="background:#eef2ff;color:#3730a3;border:none;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer">📜 السجل</button>';
+    if (canEdit('maintenance')) {
+        if (tire.status === 'installed' || tire.status === 'in_stock') {
+            actions += '<button onclick="openTreadReadingModal(\'' + tire.id + '\')" style="flex:1;background:#e0e7ff;color:#4338ca;border:none;border-radius:9px;padding:7px;font-size:11px;font-weight:700;cursor:pointer">📏 قياس مداس</button>';
+        }
+        if (tire.status === 'installed') {
+            actions += '<button onclick="uninstallTire(\'' + tire.id + '\')" style="flex:1;background:#fef3c7;color:#92400e;border:none;border-radius:9px;padding:7px;font-size:11px;font-weight:700;cursor:pointer">🔧 فك</button>';
+            actions += '<button onclick="sendTireToRetread(\'' + tire.id + '\')" style="flex:1;background:#fde2e2;color:#b91c1c;border:none;border-radius:9px;padding:7px;font-size:11px;font-weight:700;cursor:pointer">♻️ تغطية</button>';
+        } else if (tire.status === 'in_stock') {
+            actions += '<button onclick="openInstallTireModal(\'' + tire.id + '\')" style="flex:1;background:#dcfce7;color:#166534;border:none;border-radius:9px;padding:7px;font-size:11px;font-weight:700;cursor:pointer">🔧 تركيب</button>';
+            actions += '<button onclick="sendTireToRetread(\'' + tire.id + '\')" style="flex:1;background:#fde2e2;color:#b91c1c;border:none;border-radius:9px;padding:7px;font-size:11px;font-weight:700;cursor:pointer">♻️ تغطية</button>';
+        } else if (tire.status === 'retreading') {
+            actions += '<button onclick="receiveTireFromRetread(\'' + tire.id + '\')" style="flex:1;background:#dcfce7;color:#166534;border:none;border-radius:9px;padding:7px;font-size:11px;font-weight:700;cursor:pointer">✅ استلام من التغطية</button>';
+        }
+        actions += '<button onclick="editTireBasicInfo(\'' + tire.id + '\')" style="background:#f1f5f9;color:#475569;border:none;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer">✏️</button>';
+        actions += '<button onclick="deleteTireRecord(\'' + tire.id + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer">🗑️</button>';
+    }
+
+    return '<div style="background:white;border-radius:14px;border-right:4px solid ' + treadStatus.color + ';padding:12px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">' +
+        '<div><div style="font-size:13.5px;font-weight:800;color:#0d1b2a">🛞 ' + escapeHtml(tire.serialNo || '—') + '</div>' +
+        '<div style="font-size:11px;color:var(--gray)">' + escapeHtml(tire.brand || '') + (tire.size ? (' — ' + escapeHtml(tire.size)) : '') + '</div></div>' +
+        statusBadge + '</div>' +
+        (eq ? '<div style="font-size:12px;color:#374151;margin-bottom:4px">🏗️ ' + escapeHtml(eq.name) + ' (' + escapeHtml(eq.code || '') + ') — 📍 ' + tirePositionLabel(cycle.position) + '</div>' +
+        '<div style="font-size:11px;color:var(--gray);margin-bottom:4px">📅 تاريخ التركيب: ' + escapeHtml(cycle.installedAt || '—') + ' &nbsp;|&nbsp; 🔢 العداد عند التركيب: ' + formatNumber(cycle.installHours || 0) + ' س</div>' : '') +
+        '<div style="font-size:12px;font-weight:700;color:' + treadStatus.color + ';margin-bottom:4px">' + treadStatus.label + (getTireLatestTread(tire) ? (' (' + getTireLatestTread(tire).treadMm + ' مم)') : '') + '</div>' +
+        (needsMeasure ? '<div style="font-size:11px;color:#dc2626;font-weight:700;margin-bottom:4px">🔔 محتاج قياس مداس (' + (daysSince === null ? 'لم يُقَس من قبل' : ('من ' + daysSince + ' يوم')) + ')</div>' : '') +
+        '<div style="font-size:11px;color:var(--gray);margin-bottom:8px">⏱️ ساعات الخدمة: ' + formatNumber(getTireTotalHoursServed(tire)) + ' س &nbsp;|&nbsp; 💰 CPH: ' + (cph > 0 ? (formatNumber(cph) + ' ج.م/س') : '—') + (tire.retreadCount ? (' &nbsp;|&nbsp; ♻️ مرات التغطية: ' + tire.retreadCount) : '') + '</div>' +
+        (actions ? '<div style="display:flex;gap:5px;flex-wrap:wrap">' + actions + '</div>' : '') +
+        '</div>';
+}
+
+function renderTireStockTabHtml() {
+    var inStock = (tiresData || []).filter(function(t) { return t.status === 'in_stock'; });
+    var retreading = (tiresData || []).filter(function(t) { return t.status === 'retreading'; });
+    var html = '<div style="font-weight:800;font-size:13px;color:#0d1b2a;margin-bottom:8px">🟢 جاهزة للتركيب (' + inStock.length + ')</div>';
+    html += inStock.length ? inStock.map(tireCardHtml).join('') : '<div class="empty-state" style="padding:16px 0">لا توجد إطارات في المخزون حاليًا</div>';
+    html += '<div style="font-weight:800;font-size:13px;color:#0d1b2a;margin:16px 0 8px">♻️ في إعادة التغطية حاليًا (' + retreading.length + ')</div>';
+    html += retreading.length ? retreading.map(tireCardHtml).join('') : '<div class="empty-state" style="padding:16px 0">لا توجد إطارات في إعادة التغطية حاليًا</div>';
+    return html;
+}
+
+function renderTireCostReportTabHtml() {
+    if (!tireCostEvents.length) return '<div class="empty-state">💰 لا توجد تكاليف إطارات مسجلة بعد</div>';
+    var byProject = {}, byContractor = {};
+    tireCostEvents.forEach(function(e) {
+        var p = e.project || 'غير محدد';
+        var c = e.contractorName || 'بدون مقاول';
+        byProject[p] = (byProject[p] || 0) + (e.cost || 0);
+        byContractor[c] = (byContractor[c] || 0) + (e.cost || 0);
+    });
+    function tableHtml(title, obj) {
+        var rows = Object.keys(obj).sort(function(a, b) { return obj[b] - obj[a]; });
+        return '<div style="background:white;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+            '<div style="font-weight:800;font-size:13px;color:#0d1b2a;margin-bottom:8px">' + title + '</div>' +
+            rows.map(function(k) {
+                return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:12.5px">' +
+                    '<span>' + escapeHtml(k) + '</span><span style="font-weight:800">' + formatNumber(obj[k]) + ' ج.م</span></div>';
+            }).join('') + '</div>';
+    }
+    var totalCost = tireCostEvents.reduce(function(s, e) { return s + (e.cost || 0); }, 0);
+    var fleetHoursTotal = (tiresData || []).reduce(function(s, t) { return s + getTireTotalHoursServed(t); }, 0);
+    var fleetCph = fleetHoursTotal > 0 ? totalCost / fleetHoursTotal : 0;
+    return '<div style="background:linear-gradient(135deg,#0f172a,#1e293b);color:white;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center">' +
+        '<div style="font-size:12px;opacity:.85">إجمالي تكلفة الإطارات</div><div style="font-size:22px;font-weight:800;margin:4px 0">' + formatNumber(totalCost) + ' ج.م</div>' +
+        '<div style="font-size:11.5px;opacity:.85">متوسط CPH على مستوى الأسطول: ' + (fleetCph > 0 ? formatNumber(fleetCph) + ' ج.م/س' : '—') + '</div></div>' +
+        tableHtml('📍 حسب المشروع', byProject) + tableHtml('👷 حسب المقاول', byContractor);
+}
+
+function openAddTireModal() {
+    if (!canAdd('maintenance')) { showToast('⛔ غير مصرح لك بإضافة إطارات', true); return; }
+    editingTireId = null;
+    document.getElementById('tire-add-modal-title').textContent = '➕ تسجيل إطار جديد';
+    document.getElementById('tire-serial').value = '';
+    document.getElementById('tire-brand').value = '';
+    document.getElementById('tire-size').value = '';
+    document.getElementById('tire-purchase-cost').value = '';
+    document.getElementById('tire-purchase-date').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('tire-max-tread').value = 18;
+    document.getElementById('tire-min-tread').value = 3;
+    document.getElementById('tire-add-modal').classList.add('active');
+}
+
+function editTireBasicInfo(id) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك بالتعديل', true); return; }
+    var tire = tiresData.find(function(t) { return t.id === id; });
+    if (!tire) return;
+    editingTireId = id;
+    document.getElementById('tire-add-modal-title').textContent = '✏️ تعديل بيانات الإطار';
+    document.getElementById('tire-serial').value = tire.serialNo || '';
+    document.getElementById('tire-brand').value = tire.brand || '';
+    document.getElementById('tire-size').value = tire.size || '';
+    document.getElementById('tire-purchase-cost').value = tire.purchaseCost || '';
+    document.getElementById('tire-purchase-date').value = tire.purchaseDate || '';
+    document.getElementById('tire-max-tread').value = tire.maxTreadMm || 18;
+    document.getElementById('tire-min-tread').value = tire.minTreadMm || 3;
+    document.getElementById('tire-add-modal').classList.add('active');
+}
+
+function saveTireBasicInfo() {
+    var serialNo = (document.getElementById('tire-serial').value || '').trim();
+    if (!serialNo) { showToast('اكتب الرقم التسلسلي للإطار', true); return; }
+    var record = {
+        serialNo: serialNo,
+        brand: (document.getElementById('tire-brand').value || '').trim(),
+        size: (document.getElementById('tire-size').value || '').trim(),
+        purchaseCost: parseFloat(document.getElementById('tire-purchase-cost').value) || 0,
+        purchaseDate: document.getElementById('tire-purchase-date').value || new Date().toISOString().slice(0, 10),
+        maxTreadMm: parseFloat(document.getElementById('tire-max-tread').value) || 18,
+        minTreadMm: parseFloat(document.getElementById('tire-min-tread').value) || 3
+    };
+    if (editingTireId) {
+        record.id = editingTireId;
+        saveToFirebase('tires', record);
+        showToast('✅ تم تحديث بيانات الإطار');
+    } else {
+        record.status = 'in_stock';
+        record.retreadCount = 0;
+        record.cycles = [];
+        record.treadReadings = [];
+        record.createdByName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
+        record.createdAt = new Date().toISOString();
+        saveToFirebase('tires', record);
+        if (record.purchaseCost > 0) {
+            saveToFirebase('tireCostEvents', {
+                tireSerialNo: serialNo, type: 'purchase', cost: record.purchaseCost, date: record.purchaseDate,
+                project: 'غير محدد', contractorName: 'بدون مقاول'
+            });
+        }
+        showToast('✅ تم تسجيل الإطار في المخزون');
+    }
+    closeModal('tire-add-modal');
+}
+
+function openInstallTireModal(tireId) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك', true); return; }
+    editingTireId = tireId;
+    var eqSelect = document.getElementById('tire-install-eq');
+    eqSelect.innerHTML = '<option value="">-- اختر المعدة --</option>' + equipmentData.map(function(e) { return '<option value="' + e.id + '">' + escapeHtml(e.name) + ' (' + escapeHtml(e.code || '') + ')</option>'; }).join('');
+    eqSelect.value = '';
+    document.getElementById('tire-install-position').value = 'FL';
+    document.getElementById('tire-install-date').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('tire-install-hours').value = '';
+    document.getElementById('tire-install-modal').classList.add('active');
+}
+function onTireInstallEquipmentChange() {
+    var eqId = document.getElementById('tire-install-eq').value;
+    var eq = equipmentData.find(function(e) { return e.id === eqId; });
+    document.getElementById('tire-install-hours').value = eq ? (eq.hours || 0) : '';
+}
+function saveTireInstall() {
+    var tire = tiresData.find(function(t) { return t.id === editingTireId; });
+    if (!tire) return;
+    var equipmentId = document.getElementById('tire-install-eq').value;
+    if (!equipmentId) { showToast('اختر المعدة', true); return; }
+    var position = document.getElementById('tire-install-position').value;
+    var installDate = document.getElementById('tire-install-date').value || new Date().toISOString().slice(0, 10);
+    var installHours = parseFloat(document.getElementById('tire-install-hours').value) || 0;
+    var cycles = (tire.cycles || []).slice();
+    cycles.push({ equipmentId: equipmentId, position: position, installedAt: installDate, installHours: installHours, removedAt: null, removeHours: null });
+    saveToFirebase('tires', { id: tire.id, status: 'installed', cycles: cycles });
+    closeModal('tire-install-modal');
+    showToast('✅ تم تركيب الإطار');
+}
+
+function uninstallTire(tireId) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك', true); return; }
+    var tire = tiresData.find(function(t) { return t.id === tireId; });
+    if (!tire) return;
+    var cycle = getTireCurrentCycle(tire);
+    var eq = cycle ? equipmentData.find(function(e) { return e.id === cycle.equipmentId; }) : null;
+    var suggested = eq ? (eq.hours || 0) : 0;
+    var input = prompt('قراءة العداد عند فك الإطار:', suggested);
+    if (input === null) return;
+    var removeHours = parseFloat(input) || suggested;
+    var cycles = (tire.cycles || []).slice();
+    if (cycles.length) { cycles[cycles.length - 1] = Object.assign({}, cycles[cycles.length - 1], { removedAt: new Date().toISOString().slice(0, 10), removeHours: removeHours }); }
+    saveToFirebase('tires', { id: tire.id, status: 'in_stock', cycles: cycles });
+    showToast('✅ تم فك الإطار — بقى في المخزون');
+}
+
+function sendTireToRetread(tireId) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك', true); return; }
+    var tire = tiresData.find(function(t) { return t.id === tireId; });
+    if (!tire) return;
+    var vendor = prompt('اسم ورشة/جهة إعادة التغطية:', '');
+    if (vendor === null) return;
+    var updates = { status: 'retreading', retreads: (tire.retreads || []).concat([{ sentAt: new Date().toISOString().slice(0, 10), vendorName: vendor || '', returnedAt: null, cost: null }]) };
+    if (tire.status === 'installed') {
+        var cycle = getTireCurrentCycle(tire);
+        var eq = cycle ? equipmentData.find(function(e) { return e.id === cycle.equipmentId; }) : null;
+        var suggested = eq ? (eq.hours || 0) : 0;
+        var input = prompt('قراءة العداد عند فك الإطار لإرساله للتغطية:', suggested);
+        if (input === null) return;
+        var removeHours = parseFloat(input) || suggested;
+        var cycles = (tire.cycles || []).slice();
+        if (cycles.length) { cycles[cycles.length - 1] = Object.assign({}, cycles[cycles.length - 1], { removedAt: new Date().toISOString().slice(0, 10), removeHours: removeHours }); }
+        updates.cycles = cycles;
+    }
+    saveToFirebase('tires', Object.assign({ id: tire.id }, updates));
+    showToast('✅ تم إرسال الإطار لإعادة التغطية');
+}
+
+function receiveTireFromRetread(tireId) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك', true); return; }
+    var tire = tiresData.find(function(t) { return t.id === tireId; });
+    if (!tire) return;
+    var costInput = prompt('تكلفة إعادة التغطية (ج.م):', '');
+    if (costInput === null) return;
+    var cost = parseFloat(costInput) || 0;
+    var maxTreadInput = prompt('عمق المداس الجديد بعد التغطية (مم):', tire.maxTreadMm || 18);
+    if (maxTreadInput === null) return;
+    var newMaxTread = parseFloat(maxTreadInput) || tire.maxTreadMm || 18;
+
+    var retreads = (tire.retreads || []).slice();
+    if (retreads.length) retreads[retreads.length - 1] = Object.assign({}, retreads[retreads.length - 1], { returnedAt: new Date().toISOString().slice(0, 10), cost: cost });
+
+    saveToFirebase('tires', { id: tire.id, status: 'in_stock', retreads: retreads, retreadCount: (tire.retreadCount || 0) + 1, maxTreadMm: newMaxTread });
+
+    var lastCycle = getTireCurrentCycle(tire);
+    var eq = lastCycle ? equipmentData.find(function(e) { return e.id === lastCycle.equipmentId; }) : null;
+    var pc = getEquipmentProjectContractor(eq);
+    saveToFirebase('tireCostEvents', {
+        tireId: tire.id, tireSerialNo: tire.serialNo, equipmentId: eq ? eq.id : null, equipmentName: eq ? eq.name : '',
+        type: 'retread', cost: cost, date: new Date().toISOString().slice(0, 10), project: pc.project, contractorName: pc.contractorName
+    });
+    showToast('✅ تم استلام الإطار من إعادة التغطية — بقى جاهز في المخزون');
+}
+
+function openTreadReadingModal(tireId) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك', true); return; }
+    currentTreadTireId = tireId;
+    document.getElementById('tire-tread-value').value = '';
+    document.getElementById('tire-tread-date').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('tire-tread-notes').value = '';
+    document.getElementById('tire-tread-modal').classList.add('active');
+}
+function saveTireTreadReading() {
+    var tire = tiresData.find(function(t) { return t.id === currentTreadTireId; });
+    if (!tire) return;
+    var val = parseFloat(document.getElementById('tire-tread-value').value);
+    if (isNaN(val) || val < 0) { showToast('اكتب عمق مداس صحيح', true); return; }
+    var reading = { date: document.getElementById('tire-tread-date').value || new Date().toISOString().slice(0, 10), treadMm: val, notes: (document.getElementById('tire-tread-notes').value || '').trim(), measuredByName: (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم' };
+    var readings = (tire.treadReadings || []).slice();
+    readings.push(reading);
+    readings.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
+    saveToFirebase('tires', { id: tire.id, treadReadings: readings });
+    closeModal('tire-tread-modal');
+    showToast('✅ تم تسجيل القياس');
+}
+
+function scrapTire(tireId) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك', true); return; }
+    if (!confirm('تأكيد إخراج الإطار ده نهائيًا من الخدمة؟')) return;
+    saveToFirebase('tires', { id: tireId, status: 'scrapped' });
+}
+
+function deleteTireRecord(id) {
+    if (!canEdit('maintenance')) { showToast('⛔ غير مصرح لك', true); return; }
+    if (!confirm('حذف سجل الإطار ده نهائيًا؟ (المفضل استخدام "إخراج من الخدمة" بدل الحذف للحفاظ على تاريخ التكلفة)')) return;
+    if (!fbDb) return;
+    fbDb.ref('tires/' + id).remove().then(function() { showToast('🗑️ تم الحذف'); }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+}
+
+// ---- سجل كامل للإطار: كل فترات التركيب/الفك، كل مرات إعادة التغطية، وكل قياسات المداس بترتيب زمني ----
+function openTireHistoryModal(tireId) {
+    var tire = tiresData.find(function(t) { return t.id === tireId; });
+    if (!tire) return;
+    document.getElementById('tire-history-modal-title').textContent = '📜 سجل الإطار — ' + (tire.serialNo || '—');
+
+    function section(title, rows) {
+        return '<div style="font-weight:800;font-size:12.5px;color:#0d1b2a;margin:14px 0 6px">' + title + '</div>' +
+            (rows.length ? rows.join('') : '<div class="empty-state" style="padding:10px 0;font-size:11.5px">لا توجد سجلات</div>');
+    }
+    function row(main, sub) {
+        return '<div style="background:var(--light);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:12px">' +
+            '<div style="font-weight:700">' + main + '</div>' +
+            (sub ? '<div style="color:var(--gray);font-size:11px;margin-top:2px">' + sub + '</div>' : '') + '</div>';
+    }
+
+    var cycles = (tire.cycles || []).slice().reverse();
+    var cyclesHtml = cycles.map(function(c) {
+        var eq = equipmentData.find(function(e) { return e.id === c.equipmentId; });
+        var eqLabel = eq ? (eq.name + ' (' + (eq.code || '') + ')') : 'معدة محذوفة';
+        var hoursUsed = (c.removedAt != null) ? Math.max(0, (c.removeHours || 0) - (c.installHours || 0)) : null;
+        return row('🔧 ' + eqLabel + ' — 📍 ' + tirePositionLabel(c.position),
+            'من ' + (c.installedAt || '—') + ' (عداد ' + formatNumber(c.installHours || 0) + ') إلى ' + (c.removedAt ? (c.removedAt + ' (عداد ' + formatNumber(c.removeHours || 0) + ')') : 'لسه مركّب') +
+            (hoursUsed !== null ? ' — ساعات هذه الفترة: ' + formatNumber(hoursUsed) : ''));
+    });
+
+    var retreads = (tire.retreads || []).slice().reverse();
+    var retreadsHtml = retreads.map(function(r) {
+        return row('♻️ ' + (r.vendorName || 'جهة غير محددة'),
+            'أُرسل: ' + (r.sentAt || '—') + (r.returnedAt ? (' — استُلم: ' + r.returnedAt + ' — تكلفة: ' + formatNumber(r.cost || 0) + ' ج.م') : ' — لسه في التغطية'));
+    });
+
+    var readings = (tire.treadReadings || []).slice().reverse();
+    var readingsHtml = readings.map(function(r) {
+        return row('📏 ' + formatNumber(r.treadMm) + ' مم', r.date + (r.measuredByName ? (' — بواسطة ' + r.measuredByName) : '') + (r.notes ? (' — ' + escapeHtml(r.notes)) : ''));
+    });
+
+    document.getElementById('tire-history-content').innerHTML =
+        section('🔧 سجل التركيب/الفك', cyclesHtml) +
+        section('♻️ سجل إعادة التغطية', retreadsHtml) +
+        section('📏 سجل قياسات المداس', readingsHtml);
+
+    document.getElementById('tire-history-modal').classList.add('active');
+}
+
 // ==================== نظام أذون الصرف من المخزن (SAP) — تصوير الإذن وتسجيله تلقائيًا مربوطًا بكل معدة ====================
 var issueVouchers = [];
 var editingIssueVoucherId = null;
@@ -18743,6 +19632,20 @@ function buildAiDataSummary() {
             lines.push('عقود الإيجار: ' + rentalData.length + ' (منتهية: ' + rentalExpired.length + ' | قريبة الانتهاء خلال 30 يوم: ' + rentalSoon.length + ')');
             if (rentalExpired.length) lines.push('عقود إيجار منتهية بالفعل: ' + rentalExpired.slice(0, 15).map(function(r) { return (r.equipmentCode || r.equipmentType || 'معدة') + (r.company ? ' - ' + r.company : '') + ' (انتهى ' + r.endDate + ')'; }).join('، '));
             if (rentalSoon.length) lines.push('عقود إيجار قريبة الانتهاء: ' + rentalSoon.slice(0, 15).map(function(r) { return (r.equipmentCode || r.equipmentType || 'معدة') + (r.company ? ' - ' + r.company : '') + ' (' + r.endDate + ')'; }).join('، '));
+        }
+    } catch(e) {}
+    // ==== الإطارات ====
+    try {
+        if (tiresData && tiresData.length) {
+            var tInstalled = tiresData.filter(function(t) { return t.status === 'installed'; });
+            var tStock = tiresData.filter(function(t) { return t.status === 'in_stock'; });
+            var tRetreading = tiresData.filter(function(t) { return t.status === 'retreading'; });
+            var tNeedMeasure = getTiresNeedingMeasurement();
+            var tNearEnd = getTiresNearEndOfLife();
+            var tTotalCost = tireCostEvents.reduce(function(s, e) { return s + (e.cost || 0); }, 0);
+            lines.push('الإطارات: إجمالي ' + tiresData.length + ' (مُركَّبة: ' + tInstalled.length + ' | في المخزون: ' + tStock.length + ' | في إعادة التغطية: ' + tRetreading.length + ') — إجمالي تكلفة الإطارات حتى الآن: ' + formatNumber(tTotalCost) + ' ج.م');
+            if (tNearEnd.length) lines.push('إطارات قريبة من نهاية عمرها الافتراضي وتحتاج تغيير/تغطية (' + tNearEnd.length + '): ' + tNearEnd.slice(0, 15).map(function(t) { return t.serialNo || '—'; }).join('، '));
+            if (tNeedMeasure.length) lines.push('إطارات متأخرة عن موعد قياس عمق المداس الدوري (' + tNeedMeasure.length + '): ' + tNeedMeasure.slice(0, 15).map(function(t) { return t.serialNo || '—'; }).join('، '));
         }
     } catch(e) {}
     return lines.join('\n');
