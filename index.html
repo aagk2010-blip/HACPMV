@@ -4459,8 +4459,8 @@ function sendPasswordResetWhatsApp(id) {
     var user = APP_USERS.find(function(u) { return u.username.toLowerCase() === req.username.toLowerCase(); });
     if (!user) { showToast('⛔ هذا المستخدم لم يعد موجودًا في النظام', true); return; }
     var text = 'مرحبا ' + (user.name || '') + '\nبيانات الدخول الخاصة بك:\nاسم المستخدم: ' + user.username + '\nكلمة المرور: ' + user.password;
-    var phoneDigits = (req.phone || '').replace(/[^0-9]/g, '');
-    window.open('https://wa.me/' + phoneDigits + '?text=' + encodeURIComponent(text), '_blank');
+    // من غير رقم محدد: واتساب بتفتح وتسيب المستخدم يختار الشخص/الرقم بنفسه من قائمة جهات الاتصال
+    window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
 }
 
 function dismissPasswordResetRequest(id) {
