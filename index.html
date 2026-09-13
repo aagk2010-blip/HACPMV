@@ -968,7 +968,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   <div class="header"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:20px;font-weight:900;color:white;letter-spacing:2px;flex-shrink:0;font-family:serif">HAC</span><div class="header-title" id="header-title" style="margin-bottom:0">📊 لوحة القيادة</div></div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
-  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title">لوحة القيادة</div><div class="dash-hero-sub">متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع.</div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))">🔄 تحديث البيانات يدوياً</button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="big-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تحليل ذكي بالـ AI</button><button onclick="openAiReportModal()" class="big-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">🤖 اطلب أي تقرير من AI</button><div class="section" style="margin-top:14px"><div class="section-title">📂 الأقسام</div><div id="home-app-grid" class="app-grid"></div></div></div>
+  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title">لوحة القيادة</div><div class="dash-hero-sub">متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع.</div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))">🔄 تحديث البيانات يدوياً</button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="big-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تحليل ذكي بالـ AI</button><button onclick="openAiReportModal()" class="big-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">🤖 اطلب أي تقرير من AI</button><button onclick="openExecutiveDashboard()" class="big-btn" style="background:linear-gradient(135deg,#0f172a,#1e293b)">📊 لوحة مؤشرات المديرين التنفيذيين (Executive Dashboard)</button><div class="section" style="margin-top:14px"><div class="section-title">📂 الأقسام</div><div id="home-app-grid" class="app-grid"></div></div></div>
   <div id="view-sites" style="display:none"><div style="padding:14px">
     <div class="search-box"><span>🔍</span><input type="text" id="search-site" placeholder="بحث باسم الموقع..."></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -993,7 +993,18 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     <div id="analytics-body"></div>
   </div></div>
   
-  <div id="view-equipment" style="display:none"><div style="padding:14px"><button id="meter-update-btn" class="big-btn" style="margin:0 0 10px 0">⏱️ تحديث العدادات اليومي</button><div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div><div class="eq-filter-row"><select id="location-filter" class="eq-filter-select"><option value="">🏢 كل المواقع</option></select><select id="project-site-filter" class="eq-filter-select"><option value="">📍 كل المشاريع</option></select><select id="ownership-filter" class="eq-filter-select"><option value="">🏷️ ملك وإيجار</option><option value="ملك">🔑 ملك فقط</option><option value="إيجار">📋 إيجار فقط</option></select></div><div style="display:flex;gap:10px;margin-bottom:10px"><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات</button><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ حذف الكل</button></div><button id="export-owned-daily-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📆 تصدير ساعات معدات الملك (شيت لكل معدة)</button><button id="print-qr-labels-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="openQRLabelsModal()">🏷️ طباعة ملصقات QR للمعدات</button><button id="security-report-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#0d1b2a,#1b2838)" onclick="generateSecurityReport()">🛡️ تقرير قسم الأمن</button><div id="equipment-list"></div></div></div>
+  <div id="view-equipment" style="display:none"><div style="padding:14px">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button id="eq-tab-owned-btn" onclick="switchEquipmentOwnershipTab('ملك')" style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#059669,#047857);color:white">🔑 معدات الملك</button>
+      <button id="eq-tab-rental-btn" onclick="switchEquipmentOwnershipTab('إيجار')" style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;background:#f1f5f9;color:#475569">📋 معدات الإيجار</button>
+    </div>
+    <div class="search-box"><span>🔍</span><input type="text" id="search-equipment" placeholder="بحث باسم أو كود..."></div>
+    <div class="eq-filter-row"><select id="location-filter" class="eq-filter-select"><option value="">🏢 كل المواقع</option></select><select id="project-site-filter" class="eq-filter-select"><option value="">📍 كل المشاريع</option></select></div>
+    <div style="display:flex;gap:10px;margin-bottom:10px"><button id="meter-update-btn" class="big-btn" style="margin:0;flex:1">⏱️ تحديث العدادات اليومي</button><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير سجل العدادات</button></div>
+    <div style="display:flex;gap:10px;margin-bottom:10px"><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ حذف الكل</button><button id="export-owned-daily-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📆 تصدير ساعات معدات الملك</button></div>
+    <div style="display:flex;gap:10px;margin-bottom:10px"><button id="print-qr-labels-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="openQRLabelsModal()">🏷️ طباعة ملصقات QR</button><button id="security-report-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#0d1b2a,#1b2838)" onclick="generateSecurityReport()">🛡️ تقرير قسم الأمن</button></div>
+    <div id="equipment-list"></div>
+  </div></div>
   
   <div id="view-employees" style="display:none"><div style="padding:14px">
     <div id="employees-subtabs" style="display:flex;gap:8px;margin-bottom:12px;background:#eef1f5;padding:4px;border-radius:14px">
@@ -1057,6 +1068,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <button id="monthly-fuel-report-btn" class="big-btn" style="margin:0; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تقرير شهري</button>
       </div>
       <button id="custom-range-fuel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0d1b2a,#ec4899)">📅 تصدير تقرير بمدة محددة</button>
+      <button onclick="openFuelTheftView()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#7f1d1d,#450a0a)">⛽ كشف تسريب / سرقة الوقود (Fuel Theft Detection)</button>
       <button id="delete-all-fuel-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع سجلات الوقود</button>
       <div id="fuel-list"></div>
     </div>
@@ -1245,7 +1257,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 <div class="eq-step-dot" data-step="3" style="display:flex;flex-direction:column;align-items:center;gap:4px"><div class="eq-step-circle" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#e2e8f0;color:var(--gray)">3</div><span style="font-size:10px;color:var(--gray)">المرفقات</span></div>
 </div>
 
-<div id="eq-step-1" class="eq-wizard-step"><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment Code" data-ar="كود المعدة"></span> *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment Name" data-ar="اسم المعدة"></span> *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Type" data-ar="النوع"></span></label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>مقطورة سطحة</option><option>مقطورة تانك</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Chassis No." data-ar="رقم الشاسيه"></span></label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Location" data-ar="الموقع"></span></label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">🏗️ اسم المشروع</label><input class="form-input" id="eq-project-site" placeholder="مثال: مشروع القاهرة الجديدة"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Assigned Driver" data-ar="السائق المسند"></span></label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">🏷️ نوع الملكية</label><select class="form-select" id="eq-ownership"><option value="ملك">🔑 ملك</option><option value="إيجار">📋 إيجار</option></select></div><div class="form-field"><label class="form-label">⛽ نوع الوقود</label><select class="form-select" id="eq-fuel-type"><option value="ديزل">⛽ ديزل</option><option value="بنزين">⛽ بنزين</option></select></div></div>
+<div id="eq-step-1" class="eq-wizard-step"><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment Code" data-ar="كود المعدة"></span> *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment Name" data-ar="اسم المعدة"></span> *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Type" data-ar="النوع"></span></label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>مقطورة سطحة</option><option>مقطورة تانك</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 لا يمكن تغيير نوع المعدة بعد الإنشاء</div></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Chassis No." data-ar="رقم الشاسيه"></span></label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Location" data-ar="الموقع"></span></label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">🏗️ اسم المشروع</label><input class="form-input" id="eq-project-site" placeholder="مثال: مشروع القاهرة الجديدة"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Assigned Driver" data-ar="السائق المسند"></span></label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">🏷️ نوع الملكية</label><select class="form-select" id="eq-ownership"><option value="ملك">🔑 ملك</option><option value="إيجار">📋 إيجار</option></select></div><div class="form-field"><label class="form-label">⛽ نوع الوقود</label><select class="form-select" id="eq-fuel-type"><option value="ديزل">⛽ ديزل</option><option value="بنزين">⛽ بنزين</option></select></div><div class="form-field"><label class="form-label">💰 القيمة الدفترية للأصل (ج.م) <span style="font-weight:400;color:var(--gray);font-size:11px">— اختياري، تُستخدم في لوحة مؤشرات المديرين</span></label><input class="form-input" type="number" id="eq-asset-value" placeholder="0"></div></div>
 <button class="save-btn" style="margin:0" onclick="eqWizardNext(1)">التالي: العداد ⬅️</button>
 </div>
 
@@ -2709,6 +2721,7 @@ let transferLogs = []; // سجل نقل المعدات بين المواقع
 let changeLogs = []; // سجل حركة/تعديل المعدات (من عدّل وامتى)
 let tiresData = []; // إدارة الإطارات (Tire Management)
 let tireCostEvents = []; // أحداث تكلفة الإطارات (شراء/إعادة تغطية) مربوطة بالمشروع/المقاول
+let authorizedFuelSitesData = []; // المواقع المصرح بالتزود منها (لفحص كشف سرقة الوقود)
 // ==================== نظام المستخدمين - Firebase ====================
 var APP_USERS = [
     {
@@ -3932,6 +3945,11 @@ function attachFirebaseListeners() {
         renderTireMgmtView();
     });
 
+    listen('authorizedFuelSites', function(snapshot) {
+        authorizedFuelSitesData = snapshotToArray(snapshot);
+        renderFuelMgmtView();
+    });
+
     isListeningAttached = true;
 }
 
@@ -4817,8 +4835,9 @@ function openAddEquipmentModal() {
     document.getElementById('eq-type').disabled = false;
     document.getElementById('eq-type-lock-msg').style.display = 'none';
     document.getElementById('eq-status').value = 'يعمل';
-    document.getElementById('eq-ownership').value = 'ملك';
+    document.getElementById('eq-ownership').value = equipmentActiveOwnershipTab || 'ملك';
     document.getElementById('eq-fuel-type').value = 'ديزل';
+    document.getElementById('eq-asset-value').value = '';
     updateDriverSelects();
     currentEquipmentAttachments = [];
     renderEquipmentAttachmentsPreview();
@@ -4957,6 +4976,7 @@ function saveEquipment() {
         status: document.getElementById('eq-status').value,
         ownership: document.getElementById('eq-ownership').value || 'ملك',
         fuelType: document.getElementById('eq-fuel-type').value || 'ديزل',
+        assetValue: parseFloat(document.getElementById('eq-asset-value').value) || 0,
         notes: document.getElementById('eq-notes').value,
         attachments: currentEquipmentAttachments,
         updatedAt: new Date().toISOString()
@@ -5031,6 +5051,7 @@ function editEquipment(id) {
     document.getElementById('eq-status').value = equipment.status || 'يعمل';
     document.getElementById('eq-ownership').value = equipment.ownership || 'ملك';
     document.getElementById('eq-fuel-type').value = equipment.fuelType || 'ديزل';
+    document.getElementById('eq-asset-value').value = equipment.assetValue || '';
     document.getElementById('eq-notes').value = equipment.notes || '';
     updateDriverSelects();
     if (equipment.assignedDriver) {
@@ -11503,9 +11524,12 @@ function getAllSmartAlerts() {
     var tiresNeedMeasurement = notifPrefs.tires ? getTiresNeedingMeasurement() : [];
     var tiresNearEndOfLife = notifPrefs.tires ? getTiresNearEndOfLife() : [];
     totalCount += tiresNeedMeasurement.length + tiresNearEndOfLife.length;
+    var fuelTheftDismissed = getDismissedFuelTheftCases();
+    var fuelTheftFlagged = computeFuelTheftFlaggedCases('30').filter(function(c) { return !fuelTheftDismissed[c.key]; });
+    totalCount += fuelTheftFlagged.length;
     return {
         maintOverdue:maintOverdue, maintSoon:maintSoon, licExpired:licExpired, licSoon:licSoon, lowStock:lowStock, rentExpired:rentExpired, rentSoon:rentSoon, rentAbsence:rentAbsence,
-        pendingReports:pendingReports, pendingApprovals:pendingApprovals, pendingFaults:pendingFaults, pendingChecks:pendingChecks, pendingAccountRequests:pendingAccountRequests, pendingPasswordResets:pendingPasswordResets, tiresNeedMeasurement:tiresNeedMeasurement, tiresNearEndOfLife:tiresNearEndOfLife, totalCount:totalCount,
+        pendingReports:pendingReports, pendingApprovals:pendingApprovals, pendingFaults:pendingFaults, pendingChecks:pendingChecks, pendingAccountRequests:pendingAccountRequests, pendingPasswordResets:pendingPasswordResets, tiresNeedMeasurement:tiresNeedMeasurement, tiresNearEndOfLife:tiresNearEndOfLife, fuelTheftFlagged:fuelTheftFlagged, totalCount:totalCount,
         _raw: { maintOverdue:maintOverdueRaw, maintSoon:maintSoonRaw, licExpired:licExpiredRaw, licSoon:licSoonRaw, lowStock:lowStockRaw, rentExpired:rentExpiredRaw, rentSoon:rentSoonRaw, rentAbsence:rentAbsenceRaw }
     };
 }
@@ -11551,6 +11575,7 @@ function showSmartAlertBar() {
     if (a.pendingPasswordResets.length) parts.push('🔑 ' + a.pendingPasswordResets.length + ' طلب استعادة كلمة مرور');
     if (a.tiresNeedMeasurement.length) parts.push('📏 ' + a.tiresNeedMeasurement.length + ' إطار محتاج قياس مداس');
     if (a.tiresNearEndOfLife.length) parts.push('🛞 ' + a.tiresNearEndOfLife.length + ' إطار قريب من نهاية عمره الافتراضي');
+    if (a.fuelTheftFlagged.length) parts.push('⛽ ' + a.fuelTheftFlagged.length + ' حالة استهلاك وقود مشبوهة');
     if (!parts.length) { alertDiv.style.display = 'none'; return; }
     var msg = parts.join(' | ') + ' — <button onclick="openNotifCenter()" style="background:rgba(0,0,0,.15);border:none;color:inherit;border-radius:8px;padding:2px 8px;cursor:pointer;font-size:11px">عرض التفاصيل</button>';
     alertDiv.innerHTML = '<div class="smart-alert-bar"><span>' + msg + '</span><button class="close-alert" onclick="document.getElementById(\'alert-bar\').style.display=\'none\'">✕</button></div>';
@@ -11693,6 +11718,10 @@ function openNotifCenter() {
     if (a.tiresNeedMeasurement.length || a.tiresNearEndOfLife.length) {
         html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#0f172a;margin-bottom:6px">🛞 تنبيهات الإطارات (' + (a.tiresNeedMeasurement.length + a.tiresNearEndOfLife.length) + ')</div>' +
             '<button onclick="closeNotifCenter();openTireManagementView();" style="width:100%;padding:9px;background:#1e293b;color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">فتح شاشة إدارة الإطارات</button></div>';
+    }
+    if (a.fuelTheftFlagged.length) {
+        html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#7f1d1d;margin-bottom:6px">⛽ حالات استهلاك وقود مشبوهة (' + a.fuelTheftFlagged.length + ')</div>' +
+            '<button onclick="closeNotifCenter();openFuelTheftView();" style="width:100%;padding:9px;background:#7f1d1d;color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">فتح كشف تسريب / سرقة الوقود</button></div>';
     }
     if (!a.totalCount) html = '<div style="text-align:center;padding:30px;color:var(--gray)">✅ لا توجد تنبيهات حالياً — كل شيء تمام</div>';
     var hasClearable = a.maintOverdue.length || a.maintSoon.length || a.licExpired.length || a.licSoon.length || a.lowStock.length || a.rentExpired.length || a.rentSoon.length || a.rentAbsence.length;
@@ -14043,6 +14072,24 @@ function sendSitesPeriodicReport() {
 }
 
 
+// ---- تبويب صفحة المعدات: معدات الملك / معدات الإيجار (صفحتان منفصلتان بنفس التفاصيل والتفاعل، حسب حقل الملكية في كل معدة) ----
+var equipmentActiveOwnershipTab = 'ملك';
+function switchEquipmentOwnershipTab(tab) {
+    equipmentActiveOwnershipTab = tab;
+    var ownedBtn = document.getElementById('eq-tab-owned-btn');
+    var rentalBtn = document.getElementById('eq-tab-rental-btn');
+    if (ownedBtn && rentalBtn) {
+        if (tab === 'ملك') {
+            ownedBtn.style.background = 'linear-gradient(135deg,#059669,#047857)'; ownedBtn.style.color = 'white';
+            rentalBtn.style.background = '#f1f5f9'; rentalBtn.style.color = '#475569';
+        } else {
+            rentalBtn.style.background = 'linear-gradient(135deg,#b45309,#92400e)'; rentalBtn.style.color = 'white';
+            ownedBtn.style.background = '#f1f5f9'; ownedBtn.style.color = '#475569';
+        }
+    }
+    refreshUI();
+}
+
 function refreshUI() {
     var activeView = document.querySelector('.tab-btn.active') ? document.querySelector('.tab-btn.active').dataset.view : 'home';
     if (activeView === 'home') {
@@ -14059,7 +14106,7 @@ function refreshUI() {
         var search = document.getElementById('search-equipment') ? document.getElementById('search-equipment').value : '';
         var projectFilter = document.getElementById('project-site-filter') ? document.getElementById('project-site-filter').value : '';
         var locationFilter = document.getElementById('location-filter') ? document.getElementById('location-filter').value : '';
-        var ownershipFilter = document.getElementById('ownership-filter') ? document.getElementById('ownership-filter').value : '';
+        var ownershipFilter = equipmentActiveOwnershipTab;
         // Populate project filter options dynamically
         var projFilterEl = document.getElementById('project-site-filter');
         if (projFilterEl) {
@@ -16582,6 +16629,478 @@ function openTireHistoryModal(tireId) {
 
     document.getElementById('tire-history-modal').classList.add('active');
 }
+
+// ==================== كشف تسريب / سرقة الوقود (Fuel Theft Detection) ====================
+// بيعتمد على البيانات الموجودة فعلاً (سجلات الوقود + قراءات العداد + مسارات GPS للسائقين) من غير أي تسجيل إضافي مطلوب من المستخدم
+var fuelMgmtActiveTab = 'cases';
+var fuelTheftPeriodDays = '90';
+var fuelTheftFlaggedCache = [];
+var fuelTheftLoading = false;
+
+function getDismissedFuelTheftCases() {
+    try { return JSON.parse(localStorage.getItem('dismissedFuelTheftCases') || '{}'); } catch (e) { return {}; }
+}
+function saveDismissedFuelTheftCases(obj) {
+    try { localStorage.setItem('dismissedFuelTheftCases', JSON.stringify(obj)); } catch (e) {}
+}
+function reviewFuelTheftCase(key) {
+    if (!currentUser || currentUser.role !== 'admin') { showToast('⛔ هذا الإجراء متاح فقط لصاحب كامل الصلاحيات', true); return; }
+    var d = getDismissedFuelTheftCases();
+    d[key] = Date.now();
+    saveDismissedFuelTheftCases(d);
+    fuelTheftFlaggedCache = fuelTheftFlaggedCache.filter(function(c) { return c.key !== key; });
+    renderFuelTheftCasesList();
+    showToast('✅ تم تحديد الحالة كمُراجعة');
+}
+
+// فترات "تعبئة لتعبئة" الكاملة لكل معدة، بافتراض إن كل تزود بيمليء الخزان (الطريقة القياسية full-to-full لحساب معدل الاستهلاك)
+function computeFuelIntervalsForEquipment(eq) {
+    var records = (fuelData || []).filter(function(r) { return r.equipmentId === eq.id && r.amount > 0; })
+        .slice().sort(function(a, b) { return (a.hours || 0) - (b.hours || 0) || (a.date || '').localeCompare(b.date || ''); });
+    var intervals = [];
+    for (var i = 1; i < records.length; i++) {
+        var prev = records[i - 1], cur = records[i];
+        var hoursDelta = (cur.hours || 0) - (prev.hours || 0);
+        if (hoursDelta <= 0) continue; // بيانات غير منطقية أو نفس قراءة العداد، تجاهل
+        intervals.push({ eq: eq, prev: prev, cur: cur, hoursDelta: hoursDelta, rate: cur.amount / hoursDelta });
+    }
+    return intervals;
+}
+
+// Benchmark استهلاك (لتر/ساعة) لكل نوع معدة، من كل بيانات الأسطول
+function computeFuelTypeBenchmarks(intervals) {
+    var byType = {};
+    intervals.forEach(function(iv) {
+        var t = iv.eq.type || 'أخرى';
+        if (!byType[t]) byType[t] = { sumFuel: 0, sumHours: 0 };
+        byType[t].sumFuel += iv.cur.amount;
+        byType[t].sumHours += iv.hoursDelta;
+    });
+    var benchmark = {};
+    Object.keys(byType).forEach(function(t) { benchmark[t] = byType[t].sumHours > 0 ? (byType[t].sumFuel / byType[t].sumHours) : 0; });
+    return benchmark;
+}
+
+function computeFuelTheftFlaggedCases(periodDays) {
+    var cutoff = periodDays === 'all' ? null : new Date(Date.now() - parseInt(periodDays) * 86400000);
+    var allIntervals = [];
+    (equipmentData || []).forEach(function(eq) {
+        if (isToolEquipment(eq)) return; // الأدوات الصغيرة مالهاش استهلاك وقود بالساعة يُعتد بيه
+        allIntervals = allIntervals.concat(computeFuelIntervalsForEquipment(eq));
+    });
+    var benchmark = computeFuelTypeBenchmarks(allIntervals); // الـ Benchmark بيتحسب من كل البيانات التاريخية دايمًا، بغض النظر عن فلتر الفترة
+    var periodIntervals = cutoff ? allIntervals.filter(function(iv) { return iv.cur.date && new Date(iv.cur.date) >= cutoff; }) : allIntervals;
+
+    var byEquipment = {};
+    allIntervals.forEach(function(iv) { (byEquipment[iv.eq.id] = byEquipment[iv.eq.id] || []).push(iv); });
+
+    var flagged = [];
+    Object.keys(byEquipment).forEach(function(id) {
+        var ivs = byEquipment[id].slice().sort(function(a, b) { return (a.cur.date || '').localeCompare(b.cur.date || ''); });
+        var rates = ivs.map(function(x) { return x.rate; });
+        var mean = rates.reduce(function(s, r) { return s + r; }, 0) / rates.length;
+        var variance = rates.reduce(function(s, r) { return s + Math.pow(r - mean, 2); }, 0) / rates.length;
+        var stddev = Math.sqrt(variance);
+        var eq = ivs[0].eq;
+        var typeAvg = benchmark[eq.type || 'أخرى'] || mean;
+
+        ivs.forEach(function(iv) {
+            if (cutoff && !(iv.cur.date && new Date(iv.cur.date) >= cutoff)) return;
+            var reasons = [];
+            if (typeAvg > 0 && iv.rate > typeAvg * 1.5 && (iv.rate - typeAvg) >= 1.5) {
+                reasons.push('⚖️ استهلاك أعلى بكثير من متوسط نوع المعدة (' + iv.rate.toFixed(1) + ' لتر/س مقابل متوسط ' + typeAvg.toFixed(1) + ' لتر/س لنوع "' + (eq.type || '—') + '")');
+            }
+            if (rates.length >= 3 && stddev > 0 && iv.rate > mean + 2 * stddev) {
+                reasons.push('📈 قفزة مفاجئة عن معدل استهلاك المعدة المعتاد لنفسها (' + mean.toFixed(1) + ' لتر/س) بدون زيادة مقابلة في ساعات العمل');
+            }
+            if (reasons.length) {
+                var referenceRate = typeAvg > 0 ? typeAvg : mean;
+                var excessLiters = Math.max(0, (iv.rate - referenceRate) * iv.hoursDelta);
+                flagged.push({
+                    key: 'ft_' + eq.id + '_' + iv.cur.id, eq: eq, interval: iv, reasons: reasons, excessLiters: excessLiters,
+                    hadLongStop: false, siteAuthorizedOk: null
+                });
+            }
+        });
+    });
+    flagged.sort(function(a, b) { return (b.interval.cur.date || '').localeCompare(a.interval.cur.date || ''); });
+    return flagged;
+}
+
+// إثراء الحالات المشبوهة (وهي عادة عدد قليل) ببيانات GPS: هل حصل توقف طويل، وهل مر السائق بموقع تزود مصرح، في نفس يوم التزود
+// ملحوظة: الفحص على مستوى اليوم بالكامل مش على توقيت التزود بالظبط، لأن سجل الوقود مفيهوش وقت (ساعة) دقيق، بس تاريخ فقط
+function enrichFuelTheftCasesWithGps(cases, onDone) {
+    if (!fbDb || !cases.length) { onDone(cases); return; }
+    var tasks = cases.map(function(c) {
+        var driverId = c.interval.cur.driverId || c.eq.assignedDriver;
+        if (!driverId || !c.interval.cur.date) return Promise.resolve();
+        return fetchDriverDayPoints(driverId, c.interval.cur.date).then(function(pts) {
+            if (!pts.length) return;
+            var stats = computeRouteStatsFromPoints(pts);
+            c.hadLongStop = stats.stops.some(function(s) { return s.minutes >= 45; });
+            if (authorizedFuelSitesData.length) {
+                c.siteAuthorizedOk = pts.some(function(p) {
+                    return authorizedFuelSitesData.some(function(site) { return haversineKm(p.lat, p.lng, site.lat, site.lng) * 1000 <= (site.radiusM || 300); });
+                });
+            }
+        }).catch(function() {});
+    });
+    Promise.all(tasks).then(function() { onDone(cases); });
+}
+
+(function injectFuelTheftUI() {
+    var ftOverlay = '<div class="modal-overlay" id="fuel-theft-overlay">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#7f1d1d,#450a0a)">' +
+        '<div class="modal-title">⛽ كشف تسريب / سرقة الوقود</div>' +
+        '<button class="modal-close" onclick="closeModal(\'fuel-theft-overlay\')">✕</button></div>' +
+        '<div style="padding:14px">' +
+        '<div id="fuel-mgmt-tabs" style="display:flex;gap:6px;margin-bottom:12px"></div>' +
+        '<div id="fuel-mgmt-content"></div>' +
+        '</div></div>';
+
+    var ftSiteModal = '<div class="modal-overlay" id="fuel-site-modal">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#7f1d1d,#450a0a)">' +
+        '<div class="modal-title">📍 إضافة موقع تزود مصرح</div>' +
+        '<button class="modal-close" onclick="closeModal(\'fuel-site-modal\')">✕</button></div>' +
+        '<div><div class="form-group">' +
+        '<div class="form-field"><label class="form-label">اسم الموقع *</label><input class="form-input" type="text" id="ft-site-name" placeholder="مثال: مخزن الشركة الرئيسي"></div>' +
+        '<div class="form-field"><label class="form-label">الإحداثيات *</label>' +
+        '<div style="display:flex;gap:6px"><input class="form-input" type="number" id="ft-site-lat" placeholder="Lat" step="0.000001" style="flex:1"><input class="form-input" type="number" id="ft-site-lng" placeholder="Lng" step="0.000001" style="flex:1"></div>' +
+        '<button type="button" onclick="useCurrentLocationForFuelSite()" style="margin-top:6px;width:100%;padding:8px;background:#e0e7ff;color:#4338ca;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer">📡 استخدام موقعي الحالي</button></div>' +
+        '<div class="form-field"><label class="form-label">نطاق السماح (متر)</label><input class="form-input" type="number" id="ft-site-radius" value="300"></div>' +
+        '</div></div>' +
+        '<button class="save-btn" onclick="saveFuelSite()">✅ حفظ الموقع</button></div></div>';
+
+    document.body.insertAdjacentHTML('beforeend', ftOverlay + ftSiteModal);
+})();
+
+function fuelMgmtTabsHtml() {
+    var tabs = [['cases', '🔍 الحالات المشبوهة'], ['sites', '📍 المواقع المصرح بها'], ['report', '📊 التقرير الشهري']];
+    return tabs.map(function(t) {
+        var active = fuelMgmtActiveTab === t[0];
+        return '<button onclick="switchFuelMgmtTab(\'' + t[0] + '\')" style="flex:1;padding:9px 4px;border:none;border-radius:10px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;background:' + (active ? '#7f1d1d' : '#f1f5f9') + ';color:' + (active ? 'white' : '#475569') + '">' + t[1] + '</button>';
+    }).join('');
+}
+function switchFuelMgmtTab(tab) { fuelMgmtActiveTab = tab; renderFuelMgmtView(); }
+
+function openFuelTheftView() {
+    if (!canView('fuel')) { showAccessDeniedModal(); return; }
+    document.getElementById('fuel-theft-overlay').classList.add('active');
+    renderFuelMgmtView();
+}
+
+function renderFuelMgmtView() {
+    var tabsEl = document.getElementById('fuel-mgmt-tabs');
+    var contentEl = document.getElementById('fuel-mgmt-content');
+    if (!tabsEl || !contentEl) return; // الشاشة لسه ما اتفتحتش
+    tabsEl.innerHTML = fuelMgmtTabsHtml();
+    if (fuelMgmtActiveTab === 'sites') {
+        contentEl.innerHTML = renderFuelSitesTabHtml();
+    } else if (fuelMgmtActiveTab === 'report') {
+        contentEl.innerHTML = renderFuelTheftReportTabHtml();
+    } else {
+        contentEl.innerHTML =
+            '<select id="ft-period-select" onchange="onFuelTheftPeriodChange()" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:12.5px;margin-bottom:12px">' +
+            '<option value="30">آخر 30 يوم</option><option value="90">آخر 90 يوم</option><option value="365">آخر سنة</option><option value="all">كل الفترة</option></select>' +
+            '<div id="ft-cases-list"></div>';
+        document.getElementById('ft-period-select').value = fuelTheftPeriodDays;
+        loadAndRenderFuelTheftCases();
+    }
+}
+
+function onFuelTheftPeriodChange() {
+    fuelTheftPeriodDays = document.getElementById('ft-period-select').value;
+    loadAndRenderFuelTheftCases();
+}
+
+function loadAndRenderFuelTheftCases() {
+    var listEl = document.getElementById('ft-cases-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray)">⏳ جاري تحليل بيانات الوقود مقابل ساعات العمل ومسارات GPS...</div>';
+    var dismissed = getDismissedFuelTheftCases();
+    var cases = computeFuelTheftFlaggedCases(fuelTheftPeriodDays).filter(function(c) { return !dismissed[c.key]; });
+    fuelTheftLoading = true;
+    enrichFuelTheftCasesWithGps(cases, function(enriched) {
+        fuelTheftLoading = false;
+        fuelTheftFlaggedCache = enriched;
+        renderFuelTheftCasesList();
+    });
+}
+
+function renderFuelTheftCasesList() {
+    var listEl = document.getElementById('ft-cases-list');
+    if (!listEl) return;
+    if (!fuelTheftFlaggedCache.length) { listEl.innerHTML = '<div class="empty-state">✅ لا توجد حالات استهلاك مشبوهة في الفترة المحددة</div>'; return; }
+    listEl.innerHTML = fuelTheftFlaggedCache.map(fuelTheftCaseCardHtml).join('');
+}
+
+function fuelTheftCaseCardHtml(c) {
+    var eq = c.eq, iv = c.interval;
+    var isFullAdmin = !!(currentUser && currentUser.role === 'admin');
+    var pricePerLiter = (eq.fuelType === 'بنزين') ? (currentFuelPrices.gasoline || 0) : (currentFuelPrices.diesel || 0);
+    var suspectedValue = c.excessLiters * pricePerLiter;
+    var extraFlags = '';
+    if (c.hadLongStop) extraFlags += '<div style="font-size:11.5px;color:#b91c1c;font-weight:700;margin-top:4px">🅿️ رُصد توقف طويل (45 دقيقة+) في نفس يوم التزود — يستحق المراجعة</div>';
+    if (c.siteAuthorizedOk === false) extraFlags += '<div style="font-size:11.5px;color:#b91c1c;font-weight:700;margin-top:4px">📍 مسار السائق في هذا اليوم لم يمر بأي موقع تزود مصرح (فحص تقريبي على مستوى اليوم كامل)</div>';
+    else if (c.siteAuthorizedOk === true) extraFlags += '<div style="font-size:11px;color:#059669;margin-top:4px">📍 مسار السائق مر بموقع مصرح خلال نفس اليوم</div>';
+
+    return '<div style="background:white;border-radius:14px;border-right:4px solid #dc2626;padding:12px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+        '<div><div style="font-size:13.5px;font-weight:800;color:#0d1b2a">' + escapeHtml(eq.name) + ' (' + escapeHtml(eq.code || '') + ')</div>' +
+        '<div style="font-size:11px;color:var(--gray)">📅 ' + (iv.cur.date || '—') + ' — تعبئة ' + iv.cur.amount + ' لتر خلال ' + iv.hoursDelta.toFixed(1) + ' ساعة عمل (' + iv.rate.toFixed(1) + ' لتر/س)</div></div>' +
+        '<div style="text-align:left;flex-shrink:0"><div style="font-size:10px;color:var(--gray)">وقود مشكوك فيه</div><div style="font-weight:800;color:#dc2626;font-size:13px">' + c.excessLiters.toFixed(1) + ' لتر</div>' +
+        (suspectedValue > 0 ? '<div style="font-size:10.5px;color:#dc2626">≈ ' + formatNumber(suspectedValue) + ' ج.م</div>' : '') + '</div></div>' +
+        c.reasons.map(function(r) { return '<div style="font-size:11.5px;color:#374151;margin-top:5px">• ' + r + '</div>'; }).join('') +
+        extraFlags +
+        (isFullAdmin ? '<div style="margin-top:8px"><button onclick="reviewFuelTheftCase(\'' + c.key + '\')" style="width:100%;background:#dcfce7;color:#166534;border:none;border-radius:9px;padding:7px;font-size:11.5px;font-weight:700;cursor:pointer">✅ تمت المراجعة</button></div>' : '') +
+        '</div>';
+}
+
+function renderFuelSitesTabHtml() {
+    var addBtn = canEdit('fuel') ? '<button onclick="openAddFuelSiteModal()" style="width:100%;padding:11px;background:linear-gradient(135deg,#0f172a,#1e293b);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;margin-bottom:12px">➕ إضافة موقع تزود مصرح</button>' : '';
+    var sites = authorizedFuelSitesData || [];
+    var list = sites.length ? sites.map(function(s) {
+        return '<div style="background:white;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+            '<div><div style="font-weight:700;font-size:13px">📍 ' + escapeHtml(s.name) + '</div><div style="font-size:11px;color:var(--gray)">نطاق السماح: ' + (s.radiusM || 300) + ' م</div></div>' +
+            (canEdit('fuel') ? '<button onclick="deleteFuelSite(\'' + s.id + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer">🗑️</button>' : '') +
+            '</div>';
+    }).join('') : '<div class="empty-state">لا توجد مواقع تزود مصرح بها مسجلة بعد — طول ما القايمة فاضية، فحص الموقع بيتخطى تلقائيًا في تحليل الحالات المشبوهة</div>';
+    return addBtn + '<div style="font-size:11px;color:var(--gray);margin-bottom:10px">📝 سجّل هنا المواقع المسموح فيها بتعبئة الوقود (المخزن الرئيسي، محطات معتمدة...)، وهيتم فحص مسار كل سائق يوم كل تزود ضدها.</div>' + list;
+}
+
+function useCurrentLocationForFuelSite() {
+    if (!navigator.geolocation) { showToast('المتصفح لا يدعم تحديد الموقع', true); return; }
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        document.getElementById('ft-site-lat').value = pos.coords.latitude.toFixed(6);
+        document.getElementById('ft-site-lng').value = pos.coords.longitude.toFixed(6);
+        showToast('✅ تم تحديد موقعك الحالي');
+    }, function(err) { showToast('تعذر تحديد الموقع: ' + err.message, true); });
+}
+
+function openAddFuelSiteModal() {
+    if (!canEdit('fuel')) { showToast('⛔ غير مصرح لك', true); return; }
+    document.getElementById('ft-site-name').value = '';
+    document.getElementById('ft-site-radius').value = 300;
+    document.getElementById('ft-site-lat').value = '';
+    document.getElementById('ft-site-lng').value = '';
+    document.getElementById('fuel-site-modal').classList.add('active');
+}
+function saveFuelSite() {
+    if (!canEdit('fuel')) { showToast('⛔ غير مصرح لك', true); return; }
+    var name = (document.getElementById('ft-site-name').value || '').trim();
+    var lat = parseFloat(document.getElementById('ft-site-lat').value);
+    var lng = parseFloat(document.getElementById('ft-site-lng').value);
+    var radiusM = parseFloat(document.getElementById('ft-site-radius').value) || 300;
+    if (!name) { showToast('اكتب اسم الموقع', true); return; }
+    if (isNaN(lat) || isNaN(lng)) { showToast('حدد الإحداثيات', true); return; }
+    saveToFirebase('authorizedFuelSites', { name: name, lat: lat, lng: lng, radiusM: radiusM });
+    closeModal('fuel-site-modal');
+    showToast('✅ تم حفظ الموقع');
+}
+function deleteFuelSite(id) {
+    if (!canEdit('fuel')) { showToast('⛔ غير مصرح لك', true); return; }
+    if (!confirm('حذف هذا الموقع؟')) return;
+    if (!fbDb) return;
+    fbDb.ref('authorizedFuelSites/' + id).remove();
+}
+
+function renderFuelTheftReportTabHtml() {
+    var monthInput = document.getElementById('ft-report-month');
+    var monthStr = monthInput ? monthInput.value : '';
+    if (!monthStr) { var now = new Date(); monthStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0'); }
+    var allFlagged = computeFuelTheftFlaggedCases('all').filter(function(c) { return c.interval.cur.date && c.interval.cur.date.slice(0, 7) === monthStr; });
+
+    var byEquip = {};
+    allFlagged.forEach(function(c) {
+        var pricePerLiter = (c.eq.fuelType === 'بنزين') ? (currentFuelPrices.gasoline || 0) : (currentFuelPrices.diesel || 0);
+        var value = c.excessLiters * pricePerLiter;
+        var key = c.eq.id;
+        if (!byEquip[key]) byEquip[key] = { eq: c.eq, liters: 0, value: 0, count: 0 };
+        byEquip[key].liters += c.excessLiters;
+        byEquip[key].value += value;
+        byEquip[key].count++;
+    });
+    var rows = Object.keys(byEquip).map(function(k) { return byEquip[k]; }).sort(function(a, b) { return b.value - a.value; });
+    var totalLiters = rows.reduce(function(s, r) { return s + r.liters; }, 0);
+    var totalValue = rows.reduce(function(s, r) { return s + r.value; }, 0);
+
+    var html = '<input type="month" id="ft-report-month" value="' + monthStr + '" onchange="renderFuelMgmtView()" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:12px">';
+    html += '<div style="background:linear-gradient(135deg,#7f1d1d,#450a0a);color:white;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center">' +
+        '<div style="font-size:12px;opacity:.85">إجمالي الوقود المفقود/المشكوك فيه هذا الشهر</div>' +
+        '<div style="font-size:22px;font-weight:800;margin:4px 0">' + totalLiters.toFixed(1) + ' لتر</div>' +
+        '<div style="font-size:14px;font-weight:700">≈ ' + formatNumber(totalValue) + ' ج.م</div></div>';
+    if (!rows.length) { html += '<div class="empty-state">✅ لا توجد حالات مشبوهة مسجلة في هذا الشهر</div>'; return html; }
+    html += rows.map(function(r) {
+        return '<div style="background:white;border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+            '<div style="font-weight:700;font-size:13px">' + escapeHtml(r.eq.name) + ' (' + escapeHtml(r.eq.code || '') + ')</div>' +
+            '<div style="font-size:12px;color:var(--gray);margin-top:2px">عدد الحالات: ' + r.count + ' — الكمية المشكوك فيها: ' + r.liters.toFixed(1) + ' لتر — القيمة التقديرية: ' + formatNumber(r.value) + ' ج.م</div></div>';
+    }).join('');
+    return html;
+}
+
+// ==================== لوحة مؤشرات المديرين التنفيذيين (Executive Dashboard) ====================
+// كل المؤشرات هنا محسوبة من نفس بيانات النظام الموجودة فعلاً (ساعات التشغيل، الوقود، التوقف RCA، الصيانة، الإطارات) من غير أي إدخال إضافي
+var executiveDashboardSettings = { standardHoursPerDay: 8 };
+
+function loadExecutiveDashboardSettings() {
+    if (!fbDb) return;
+    fbDb.ref('appSettings/executiveDashboard').once('value').then(function(snap) {
+        var d = snap.val() || {};
+        executiveDashboardSettings.standardHoursPerDay = parseFloat(d.standardHoursPerDay) || 8;
+    });
+}
+
+function computeExecutiveKpis(monthStr, ownershipFilter) {
+    var range = getPeriodRange(monthStr);
+    var periodStart = new Date(range.from + 'T00:00:00');
+    var periodEnd = new Date(range.to + 'T23:59:59');
+    var periodMs = Math.max(1, periodEnd.getTime() - periodStart.getTime());
+    var periodDaysCount = Math.max(1, Math.round(periodMs / 86400000));
+
+    var relevantEquipment = (equipmentData || []).filter(function(eq) {
+        if (isToolEquipment(eq)) return false;
+        if (ownershipFilter && eq.ownership !== ownershipFilter) return false;
+        return true;
+    });
+    var eqCount = relevantEquipment.length || 1;
+    var relevantIds = {};
+    relevantEquipment.forEach(function(eq) { relevantIds[eq.id] = true; });
+
+    var totalHours = 0, totalFuelLiters = 0;
+    relevantEquipment.forEach(function(eq) {
+        var m = (eq.ownership === 'إيجار') ? getMonthlyRentalHours(eq, monthStr) : getMonthlyHoursForEquipment(eq, monthStr);
+        if (m && m.hours) totalHours += m.hours;
+        totalFuelLiters += getMonthlyFuelForEquipment(eq, monthStr);
+    });
+    var totalFuelCost = (fuelData || []).filter(function(f) { return f.date && f.date >= range.from && f.date <= range.to && (!ownershipFilter || relevantIds[f.equipmentId]); }).reduce(function(s, f) { return s + (f.cost || 0); }, 0);
+
+    var totalDowntimeMs = 0, failureCount = 0, downtimeRepairCost = 0;
+    (downtimeEvents || []).forEach(function(ev) {
+        if (ownershipFilter && !relevantIds[ev.equipmentId]) return;
+        var s = new Date(ev.startAt);
+        var e = ev.endAt ? new Date(ev.endAt) : new Date();
+        if (e < periodStart || s > periodEnd) return;
+        var clippedStart = s < periodStart ? periodStart : s;
+        var clippedEnd = e > periodEnd ? periodEnd : e;
+        var dur = Math.max(0, clippedEnd.getTime() - clippedStart.getTime());
+        totalDowntimeMs += dur;
+        failureCount++;
+        if (ev.cost && ev.startAt >= range.from && ev.startAt <= range.to) downtimeRepairCost += (ev.cost || 0);
+    });
+
+    var totalCalendarMs = periodMs * eqCount;
+    var uptimeMs = Math.max(0, totalCalendarMs - totalDowntimeMs);
+    var availabilityPct = totalCalendarMs > 0 ? (uptimeMs / totalCalendarMs * 100) : 100;
+    var mtbfHours = failureCount > 0 ? (uptimeMs / failureCount) / 3600000 : 0;
+    var mttrHours = failureCount > 0 ? (totalDowntimeMs / failureCount) / 3600000 : 0;
+
+    var standardHoursPerDay = executiveDashboardSettings.standardHoursPerDay || 8;
+    var totalAvailableHours = eqCount * periodDaysCount * standardHoursPerDay;
+    var utilizationPct = totalAvailableHours > 0 ? (totalHours / totalAvailableHours * 100) : 0;
+
+    var fuelEfficiency = totalHours > 0 ? (totalFuelLiters / totalHours) : 0;
+
+    var maintenanceCost = (maintenanceSchedules || []).filter(function(m) { return m.date && m.date >= range.from && m.date <= range.to && (!ownershipFilter || relevantIds[m.equipmentId]); }).reduce(function(s, m) { return s + (parseFloat(m.estimatedCost) || 0); }, 0);
+    var tireCostInPeriod = (tireCostEvents || []).filter(function(e) { return e.date && e.date >= range.from && e.date <= range.to && (!ownershipFilter || relevantIds[e.equipmentId]); }).reduce(function(s, e) { return s + (e.cost || 0); }, 0);
+    var totalOperatingCost = totalFuelCost + maintenanceCost + downtimeRepairCost + tireCostInPeriod;
+    var costPerHour = totalHours > 0 ? (totalOperatingCost / totalHours) : 0;
+
+    var stoppedAssetsValue = 0, stoppedCount = 0;
+    relevantEquipment.forEach(function(eq) {
+        var hasOpenDowntime = (downtimeEvents || []).some(function(ev) { return ev.equipmentId === eq.id && !ev.endAt; });
+        if (eq.status === 'متوقف' || hasOpenDowntime) { stoppedAssetsValue += (eq.assetValue || 0); stoppedCount++; }
+    });
+
+    return {
+        range: range, eqCount: eqCount, availabilityPct: availabilityPct, utilizationPct: utilizationPct,
+        mtbfHours: mtbfHours, mttrHours: mttrHours, fuelEfficiency: fuelEfficiency, costPerHour: costPerHour,
+        failureCount: failureCount, stoppedAssetsValue: stoppedAssetsValue, stoppedCount: stoppedCount,
+        totalHours: totalHours, totalFuelLiters: totalFuelLiters, totalOperatingCost: totalOperatingCost, standardHoursPerDay: standardHoursPerDay
+    };
+}
+
+(function injectExecutiveDashboardUI() {
+    var edOverlay = '<div class="modal-overlay" id="executive-dashboard-overlay">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#0f172a,#1e293b)">' +
+        '<div class="modal-title">📊 لوحة مؤشرات المديرين التنفيذيين</div>' +
+        '<button class="modal-close" onclick="closeModal(\'executive-dashboard-overlay\')">✕</button></div>' +
+        '<div style="padding:14px">' +
+        '<input type="month" id="ed-month-select" onchange="renderExecutiveDashboard()" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:10px">' +
+        '<select id="ed-ownership-filter" onchange="renderExecutiveDashboard()" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:10px">' +
+        '<option value="">🏷️ كل المعدات (ملك وإيجار)</option><option value="ملك">🔑 معدات الملك فقط</option><option value="إيجار">📋 معدات الإيجار فقط</option></select>' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;background:#f8fafc;border-radius:10px;padding:8px 10px">' +
+        '<label style="font-size:11.5px;color:var(--gray);flex:1">⏱️ ساعات العمل القياسية يوميًا (لحساب Utilization)</label>' +
+        '<input type="number" id="ed-standard-hours" value="8" min="1" max="24" style="width:60px;padding:6px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-family:inherit" onchange="saveExecutiveDashboardSettings()">' +
+        '</div>' +
+        '<div id="executive-dashboard-content"></div>' +
+        '</div></div>';
+    document.body.insertAdjacentHTML('beforeend', edOverlay);
+})();
+
+function saveExecutiveDashboardSettings() {
+    var val = parseFloat(document.getElementById('ed-standard-hours').value) || 8;
+    executiveDashboardSettings.standardHoursPerDay = val;
+    if (fbDb) fbDb.ref('appSettings/executiveDashboard').update({ standardHoursPerDay: val });
+    renderExecutiveDashboard();
+}
+
+function openExecutiveDashboard() {
+    if (!hasPermission('all') && !(currentUser && currentUser.role === 'admin')) { showAccessDeniedModal(); return; }
+    listenDowntimeEvents(); // نضمن تحميل بيانات التوقف (المستخدمة في Availability/MTBF/MTTR) حتى لو حد ما فتحش شاشة RCA قبل كده
+    var monthInput = document.getElementById('ed-month-select');
+    if (monthInput && !monthInput.value) {
+        var now = new Date();
+        monthInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    }
+    document.getElementById('ed-standard-hours').value = executiveDashboardSettings.standardHoursPerDay || 8;
+    document.getElementById('executive-dashboard-overlay').classList.add('active');
+    renderExecutiveDashboard();
+}
+
+function executiveKpiCardHtml(icon, label, value, sub, color) {
+    return '<div style="background:white;border-radius:14px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-right:3px solid ' + color + '">' +
+        '<div style="font-size:11px;color:var(--gray);margin-bottom:4px">' + icon + ' ' + label + '</div>' +
+        '<div style="font-size:19px;font-weight:800;color:' + color + '">' + value + '</div>' +
+        (sub ? '<div style="font-size:10.5px;color:var(--gray);margin-top:2px">' + sub + '</div>' : '') +
+        '</div>';
+}
+
+function renderExecutiveDashboard() {
+    var contentEl = document.getElementById('executive-dashboard-content');
+    if (!contentEl) return;
+    var monthStr = document.getElementById('ed-month-select').value;
+    if (!monthStr) return;
+    var ownershipFilter = document.getElementById('ed-ownership-filter').value;
+    var k = computeExecutiveKpis(monthStr, ownershipFilter);
+    var scopeLabel = ownershipFilter === 'ملك' ? '🔑 معدات الملك فقط' : (ownershipFilter === 'إيجار' ? '📋 معدات الإيجار فقط' : '🏷️ كل المعدات (ملك وإيجار)');
+
+    var availColor = k.availabilityPct >= 90 ? '#059669' : (k.availabilityPct >= 75 ? '#d97706' : '#dc2626');
+    var utilColor = k.utilizationPct >= 70 ? '#059669' : (k.utilizationPct >= 45 ? '#d97706' : '#dc2626');
+
+    var html = '<div style="text-align:center;font-size:12px;font-weight:700;color:#0f172a;background:#f1f5f9;border-radius:10px;padding:6px;margin-bottom:10px">' + scopeLabel + ' — ' + k.eqCount + ' معدة</div>';
+    html += '<div style="background:linear-gradient(135deg,#7f1d1d,#450a0a);color:white;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center">' +
+        '<div style="font-size:12px;opacity:.85">💰 قيمة الأصول المتوقفة الآن</div>' +
+        '<div style="font-size:24px;font-weight:800;margin:4px 0">' + formatNumber(k.stoppedAssetsValue) + ' ج.م</div>' +
+        '<div style="font-size:11px;opacity:.85">' + k.stoppedCount + ' معدة متوقفة من إجمالي ' + k.eqCount + (k.stoppedAssetsValue === 0 && k.stoppedCount > 0 ? ' — (لم تُدخل قيمة دفترية لهذه المعدات بعد)' : '') + '</div></div>';
+
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
+        executiveKpiCardHtml('✅', 'Fleet Availability', k.availabilityPct.toFixed(1) + '%', 'نسبة وقت التشغيل من إجمالي الوقت', availColor) +
+        executiveKpiCardHtml('📈', 'Fleet Utilization', k.utilizationPct.toFixed(1) + '%', 'على أساس ' + k.standardHoursPerDay + ' س/يوم قياسية', utilColor) +
+        executiveKpiCardHtml('⏳', 'MTBF', k.mtbfHours.toFixed(1) + ' س', 'متوسط الوقت بين الأعطال', '#0e7490') +
+        executiveKpiCardHtml('🔧', 'MTTR', k.mttrHours.toFixed(1) + ' س', 'متوسط زمن الإصلاح', '#d97706') +
+        executiveKpiCardHtml('⛽', 'Fuel Efficiency', k.fuelEfficiency.toFixed(2) + ' لتر/س', 'متوسط استهلاك الأسطول', '#0891b2') +
+        executiveKpiCardHtml('💵', 'Cost Per Hour', formatNumber(k.costPerHour) + ' ج.م/س', 'وقود + صيانة + توقف + إطارات', '#7c3aed') +
+        '</div>';
+
+    html += executiveKpiCardHtml('🛠️', 'عدد الأعطال (فترات التوقف) خلال الفترة المحددة', k.failureCount, k.range.from + ' → ' + k.range.to, '#dc2626');
+
+    html += '<div style="font-size:10.5px;color:var(--gray);text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #eee">' +
+        'ℹ️ إجمالي ساعات التشغيل: ' + formatNumber(k.totalHours) + ' س — إجمالي الوقود: ' + formatNumber(k.totalFuelLiters) + ' لتر — إجمالي تكلفة التشغيل: ' + formatNumber(k.totalOperatingCost) + ' ج.م' +
+        '</div>';
+
+    contentEl.innerHTML = html;
+}
+window.addEventListener('load', function() { setTimeout(loadExecutiveDashboardSettings, 1500); });
 
 // ==================== نظام أذون الصرف من المخزن (SAP) — تصوير الإذن وتسجيله تلقائيًا مربوطًا بكل معدة ====================
 var issueVouchers = [];
