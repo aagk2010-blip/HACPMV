@@ -1074,7 +1074,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     </div>
   </div>
   
-  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button onclick="openIssueVouchersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95)">🧾 أذون الصرف من المخزن (SAP)</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="openPredictiveMaintenanceModal()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#0e7490,#0369a1)">🔮 الصيانة التنبؤية الذكية</button><button onclick="openDowntimeRcaView()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#7f1d1d)">⏱️ توقف المعدات وتحليل الأسباب RCA</button><button onclick="openTireManagementView()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#1e293b,#0f172a)">🛞 إدارة الإطارات (Tire Management)</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button>
+  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="toggleMaintenanceAdvancedTools()" id="maint-advanced-toggle-btn" style="width:100%;background:#f1f5f9;color:#475569;border:none;border-radius:12px;padding:11px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px">⚙️ أدوات متقدمة <span id="maint-advanced-chevron">▾</span></button><div id="maint-advanced-tools" style="display:none"><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button onclick="openIssueVouchersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95)">🧾 أذون الصرف من المخزن (SAP)</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="openPredictiveMaintenanceModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#0e7490,#0369a1)">🔮 الصيانة التنبؤية الذكية</button><button onclick="openDowntimeRcaView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#dc2626,#7f1d1d)">⏱️ توقف المعدات وتحليل الأسباب RCA</button><button onclick="openTireManagementView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e293b,#0f172a)">🛞 إدارة الإطارات (Tire Management)</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:0; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button></div><div style="margin-top:16px"></div>
     <div style="background:#f8fafc;border-radius:16px;padding:14px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div style="font-size:13px;font-weight:800;color:#0d1b2a">🧾 أذون الصرف المفتوحة</div>
@@ -1462,6 +1462,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     <button id="atab-fuel-btn" onclick="switchAdminTab('fuel')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">⛽ أسعار الوقود</button>
     <button id="atab-backup-btn" onclick="switchAdminTab('backup')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">💾 نسخ احتياطي</button>
     <button id="atab-loginlog-btn" onclick="switchAdminTab('loginlog')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">📝 سجل الدخول</button>
+    <button id="atab-cleanup-btn" onclick="switchAdminTab('cleanup')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">🧹 تنظيف البيانات</button>
     <button id="atab-firebase-btn" onclick="switchAdminTab('firebase')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">🔥 إعدادات Firebase</button>
     <button id="atab-ai-btn" onclick="switchAdminTab('ai')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">🤖 الذكاء الاصطناعي</button>
     <button id="atab-danger-btn" onclick="switchAdminTab('danger')" style="padding:8px 16px;border-radius:20px 20px 0 0;border:none;background:#f1f5f9;color:#64748b;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0">⚠️ منطقة الخطر</button>
@@ -1608,6 +1609,29 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <button onclick="loadLoginLog()" style="background:#f1f5f9;border:none;border-radius:20px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit">🔄 تحديث</button>
     </div>
     <div id="loginlog-events" style="max-height:400px;overflow-y:auto"></div>
+  </div>
+
+  <div id="atab-cleanup" style="padding:14px;display:none">
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;color:#92400e">
+      🧹 سجل مواقع GPS للسائقين ومراجعات المعدات السريعة بيكبروا مع الوقت وبيزودوا حجم قاعدة البيانات. حدّد مدة الاحتفاظ المناسبة، والبيانات الأقدم من كده هتتحذف نهائيًا ومش هترجع.
+    </div>
+    <div style="background:white;border-radius:14px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:14px">
+      <div style="display:grid;gap:14px;margin-bottom:14px">
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">📍 الاحتفاظ بسجل مواقع GPS للسائقين (بالأيام)</label>
+          <input id="cleanup-gps-days" type="number" step="1" min="7" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;font-family:inherit;box-sizing:border-box;outline:none">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">🔍 الاحتفاظ بسجل المراجعات السريعة للمعدات (equipmentChecks) (بالأيام)</label>
+          <input id="cleanup-checks-days" type="number" step="1" min="30" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;font-family:inherit;box-sizing:border-box;outline:none">
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="cleanup-auto-enabled" style="width:18px;height:18px">تشغيل التنظيف تلقائيًا مرة كل يوم عند دخول أي مدير للتطبيق</label>
+      </div>
+      <button onclick="saveDataRetentionSettings()" style="width:100%;background:linear-gradient(135deg,#4f46e5,#3730a3);color:white;border:none;border-radius:12px;padding:12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit;margin-bottom:10px">✅ حفظ الإعدادات</button>
+      <button id="run-cleanup-now-btn" onclick="runDataCleanupNow()" style="width:100%;background:#dc2626;color:white;border:none;border-radius:12px;padding:12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit">🗑️ تشغيل التنظيف الآن</button>
+    </div>
+    <div id="cleanup-result"></div>
+    <div id="cleanup-last-run" style="font-size:11px;color:#94a3b8;text-align:center"></div>
   </div>
 
   <div id="atab-firebase" style="padding:14px;display:none">
@@ -1824,6 +1848,117 @@ function saveFuelPrices() {
     }).catch(function(e) {
         showToast('❌ فشل حفظ الأسعار: ' + e.message, true);
     });
+}
+
+// ==================== تنظيف تلقائي (TTL) لسجل مواقع GPS ومراجعات المعدات القديمة ====================
+function loadDataRetentionFields() {
+    var gpsEl = document.getElementById('cleanup-gps-days');
+    if (!gpsEl) return;
+    gpsEl.value = dataRetentionSettings.driverLocationHistoryDays || 90;
+    document.getElementById('cleanup-checks-days').value = dataRetentionSettings.equipmentChecksDays || 365;
+    document.getElementById('cleanup-auto-enabled').checked = !!dataRetentionSettings.autoCleanupEnabled;
+    var lastRunEl = document.getElementById('cleanup-last-run');
+    if (lastRunEl) {
+        var last = localStorage.getItem('lastDataCleanupAt');
+        lastRunEl.textContent = last ? ('🕐 آخر تنظيف على هذا الجهاز: ' + new Date(last).toLocaleString('ar-EG')) : '🕐 لم يتم تشغيل التنظيف بعد على هذا الجهاز';
+    }
+    var resultEl = document.getElementById('cleanup-result');
+    if (resultEl) resultEl.innerHTML = '';
+}
+
+function saveDataRetentionSettings() {
+    if (!fbDb) { showToast('❌ لا يوجد اتصال بالسيرفر', true); return; }
+    var gpsDays = parseInt(document.getElementById('cleanup-gps-days').value, 10) || 90;
+    var checksDays = parseInt(document.getElementById('cleanup-checks-days').value, 10) || 365;
+    var data = {
+        driverLocationHistoryDays: gpsDays,
+        equipmentChecksDays: checksDays,
+        autoCleanupEnabled: document.getElementById('cleanup-auto-enabled').checked,
+        updatedAt: new Date().toISOString(),
+        updatedBy: (currentUser && (currentUser.name || currentUser.username)) || 'غير معروف'
+    };
+    fbDb.ref('appSettings/dataRetention').set(data).then(function() {
+        dataRetentionSettings = Object.assign({}, dataRetentionSettings, data);
+        showToast('✅ تم حفظ إعدادات التنظيف');
+    }).catch(function(e) {
+        showToast('❌ فشل حفظ الإعدادات: ' + e.message, true);
+    });
+}
+
+// المنطق الأساسي للتنظيف: بيرجع Promise بعدد العناصر المحذوفة من كل نوع.
+// driverLocationHistory متخزّنة بالشكل driverLocationHistory/{driverId}/{yyyy-mm-dd}/{pushId}،
+// فبنحذف عُقدة اليوم كاملة دفعة واحدة (أرخص وأسرع بكتير من حذف كل نقطة GPS لوحدها).
+// equipmentChecks مجموعة مسطّحة فيها checkedAt (ISO)، فبنستعلم بيها مباشرة.
+function runDataCleanup() {
+    if (!fbDb) return Promise.reject(new Error('لا يوجد اتصال بالسيرفر'));
+    function toDateKey(d) {
+        var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + day;
+    }
+    var gpsDays = dataRetentionSettings.driverLocationHistoryDays || 90;
+    var checksDays = dataRetentionSettings.equipmentChecksDays || 365;
+    var gpsCutoffKey = toDateKey(new Date(Date.now() - gpsDays * 24 * 60 * 60 * 1000));
+    var checksCutoffISO = new Date(Date.now() - checksDays * 24 * 60 * 60 * 1000).toISOString();
+
+    var gpsPromise = fbDb.ref('driverLocationHistory').once('value').then(function(snap) {
+        var val = snap.val() || {};
+        var updates = {};
+        var deletedDays = 0;
+        Object.keys(val).forEach(function(driverId) {
+            var dates = val[driverId] || {};
+            Object.keys(dates).forEach(function(dateKey) {
+                if (dateKey < gpsCutoffKey) {
+                    updates['driverLocationHistory/' + driverId + '/' + dateKey] = null;
+                    deletedDays++;
+                }
+            });
+        });
+        if (!deletedDays) return 0;
+        return fbDb.ref().update(updates).then(function() { return deletedDays; });
+    });
+
+    var checksPromise = fbDb.ref('equipmentChecks').orderByChild('checkedAt').endAt(checksCutoffISO).once('value').then(function(snap) {
+        var val = snap.val() || {};
+        var keys = Object.keys(val);
+        if (!keys.length) return 0;
+        var updates = {};
+        keys.forEach(function(k) { updates['equipmentChecks/' + k] = null; });
+        return fbDb.ref().update(updates).then(function() { return keys.length; });
+    }).catch(function() {
+        // لو مفيش index على checkedAt، بنرجع 0 بدل ما نوقف التنظيف بالكامل — سجل GPS برضه هيتنضف
+        return 0;
+    });
+
+    return Promise.all([gpsPromise, checksPromise]).then(function(results) {
+        localStorage.setItem('lastDataCleanupAt', new Date().toISOString());
+        return { gpsDaysDeleted: results[0], checksDeleted: results[1] };
+    });
+}
+
+function runDataCleanupNow() {
+    var btn = document.getElementById('run-cleanup-now-btn');
+    var resultEl = document.getElementById('cleanup-result');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري التنظيف...'; }
+    if (resultEl) resultEl.innerHTML = '<div style="text-align:center;padding:10px;color:#94a3b8;font-size:12.5px">⏳ جاري فحص وحذف البيانات القديمة...</div>';
+    runDataCleanup().then(function(res) {
+        if (btn) { btn.disabled = false; btn.textContent = '🗑️ تشغيل التنظيف الآن'; }
+        if (resultEl) {
+            resultEl.innerHTML = '<div style="background:#d1fae5;border-radius:10px;padding:12px;font-size:12.5px;color:#065f46;text-align:center">✅ تم حذف ' + res.gpsDaysDeleted + ' يوم من سجلات GPS القديمة، و ' + res.checksDeleted + ' مراجعة معدات قديمة</div>';
+        }
+        loadDataRetentionFields();
+    }).catch(function(e) {
+        if (btn) { btn.disabled = false; btn.textContent = '🗑️ تشغيل التنظيف الآن'; }
+        if (resultEl) resultEl.innerHTML = '<div style="color:#dc2626;font-size:12px;text-align:center">❌ تعذّر إتمام التنظيف: ' + e.message + '</div>';
+    });
+}
+
+// تشغيل تلقائي مرة كل 24 ساعة (لكل جهاز) لو مفعّل من الإعدادات — بيتنادى مرة واحدة بعد دخول أي مدير للتطبيق
+function maybeAutoRunDataCleanup() {
+    if (!dataRetentionSettings.autoCleanupEnabled) return;
+    if (!currentUser || currentUser.role !== 'admin') return;
+    var last = localStorage.getItem('lastDataCleanupAt');
+    if (last && (Date.now() - new Date(last).getTime()) < 24 * 60 * 60 * 1000) return;
+    runDataCleanup().catch(function() {});
 }
 
 function recalculateFuelCosts(overwriteAll) {
@@ -2385,7 +2520,7 @@ function deleteAdminUser(uid, email) {
 
 // ==================== إعدادات Firebase ====================
 function switchAdminTab(tab) {
-    var tabs = ['users', 'fuel', 'backup', 'loginlog', 'firebase', 'ai', 'danger'];
+    var tabs = ['users', 'fuel', 'backup', 'loginlog', 'cleanup', 'firebase', 'ai', 'danger'];
     tabs.forEach(function(t) {
         var panel = document.getElementById('atab-' + t);
         var btn = document.getElementById('atab-' + t + '-btn');
@@ -2408,6 +2543,9 @@ function switchAdminTab(tab) {
     }
     if (tab === 'loginlog') {
         loadLoginLog();
+    }
+    if (tab === 'cleanup') {
+        loadDataRetentionFields();
     }
     if (tab === 'firebase') {
         loadFBConfigFields();
@@ -2707,6 +2845,7 @@ let driversData = [];
 let employeesData = [];
 let fuelData = [];
 var currentFuelPrices = { diesel: 0, gasoline: 0 };
+var dataRetentionSettings = { driverLocationHistoryDays: 90, equipmentChecksDays: 365, autoCleanupEnabled: false }; // مدة الاحتفاظ بسجلات GPS ومراجعات المعدات قبل الحذف التلقائي (TTL)
 let maintenanceSchedules = [];
 let inventoryItems = [];
 let equipmentFilterLinks = [];
@@ -2972,6 +3111,17 @@ function showToast(message, isError = false) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.remove('active');
+}
+
+// طيّ/فرد قسم "أدوات متقدمة" في تبويب الصيانة — بيخفي الأزرار التسعة الأقل استخدامًا افتراضيًا
+// عشان زرار "جدولة صيانة جديدة" (الأكتر استخدامًا) يفضل هو الوحيد الظاهر أول ما المستخدم يدخل الصفحة
+function toggleMaintenanceAdvancedTools() {
+    var box = document.getElementById('maint-advanced-tools');
+    var chevron = document.getElementById('maint-advanced-chevron');
+    if (!box) return;
+    var isOpen = box.style.display !== 'none';
+    box.style.display = isOpen ? 'none' : 'block';
+    if (chevron) chevron.textContent = isOpen ? '▾' : '▴';
 }
 
 // ==================== نظام اللغة: عربي فقط / إنجليزي فقط / الاثنين معًا (إنجليزي أعلى وترجمته العربية تحته) ====================
@@ -3844,6 +3994,11 @@ function attachFirebaseListeners() {
         var d = snapshot.val() || {};
         currentFuelPrices = { diesel: parseFloat(d.diesel) || 0, gasoline: parseFloat(d.gasoline) || 0 };
     });
+
+    listen('appSettings/dataRetention', function(snapshot) {
+        var d = snapshot.val();
+        if (d && typeof d === 'object') dataRetentionSettings = Object.assign({}, dataRetentionSettings, d);
+    });
     
     listen('maintenanceSchedules', function(snapshot) {
         maintenanceSchedules = snapshotToArray(snapshot);
@@ -4517,6 +4672,7 @@ function proceedToApp() {
     appContainer.style.display = 'block';
 
     var isAdmin = currentUser && currentUser.role === 'admin';
+    if (isAdmin) setTimeout(function() { maybeAutoRunDataCleanup(); }, 5000);
 
     // عرض اسم المستخدم ودوره
     var userNameDisplay = document.getElementById('user-name-display');
