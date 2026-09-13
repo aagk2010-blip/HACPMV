@@ -953,11 +953,11 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <button class="tab-btn sidebar-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span class="i18n-label" data-en="Rental" data-ar="الإيجار"></span></button>
       <button class="tab-btn sidebar-btn" data-view="accounts"><span class="tab-icon"><svg class="icon"><use href="#ic-accounts"/></svg></span><span class="i18n-label" data-en="Accounts" data-ar="الحسابات"></span></button>
       <button class="tab-btn sidebar-btn" data-view="map"><span class="tab-icon"><svg class="icon"><use href="#ic-map"/></svg></span><span class="i18n-label" data-en="Equipment Map" data-ar="خريطة المعدات"></span></button>
-      <button class="tab-btn sidebar-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span class="i18n-label" data-en="Sites" data-ar="المواقع"></span></button>
-      <button class="tab-btn sidebar-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span class="i18n-label" data-en="Analytics" data-ar="التحليلات"></span></button>
       <button class="tab-btn sidebar-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span class="i18n-label" data-en="Employees" data-ar="الموظفين"></span></button>
       <button class="tab-btn sidebar-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span class="i18n-label" data-en="Fuel" data-ar="الوقود"></span></button>
       <button class="tab-btn sidebar-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span class="i18n-label" data-en="Maintenance" data-ar="الصيانة"></span></button>
+      <button class="tab-btn sidebar-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span class="i18n-label" data-en="Analytics" data-ar="التحليلات"></span></button>
+      <button class="tab-btn sidebar-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span class="i18n-label" data-en="Sites" data-ar="المواقع"></span></button>
       <button class="tab-btn sidebar-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span class="i18n-label" data-en="Inventory" data-ar="المخزن"></span></button>
       <button class="tab-btn sidebar-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span class="i18n-label" data-en="Import" data-ar="استيراد"></span></button>
     </div>
@@ -980,7 +980,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <input type="month" id="unified-report-month" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:9px 14px;font-size:12.5px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
       <button id="unified-report-btn" class="big-btn" style="margin:0;flex:1.4;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📋 تقرير شهري موحّد (PDF)</button>
     </div>
-    <button id="kiosk-mode-btn" class="big-btn" style="margin:0 0 12px 0;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);font-size:12.5px;padding:9px">🖥️ وضع العرض الكبير (للشاشات)</button>
+    <button id="kiosk-mode-btn" class="big-btn" style="margin:0 0 12px 0;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);font-size:12.5px;padding:9px">🖥️ شاشة الإدارة (مواقع / مخزن / أسطول / تنبيهات)</button>
     <div id="sites-summary-row" style="display:flex;gap:8px;margin-bottom:12px"></div>
     <div id="sites-dashboard-list"></div>
   </div></div>
@@ -1140,7 +1140,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
   <div class="modal-overlay" id="rate-edit-modal">
     <div class="modal-header" style="background:linear-gradient(135deg,#166534,#14532d)">
-      <div class="modal-title">💰 تعديل قيمة يوم العمل</div>
+      <div class="modal-title">💰 <span class="i18n-label" data-en="Edit Work Day Value" data-ar="تعديل قيمة يوم العمل"></span></div>
       <button class="modal-close" onclick="closeModal('rate-edit-modal')">✕</button>
     </div>
     <div style="padding:16px">
@@ -1155,7 +1155,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
   <div class="modal-overlay" id="contractors-modal">
     <div class="modal-header" style="background:linear-gradient(135deg,#166534,#14532d)">
-      <div class="modal-title">👷 المقاولين</div>
+      <div class="modal-title">👷 <span class="i18n-label" data-en="Contractors" data-ar="المقاولين"></span></div>
       <button class="modal-close" onclick="closeModal('contractors-modal')">✕</button>
     </div>
     <div style="padding:16px">
@@ -1242,12 +1242,12 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   </div>
   
   </div><!-- /.app-main -->
-  <div class="tab-bar"><div class="tab-bar-scroll"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span class="i18n-label" data-en="Home" data-ar="الرئيسية"></span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span class="i18n-label" data-en="Equipment" data-ar="المعدات"></span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span class="i18n-label" data-en="Rental" data-ar="الإيجار"></span></button><button class="tab-btn" data-view="accounts"><span class="tab-icon"><svg class="icon"><use href="#ic-accounts"/></svg></span><span class="i18n-label" data-en="Accounts" data-ar="الحسابات"></span></button><button class="tab-btn" data-view="map"><span class="tab-icon"><svg class="icon"><use href="#ic-map"/></svg></span><span class="i18n-label" data-en="Map" data-ar="الخريطة"></span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span class="i18n-label" data-en="Sites" data-ar="المواقع"></span></button><button class="tab-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span class="i18n-label" data-en="Analytics" data-ar="التحليلات"></span></button><button class="tab-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span class="i18n-label" data-en="Employees" data-ar="الموظفين"></span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span class="i18n-label" data-en="Fuel" data-ar="الوقود"></span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span class="i18n-label" data-en="Maintenance" data-ar="الصيانة"></span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span class="i18n-label" data-en="Inventory" data-ar="المخزن"></span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span class="i18n-label" data-en="Import" data-ar="استيراد"></span></button></div></div>
+  <div class="tab-bar"><div class="tab-bar-scroll"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span class="i18n-label" data-en="Home" data-ar="الرئيسية"></span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span class="i18n-label" data-en="Equipment" data-ar="المعدات"></span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span class="i18n-label" data-en="Rental" data-ar="الإيجار"></span></button><button class="tab-btn" data-view="accounts"><span class="tab-icon"><svg class="icon"><use href="#ic-accounts"/></svg></span><span class="i18n-label" data-en="Accounts" data-ar="الحسابات"></span></button><button class="tab-btn" data-view="map"><span class="tab-icon"><svg class="icon"><use href="#ic-map"/></svg></span><span class="i18n-label" data-en="Map" data-ar="الخريطة"></span></button><button class="tab-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span class="i18n-label" data-en="Employees" data-ar="الموظفين"></span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span class="i18n-label" data-en="Fuel" data-ar="الوقود"></span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span class="i18n-label" data-en="Maintenance" data-ar="الصيانة"></span></button><button class="tab-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span class="i18n-label" data-en="Analytics" data-ar="التحليلات"></span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span class="i18n-label" data-en="Sites" data-ar="المواقع"></span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span class="i18n-label" data-en="Inventory" data-ar="المخزن"></span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span class="i18n-label" data-en="Import" data-ar="استيراد"></span></button></div></div>
   <button class="fab" id="fab-btn">+</button>
 </div>
 
 <!-- النوافذ المنبثقة (نفسها كما كانت) -->
-<div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment">إضافة معدة جديدة</div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div>
+<div class="modal-overlay" id="equipment-modal"><div class="modal-header"><div class="modal-title" id="modal-title-equipment"><span class="i18n-label" data-en="Add New Equipment" data-ar="إضافة معدة جديدة"></span></div><button class="modal-close" onclick="closeModal('equipment-modal')">✕</button></div><div>
 
 <div id="eq-wizard-steps" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 10px 4px">
 <div class="eq-step-dot" data-step="1" style="display:flex;flex-direction:column;align-items:center;gap:4px"><div class="eq-step-circle" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:var(--primary);color:#fff">1</div><span style="font-size:10px;color:var(--gray)">البيانات الأساسية</span></div>
@@ -1271,20 +1271,20 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
 </div></div>
 
-<div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver">إضافة سائق جديد</div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Full Name" data-ar="الاسم الكامل"></span> *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Phone Number" data-ar="رقم الهاتف"></span></label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Driving License No." data-ar="رقم رخصة القيادة"></span></label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="License Expiry Date" data-ar="تاريخ انتهاء الرخصة"></span></label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
+<div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver"><span class="i18n-label" data-en="Add New Driver" data-ar="إضافة سائق جديد"></span></div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Full Name" data-ar="الاسم الكامل"></span> *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Phone Number" data-ar="رقم الهاتف"></span></label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Driving License No." data-ar="رقم رخصة القيادة"></span></label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="License Expiry Date" data-ar="تاريخ انتهاء الرخصة"></span></label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
 
-<div class="modal-overlay" id="employee-modal"><div class="modal-header"><div class="modal-title" id="modal-title-employee">إضافة موظف جديد</div><button class="modal-close" onclick="closeModal('employee-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Employee Name" data-ar="اسم الموظف"></span> *</label><input class="form-input" id="employee-name" placeholder="الاسم الكامل"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Profession / Job" data-ar="المهنة / الوظيفة"></span> *</label><input class="form-input" id="employee-title" placeholder="مثال: فورمان كهرباء قوي"></div><div class="form-field"><label class="form-label">🏗️ الموقع / المشروع *</label><input class="form-input" id="employee-project" list="employee-locations-list" placeholder="اكتب اسم الموقع أو اختر من القائمة"><datalist id="employee-locations-list"></datalist></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Mobile Number" data-ar="رقم الموبايل"></span></label><input class="form-input" id="employee-phone" placeholder="01xxxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Job Code" data-ar="الكود الوظيفي"></span></label><input class="form-input" id="employee-code" placeholder="مثال: 10213419"></div><div class="form-field"><label class="form-label">معين / سركي</label><select class="form-select" id="employee-type"><option>معين</option><option>سركي</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="employee-status"><option>نشط</option><option>منتهي الخدمة</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="employee-notes"></textarea></div></div><button class="save-btn" onclick="saveEmployee()">✅ حفظ الموظف</button></div></div>
+<div class="modal-overlay" id="employee-modal"><div class="modal-header"><div class="modal-title" id="modal-title-employee"><span class="i18n-label" data-en="Add New Employee" data-ar="إضافة موظف جديد"></span></div><button class="modal-close" onclick="closeModal('employee-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Employee Name" data-ar="اسم الموظف"></span> *</label><input class="form-input" id="employee-name" placeholder="الاسم الكامل"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Profession / Job" data-ar="المهنة / الوظيفة"></span> *</label><input class="form-input" id="employee-title" placeholder="مثال: فورمان كهرباء قوي"></div><div class="form-field"><label class="form-label">🏗️ الموقع / المشروع *</label><input class="form-input" id="employee-project" list="employee-locations-list" placeholder="اكتب اسم الموقع أو اختر من القائمة"><datalist id="employee-locations-list"></datalist></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Mobile Number" data-ar="رقم الموبايل"></span></label><input class="form-input" id="employee-phone" placeholder="01xxxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Job Code" data-ar="الكود الوظيفي"></span></label><input class="form-input" id="employee-code" placeholder="مثال: 10213419"></div><div class="form-field"><label class="form-label">معين / سركي</label><select class="form-select" id="employee-type"><option>معين</option><option>سركي</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="employee-status"><option>نشط</option><option>منتهي الخدمة</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="employee-notes"></textarea></div></div><button class="save-btn" onclick="saveEmployee()">✅ حفظ الموظف</button></div></div>
 
-<div class="modal-overlay" id="fuel-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">⛽ تسجيل تزود بالوقود</div><button class="modal-close" onclick="closeModal('fuel-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span></label><select class="form-select" id="fuel-equipment"></select></div><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="fuel-amount"></div><div class="form-field"><label class="form-label">التكلفة (ج.م)</label><input class="form-input" type="number" id="fuel-cost"></div><div class="form-field"><label class="form-label">العداد الحالي</label><input class="form-input" type="number" id="fuel-hours"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Date" data-ar="التاريخ"></span></label><input class="form-input" type="date" id="fuel-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Driver" data-ar="السائق"></span></label><select class="form-select" id="fuel-driver"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="fuel-notes"></textarea></div></div><button class="save-btn" onclick="saveFuelRecord()">✅ حفظ التزود</button></div></div>
+<div class="modal-overlay" id="fuel-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">⛽ <span class="i18n-label" data-en="Log Fuel Refill" data-ar="تسجيل تزود بالوقود"></span></div><button class="modal-close" onclick="closeModal('fuel-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span></label><select class="form-select" id="fuel-equipment"></select></div><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="fuel-amount"></div><div class="form-field"><label class="form-label">التكلفة (ج.م)</label><input class="form-input" type="number" id="fuel-cost"></div><div class="form-field"><label class="form-label">العداد الحالي</label><input class="form-input" type="number" id="fuel-hours"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Date" data-ar="التاريخ"></span></label><input class="form-input" type="date" id="fuel-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Driver" data-ar="السائق"></span></label><select class="form-select" id="fuel-driver"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="fuel-notes"></textarea></div></div><button class="save-btn" onclick="saveFuelRecord()">✅ حفظ التزود</button></div></div>
 
-<div class="modal-overlay" id="fuel-edit-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">✏️ تعديل سجل الوقود</div><button class="modal-close" onclick="closeModal('fuel-edit-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="edit-fuel-amount"></div><div class="form-field"><label class="form-label">التكلفة (ج.م)</label><input class="form-input" type="number" id="edit-fuel-cost"></div><div class="form-field"><label class="form-label">العداد الحالي</label><input class="form-input" type="number" id="edit-fuel-hours"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Date" data-ar="التاريخ"></span></label><input class="form-input" type="date" id="edit-fuel-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="edit-fuel-notes"></textarea></div></div><button class="save-btn" onclick="updateFuelRecord()">✅ حفظ التعديلات</button><button class="save-btn" style="background:var(--danger)" onclick="deleteFuelRecord()">🗑️ حذف السجل</button></div></div>
+<div class="modal-overlay" id="fuel-edit-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">✏️ <span class="i18n-label" data-en="Edit Fuel Record" data-ar="تعديل سجل الوقود"></span></div><button class="modal-close" onclick="closeModal('fuel-edit-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="edit-fuel-amount"></div><div class="form-field"><label class="form-label">التكلفة (ج.م)</label><input class="form-input" type="number" id="edit-fuel-cost"></div><div class="form-field"><label class="form-label">العداد الحالي</label><input class="form-input" type="number" id="edit-fuel-hours"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Date" data-ar="التاريخ"></span></label><input class="form-input" type="date" id="edit-fuel-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="edit-fuel-notes"></textarea></div></div><button class="save-btn" onclick="updateFuelRecord()">✅ حفظ التعديلات</button><button class="save-btn" style="background:var(--danger)" onclick="deleteFuelRecord()">🗑️ حذف السجل</button></div></div>
 
-<div class="modal-overlay" id="maintenance-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--warning),var(--accent-dark))"><div class="modal-title">🔧 جدولة صيانة دورية</div><button class="modal-close" onclick="closeModal('maintenance-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span></label><select class="form-select" id="maint-equipment"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Maintenance Type" data-ar="نوع الصيانة"></span></label><select class="form-select" id="maint-type"><option>صيانة دورية</option><option>صيانة طارئة</option><option>فحص دوري</option><option>تغيير زيت</option><option>تغيير فلاتر</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Scheduled Date" data-ar="التاريخ المحدد"></span></label><input class="form-input" type="date" id="maint-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Target Hours" data-ar="العداد المستهدف"></span></label><input class="form-input" type="number" id="maint-hours"></div><div class="form-field"><label class="form-label">🏷️ فئة الصيانة (تصنيف تلقائي)</label><div id="maint-tier-badge" style="padding:10px 12px;border-radius:12px;background:#f1f5f9;color:#475569;font-weight:800;font-size:13px;text-align:center">أدخل العداد المستهدف لمعرفة الفئة</div></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Estimated Cost" data-ar="التكلفة المتوقعة"></span></label><input class="form-input" type="number" id="maint-cost"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="maint-notes"></textarea></div><div class="form-field"><label class="form-label">🔧 القطع المطلوبة لهذه الصيانة</label><button type="button" class="save-btn" style="margin:0 0 8px;padding:8px;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="autoFillMaintenanceRequiredParts()">✨ تحميل القطع المقترحة تلقائيًا</button><div id="maint-parts-list" style="margin-bottom:8px"></div><button type="button" class="save-btn" style="margin:0;padding:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="addMaintenancePartRow()">➕ إضافة قطعة يدويًا</button></div><div class="form-field"><label class="form-label">📎 مرفقات</label><input type="file" id="maint-attachment" accept="image/*,application/pdf" style="display:none"><button type="button" class="save-btn" style="margin:0;margin-top:8px;padding:8px" onclick="document.getElementById('maint-attachment').click()">📎 رفع مرفق</button><div id="maint-attachment-preview" style="margin-top:8px"></div></div></div><button class="save-btn" onclick="saveMaintenanceSchedule()">✅ جدولة الصيانة</button></div></div>
+<div class="modal-overlay" id="maintenance-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--warning),var(--accent-dark))"><div class="modal-title">🔧 <span class="i18n-label" data-en="Schedule Routine Maintenance" data-ar="جدولة صيانة دورية"></span></div><button class="modal-close" onclick="closeModal('maintenance-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span></label><select class="form-select" id="maint-equipment"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Maintenance Type" data-ar="نوع الصيانة"></span></label><select class="form-select" id="maint-type"><option>صيانة دورية</option><option>صيانة طارئة</option><option>فحص دوري</option><option>تغيير زيت</option><option>تغيير فلاتر</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Scheduled Date" data-ar="التاريخ المحدد"></span></label><input class="form-input" type="date" id="maint-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Target Hours" data-ar="العداد المستهدف"></span></label><input class="form-input" type="number" id="maint-hours"></div><div class="form-field"><label class="form-label">🏷️ فئة الصيانة (تصنيف تلقائي)</label><div id="maint-tier-badge" style="padding:10px 12px;border-radius:12px;background:#f1f5f9;color:#475569;font-weight:800;font-size:13px;text-align:center">أدخل العداد المستهدف لمعرفة الفئة</div></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Estimated Cost" data-ar="التكلفة المتوقعة"></span></label><input class="form-input" type="number" id="maint-cost"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="maint-notes"></textarea></div><div class="form-field"><label class="form-label">🔧 القطع المطلوبة لهذه الصيانة</label><button type="button" class="save-btn" style="margin:0 0 8px;padding:8px;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="autoFillMaintenanceRequiredParts()">✨ تحميل القطع المقترحة تلقائيًا</button><div id="maint-parts-list" style="margin-bottom:8px"></div><button type="button" class="save-btn" style="margin:0;padding:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="addMaintenancePartRow()">➕ إضافة قطعة يدويًا</button></div><div class="form-field"><label class="form-label">📎 مرفقات</label><input type="file" id="maint-attachment" accept="image/*,application/pdf" style="display:none"><button type="button" class="save-btn" style="margin:0;margin-top:8px;padding:8px" onclick="document.getElementById('maint-attachment').click()">📎 رفع مرفق</button><div id="maint-attachment-preview" style="margin-top:8px"></div></div></div><button class="save-btn" onclick="saveMaintenanceSchedule()">✅ جدولة الصيانة</button></div></div>
 
 
 <div class="modal-overlay" id="fault-report-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#dc2626,#991b1b)">
-    <div class="modal-title">🚨 الإبلاغ عن عطل</div>
+    <div class="modal-title">🚨 <span class="i18n-label" data-en="Report a Fault" data-ar="الإبلاغ عن عطل"></span></div>
     <button class="modal-close" onclick="closeModal('fault-report-modal')">✕</button>
   </div>
   <div style="padding:16px">
@@ -1310,7 +1310,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
 <div class="modal-overlay" id="equipment-check-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#0891b2,#0e7490)">
-    <div class="modal-title">🔍 مراجعة سريعة للمعدة</div>
+    <div class="modal-title">🔍 <span class="i18n-label" data-en="Quick Equipment Check" data-ar="مراجعة سريعة للمعدة"></span></div>
     <button class="modal-close" onclick="closeModal('equipment-check-modal')">✕</button>
   </div>
   <div style="padding:16px">
@@ -1343,41 +1343,63 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 </div>
 
 
-<div class="modal-overlay" id="detail-modal"><div class="modal-header"><div class="modal-title" id="detail-title">تفاصيل</div><button class="modal-close" onclick="closeModal('detail-modal')">✕</button></div><div id="detail-content"></div></div>
+<div class="modal-overlay" id="detail-modal"><div class="modal-header"><div class="modal-title" id="detail-title"><span class="i18n-label" data-en="Details" data-ar="تفاصيل"></span></div><button class="modal-close" onclick="closeModal('detail-modal')">✕</button></div><div id="detail-content"></div></div>
 
-<div class="modal-overlay" id="meter-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">⏱️ تحديث العدادات اليومي</div><button class="modal-close" onclick="closeModal('meter-modal')">✕</button></div><div id="meter-list" style="padding:14px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveAllMeters()">✅ حفظ جميع العدادات</button></div></div>
+<div class="modal-overlay" id="meter-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">⏱️ <span class="i18n-label" data-en="Daily Meter Update" data-ar="تحديث العدادات اليومي"></span></div><button class="modal-close" onclick="closeModal('meter-modal')">✕</button></div><div id="meter-list" style="padding:14px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveAllMeters()">✅ حفظ جميع العدادات</button></div></div>
 
-<div class="modal-overlay" id="inventory-item-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--purple),var(--pink))"><div class="modal-title" id="inv-item-title">إضافة صنف جديد</div><button class="modal-close" onclick="closeModal('inventory-item-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Category" data-ar="التصنيف"></span> *</label><select class="form-select" id="inv-category"><option value="filter">فلتر</option><option value="oil">زيت</option><option value="tire">إطار</option><option value="spare">قطعة غيار</option><option value="other">أخرى</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Item Name" data-ar="اسم الصنف"></span> *</label><input class="form-input" id="inv-name"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Part No." data-ar="رقم القطعة"></span> *</label><input class="form-input" id="inv-partno"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Change Interval" data-ar="دورة التغيير"></span></label><select class="form-select" id="inv-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="1000">كل 1000 ساعة</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Quantity" data-ar="الكمية"></span></label><input class="form-input" type="number" id="inv-qty" value="0"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Minimum" data-ar="الحد الأدنى"></span></label><input class="form-input" type="number" id="inv-min-qty" value="5"></div><div class="form-field"><label class="form-label">سعر الوحدة</label><input class="form-input" type="number" id="inv-price" value="0"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Unit" data-ar="الوحدة"></span></label><select class="form-select" id="inv-unit"><option>قطعة</option><option>لتر</option><option>جالون</option><option>كجم</option></select></div></div><div id="inv-alt-list" style="margin:0 14px"></div><button onclick="addInvAltField()" class="save-btn" style="margin:10px 14px; background:var(--info)">➕ إضافة رقم بديل</button><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="inv-notes"></textarea></div></div><button class="save-btn" onclick="saveInventoryItem()">✅ حفظ الصنف</button></div></div>
+<div class="modal-overlay" id="inventory-item-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--purple),var(--pink))"><div class="modal-title" id="inv-item-title"><span class="i18n-label" data-en="Add New Item" data-ar="إضافة صنف جديد"></span></div><button class="modal-close" onclick="closeModal('inventory-item-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Category" data-ar="التصنيف"></span> *</label><select class="form-select" id="inv-category"><option value="filter">فلتر</option><option value="oil">زيت</option><option value="tire">إطار</option><option value="spare">قطعة غيار</option><option value="other">أخرى</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Item Name" data-ar="اسم الصنف"></span> *</label><input class="form-input" id="inv-name"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Part No." data-ar="رقم القطعة"></span> *</label><input class="form-input" id="inv-partno"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Change Interval" data-ar="دورة التغيير"></span></label><select class="form-select" id="inv-interval"><option value="250">كل 250 ساعة</option><option value="500">كل 500 ساعة</option><option value="1000">كل 1000 ساعة</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Quantity" data-ar="الكمية"></span></label><input class="form-input" type="number" id="inv-qty" value="0"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Minimum" data-ar="الحد الأدنى"></span></label><input class="form-input" type="number" id="inv-min-qty" value="5"></div><div class="form-field"><label class="form-label">سعر الوحدة</label><input class="form-input" type="number" id="inv-price" value="0"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Unit" data-ar="الوحدة"></span></label><select class="form-select" id="inv-unit"><option>قطعة</option><option>لتر</option><option>جالون</option><option>كجم</option></select></div></div><div id="inv-alt-list" style="margin:0 14px"></div><button onclick="addInvAltField()" class="save-btn" style="margin:10px 14px; background:var(--info)">➕ إضافة رقم بديل</button><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="inv-notes"></textarea></div></div><button class="save-btn" onclick="saveInventoryItem()">✅ حفظ الصنف</button></div></div>
 
-<div class="modal-overlay" id="link-filter-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--info),var(--primary))"><div class="modal-title">🔗 ربط فلتر بمعدة</div><button class="modal-close" onclick="closeModal('link-filter-modal')">✕</button></div><div id="link-filter-content" style="padding:14px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveFilterLink()">✅ حفظ الربط</button></div></div>
+<div class="modal-overlay" id="link-filter-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--info),var(--primary))"><div class="modal-title">🔗 <span class="i18n-label" data-en="Link Filter to Equipment" data-ar="ربط فلتر بمعدة"></span></div><button class="modal-close" onclick="closeModal('link-filter-modal')">✕</button></div><div id="link-filter-content" style="padding:14px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveFilterLink()">✅ حفظ الربط</button></div></div>
 
-<div class="modal-overlay" id="link-oil-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--info),var(--primary))"><div class="modal-title">🛢️ ربط الزيت بمعدات</div><button class="modal-close" onclick="closeModal('link-oil-modal')">✕</button></div><div id="link-oil-content" style="padding:14px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveOilLink()">✅ حفظ الربط</button></div></div>
+<div class="modal-overlay" id="link-oil-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--info),var(--primary))"><div class="modal-title">🛢️ <span class="i18n-label" data-en="Link Oil to Equipment" data-ar="ربط الزيت بمعدات"></span></div><button class="modal-close" onclick="closeModal('link-oil-modal')">✕</button></div><div id="link-oil-content" style="padding:14px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveOilLink()">✅ حفظ الربط</button></div></div>
 
-<div class="modal-overlay" id="filter-alternatives-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--purple),var(--pink))"><div class="modal-title">🔄 ربط فلاتر بديلة</div><button class="modal-close" onclick="closeModal('filter-alternatives-modal')">✕</button></div><div id="filter-alt-content" style="padding:14px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveFilterAlternatives()">✅ حفظ البدائل</button></div></div>
+<div class="modal-overlay" id="filter-alternatives-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--purple),var(--pink))"><div class="modal-title">🔄 <span class="i18n-label" data-en="Link Alternative Filters" data-ar="ربط فلاتر بديلة"></span></div><button class="modal-close" onclick="closeModal('filter-alternatives-modal')">✕</button></div><div id="filter-alt-content" style="padding:14px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="saveFilterAlternatives()">✅ حفظ البدائل</button></div></div>
 
-<div class="modal-overlay" id="order-report-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--danger),var(--warning))"><div class="modal-title">📋 تقرير الطلبية</div><button class="modal-close" onclick="closeModal('order-report-modal')">✕</button></div><div id="order-report-content" style="padding:14px; padding-bottom:100px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="exportOrderToExcel()">📊 Excel</button><button class="save-btn" style="background:var(--success); margin-top:10px" onclick="sendOrderViaWhatsApp()">📱 واتساب</button></div></div>
+<div class="modal-overlay" id="order-report-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--danger),var(--warning))"><div class="modal-title">📋 <span class="i18n-label" data-en="Order Report" data-ar="تقرير الطلبية"></span></div><button class="modal-close" onclick="closeModal('order-report-modal')">✕</button></div><div id="order-report-content" style="padding:14px; padding-bottom:100px"></div><div style="position:sticky; bottom:0; background:var(--light); padding:14px"><button class="save-btn" onclick="exportOrderToExcel()">📊 Excel</button><button class="save-btn" style="background:var(--success); margin-top:10px" onclick="sendOrderViaWhatsApp()">📱 واتساب</button></div></div>
 
-<div class="modal-overlay" id="import-progress-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--success),var(--info))"><div class="modal-title">📊 جاري استيراد البيانات...</div><button class="modal-close" onclick="closeModal('import-progress-modal')">✕</button></div><div style="padding:20px; text-align:center"><div style="font-size:40px; margin-bottom:15px">⏳</div><div id="import-progress-text" style="margin-bottom:10px">جارٍ قراءة الملف...</div><div class="progress-bar" style="height:10px"><div id="import-progress-bar" class="progress-fill" style="width:0%"></div></div><div id="import-status-list" style="margin-top:15px; font-size:12px; text-align:right; max-height:200px; overflow:auto"></div></div></div>
+<div class="modal-overlay" id="import-progress-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--success),var(--info))"><div class="modal-title">📊 <span class="i18n-label" data-en="Importing Data..." data-ar="جاري استيراد البيانات..."></span></div><button class="modal-close" onclick="closeModal('import-progress-modal')">✕</button></div><div style="padding:20px; text-align:center"><div style="font-size:40px; margin-bottom:15px">⏳</div><div id="import-progress-text" style="margin-bottom:10px">جارٍ قراءة الملف...</div><div class="progress-bar" style="height:10px"><div id="import-progress-bar" class="progress-fill" style="width:0%"></div></div><div id="import-status-list" style="margin-top:15px; font-size:12px; text-align:right; max-height:200px; overflow:auto"></div></div></div>
 
-<div class="modal-overlay" id="notif-settings-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 إعدادات الإشعارات</div><button class="modal-close" onclick="closeModal('notif-settings-modal')">✕</button></div><div style="padding:16px"><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">📱 رقم واتساب لاستقبال التنبيهات</div><input class="form-input" id="whatsapp-number" type="tel" placeholder="مثال: 201012345678" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%; font-size:14px"><div style="font-size:11px; color:var(--gray); margin-top:6px">أدخل الرقم مع كود الدولة بدون + مثلاً 201012345678</div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">⏰ إشعار عند باقي (ساعات)</div><select class="form-select" id="notif-threshold" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%"><option value="10">10 ساعات فأقل</option><option value="25">25 ساعة فأقل</option><option value="50" selected>50 ساعة فأقل</option><option value="100">100 ساعة فأقل</option></select></div><div class="detail-section" style="margin:0 0 12px 0; display:flex; justify-content:space-between; align-items:center"><div><div class="detail-label">🔔 إشعارات المتصفح</div><div style="font-size:11px; color:var(--gray)">تنبيه تلقائي عند فتح التطبيق</div></div><div id="notif-permission-status" style="font-size:12px; font-weight:600"></div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">🔔 أنواع التنبيهات التي تريد استلامها</div><div style="display:flex;flex-direction:column;gap:8px"><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-maintenance" style="width:18px;height:18px">🔧 صيانة المعدات (متأخرة / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-licenses" style="width:18px;height:18px">📜 رخص السائقين (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-inventory" style="width:18px;height:18px">📦 المخزون المنخفض</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental" style="width:18px;height:18px">📄 عقود الإيجار (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-hours-anomaly" style="width:18px;height:18px">⏱️ استثناءات في تسجيل الساعات (قفزة غير منطقية / نقص)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-value-edits" style="width:18px;height:18px">✏️ تعديل قيم مسجلة سابقاً (أي مستخدم)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental-daily" style="width:18px;height:18px">📋 استثناءات التسجيل اليومي وغياب معدات الإيجار</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-tires" style="width:18px;height:18px">🛞 الإطارات (محتاجة قياس / قريبة من نهاية العمر)</label></div></div><button id="enable-notif-btn" class="save-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5); margin-bottom:10px">🔔 تفعيل إشعارات المتصفح</button><button id="send-wa-report-btn" class="save-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير واتساب الآن</button><button id="save-notif-settings-btn" class="save-btn">✅ حفظ الإعدادات</button></div></div>
+<div class="modal-overlay" id="notif-settings-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 <span class="i18n-label" data-en="Notification Settings" data-ar="إعدادات الإشعارات"></span></div><button class="modal-close" onclick="closeModal('notif-settings-modal')">✕</button></div><div style="padding:16px"><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">📱 رقم واتساب لاستقبال التنبيهات</div><input class="form-input" id="whatsapp-number" type="tel" placeholder="مثال: 201012345678" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%; font-size:14px"><div style="font-size:11px; color:var(--gray); margin-top:6px">أدخل الرقم مع كود الدولة بدون + مثلاً 201012345678</div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">⏰ إشعار عند باقي (ساعات)</div><select class="form-select" id="notif-threshold" style="border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; width:100%"><option value="10">10 ساعات فأقل</option><option value="25">25 ساعة فأقل</option><option value="50" selected>50 ساعة فأقل</option><option value="100">100 ساعة فأقل</option></select></div><div class="detail-section" style="margin:0 0 12px 0; display:flex; justify-content:space-between; align-items:center"><div><div class="detail-label">🔔 إشعارات المتصفح</div><div style="font-size:11px; color:var(--gray)">تنبيه تلقائي عند فتح التطبيق</div></div><div id="notif-permission-status" style="font-size:12px; font-weight:600"></div></div><div class="detail-section" style="margin:0 0 12px 0"><div class="detail-label" style="margin-bottom:8px">🔔 أنواع التنبيهات التي تريد استلامها</div><div style="display:flex;flex-direction:column;gap:8px"><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-maintenance" style="width:18px;height:18px">🔧 صيانة المعدات (متأخرة / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-licenses" style="width:18px;height:18px">📜 رخص السائقين (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-inventory" style="width:18px;height:18px">📦 المخزون المنخفض</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental" style="width:18px;height:18px">📄 عقود الإيجار (منتهية / قريبة)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-hours-anomaly" style="width:18px;height:18px">⏱️ استثناءات في تسجيل الساعات (قفزة غير منطقية / نقص)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-value-edits" style="width:18px;height:18px">✏️ تعديل قيم مسجلة سابقاً (أي مستخدم)</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-rental-daily" style="width:18px;height:18px">📋 استثناءات التسجيل اليومي وغياب معدات الإيجار</label><label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="notif-pref-tires" style="width:18px;height:18px">🛞 الإطارات (محتاجة قياس / قريبة من نهاية العمر)</label></div></div><button id="enable-notif-btn" class="save-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5); margin-bottom:10px">🔔 تفعيل إشعارات المتصفح</button><button id="send-wa-report-btn" class="save-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير واتساب الآن</button><button id="save-notif-settings-btn" class="save-btn">✅ حفظ الإعدادات</button></div></div>
 
-<div class="modal-overlay" id="notif-center-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 مركز التنبيهات</div><button class="modal-close" onclick="closeNotifCenter()">✕</button></div><div id="notif-center-body" style="padding:14px"></div></div>
+<div class="modal-overlay" id="notif-center-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 <span class="i18n-label" data-en="Notification Center" data-ar="مركز التنبيهات"></span></div><button class="modal-close" onclick="closeNotifCenter()">✕</button></div><div id="notif-center-body" style="padding:14px"></div></div>
 
 <div id="kiosk-mode-overlay" style="display:none;position:fixed;inset:0;z-index:5000;background:#0d1b2a;color:white;overflow:hidden">
   <div style="position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;z-index:2">
     <div style="display:flex;align-items:center;gap:10px">
-      <span style="font-size:15px;font-weight:800">🏗️ Hassan Allam Holding</span>
+      <span style="font-size:15px;font-weight:800">🏗️ Hassan Allam Holding — شاشة الإدارة</span>
       <span id="kiosk-clock" style="font-size:13px;color:#94a3b8"></span>
     </div>
-    <button onclick="exitKioskMode()" style="background:rgba(255,255,255,0.12);border:none;color:white;border-radius:20px;padding:6px 16px;font-size:12px;cursor:pointer;font-family:inherit">✕ خروج</button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button onclick="openKioskSettingsPanel()" style="background:rgba(255,255,255,0.12);border:none;color:white;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:inherit">⚙️ الضبط</button>
+      <button onclick="exitKioskMode()" style="background:rgba(255,255,255,0.12);border:none;color:white;border-radius:20px;padding:6px 16px;font-size:12px;cursor:pointer;font-family:inherit">✕ خروج</button>
+    </div>
   </div>
   <div id="kiosk-slide-body" style="position:absolute;top:60px;bottom:36px;right:0;left:0;overflow-y:auto;padding:20px 30px"></div>
   <div id="kiosk-dots" style="position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:8px"></div>
+
+  <div id="kiosk-settings-panel" style="display:none;position:absolute;inset:0;z-index:10;background:rgba(13,27,42,.97);padding:24px;overflow-y:auto">
+    <div style="max-width:420px;margin:0 auto">
+      <div style="font-size:19px;font-weight:800;margin-bottom:4px">⚙️ ضبط شاشة الإدارة</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:18px">اختر الشرائح المناسبة لهذا الجهاز — مثلًا شاشة المخزن تظهر لها "المخزن" بس، وشاشة الموقع تظهر لها "المواقع" و"الأسطول". الإعداد بيتحفظ على هذا الجهاز فقط.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
+        <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px"><input type="checkbox" id="kiosk-cfg-sites" style="width:18px;height:18px">🏢 نظرة عامة على المواقع</label>
+        <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px"><input type="checkbox" id="kiosk-cfg-alerts" style="width:18px;height:18px">🔔 التنبيهات الحرجة</label>
+        <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px"><input type="checkbox" id="kiosk-cfg-fleet" style="width:18px;height:18px">📈 أداء المعدات (الأسطول)</label>
+        <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px"><input type="checkbox" id="kiosk-cfg-warehouse" style="width:18px;height:18px">📦 نظرة عامة على المخزن</label>
+      </div>
+      <div style="margin-bottom:22px">
+        <label style="font-size:12px;color:#94a3b8;display:block;margin-bottom:6px">⏱️ مدة عرض كل شريحة (بالثواني)</label>
+        <input id="kiosk-cfg-seconds" type="number" min="5" max="120" dir="ltr" style="width:100%;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:white;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;box-sizing:border-box;outline:none;font-family:inherit">
+      </div>
+      <button onclick="saveKioskSettings()" style="width:100%;background:linear-gradient(135deg,#e8a020,#c2790a);color:#0d1b2a;border:none;border-radius:12px;padding:13px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit;margin-bottom:10px">✅ حفظ وتشغيل</button>
+      <button onclick="closeKioskSettingsPanel()" style="width:100%;background:rgba(255,255,255,.1);color:white;border:none;border-radius:12px;padding:11px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">إلغاء</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="site-layout-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#0e7490,#0369a1)">
-    <div class="modal-title" id="site-layout-title">🗺️ مخطط الموقع</div>
+    <div class="modal-title" id="site-layout-title">🗺️ <span class="i18n-label" data-en="Site Layout" data-ar="مخطط الموقع"></span></div>
     <button class="modal-close" onclick="closeModal('site-layout-modal')">✕</button>
   </div>
   <div style="padding:10px">
@@ -1423,7 +1445,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
 <div class="modal-overlay" id="date-range-modal">
     <div class="modal-header" style="background:linear-gradient(135deg,#0d1b2a,#ec4899)">
-        <div class="modal-title">📅 اختيار مدة التقرير</div>
+        <div class="modal-title">📅 <span class="i18n-label" data-en="Select Report Period" data-ar="اختيار مدة التقرير"></span></div>
         <button class="modal-close" onclick="closeModal('date-range-modal')">✕</button>
     </div>
     <div style="padding:20px">
@@ -1453,7 +1475,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 <!-- لوحة تحكم المدير -->
 <div class="admin-panel-overlay" id="admin-panel-overlay">
   <div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);position:sticky;top:0;z-index:10">
-    <div class="modal-title">⚙️ الضبط</div>
+    <div class="modal-title">⚙️ <span class="i18n-label" data-en="Settings" data-ar="الضبط"></span></div>
     <button class="modal-close" onclick="document.getElementById('admin-panel-overlay').classList.remove('active')">✕</button>
   </div>
   <!-- تبويبات لوحة المدير -->
@@ -4978,7 +5000,7 @@ function openAddEquipmentModal() {
         return;
     }
     editingEquipmentId = null;
-    document.getElementById('modal-title-equipment').innerHTML = 'إضافة معدة جديدة';
+    document.getElementById('modal-title-equipment').innerHTML = RL('Add New Equipment', 'إضافة معدة جديدة');
     
     var fields = ['eq-code', 'eq-name', 'eq-chassis', 'eq-location', 'eq-project-site', 'eq-hours', 'eq-next-hours', 'eq-engine-model', 'eq-engine-sn', 'eq-arrival-date', 'eq-arrival-hours', 'eq-last-maintenance-date', 'eq-last-maintenance-hours', 'eq-notes'];
     fields.forEach(function(id) {
@@ -5105,7 +5127,7 @@ function showEquipmentChangeLog(eqId) {
         }).join('');
     }
 
-    document.getElementById('detail-title').innerHTML = '📜 سجل تعديلات ' + escapeHtml(equipment.name);
+    document.getElementById('detail-title').innerHTML = '📜 ' + RL('Edit Log: ', 'سجل تعديلات ') + escapeHtml(equipment.name);
     document.getElementById('detail-content').innerHTML = '<div style="padding:14px">' + html + '</div>';
     document.getElementById('detail-modal').classList.add('active');
 }
@@ -5180,7 +5202,7 @@ function editEquipment(id) {
     if (!equipment) return;
     
     editingEquipmentId = id;
-    document.getElementById('modal-title-equipment').innerHTML = 'تعديل معدة';
+    document.getElementById('modal-title-equipment').innerHTML = RL('Edit Equipment', 'تعديل معدة');
     document.getElementById('eq-code').value = equipment.code || '';
     document.getElementById('eq-name').value = equipment.name || '';
     document.getElementById('eq-type').value = equipment.type || 'حفارة';
@@ -5909,7 +5931,7 @@ function showPMHistory(equipmentId) {
 
     html += '</div>';
 
-    document.getElementById('detail-title').innerHTML = '📋 سجل صيانات: ' + escapeHtml(equipment.name);
+    document.getElementById('detail-title').innerHTML = '📋 ' + RL('Maintenance Log: ', 'سجل صيانات: ') + escapeHtml(equipment.name);
     document.getElementById('detail-content').innerHTML = html;
     document.getElementById('detail-modal').classList.add('active');
 }
@@ -6768,7 +6790,7 @@ function showHoursHistory(eqId) {
             return '<tr><td style="padding:8px;text-align:center">' + escapeHtml(l.date || '—') + '</td><td style="padding:8px;text-align:center;font-weight:700">' + l.hours + ' س</td><td style="padding:8px;text-align:center;color:' + (diff > 0 ? 'var(--success)' : 'var(--gray)') + '">+' + diff + '</td></tr>';
         }).join('') + '</tbody></table>';
     
-    document.getElementById('detail-title').innerHTML = '📈 سجل عداد ' + escapeHtml(equipment.name);
+    document.getElementById('detail-title').innerHTML = '📈 ' + RL('Meter Log ', 'سجل عداد ') + escapeHtml(equipment.name);
     document.getElementById('detail-content').innerHTML = '<div style="padding:14px">' + html + '<div style="margin-top:12px;text-align:center"><button class="save-btn" style="margin:0" onclick="exportHoursHistoryToExcel(\'' + equipment.id + '\')">📊 تصدير Excel</button></div></div>';
     document.getElementById('detail-modal').classList.add('active');
 }
@@ -6801,7 +6823,7 @@ function openTransferEquipmentModal(eqId) {
         '<button class="save-btn" onclick="confirmTransferEquipment(\'' + equipment.id + '\')">✅ تأكيد النقل</button>' +
         '</div>';
 
-    document.getElementById('detail-title').innerHTML = '🚚 نقل ' + escapeHtml(equipment.name);
+    document.getElementById('detail-title').innerHTML = '🚚 ' + RL('Transfer ', 'نقل ') + escapeHtml(equipment.name);
     document.getElementById('detail-content').innerHTML = html;
     document.getElementById('detail-modal').classList.add('active');
 }
@@ -6889,7 +6911,7 @@ function showTransferHistory(eqId) {
         }).join('');
     }
 
-    document.getElementById('detail-title').innerHTML = '🗺️ سجل نقل ' + escapeHtml(equipment.name);
+    document.getElementById('detail-title').innerHTML = '🗺️ ' + RL('Transfer Log ', 'سجل نقل ') + escapeHtml(equipment.name);
     document.getElementById('detail-content').innerHTML = '<div style="padding:14px">' + html + '</div>';
     document.getElementById('detail-modal').classList.add('active');
 }
@@ -6924,7 +6946,7 @@ function openAddDriverModal() {
         return;
     }
     editingDriverId = null;
-    document.getElementById('modal-title-driver').innerHTML = 'إضافة سائق جديد';
+    document.getElementById('modal-title-driver').innerHTML = RL('Add New Driver', 'إضافة سائق جديد');
     var fields = ['driver-name', 'driver-phone', 'driver-license', 'driver-license-expiry', 'driver-notes'];
     fields.forEach(function(id) {
         var el = document.getElementById(id);
@@ -7569,7 +7591,7 @@ function showFuelReportByDateRange() {
     });
     html += '<div class="grid-2" style="margin-top:16px;gap:10px"><button class="save-btn" onclick="exportFuelReportByDateRange()" style="background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير Excel</button>' +
         '<button class="save-btn" onclick="closeModal(\'detail-modal\')">❌ إغلاق</button></div></div>';
-    document.getElementById('detail-title').innerHTML = '⛽ تقرير الوقود المفصل';
+    document.getElementById('detail-title').innerHTML = '⛽ ' + RL('Detailed Fuel Report', 'تقرير الوقود المفصل');
     document.getElementById('detail-content').innerHTML = html;
     document.getElementById('detail-modal').classList.add('active');
     closeModal('date-range-modal');
@@ -7612,7 +7634,7 @@ function showFuelMonthlyChart() {
         '</div></div><div class="grid-2" style="margin-top:16px;gap:10px">' +
         '<button class="save-btn" onclick="exportFuelReportExcel()" style="background:linear-gradient(135deg,#10b981,#0e7490)">📊 تقرير Excel كامل</button>' +
         '<button class="save-btn" onclick="openDateRangeModal()" style="background:linear-gradient(135deg,#0d1b2a,#ec4899)">📅 تقرير بمدة محددة</button></div></div>';
-    document.getElementById('detail-title').innerHTML = '⛽ تقرير استهلاك الوقود';
+    document.getElementById('detail-title').innerHTML = '⛽ ' + RL('Fuel Consumption Report', 'تقرير استهلاك الوقود');
     document.getElementById('detail-content').innerHTML = html;
     document.getElementById('detail-modal').classList.add('active');
 }
@@ -8435,7 +8457,7 @@ function completeMaintenance(id) {
     var requiredItems = getRequiredItemsForMaintenance(equipment);
     var modalHtml = '<div class="modal-overlay active" id="approve-items-modal" style="z-index:300">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,var(--success),var(--info))">' +
-        '<div class="modal-title">✅ إذن صرف من المخزن - ' + escapeHtml(equipment.name) + '</div>' +
+        '<div class="modal-title">✅ ' + RL('Issue Voucher - ', 'إذن صرف من المخزن - ') + escapeHtml(equipment.name) + '</div>' +
         '<button class="modal-close" onclick="closeApproveModal()">✕</button></div>' +
         '<div style="padding:16px">' +
         '<p><strong>المعدة:</strong> ' + escapeHtml(equipment.name) + ' (' + escapeHtml(equipment.code) + ')</p>' +
@@ -8557,7 +8579,7 @@ function showMaintenanceDetail(id) {
         contentHtml += '<button class="save-btn" style="margin:0;background:var(--danger)" onclick="confirmDelete(\'maintenanceSchedules\',\'' + maintenance.id + '\')">🗑️ <span class="i18n-label" data-en="Delete" data-ar="حذف"></span></button>';
     }
     contentHtml += '</div>';
-    document.getElementById('detail-title').innerHTML = '🔧 تفاصيل الصيانة';
+    document.getElementById('detail-title').innerHTML = '🔧 ' + RL('Maintenance Details', 'تفاصيل الصيانة');
     document.getElementById('detail-content').innerHTML = contentHtml;
     document.getElementById('detail-modal').classList.add('active');
 }
@@ -8598,7 +8620,7 @@ function openAddInventoryItemModal() {
     }
     editingInventoryId = null;
     windowInvAltCount = 0;
-    document.getElementById('inv-item-title').innerHTML = '📦 إضافة صنف جديد';
+    document.getElementById('inv-item-title').innerHTML = '📦 ' + RL('Add New Item', 'إضافة صنف جديد');
     var fields = ['inv-name', 'inv-partno', 'inv-qty', 'inv-min-qty', 'inv-price', 'inv-notes'];
     fields.forEach(function(id) {
         var el = document.getElementById(id);
@@ -8668,7 +8690,7 @@ function editInventoryItem(id) {
     if (!item) return;
     editingInventoryId = id;
     windowInvAltCount = 0;
-    document.getElementById('inv-item-title').innerHTML = '✏️ تعديل صنف';
+    document.getElementById('inv-item-title').innerHTML = '✏️ ' + RL('Edit Item', 'تعديل صنف');
     document.getElementById('inv-category').value = item.category || 'filter';
     document.getElementById('inv-name').value = item.name || '';
     document.getElementById('inv-partno').value = item.partNo || '';
@@ -11493,7 +11515,7 @@ function showEquipmentCheckHistory(eqId) {
                 '</div>';
         }).join('');
     }
-    document.getElementById('detail-title').innerHTML = '🔍 سجل المراجعات — ' + escapeHtml(eq.name);
+    document.getElementById('detail-title').innerHTML = '🔍 ' + RL('Checks Log — ', 'سجل المراجعات — ') + escapeHtml(eq.name);
     document.getElementById('detail-content').innerHTML = html;
     document.getElementById('detail-modal').classList.add('active');
 }
@@ -12901,31 +12923,87 @@ function forceRefreshData() {
 
 // ==================== لوحة المواقع المركزية ====================
 // تجميع إحصائيات المواقع من مجموعة معدات معينة (يُستخدم في اللوحة والتقرير الدوري)
-// ==================== وضع العرض الكبير (Kiosk Mode) ====================
+// ==================== شاشة الإدارة (Kiosk Mode) — شاشة واحدة قابلة للضبط بدل شاشات منفصلة للمخزن/الموقع/الإدارة ====================
 var kioskIntervalId = null;
 var kioskClockIntervalId = null;
 var kioskSlideIndex = 0;
-var KIOSK_SLIDE_SECONDS = 15;
-var kioskSlides = ['sites', 'alerts', 'fleet'];
+var KIOSK_DEFAULT_SECONDS = 15;
+var KIOSK_DEFAULT_SLIDES = ['sites', 'alerts', 'fleet', 'warehouse'];
+var kioskSettings = { slides: KIOSK_DEFAULT_SLIDES.slice(), seconds: KIOSK_DEFAULT_SECONDS };
+var kioskSlides = kioskSettings.slides; // القائمة الفعلية المستخدمة في العرض الحالي (بتتحدّث من kioskSettings)
+
+// الإعداد بيتحفظ على الجهاز نفسه فقط (localStorage) — عشان كل شاشة (مخزن/موقع/إدارة) تقدر تُضبط
+// بشكل مختلف عن التانية من غير ما تأثر في باقي الأجهزة
+function loadKioskSettings() {
+    try {
+        var saved = JSON.parse(localStorage.getItem('kioskSettings') || 'null');
+        if (saved && Array.isArray(saved.slides) && saved.slides.length) {
+            kioskSettings = { slides: saved.slides, seconds: parseInt(saved.seconds, 10) || KIOSK_DEFAULT_SECONDS };
+        }
+    } catch (e) {}
+    kioskSlides = kioskSettings.slides;
+}
+loadKioskSettings();
+
+function openKioskSettingsPanel() {
+    var panel = document.getElementById('kiosk-settings-panel');
+    if (!panel) return;
+    document.getElementById('kiosk-cfg-sites').checked = kioskSettings.slides.indexOf('sites') !== -1;
+    document.getElementById('kiosk-cfg-alerts').checked = kioskSettings.slides.indexOf('alerts') !== -1;
+    document.getElementById('kiosk-cfg-fleet').checked = kioskSettings.slides.indexOf('fleet') !== -1;
+    document.getElementById('kiosk-cfg-warehouse').checked = kioskSettings.slides.indexOf('warehouse') !== -1;
+    document.getElementById('kiosk-cfg-seconds').value = kioskSettings.seconds;
+    panel.style.display = 'block';
+    if (kioskIntervalId) { clearInterval(kioskIntervalId); kioskIntervalId = null; }
+}
+
+function closeKioskSettingsPanel() {
+    var panel = document.getElementById('kiosk-settings-panel');
+    if (panel) panel.style.display = 'none';
+    startKioskRotation();
+}
+
+function saveKioskSettings() {
+    var slides = [];
+    if (document.getElementById('kiosk-cfg-sites').checked) slides.push('sites');
+    if (document.getElementById('kiosk-cfg-alerts').checked) slides.push('alerts');
+    if (document.getElementById('kiosk-cfg-fleet').checked) slides.push('fleet');
+    if (document.getElementById('kiosk-cfg-warehouse').checked) slides.push('warehouse');
+    if (!slides.length) { showToast('اختر شريحة واحدة على الأقل', true); return; }
+    var seconds = parseInt(document.getElementById('kiosk-cfg-seconds').value, 10) || KIOSK_DEFAULT_SECONDS;
+    kioskSettings = { slides: slides, seconds: seconds };
+    kioskSlides = slides;
+    try { localStorage.setItem('kioskSettings', JSON.stringify(kioskSettings)); } catch (e) {}
+    kioskSlideIndex = 0;
+    closeKioskSettingsPanel();
+    renderKioskSlide();
+}
 
 function enterKioskMode() {
     var overlay = document.getElementById('kiosk-mode-overlay');
     if (!overlay) return;
+    loadKioskSettings();
     overlay.style.display = 'block';
     kioskSlideIndex = 0;
     renderKioskSlide();
     updateKioskClock();
     kioskClockIntervalId = setInterval(updateKioskClock, 1000);
+    startKioskRotation();
+    if (overlay.requestFullscreen) { overlay.requestFullscreen().catch(function(){}); }
+}
+
+function startKioskRotation() {
+    if (kioskIntervalId) clearInterval(kioskIntervalId);
     kioskIntervalId = setInterval(function() {
         kioskSlideIndex = (kioskSlideIndex + 1) % kioskSlides.length;
         renderKioskSlide();
-    }, KIOSK_SLIDE_SECONDS * 1000);
-    if (overlay.requestFullscreen) { overlay.requestFullscreen().catch(function(){}); }
+    }, (kioskSettings.seconds || KIOSK_DEFAULT_SECONDS) * 1000);
 }
 
 function exitKioskMode() {
     var overlay = document.getElementById('kiosk-mode-overlay');
     if (overlay) overlay.style.display = 'none';
+    closeKioskSettingsPanel();
     if (kioskIntervalId) clearInterval(kioskIntervalId);
     if (kioskClockIntervalId) clearInterval(kioskClockIntervalId);
     kioskIntervalId = null; kioskClockIntervalId = null;
@@ -12944,6 +13022,7 @@ function renderKioskSlide() {
     var slide = kioskSlides[kioskSlideIndex];
     if (slide === 'sites') body.innerHTML = renderKioskSitesSlide();
     else if (slide === 'alerts') body.innerHTML = renderKioskAlertsSlide();
+    else if (slide === 'warehouse') body.innerHTML = renderKioskWarehouseSlide();
     else body.innerHTML = renderKioskFleetSlide();
 
     if (dots) {
@@ -12956,6 +13035,7 @@ function renderKioskSlide() {
 
 function renderKioskSitesSlide() {
     var eqList = getVisibleEquipment();
+
     var sitesMap = computeSitesStats(eqList);
     var sites = Object.values(sitesMap).sort(function(a,b){ return b.total - a.total; });
     var cards = sites.map(function(s) {
@@ -13012,6 +13092,26 @@ function renderKioskFleetSlide() {
         '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#94a3b8">' + stopped + '</div><div style="font-size:13px;color:#94a3b8">متوقفة</div></div>' +
         '</div>' +
         '<div style="font-size:16px;font-weight:700;margin-bottom:12px">🏆 الأعلى استخدامًا</div>' + (bars || '<div style="color:#94a3b8">لا توجد بيانات</div>');
+}
+
+function renderKioskWarehouseSlide() {
+    var items = inventoryItems || [];
+    var low = items.filter(function(it) { return (it.qty || 0) <= (it.minQty || 0); });
+    var outOfStock = items.filter(function(it) { return (it.qty || 0) <= 0; });
+    var totalValue = items.reduce(function(s, it) { return s + ((it.qty || 0) * (it.price || 0)); }, 0);
+    var lowRows = low.slice(0, 8).map(function(it) {
+        return '<div style="background:rgba(255,255,255,.06);border-right:5px solid ' + (it.qty<=0?'#dc2626':'#d97706') + ';border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;font-size:15px">' +
+            '<span>' + escapeHtml(it.name) + '</span><span style="font-weight:700">' + (it.qty||0) + ' / ' + (it.minQty||0) + ' ' + escapeHtml(it.unit||'') + '</span></div>';
+    }).join('');
+    return '<div style="font-size:22px;font-weight:800;margin-bottom:18px">📦 نظرة عامة على المخزن</div>' +
+        '<div style="display:flex;gap:16px;margin-bottom:24px">' +
+        '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#4ade80">' + items.length + '</div><div style="font-size:13px;color:#94a3b8">إجمالي الأصناف</div></div>' +
+        '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#fbbf24">' + low.length + '</div><div style="font-size:13px;color:#94a3b8">تحت الحد الأدنى</div></div>' +
+        '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#f87171">' + outOfStock.length + '</div><div style="font-size:13px;color:#94a3b8">نفد تمامًا</div></div>' +
+        '</div>' +
+        '<div style="font-size:14px;color:#94a3b8;margin-bottom:16px">💰 القيمة التقديرية للمخزون: <b style="color:white">' + formatNumber(totalValue) + ' ج.م</b></div>' +
+        '<div style="font-size:16px;font-weight:700;margin-bottom:12px">⚠️ الأصناف المحتاجة تزويد</div>' +
+        (lowRows || '<div style="color:#4ade80;font-size:16px">✅ كل الأصناف فوق الحد الأدنى</div>');
 }
 
 function computeSitesStats(equipmentData) {
@@ -13244,7 +13344,7 @@ function openSiteLayoutModal(siteName) {
     currentLayoutBgRatio = (saved && saved.bgRatio) || null;
     selectedLayoutItemId = null;
     currentLayoutZoom = 1;
-    document.getElementById('site-layout-title').textContent = '🗺️ مخطط الموقع — ' + siteName;
+    document.getElementById('site-layout-title').textContent = '🗺️ ' + RL('Site Layout — ', 'مخطط الموقع — ') + siteName;
     document.getElementById('site-layout-item-toolbar').style.display = 'none';
     document.getElementById('layout-bg-status').style.display = 'none';
     document.getElementById('site-layout-modal').classList.add('active');
@@ -15572,7 +15672,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ==================== نافذة تقرير الوقود المنبثقة ====================
 var fuelReportModalHtml = '<div class="modal-overlay" id="fuel-report-modal">' +
     '<div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)">' +
-    '<div class="modal-title">⛽ تقرير استهلاك الوقود</div>' +
+    '<div class="modal-title">⛽ ' + RL('Fuel Consumption Report', 'تقرير استهلاك الوقود') + '</div>' +
     '<button class="modal-close" onclick="closeModal(\'fuel-report-modal\')">✕</button></div>' +
     '<div style="padding:16px">' +
     '<div class="detail-section" style="margin:0 0 12px 0">' +
@@ -15653,7 +15753,7 @@ var woItemCount = 0;
 function openAddWorkOrder() {
     editingWorkOrderId = null;
     woItemCount = 0;
-    document.getElementById('wo-modal-title').textContent = '➕ إضافة أمر عمل';
+    document.getElementById('wo-modal-title').textContent = '➕ ' + RL('Add Work Order', 'إضافة أمر عمل');
     document.getElementById('wo-eq-select').innerHTML = '<option value="">-- اختر المعدة --</option>' +
         equipmentData.map(function(e){ return '<option value="'+e.id+'">'+escapeHtml(e.code+' — '+e.name)+'</option>'; }).join('');
     document.getElementById('wo-date').value = localDateStr(new Date());
@@ -15671,7 +15771,7 @@ function openEditWorkOrder(id) {
     if (!w) return;
     editingWorkOrderId = id;
     woItemCount = 0;
-    document.getElementById('wo-modal-title').textContent = '✏️ تعديل أمر عمل';
+    document.getElementById('wo-modal-title').textContent = '✏️ ' + RL('Edit Work Order', 'تعديل أمر عمل');
     var sel = document.getElementById('wo-eq-select');
     sel.innerHTML = '<option value="">-- اختر المعدة --</option>' +
         equipmentData.map(function(e){ return '<option value="'+e.id+'"'+(e.id===w.equipmentId?' selected':'')+'>'+escapeHtml(e.code+' — '+e.name)+'</option>'; }).join('');
@@ -15910,7 +16010,7 @@ var editingRentalDailyId = null;
     // Work Orders Overlay (full screen)
     var woOverlay = '<div class="modal-overlay" id="work-orders-overlay">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">' +
-        '<div class="modal-title">📋 أوامر العمل</div>' +
+        '<div class="modal-title">📋 ' + RL('Work Orders', 'أوامر العمل') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'work-orders-overlay\')">✕</button></div>' +
         '<div style="padding:14px">' +
         '<button onclick="openAddWorkOrder()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;border-radius:14px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:14px">➕ أمر عمل جديد</button>' +
@@ -15918,7 +16018,7 @@ var editingRentalDailyId = null;
     // Work Order Add/Edit Modal
     var woModal = '<div class="modal-overlay" id="wo-modal">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">' +
-        '<div class="modal-title" id="wo-modal-title">➕ إضافة أمر عمل</div>' +
+        '<div class="modal-title" id="wo-modal-title">➕ ' + RL('Add Work Order', 'إضافة أمر عمل') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'wo-modal\')">✕</button></div>' +
         '<div><div class="form-group">' +
         '<div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span> *</label><select class="form-select" id="wo-eq-select"><option value="">-- اختر المعدة --</option></select></div>' +
@@ -15965,7 +16065,7 @@ function downtimeCategoryMeta(cat) {
 (function injectDowntimeRcaUI() {
     var dtOverlay = '<div class="modal-overlay" id="downtime-rca-overlay">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#7f1d1d,#450a0a)">' +
-        '<div class="modal-title">⏱️ توقف المعدات وتحليل الأسباب (Downtime & RCA)</div>' +
+        '<div class="modal-title">⏱️ ' + RL('Equipment Downtime & RCA', 'توقف المعدات وتحليل الأسباب (Downtime & RCA)') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'downtime-rca-overlay\')">✕</button></div>' +
         '<div style="padding:14px">' +
         '<div style="display:flex;gap:8px;margin-bottom:10px">' +
@@ -15985,7 +16085,7 @@ function downtimeCategoryMeta(cat) {
 
     var dtModal = '<div class="modal-overlay" id="downtime-event-modal">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#7f1d1d,#450a0a)">' +
-        '<div class="modal-title" id="dt-modal-title">➕ تسجيل توقف جديد</div>' +
+        '<div class="modal-title" id="dt-modal-title">➕ ' + RL('Log New Downtime', 'تسجيل توقف جديد') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'downtime-event-modal\')">✕</button></div>' +
         '<div><div class="form-group">' +
         '<div class="form-field"><label class="form-label">🏗️ المعدة *</label><select class="form-select" id="dt-eq-select" onchange="onDowntimeEquipmentChange()"><option value="">-- اختر المعدة --</option></select></div>' +
@@ -16162,7 +16262,7 @@ function downtimeEventCardHtml(ev) {
 function openAddDowntimeEvent() {
     if (!canAdd('maintenance')) { showToast('⛔ غير مصرح لك بإضافة سجلات توقف', true); return; }
     editingDowntimeEventId = null;
-    document.getElementById('dt-modal-title').textContent = '➕ تسجيل توقف جديد';
+    document.getElementById('dt-modal-title').textContent = '➕ ' + RL('Log New Downtime', 'تسجيل توقف جديد');
     var eqSelect = document.getElementById('dt-eq-select');
     eqSelect.innerHTML = '<option value="">-- اختر المعدة --</option>' + equipmentData.map(function(e) { return '<option value="' + e.id + '">' + escapeHtml(e.name) + ' (' + escapeHtml(e.code || '') + ')</option>'; }).join('');
     eqSelect.value = '';
@@ -16181,7 +16281,7 @@ function openEditDowntimeEvent(id) {
     var ev = downtimeEvents.find(function(x) { return x.id === id; });
     if (!ev) return;
     editingDowntimeEventId = id;
-    document.getElementById('dt-modal-title').textContent = '✏️ تعديل سجل توقف';
+    document.getElementById('dt-modal-title').textContent = '✏️ ' + RL('Edit Downtime Record', 'تعديل سجل توقف');
     var eqSelect = document.getElementById('dt-eq-select');
     eqSelect.innerHTML = '<option value="">-- اختر المعدة --</option>' + equipmentData.map(function(e) { return '<option value="' + e.id + '">' + escapeHtml(e.name) + ' (' + escapeHtml(e.code || '') + ')</option>'; }).join('');
     eqSelect.value = ev.equipmentId || '';
@@ -16367,7 +16467,7 @@ function getTiresNearEndOfLife() {
 (function injectTireManagementUI() {
     var tmOverlay = '<div class="modal-overlay" id="tire-mgmt-overlay">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a)">' +
-        '<div class="modal-title">🛞 إدارة الإطارات (Tire Management)</div>' +
+        '<div class="modal-title">🛞 ' + RL('Tire Management', 'إدارة الإطارات (Tire Management)') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'tire-mgmt-overlay\')">✕</button></div>' +
         '<div style="padding:14px">' +
         '<div id="tire-mgmt-tabs" style="display:flex;gap:6px;margin-bottom:12px"></div>' +
@@ -16376,7 +16476,7 @@ function getTiresNearEndOfLife() {
 
     var tmAddModal = '<div class="modal-overlay" id="tire-add-modal">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a)">' +
-        '<div class="modal-title" id="tire-add-modal-title">➕ تسجيل إطار جديد</div>' +
+        '<div class="modal-title" id="tire-add-modal-title">➕ ' + RL('Register New Tire', 'تسجيل إطار جديد') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'tire-add-modal\')">✕</button></div>' +
         '<div><div class="form-group">' +
         '<div class="form-field"><label class="form-label">🔢 الرقم التسلسلي *</label><input class="form-input" type="text" id="tire-serial" placeholder="Serial No."></div>' +
@@ -16391,7 +16491,7 @@ function getTiresNearEndOfLife() {
 
     var tmInstallModal = '<div class="modal-overlay" id="tire-install-modal">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a)">' +
-        '<div class="modal-title">🔧 تركيب إطار على معدة</div>' +
+        '<div class="modal-title">🔧 ' + RL('Install Tire on Equipment', 'تركيب إطار على معدة') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'tire-install-modal\')">✕</button></div>' +
         '<div><div class="form-group">' +
         '<div class="form-field"><label class="form-label">🏗️ المعدة *</label><select class="form-select" id="tire-install-eq" onchange="onTireInstallEquipmentChange()"><option value="">-- اختر المعدة --</option></select></div>' +
@@ -16405,7 +16505,7 @@ function getTiresNearEndOfLife() {
 
     var tmTreadModal = '<div class="modal-overlay" id="tire-tread-modal">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a)">' +
-        '<div class="modal-title">📏 تسجيل قياس عمق المداس</div>' +
+        '<div class="modal-title">📏 ' + RL('Log Tread Depth Reading', 'تسجيل قياس عمق المداس') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'tire-tread-modal\')">✕</button></div>' +
         '<div><div class="form-group">' +
         '<div class="form-field"><label class="form-label">📐 عمق المداس (مم) *</label><input class="form-input" type="number" id="tire-tread-value" step="0.1" placeholder="مثال: 9.5"></div>' +
@@ -16416,7 +16516,7 @@ function getTiresNearEndOfLife() {
 
     var tmHistoryModal = '<div class="modal-overlay" id="tire-history-modal">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#0f172a)">' +
-        '<div class="modal-title" id="tire-history-modal-title">📜 سجل الإطار</div>' +
+        '<div class="modal-title" id="tire-history-modal-title">📜 ' + RL('Tire History', 'سجل الإطار') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'tire-history-modal\')">✕</button></div>' +
         '<div style="padding:14px" id="tire-history-content"></div></div>';
 
@@ -16549,7 +16649,7 @@ function renderTireCostReportTabHtml() {
 function openAddTireModal() {
     if (!canAdd('maintenance')) { showToast('⛔ غير مصرح لك بإضافة إطارات', true); return; }
     editingTireId = null;
-    document.getElementById('tire-add-modal-title').textContent = '➕ تسجيل إطار جديد';
+    document.getElementById('tire-add-modal-title').textContent = '➕ ' + RL('Register New Tire', 'تسجيل إطار جديد');
     document.getElementById('tire-serial').value = '';
     document.getElementById('tire-brand').value = '';
     document.getElementById('tire-size').value = '';
@@ -16565,7 +16665,7 @@ function editTireBasicInfo(id) {
     var tire = tiresData.find(function(t) { return t.id === id; });
     if (!tire) return;
     editingTireId = id;
-    document.getElementById('tire-add-modal-title').textContent = '✏️ تعديل بيانات الإطار';
+    document.getElementById('tire-add-modal-title').textContent = '✏️ ' + RL('Edit Tire Data', 'تعديل بيانات الإطار');
     document.getElementById('tire-serial').value = tire.serialNo || '';
     document.getElementById('tire-brand').value = tire.brand || '';
     document.getElementById('tire-size').value = tire.size || '';
@@ -16745,7 +16845,7 @@ function deleteTireRecord(id) {
 function openTireHistoryModal(tireId) {
     var tire = tiresData.find(function(t) { return t.id === tireId; });
     if (!tire) return;
-    document.getElementById('tire-history-modal-title').textContent = '📜 سجل الإطار — ' + (tire.serialNo || '—');
+    document.getElementById('tire-history-modal-title').textContent = '📜 ' + RL('Tire History — ', 'سجل الإطار — ') + (tire.serialNo || '—');
 
     function section(title, rows) {
         return '<div style="font-weight:800;font-size:12.5px;color:#0d1b2a;margin:14px 0 6px">' + title + '</div>' +
@@ -16907,7 +17007,7 @@ function enrichFuelTheftCasesWithGps(cases, onDone) {
 (function injectFuelTheftUI() {
     var ftOverlay = '<div class="modal-overlay" id="fuel-theft-overlay">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#7f1d1d,#450a0a)">' +
-        '<div class="modal-title">⛽ كشف تسريب / سرقة الوقود</div>' +
+        '<div class="modal-title">⛽ ' + RL('Fuel Leak / Theft Detection', 'كشف تسريب / سرقة الوقود') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'fuel-theft-overlay\')">✕</button></div>' +
         '<div style="padding:14px">' +
         '<div id="fuel-mgmt-tabs" style="display:flex;gap:6px;margin-bottom:12px"></div>' +
@@ -16916,7 +17016,7 @@ function enrichFuelTheftCasesWithGps(cases, onDone) {
 
     var ftSiteModal = '<div class="modal-overlay" id="fuel-site-modal">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#7f1d1d,#450a0a)">' +
-        '<div class="modal-title">📍 إضافة موقع تزود مصرح</div>' +
+        '<div class="modal-title">📍 ' + RL('Add Authorized Fueling Site', 'إضافة موقع تزود مصرح') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'fuel-site-modal\')">✕</button></div>' +
         '<div><div class="form-group">' +
         '<div class="form-field"><label class="form-label">اسم الموقع *</label><input class="form-input" type="text" id="ft-site-name" placeholder="مثال: مخزن الشركة الرئيسي"></div>' +
@@ -17178,7 +17278,7 @@ function computeExecutiveKpis(monthStr, ownershipFilter) {
 (function injectExecutiveDashboardUI() {
     var edOverlay = '<div class="modal-overlay" id="executive-dashboard-overlay">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#0f172a,#1e293b)">' +
-        '<div class="modal-title">📊 لوحة مؤشرات المديرين التنفيذيين</div>' +
+        '<div class="modal-title">📊 ' + RL('Executive Dashboard', 'لوحة مؤشرات المديرين التنفيذيين') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'executive-dashboard-overlay\')">✕</button></div>' +
         '<div style="padding:14px">' +
         '<input type="month" id="ed-month-select" onchange="renderExecutiveDashboard()" style="width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px;margin-bottom:10px">' +
@@ -17361,7 +17461,7 @@ function renderIssueVouchers() {
 function openAddIssueVoucher(equipmentId) {
     editingIssueVoucherId = null;
     pendingIssueVoucherPhotoDataUrl = null;
-    document.getElementById('ivo-modal-title').textContent = '➕ تسجيل إذن صرف جديد';
+    document.getElementById('ivo-modal-title').textContent = '➕ ' + RL('Log New Issue Voucher', 'تسجيل إذن صرف جديد');
     document.getElementById('ivo-eq-select').innerHTML = '<option value="">-- اختر المعدة --</option>' +
         equipmentData.map(function(e) { return '<option value="' + e.id + '">' + escapeHtml(e.code + ' — ' + e.name) + '</option>'; }).join('');
     if (equipmentId) document.getElementById('ivo-eq-select').value = equipmentId;
@@ -17380,7 +17480,7 @@ function openEditIssueVoucher(id) {
     if (!v) return;
     editingIssueVoucherId = id;
     pendingIssueVoucherPhotoDataUrl = v.photo || null;
-    document.getElementById('ivo-modal-title').textContent = '✏️ تعديل إذن صرف';
+    document.getElementById('ivo-modal-title').textContent = '✏️ ' + RL('Edit Issue Voucher', 'تعديل إذن صرف');
     document.getElementById('ivo-eq-select').innerHTML = '<option value="">-- اختر المعدة --</option>' +
         equipmentData.map(function(e) { return '<option value="' + e.id + '"' + (e.id === v.equipmentId ? ' selected' : '') + '>' + escapeHtml(e.code + ' — ' + e.name) + '</option>'; }).join('');
     document.getElementById('ivo-voucher-no').value = v.voucherNo || '';
@@ -17780,7 +17880,7 @@ window.confirmIssueVoucherImport = confirmIssueVoucherImport;
 (function injectIssueVoucherUI() {
     var overlay = '<div class="modal-overlay" id="issue-vouchers-overlay">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">' +
-        '<div class="modal-title">🧾 أذون الصرف من المخزن</div>' +
+        '<div class="modal-title">🧾 ' + RL('Warehouse Issue Vouchers', 'أذون الصرف من المخزن') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'issue-vouchers-overlay\')">✕</button></div>' +
         '<div style="padding:14px">' +
         '<button onclick="openAddIssueVoucher()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;border:none;border-radius:14px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px">📷 تسجيل إذن صرف جديد (بالتصوير)</button>' +
@@ -17790,7 +17890,7 @@ window.confirmIssueVoucherImport = confirmIssueVoucherImport;
         '<div id="ivo-list"></div></div></div>';
     var modal = '<div class="modal-overlay" id="ivo-modal">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">' +
-        '<div class="modal-title" id="ivo-modal-title">➕ تسجيل إذن صرف جديد</div>' +
+        '<div class="modal-title" id="ivo-modal-title">➕ ' + RL('Log New Issue Voucher', 'تسجيل إذن صرف جديد') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'ivo-modal\')">✕</button></div>' +
         '<div><div class="form-group">' +
         '<div class="form-field">' +
@@ -17810,7 +17910,7 @@ window.confirmIssueVoucherImport = confirmIssueVoucherImport;
         '<button class="save-btn" onclick="saveIssueVoucher()">✅ حفظ إذن الصرف</button></div></div>';
     var reportModal = '<div class="modal-overlay" id="ivr-modal">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#0e7490,#155e75)">' +
-        '<div class="modal-title">📊 تقرير أذون الصرف</div>' +
+        '<div class="modal-title">📊 ' + RL('Issue Vouchers Report', 'تقرير أذون الصرف') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'ivr-modal\')">✕</button></div>' +
         '<div><div class="form-group">' +
         '<div class="form-field"><label class="form-label">📅 من تاريخ</label><input class="form-input" type="date" id="ivr-from"></div>' +
@@ -17820,7 +17920,7 @@ window.confirmIssueVoucherImport = confirmIssueVoucherImport;
 
     var importModal = '<div class="modal-overlay" id="ivo-import-modal">' +
         '<div class="modal-header" style="background:linear-gradient(135deg,#166534,#14532d)">' +
-        '<div class="modal-title">📥 استيراد أذون من ملف إكسل (SAP)</div>' +
+        '<div class="modal-title">📥 ' + RL('Import Vouchers from Excel (SAP)', 'استيراد أذون من ملف إكسل (SAP)') + '</div>' +
         '<button class="modal-close" onclick="closeModal(\'ivo-import-modal\')">✕</button></div>' +
         '<div>' +
         '<div style="font-size:12.5px;color:#6b7a8d;background:#f0fdf4;border-radius:10px;padding:10px;margin-bottom:10px;line-height:1.7">اسحب من SAP تقرير حركة الصرف (Excel) واختاره هنا، بعدين حدّد تحت كل عمود في الملف بيمثل إيه — البرنامج هيجمع الأصناف اللي ليها نفس رقم الإذن مع بعض تلقائيًا.</div>' +
@@ -17836,7 +17936,7 @@ window.confirmIssueVoucherImport = confirmIssueVoucherImport;
 (function injectRentalModals() {
     var html = '<div class="modal-overlay" id="rental-modal">' +
       '<div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)">' +
-      '<div class="modal-title" id="rental-modal-title">➕ إضافة عقد إيجار</div>' +
+      '<div class="modal-title" id="rental-modal-title">➕ ' + RL('Add Rental Contract', 'إضافة عقد إيجار') + '</div>' +
       '<button class="modal-close" onclick="closeModal(\'rental-modal\')">✕</button></div>' +
       '<div><div class="form-group">' +
       '<div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span> *</label>' +
@@ -17856,7 +17956,7 @@ window.confirmIssueVoucherImport = confirmIssueVoucherImport;
       '<button class="save-btn" onclick="saveRentalEquipment()">✅ <span class="i18n-label" data-en="Save" data-ar="حفظ"></span></button></div></div>' +
       '<div class="modal-overlay" id="rental-daily-modal">' +
       '<div class="modal-header" style="background:linear-gradient(135deg,#0e7490,#0369a1)">' +
-      '<div class="modal-title" id="rental-daily-modal-title">📋 تسجيل يوم عمل</div>' +
+      '<div class="modal-title" id="rental-daily-modal-title">📋 ' + RL('Record Work Day', 'تسجيل يوم عمل') + '</div>' +
       '<button class="modal-close" onclick="closeModal(\'rental-daily-modal\')">✕</button></div>' +
       '<div><div class="form-group">' +
       '<div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span> *</label>' +
@@ -18190,7 +18290,7 @@ function onRentalDailyEqChange() {
 
 function openAddRentalModal() {
     editingRentalId=null;
-    document.getElementById('rental-modal-title').textContent='➕ إضافة عقد إيجار';
+    document.getElementById('rental-modal-title').textContent='➕ ' + RL('Add Rental Contract', 'إضافة عقد إيجار');
     var sel=document.getElementById('rental-eq-select');
     sel.innerHTML='<option value="">-- اختر المعدة --</option>'+equipmentData.map(function(e){
         return '<option value="'+e.id+'">'+escapeHtml(e.code+' — '+(e.name||''))+'</option>';
@@ -18210,7 +18310,7 @@ function editRentalEquipment(id) {
     var r=rentalData.find(function(x){ return x.id===id; });
     if (!r) return;
     editingRentalId=id;
-    document.getElementById('rental-modal-title').textContent='✏️ تعديل عقد إيجار';
+    document.getElementById('rental-modal-title').textContent='✏️ ' + RL('Edit Rental Contract', 'تعديل عقد إيجار');
     var sel=document.getElementById('rental-eq-select');
     sel.innerHTML='<option value="">-- اختر المعدة --</option>'+equipmentData.map(function(e){
         return '<option value="'+e.id+'"'+(e.id===r.equipmentId?' selected':'')+'>'+escapeHtml(e.code+' — '+(e.name||''))+'</option>';
@@ -19922,7 +20022,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- مودال التحليل الذكي -->
 <div class="modal-overlay" id="ai-analysis-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
-    <div class="modal-title">🤖 تحليل ذكي بالـ AI</div>
+    <div class="modal-title">🤖 <span class="i18n-label" data-en="AI Smart Analysis" data-ar="تحليل ذكي بالـ AI"></span></div>
     <button class="modal-close" onclick="closeModal('ai-analysis-modal')">✕</button>
   </div>
   <div id="ai-analysis-content" style="padding:16px;padding-bottom:10px;white-space:pre-wrap;line-height:1.9;font-size:14px"></div>
@@ -19934,7 +20034,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- مودال التقرير الذكي -->
 <div class="modal-overlay" id="ai-report-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
-    <div class="modal-title">🤖 تقرير ذكي بالـ AI</div>
+    <div class="modal-title">🤖 <span class="i18n-label" data-en="AI Smart Report" data-ar="تقرير ذكي بالـ AI"></span></div>
     <button class="modal-close" onclick="closeModal('ai-report-modal')">✕</button>
   </div>
   <div style="padding:14px 14px 0">
@@ -19955,7 +20055,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- مودال الصيانة التنبؤية الذكية -->
 <div class="modal-overlay" id="predictive-maintenance-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#0e7490,#0369a1)">
-    <div class="modal-title">🔮 الصيانة التنبؤية الذكية</div>
+    <div class="modal-title">🔮 <span class="i18n-label" data-en="Smart Predictive Maintenance" data-ar="الصيانة التنبؤية الذكية"></span></div>
     <button class="modal-close" onclick="closeModal('predictive-maintenance-modal')">✕</button>
   </div>
   <div id="predictive-maintenance-content" style="padding:16px;padding-bottom:10px;white-space:pre-wrap;line-height:1.9;font-size:14px"></div>
@@ -19995,7 +20095,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- مودال المساعد الذكي (شات) -->
 <div class="modal-overlay" id="ai-chat-modal">
   <div class="modal-header" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
-    <div class="modal-title">🤖 المساعد الذكي</div>
+    <div class="modal-title">🤖 <span class="i18n-label" data-en="Smart Assistant" data-ar="المساعد الذكي"></span></div>
     <button class="modal-close" onclick="closeModal('ai-chat-modal')">✕</button>
   </div>
   <div id="ai-chat-messages" style="padding:14px;padding-bottom:10px;overflow-y:auto;height:calc(100% - 130px);display:flex;flex-direction:column;gap:10px"></div>
