@@ -14405,6 +14405,8 @@ function refreshUI() {
             locFilterEl.innerHTML = '<option value="">🏢 ' + RL('All Sites', 'كل المواقع') + '</option>' + allLocations.map(function(l){ return '<option value="'+escapeHtml(l)+'"'+(l===currentLocVal?' selected':'')+'>'+escapeHtml(l)+'</option>'; }).join('');
         }
         var equipmentListHtml = '';
+        var eqRentalCycleRange = getPeriodRange(getCurrentCycleMonthStr());
+        var eqRentalCycleDayCount = Math.round((new Date(eqRentalCycleRange.to) - new Date(eqRentalCycleRange.from)) / 86400000) + 1;
         _eqList.filter(function(e) {
             var matchSearch = !search || (e.name && e.name.includes(search)) || (e.code && e.code.includes(search));
             var matchProject = !projectFilter || (e.projectSite && e.projectSite === projectFilter);
@@ -14448,8 +14450,8 @@ function refreshUI() {
                   '<button class="eq-quick-btn eq-quick-fail" title="' + RLA('Has an issue', 'فيه مشكلة') + '" onclick="quickFailEquipment(\'' + eq.id + '\',event)">✘</button>'
                 : '';
 
-            if (isRental || isTool) {
-                // للمعدات المستأجرة أو الأدوات (زي المقطورات): عرض مبسط بدون شريط عداد الساعات (غير مهم لهم)
+            if (isTool) {
+                // للأدوات (زي المقطورات): عرض مبسط بدون شريط عداد الساعات (غير مهم لهم)
                 equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px">' +
                     '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">' +
                     '<div style="flex:1;min-width:0">' +
@@ -14463,6 +14465,45 @@ function refreshUI() {
                     (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:1px 5px;border-radius:4px;cursor:pointer;font-size:8px;flex-shrink:0">✏️</button>' : '') +
                     '</div>' +
                     '</div>';
+            } else if (isRental) {
+                // للمعدات المستأجرة: نفس شكل شريط معدات الملك بالظبط، بس بدل ساعات العداد المتبقية
+                // بنعرض عدد أيام العمل في الدورة الشهرية الحالية وجمبها إجمالي ساعات العمل (من تقرير الإيجار)
+                var rentalContract = rentalData.find(function(rc) { return rc.equipmentId === eq.id; });
+                var rDaysCount = 0, rTotalHours = 0;
+                if (rentalContract) {
+                    var rMonthDays = rentalDailyData.filter(function(d) {
+                        return d.equipmentId === rentalContract.id && d.date && d.date >= eqRentalCycleRange.from && d.date <= eqRentalCycleRange.to;
+                    });
+                    rDaysCount = rMonthDays.length;
+                    rTotalHours = rMonthDays.reduce(function(s, d) { return s + (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0); }, 0);
+                }
+                var rPct = eqRentalCycleDayCount > 0 ? Math.max(0, Math.min(rDaysCount / eqRentalCycleDayCount, 1)) : 0;
+                var rGaugeWidth = rPct * 100;
+                var rGaugeColor = rDaysCount >= 25 ? '#059669' : rDaysCount >= 15 ? '#0e7490' : rDaysCount >= 7 ? '#d97706' : '#7c3aed';
+                var rDaysLabel = '<span class="c-ico">📅</span> ' + rDaysCount + '/' + eqRentalCycleDayCount + ' ' + RL('days', 'يوم');
+                var rHoursLabel = '<span class="c-ico">⏱️</span> ' + formatNumber(Math.round(rTotalHours * 10) / 10) + ' ' + hUnit;
+
+                equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px">' +
+                '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap">' +
+                '<div style="flex:1;min-width:0">' +
+                '<span style="font-size:12px;font-weight:800;color:var(--primary)">' + escapeHtml(eq.name) + '</span>' + pendingCheckDot +
+                ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.code) + '</span>' +
+                '</div>' +
+                ownershipBadge +
+                '<span style="color:' + rGaugeColor + ';font-weight:800;font-size:9px;white-space:nowrap">' + rDaysLabel + '</span>' +
+                '<span style="color:#6b7a8d;font-weight:800;font-size:9px;white-space:nowrap">' + rHoursLabel + '</span>' +
+                statusBadge +
+                quickCheckBtns +
+                (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:1px 5px;border-radius:4px;cursor:pointer;font-size:8px;flex-shrink:0">✏️</button>' : '') +
+                '</div>' +
+                '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:5px;padding:2px 4px">' +
+                '<div style="position:relative;height:8px;background:rgba(0,0,0,0.07);border-radius:4px;overflow:hidden">' +
+                '<div style="height:100%;width:' + rGaugeWidth + '%;background:linear-gradient(90deg,' + rGaugeColor + 'cc,' + rGaugeColor + ');border-radius:4px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);position:relative">' +
+                '<div style="position:absolute;left:1px;top:50%;transform:translateY(-50%);width:2px;height:5px;background:rgba(255,255,255,0.7);border-radius:1px"></div>' +
+                '</div></div>' +
+                '<div style="display:flex;justify-content:space-between;font-size:6.5px;color:#9ca3af;margin-top:0px"><span>0</span><span>' + eqRentalCycleDayCount + ' ' + RL('days', 'يوم') + '</span></div>' +
+                '</div>' +
+                '</div>';
             } else {
                 equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px">' +
                 '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap">' +
