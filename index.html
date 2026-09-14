@@ -162,12 +162,6 @@ button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
   .sidebar-btn.active{background:rgba(232,160,32,0.14);color:var(--accent) !important;border-right-color:var(--accent)}
   .sidebar-foot{margin-top:auto;padding:12px 10px 0;font-size:10px;color:rgba(255,255,255,0.3);border-top:1px solid rgba(255,255,255,0.08)}
 
-  /* في وضع الإنجليزي على شاشات سطح المكتب فقط: الشريط الجانبي ينقلب من اليمين لليسار (الموبايل يفضل زي ما هو) */
-  html[data-lang="en"] .sidebar-nav{right:auto;left:0}
-  html[data-lang="en"] .sidebar-btn{border-right:none;border-left:3px solid transparent}
-  html[data-lang="en"] .sidebar-btn.active{border-right-color:transparent;border-left-color:var(--accent)}
-  html[data-lang="en"] .app-main{margin-right:0;margin-left:var(--sidebar-w)}
-
   /* منطقة المحتوى */
   .app-main{margin-right:var(--sidebar-w)}
   .status-bar{padding:10px 28px}
@@ -1070,12 +1064,12 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       </div>
       <div id="fuel-project-summary" style="margin-bottom:10px"></div>
       <div class="grid-2" style="gap:10px; margin-bottom:16px">
-        <button id="add-fuel-btn" class="big-btn" style="margin:0">⛽ تسجيل تزود جديد</button>
-        <button id="monthly-fuel-report-btn" class="big-btn" style="margin:0; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تقرير شهري</button>
+        <button id="add-fuel-btn" class="big-btn" style="margin:0">⛽ <span class="i18n-label" data-en="Log New Refill" data-ar="تسجيل تزود جديد"></span></button>
+        <button id="monthly-fuel-report-btn" class="big-btn" style="margin:0; background:linear-gradient(135deg,#10b981,#0e7490)">📊 <span class="i18n-label" data-en="Monthly Report" data-ar="تقرير شهري"></span></button>
       </div>
-      <button id="custom-range-fuel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0d1b2a,#ec4899)">📅 تصدير تقرير بمدة محددة</button>
-      <button onclick="openFuelTheftView()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#7f1d1d,#450a0a)">⛽ كشف تسريب / سرقة الوقود (Fuel Theft Detection)</button>
-      <button id="delete-all-fuel-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع سجلات الوقود</button>
+      <button id="custom-range-fuel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0d1b2a,#ec4899)">📅 <span class="i18n-label" data-en="Export Report for a Custom Period" data-ar="تصدير تقرير بمدة محددة"></span></button>
+      <button onclick="openFuelTheftView()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#7f1d1d,#450a0a)">⛽ <span class="i18n-label" data-en="Fuel Leak / Theft Detection" data-ar="كشف تسريب / سرقة الوقود"></span> (Fuel Theft Detection)</button>
+      <button id="delete-all-fuel-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ <span class="i18n-label" data-en="Delete All Fuel Records" data-ar="حذف جميع سجلات الوقود"></span></button>
       <div id="fuel-list"></div>
     </div>
   </div>
@@ -1281,9 +1275,9 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
 <div class="modal-overlay" id="employee-modal"><div class="modal-header"><div class="modal-title" id="modal-title-employee"><span class="i18n-label" data-en="Add New Employee" data-ar="إضافة موظف جديد"></span></div><button class="modal-close" onclick="closeModal('employee-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Employee Name" data-ar="اسم الموظف"></span> *</label><input class="form-input" id="employee-name" placeholder="الاسم الكامل"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Profession / Job" data-ar="المهنة / الوظيفة"></span> *</label><input class="form-input" id="employee-title" placeholder="مثال: فورمان كهرباء قوي"></div><div class="form-field"><label class="form-label">🏗️ الموقع / المشروع *</label><input class="form-input" id="employee-project" list="employee-locations-list" placeholder="اكتب اسم الموقع أو اختر من القائمة"><datalist id="employee-locations-list"></datalist></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Mobile Number" data-ar="رقم الموبايل"></span></label><input class="form-input" id="employee-phone" placeholder="01xxxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Job Code" data-ar="الكود الوظيفي"></span></label><input class="form-input" id="employee-code" placeholder="مثال: 10213419"></div><div class="form-field"><label class="form-label">معين / سركي</label><select class="form-select" id="employee-type"><option>معين</option><option>سركي</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="employee-status"><option>نشط</option><option>منتهي الخدمة</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="employee-notes"></textarea></div></div><button class="save-btn" onclick="saveEmployee()">✅ حفظ الموظف</button></div></div>
 
-<div class="modal-overlay" id="fuel-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">⛽ <span class="i18n-label" data-en="Log Fuel Refill" data-ar="تسجيل تزود بالوقود"></span></div><button class="modal-close" onclick="closeModal('fuel-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span></label><select class="form-select" id="fuel-equipment"></select></div><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="fuel-amount"></div><div class="form-field"><label class="form-label">التكلفة (ج.م)</label><input class="form-input" type="number" id="fuel-cost"></div><div class="form-field"><label class="form-label">العداد الحالي</label><input class="form-input" type="number" id="fuel-hours"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Date" data-ar="التاريخ"></span></label><input class="form-input" type="date" id="fuel-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Driver" data-ar="السائق"></span></label><select class="form-select" id="fuel-driver"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="fuel-notes"></textarea></div></div><button class="save-btn" onclick="saveFuelRecord()">✅ حفظ التزود</button></div></div>
+<div class="modal-overlay" id="fuel-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">⛽ <span class="i18n-label" data-en="Log Fuel Refill" data-ar="تسجيل تزود بالوقود"></span></div><button class="modal-close" onclick="closeModal('fuel-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span></label><select class="form-select" id="fuel-equipment"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Quantity (L)" data-ar="الكمية (لتر)"></span></label><input class="form-input" type="number" id="fuel-amount"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Cost (EGP)" data-ar="التكلفة (ج.م)"></span></label><input class="form-input" type="number" id="fuel-cost"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Current Meter" data-ar="العداد الحالي"></span></label><input class="form-input" type="number" id="fuel-hours"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Date" data-ar="التاريخ"></span></label><input class="form-input" type="date" id="fuel-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Driver" data-ar="السائق"></span></label><select class="form-select" id="fuel-driver"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="fuel-notes"></textarea></div></div><button class="save-btn" onclick="saveFuelRecord()">✅ <span class="i18n-label" data-en="Save Refill" data-ar="حفظ التزود"></span></button></div></div>
 
-<div class="modal-overlay" id="fuel-edit-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">✏️ <span class="i18n-label" data-en="Edit Fuel Record" data-ar="تعديل سجل الوقود"></span></div><button class="modal-close" onclick="closeModal('fuel-edit-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label">الكمية (لتر)</label><input class="form-input" type="number" id="edit-fuel-amount"></div><div class="form-field"><label class="form-label">التكلفة (ج.م)</label><input class="form-input" type="number" id="edit-fuel-cost"></div><div class="form-field"><label class="form-label">العداد الحالي</label><input class="form-input" type="number" id="edit-fuel-hours"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Date" data-ar="التاريخ"></span></label><input class="form-input" type="date" id="edit-fuel-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="edit-fuel-notes"></textarea></div></div><button class="save-btn" onclick="updateFuelRecord()">✅ حفظ التعديلات</button><button class="save-btn" style="background:var(--danger)" onclick="deleteFuelRecord()">🗑️ حذف السجل</button></div></div>
+<div class="modal-overlay" id="fuel-edit-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">✏️ <span class="i18n-label" data-en="Edit Fuel Record" data-ar="تعديل سجل الوقود"></span></div><button class="modal-close" onclick="closeModal('fuel-edit-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Quantity (L)" data-ar="الكمية (لتر)"></span></label><input class="form-input" type="number" id="edit-fuel-amount"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Cost (EGP)" data-ar="التكلفة (ج.م)"></span></label><input class="form-input" type="number" id="edit-fuel-cost"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Current Meter" data-ar="العداد الحالي"></span></label><input class="form-input" type="number" id="edit-fuel-hours"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Date" data-ar="التاريخ"></span></label><input class="form-input" type="date" id="edit-fuel-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="edit-fuel-notes"></textarea></div></div><button class="save-btn" onclick="updateFuelRecord()">✅ <span class="i18n-label" data-en="Save Changes" data-ar="حفظ التعديلات"></span></button><button class="save-btn" style="background:var(--danger)" onclick="deleteFuelRecord()">🗑️ <span class="i18n-label" data-en="Delete Record" data-ar="حذف السجل"></span></button></div></div>
 
 <div class="modal-overlay" id="maintenance-modal"><div class="modal-header" style="background:linear-gradient(135deg,var(--warning),var(--accent-dark))"><div class="modal-title">🔧 <span class="i18n-label" data-en="Schedule Routine Maintenance" data-ar="جدولة صيانة دورية"></span></div><button class="modal-close" onclick="closeModal('maintenance-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span></label><select class="form-select" id="maint-equipment"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Maintenance Type" data-ar="نوع الصيانة"></span></label><select class="form-select" id="maint-type"><option>صيانة دورية</option><option>صيانة طارئة</option><option>فحص دوري</option><option>تغيير زيت</option><option>تغيير فلاتر</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Scheduled Date" data-ar="التاريخ المحدد"></span></label><input class="form-input" type="date" id="maint-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Target Hours" data-ar="العداد المستهدف"></span></label><input class="form-input" type="number" id="maint-hours"></div><div class="form-field"><label class="form-label">🏷️ فئة الصيانة (تصنيف تلقائي)</label><div id="maint-tier-badge" style="padding:10px 12px;border-radius:12px;background:#f1f5f9;color:#475569;font-weight:800;font-size:13px;text-align:center">أدخل العداد المستهدف لمعرفة الفئة</div></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Estimated Cost" data-ar="التكلفة المتوقعة"></span></label><input class="form-input" type="number" id="maint-cost"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="maint-notes"></textarea></div><div class="form-field"><label class="form-label">🔧 القطع المطلوبة لهذه الصيانة</label><button type="button" class="save-btn" style="margin:0 0 8px;padding:8px;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="autoFillMaintenanceRequiredParts()">✨ تحميل القطع المقترحة تلقائيًا</button><div id="maint-parts-list" style="margin-bottom:8px"></div><button type="button" class="save-btn" style="margin:0;padding:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="addMaintenancePartRow()">➕ إضافة قطعة يدويًا</button></div><div class="form-field"><label class="form-label">📎 مرفقات</label><input type="file" id="maint-attachment" accept="image/*,application/pdf" style="display:none"><button type="button" class="save-btn" style="margin:0;margin-top:8px;padding:8px" onclick="document.getElementById('maint-attachment').click()">📎 رفع مرفق</button><div id="maint-attachment-preview" style="margin-top:8px"></div></div></div><button class="save-btn" onclick="saveMaintenanceSchedule()">✅ جدولة الصيانة</button></div></div>
 
@@ -1465,15 +1459,15 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
                 <input type="date" id="report-date-to" class="form-input">
             </div>
             <div class="form-field">
-                <label class="form-label">🏗️ تصفية حسب المعدة (اختياري)</label>
+                <label class="form-label">🏗️ <span class="i18n-label" data-en="Filter by Equipment (optional)" data-ar="تصفية حسب المعدة (اختياري)"></span></label>
                 <select id="report-equipment-filter" class="form-select">
                     <option value="all">جميع المعدات</option>
                 </select>
             </div>
         </div>
         <div class="grid-2" style="gap:10px">
-            <button class="save-btn" onclick="exportFuelReportByDateRange()" style="background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير Excel</button>
-            <button class="save-btn" onclick="showFuelReportByDateRange()" style="background:linear-gradient(135deg,#0d1b2a,#ec4899)">👁️ عرض التقرير</button>
+            <button class="save-btn" onclick="exportFuelReportByDateRange()" style="background:linear-gradient(135deg,#10b981,#0e7490)">📊 <span class="i18n-label" data-en="Export Excel" data-ar="تصدير Excel"></span></button>
+            <button class="save-btn" onclick="showFuelReportByDateRange()" style="background:linear-gradient(135deg,#0d1b2a,#ec4899)">👁️ <span class="i18n-label" data-en="View Report" data-ar="عرض التقرير"></span></button>
         </div>
     </div>
 </div>
@@ -3196,6 +3190,13 @@ var I18N_OPTION_DICT = {
     'معين':'Permanent','سركي':'Daily Wage','📌 معين':'📌 Permanent','🧾 سركي':'🧾 Daily Wage',
     '👤 معين وسركي':'👤 Permanent & Daily Wage','👤 كل الحالات':'👤 All Statuses',
     '🏗️ كل المواقع':'🏗️ All Sites','🏗️ كل المشاريع':'🏗️ All Projects',
+    '🏢 كل المواقع':'🏢 All Sites','📍 كل المشاريع':'📍 All Projects','🚜 كل المعدات':'🚜 All Equipment',
+    'كل المعدات':'All Equipment','🏷️ كل المعدات (ملك وإيجار)':'🏷️ All Equipment (Owned & Rented)',
+    'اختر المعدة':'Select Equipment','اختر سائق':'Select Driver','اختر بديل...':'Select Alternative...',
+    'بدون مقاول':'No Contractor','— اختر الموظف (اختياري) —':'— Select Employee (optional) —',
+    '-- اختر --':'-- Select --','-- اختر السائق --':'-- Select Driver --','-- اختر المعدة --':'-- Select Equipment --',
+    '-- اختر من المخزون --':'-- Select from Inventory --','-- بدون ربط --':'-- No Link --',
+    '🛣️ اختر سائق لعرض مساره':'🛣️ Select a driver to show their route',
     'فلتر':'Filter','زيت':'Oil','إطار':'Tire','قطعة غيار':'Spare Part',
     'قطعة':'Piece','لتر':'Liter','جالون':'Gallon','كجم':'Kg',
     'صيانة دورية':'Routine Maintenance','صيانة طارئة':'Emergency Maintenance','فحص دوري':'Periodic Inspection',
@@ -7370,10 +7371,10 @@ function openAddFuelModal() {
 }
 
 function saveFuelRecord() {
-    if (!hasPermission("all")) { showToast("⛔ غير مصرح", true); return; }
+    if (!hasPermission("all")) { showToast("⛔ " + RL("Not authorized", "غير مصرح"), true); return; }
     var equipmentId = document.getElementById('fuel-equipment').value;
     if (!equipmentId) {
-        showToast('اختر المعدة', true);
+        showToast(RL('Select equipment', 'اختر المعدة'), true);
         return;
     }
     var record = {
@@ -7387,17 +7388,17 @@ function saveFuelRecord() {
         createdAt: new Date().toISOString()
     };
     if (record.amount <= 0) {
-        showToast('أدخل الكمية', true);
+        showToast(RL('Enter the quantity', 'أدخل الكمية'), true);
         return;
     }
     saveToFirebase('fuelRecords', record);
     closeModal('fuel-modal');
-    showToast('تم التسجيل');
+    showToast(RL('Recorded', 'تم التسجيل'));
 }
 
 function openEditFuelModal(id) {
     if (!hasPermission('all')) {
-        showToast('غير مصرح', true);
+        showToast(RL('Not authorized', 'غير مصرح'), true);
         return;
     }
     var fuel = fuelData.find(function(f) { return f.id === id; });
@@ -7418,8 +7419,8 @@ function openEditFuelModal(id) {
     }
     var price = getFuelPriceForEquipment(fuel.equipmentId);
     var eq = equipmentData.find(function(e) { return e.id === fuel.equipmentId; });
-    var typeLabel = (eq && eq.fuelType === 'بنزين') ? 'بنزين' : 'ديزل';
-    hintDiv.textContent = price ? ('💡 السعر الحالي: ' + price + ' ج.م/لتر (' + typeLabel + ')') : '⚠️ سعر الوقود لهذا النوع غير محدد';
+    var typeLabel = (eq && eq.fuelType === 'بنزين') ? RL('Gasoline', 'بنزين') : RL('Diesel', 'ديزل');
+    hintDiv.textContent = price ? ('💡 ' + RL('Current price: ', 'السعر الحالي: ') + price + ' ' + RL('EGP/L', 'ج.م/لتر') + ' (' + typeLabel + ')') : ('⚠️ ' + RL('Fuel price for this type is not set', 'سعر الوقود لهذا النوع غير محدد'));
     document.getElementById('edit-fuel-amount').oninput = function() {
         if (!price) return;
         var amount = parseFloat(document.getElementById('edit-fuel-amount').value) || 0;
@@ -7429,15 +7430,15 @@ function openEditFuelModal(id) {
 }
 
 function updateFuelRecord() {
-    if (!hasPermission("all")) { showToast("⛔ غير مصرح", true); return; }
+    if (!hasPermission("all")) { showToast("⛔ " + RL("Not authorized", "غير مصرح"), true); return; }
     if (!currentEditingFuelId) {
-        showToast('خطأ في التعديل', true);
+        showToast(RL('Edit error', 'خطأ في التعديل'), true);
         return;
     }
     var fuel = fuelData.find(function(f) { return f.id === currentEditingFuelId; });
     if (!fuel) return;
     if (!checkDocumentOwnership(fuel)) {
-        showToast('⛔ لا يمكنك تعديل سجل لا تملكه', true);
+        showToast('⛔ ' + RL('You cannot edit a record you do not own', 'لا يمكنك تعديل سجل لا تملكه'), true);
         return;
     }
     var updated = Object.assign({}, fuel, {
@@ -7449,7 +7450,7 @@ function updateFuelRecord() {
         updatedAt: new Date().toISOString()
     });
     var fuelChanges = [];
-    var fuelFieldLabels = { amount: 'الكمية (لتر)', cost: 'التكلفة (ج.م)', hours: 'العداد', date: 'التاريخ' };
+    var fuelFieldLabels = { amount: RL('Quantity (L)', 'الكمية (لتر)'), cost: RL('Cost (EGP)', 'التكلفة (ج.م)'), hours: RL('Meter', 'العداد'), date: RL('Date', 'التاريخ') };
     Object.keys(fuelFieldLabels).forEach(function(field) {
         if (String(fuel[field] || '') !== String(updated[field] || '')) {
             fuelChanges.push({ field: field, label: fuelFieldLabels[field], oldValue: String(fuel[field] || '—'), newValue: String(updated[field] || '—') });
@@ -7459,16 +7460,16 @@ function updateFuelRecord() {
     if (fuelChanges.length) {
         var fuelWho = (currentUser && (currentUser.name || currentUser.username)) || 'غير معروف';
         var eqForFuel = equipmentData.find(function(e) { return e.id === fuel.equipmentId; });
-        notifyValueEditIfNeeded('سجل وقود - ' + (eqForFuel ? eqForFuel.name : ''), fuelChanges, fuelWho);
+        notifyValueEditIfNeeded(RL('Fuel Record - ', 'سجل وقود - ') + (eqForFuel ? eqForFuel.name : ''), fuelChanges, fuelWho);
     }
     closeModal('fuel-edit-modal');
-    showToast('تم تحديث سجل الوقود');
+    showToast(RL('Fuel record updated', 'تم تحديث سجل الوقود'));
 }
 
 function deleteFuelRecord() {
-    if (!hasPermission("all")) { showToast("⛔ غير مصرح", true); return; }
+    if (!hasPermission("all")) { showToast("⛔ " + RL("Not authorized", "غير مصرح"), true); return; }
     if (!currentEditingFuelId) return;
-    if (confirm('هل أنت متأكد من حذف هذا السجل؟')) {
+    if (confirm(RL('Are you sure you want to delete this record?', 'هل أنت متأكد من حذف هذا السجل؟'))) {
         deleteFromFirebase('fuelRecords', currentEditingFuelId);
         closeModal('fuel-edit-modal');
     }
@@ -7484,7 +7485,7 @@ function openDateRangeModal() {
     document.getElementById('report-date-to').value = today;
     var equipFilter = document.getElementById('report-equipment-filter');
     if (equipFilter) {
-        equipFilter.innerHTML = '<option value="all">جميع المعدات</option>' +
+        equipFilter.innerHTML = '<option value="all">' + RL('All Equipment', 'جميع المعدات') + '</option>' +
             equipmentData.map(function(e) { return '<option value="' + escapeHtml(e.id) + '">' + escapeHtml(e.name) + ' (' + escapeHtml(e.code) + ')</option>'; }).join('');
     }
     document.getElementById('date-range-modal').classList.add('active');
@@ -7504,12 +7505,12 @@ function exportFuelReportByDateRange() {
     var toDate = document.getElementById('report-date-to').value;
     var equipmentId = document.getElementById('report-equipment-filter').value;
     if (!fromDate || !toDate) {
-        showToast('الرجاء تحديد تاريخ البداية والنهاية', true);
+        showToast(RL('Please specify the start and end dates', 'الرجاء تحديد تاريخ البداية والنهاية'), true);
         return;
     }
     var filteredFuel = getFuelDataByDateRange(fromDate, toDate, equipmentId);
     if (filteredFuel.length === 0) {
-        showToast('⚠️ لا توجد بيانات وقود في هذه الفترة');
+        showToast('⚠️ ' + RL('No fuel data in this period', 'لا توجد بيانات وقود في هذه الفترة'));
         return;
     }
     var eqMap = {};
@@ -7570,12 +7571,12 @@ function showFuelReportByDateRange() {
     var toDate = document.getElementById('report-date-to').value;
     var equipmentId = document.getElementById('report-equipment-filter').value;
     if (!fromDate || !toDate) {
-        showToast('الرجاء تحديد تاريخ البداية والنهاية', true);
+        showToast(RL('Please specify the start and end dates', 'الرجاء تحديد تاريخ البداية والنهاية'), true);
         return;
     }
     var filteredFuel = getFuelDataByDateRange(fromDate, toDate, equipmentId);
     if (filteredFuel.length === 0) {
-        showToast('⚠️ لا توجد بيانات وقود في هذه الفترة');
+        showToast('⚠️ ' + RL('No fuel data in this period', 'لا توجد بيانات وقود في هذه الفترة'));
         return;
     }
     var eqMap = {};
@@ -14750,7 +14751,7 @@ function refreshUI() {
                 ? _allEquip.filter(function(eq){ return (eq.projectSite || eq.location || '').trim() === selProj; })
                 : _allEquip;
             eqsForFilter = eqsForFilter.filter(function(eq){ return visibleEqIds.indexOf(eq.id) !== -1; });
-            fuelEqSel.innerHTML = '<option value="">🚜 كل المعدات</option>' +
+            fuelEqSel.innerHTML = '<option value="">🚜 ' + RL('All Equipment', 'كل المعدات') + '</option>' +
                 eqsForFilter.map(function(eq) {
                     return '<option value="' + escapeHtml(eq.id) + '"' + (eq.id === selEq ? ' selected' : '') + '>' + escapeHtml(eq.name) + '</option>';
                 }).join('');
@@ -14774,9 +14775,9 @@ function refreshUI() {
         var totalCost   = visibleFuelData.reduce(function(sum, f) { return sum + (f.cost   || 0); }, 0);
         var avgCost     = visibleFuelData.length ? totalCost / visibleFuelData.length : 0;
         document.getElementById('fuel-stats').innerHTML =
-            '<div class="stat-card"><div class="stat-number">' + formatNumber(totalAmount) + '</div><div class="stat-label">لترات</div></div>' +
-            '<div class="stat-card"><div class="stat-number">' + formatNumber(totalCost)   + '</div><div class="stat-label">تكلفة</div></div>' +
-            '<div class="stat-card"><div class="stat-number">' + formatNumber(Math.round(avgCost)) + '</div><div class="stat-label">متوسط</div></div>';
+            '<div class="stat-card"><div class="stat-number">' + formatNumber(totalAmount) + '</div><div class="stat-label">' + RL('Liters', 'لترات') + '</div></div>' +
+            '<div class="stat-card"><div class="stat-number">' + formatNumber(totalCost)   + '</div><div class="stat-label">' + RL('Cost', 'تكلفة') + '</div></div>' +
+            '<div class="stat-card"><div class="stat-number">' + formatNumber(Math.round(avgCost)) + '</div><div class="stat-label">' + RL('Average', 'متوسط') + '</div></div>';
 
         // ملخص المشروع المختار
         var summaryEl = document.getElementById('fuel-project-summary');
@@ -14787,10 +14788,10 @@ function refreshUI() {
                     '<div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:14px;padding:12px 16px;border-right:4px solid #22c55e">' +
                     '<div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:6px">🏗️ ' + escapeHtml(selProj) + '</div>' +
                     '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#166534">' +
-                    '<span>📦 ' + visibleFuelData.length + ' سجل</span>' +
-                    '<span>🚜 ' + eqCount + ' معدة</span>' +
-                    '<span>⛽ ' + formatNumber(totalAmount) + ' لتر</span>' +
-                    '<span>💰 ' + formatNumber(totalCost) + ' ج.م</span>' +
+                    '<span>📦 ' + visibleFuelData.length + ' ' + RL('records', 'سجل') + '</span>' +
+                    '<span>🚜 ' + eqCount + ' ' + RL('equipment', 'معدة') + '</span>' +
+                    '<span>⛽ ' + formatNumber(totalAmount) + ' ' + RL('L', 'لتر') + '</span>' +
+                    '<span>💰 ' + formatNumber(totalCost) + ' ' + RL('EGP', 'ج.م') + '</span>' +
                     '</div></div>';
             } else {
                 summaryEl.innerHTML = '';
@@ -14801,23 +14802,23 @@ function refreshUI() {
             var eq = _allEquip.find(function(e) { return e.id === f.equipmentId; });
             var dr = driversData.find(function(d) { return d.id === f.driverId; });
             var proj = eq ? (eq.projectSite || eq.location || '').trim() : '';
-            var metaParts = [escapeHtml(f.date || ''), (proj ? escapeHtml(proj) : 'عام')];
-            metaParts.push('💰 ' + formatNumber(f.cost || 0) + ' ج.م');
-            metaParts.push('⏱️ ' + (f.hours || 0) + ' س');
+            var metaParts = [escapeHtml(f.date || ''), (proj ? escapeHtml(proj) : RL('General', 'عام'))];
+            metaParts.push('💰 ' + formatNumber(f.cost || 0) + ' ' + RL('EGP', 'ج.م'));
+            metaParts.push('⏱️ ' + (f.hours || 0) + ' ' + RL('h', 'س'));
             if (dr) metaParts.push('👨‍✈️ ' + escapeHtml(dr.name));
             return '<div class="fuel-card-compact">' +
                 '<div style="min-width:0;flex:1">' +
-                '<div class="fc-name"><span class="c-ico">⛽</span> ' + (eq ? escapeHtml(eq.name) : 'معدة') + '</div>' +
+                '<div class="fc-name"><span class="c-ico">⛽</span> ' + (eq ? escapeHtml(eq.name) : RL('Equipment', 'معدة')) + '</div>' +
                 '<div class="fc-meta">' + metaParts.join(' · ') + '</div>' +
                 '</div>' +
-                '<span class="badge fc-badge badge-working">' + (f.amount || 0) + ' لتر</span>' +
+                '<span class="badge fc-badge badge-working">' + (f.amount || 0) + ' ' + RL('L', 'لتر') + '</span>' +
                 (hasPermission('all') ? '<button class="fc-edit fuel-edit-btn" onclick="event.stopPropagation();openEditFuelModal(\'' + f.id + '\')">✏️</button>' : '') +
                 '</div>';
         }
 
         // قائمة السجلات
         if (visibleFuelData.length === 0) {
-            document.getElementById('fuel-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:40px;margin-bottom:8px">⛽</div><div style="font-size:14px;font-weight:600">لا توجد سجلات وقود</div><div style="font-size:12px;margin-top:4px">جرّب تغيير الفلتر</div></div>';
+            document.getElementById('fuel-list').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8"><div style="font-size:40px;margin-bottom:8px">⛽</div><div style="font-size:14px;font-weight:600">' + RL('No fuel records', 'لا توجد سجلات وقود') + '</div><div style="font-size:12px;margin-top:4px">' + RL('Try changing the filter', 'جرّب تغيير الفلتر') + '</div></div>';
         } else if (selProj || selEq) {
             // عند تحديد فلتر: عرض عادي بدون تجميع
             document.getElementById('fuel-list').innerHTML = visibleFuelData.slice(-50).reverse().map(renderFuelCard).join('');
@@ -14845,15 +14846,15 @@ function refreshUI() {
                 var grpCost  = fuelGroups[proj].reduce(function(s,f){ return s+(f.cost||0); }, 0);
                 fuelHtml += '<div style="' + fuelSecStyle + '">🏗️ ' + escapeHtml(proj) +
                     ' <span style="font-size:10px;font-weight:400;color:#166534">' +
-                    fuelGroups[proj].length + ' سجل · ' + formatNumber(grpTotal) + ' لتر · ' + formatNumber(grpCost) + ' ج.م</span></div>';
+                    fuelGroups[proj].length + ' ' + RL('records', 'سجل') + ' · ' + formatNumber(grpTotal) + ' ' + RL('L', 'لتر') + ' · ' + formatNumber(grpCost) + ' ' + RL('EGP', 'ج.م') + '</span></div>';
                 fuelHtml += fuelGroups[proj].map(renderFuelCard).join('');
             });
             if (generalFuel.length > 0) {
                 var genTotal = generalFuel.reduce(function(s,f){ return s+(f.amount||0); }, 0);
                 var genCost  = generalFuel.reduce(function(s,f){ return s+(f.cost||0); }, 0);
-                fuelHtml += '<div style="' + fuelGenStyle + '">📋 عام' +
+                fuelHtml += '<div style="' + fuelGenStyle + '">📋 ' + RL('General', 'عام') +
                     ' <span style="font-size:10px;font-weight:400;color:#9ca3af">' +
-                    generalFuel.length + ' سجل · ' + formatNumber(genTotal) + ' لتر · ' + formatNumber(genCost) + ' ج.م (غير مسند لمشروع)</span></div>';
+                    generalFuel.length + ' ' + RL('records', 'سجل') + ' · ' + formatNumber(genTotal) + ' ' + RL('L', 'لتر') + ' · ' + formatNumber(genCost) + ' ' + RL('EGP (not assigned to a project)', 'ج.م (غير مسند لمشروع)') + '</span></div>';
                 fuelHtml += generalFuel.map(renderFuelCard).join('');
             }
             document.getElementById('fuel-list').innerHTML = fuelHtml;
