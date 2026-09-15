@@ -1212,7 +1212,11 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     <div style="display:flex;gap:10px;margin-bottom:10px"><button id="meter-update-btn" class="big-btn" style="margin:0;flex:1">⏱️ <span class="i18n-label" data-en="Daily Meter Update" data-ar="تحديث العدادات اليومي"></span></button><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 <span class="i18n-label" data-en="Export Meter Log" data-ar="تصدير سجل العدادات"></span></button></div>
     <div style="display:flex;gap:10px;margin-bottom:10px"><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ <span class="i18n-label" data-en="Delete All" data-ar="حذف الكل"></span></button><button id="export-owned-daily-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📆 <span class="i18n-label" data-en="Export Owned Equipment Hours" data-ar="تصدير ساعات معدات الملك"></span></button></div>
     <div style="display:flex;gap:10px;margin-bottom:10px"><button id="print-qr-labels-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="openQRLabelsModal()">🏷️ <span class="i18n-label" data-en="Print QR Labels" data-ar="طباعة ملصقات QR"></span></button><button id="security-report-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#0d1b2a,#1b2838)" onclick="generateSecurityReport()">🛡️ <span class="i18n-label" data-en="Security Department Report" data-ar="تقرير قسم الأمن"></span></button></div>
-    <button id="owned-cycle-report-btn" class="big-btn" style="margin:0 0 10px;background:linear-gradient(135deg,#059669,#047857)" onclick="printOwnedEquipmentCycleReport()">📄 <span class="i18n-label" data-en="Owned Equipment Cycle Report (Work Days + Status + Maintenance)" data-ar="تقرير أيام العمل والحالة والصيانة لمعدات الملك (الدورة 21-20)"></span></button>
+    <div style="background:white;border-radius:14px;padding:10px 12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);display:flex;gap:8px;align-items:flex-end">
+      <div style="flex:1"><label style="font-size:11px;color:var(--gray)">من تاريخ</label><input type="date" id="owned-cycle-report-from" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;box-sizing:border-box"></div>
+      <div style="flex:1"><label style="font-size:11px;color:var(--gray)">إلى تاريخ</label><input type="date" id="owned-cycle-report-to" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;box-sizing:border-box"></div>
+    </div>
+    <button id="owned-cycle-report-btn" class="big-btn" style="margin:0 0 10px;background:linear-gradient(135deg,#059669,#047857)" onclick="printOwnedEquipmentCycleReport()">📄 <span class="i18n-label" data-en="Owned Equipment Report (Hours + Fuel)" data-ar="تقرير ساعات العمل والوقود لمعدات الملك"></span></button>
     <div id="equipment-list"></div>
   </div></div>
   
@@ -12820,60 +12824,72 @@ function exportOwnedEquipmentHoursExcel() {
     }
 }
 
-// ==================== تقرير معدات الملك: أيام العمل + الحالة التشغيلية + الصيانات المنفذة خلال الدورة الحالية (21 → 20) ====================
-// الصيانات المنفذة = سجلات maintenanceSchedules بحالة "مكتمل" وتاريخ إكمال (completedAt أو date) داخل نطاق الدورة
-function buildOwnedEquipmentCycleMaintenance(eqId, range) {
-    return maintenanceSchedules.filter(function(m) {
-        if (m.equipmentId !== eqId || m.status !== 'مكتمل') return false;
-        var d = (m.completedAt || m.date || '').slice(0, 10);
-        return d && d >= range.from && d <= range.to;
-    }).sort(function(a, b) {
-        return ((a.completedAt || a.date) || '').localeCompare((b.completedAt || b.date) || '');
+// ==================== تقرير معدات الملك: ساعات العمل + استهلاك الوقود + الحالة التشغيلية، لفترة يحدّدها المستخدم (افتراضيًا الدورة الحالية 21→20) ====================
+function readOwnedCycleReportRange() {
+    var fromEl = document.getElementById('owned-cycle-report-from');
+    var toEl = document.getElementById('owned-cycle-report-to');
+    var defaultRange = getPeriodRange(getCurrentCycleMonthStr());
+    var from = (fromEl && fromEl.value) || defaultRange.from;
+    var to = (toEl && toEl.value) || defaultRange.to;
+    return { from: from, to: to };
+}
+
+// نفس منطق getMonthlyHoursForEquipment لكن على نطاق تاريخ حر (مش شهر دورة محدد)
+function computeHoursForEquipmentInRange(eq, from, to) {
+    var log = (eq.hoursLog || []).slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+    if (!log.length) return 0;
+    var periodStart = new Date(from + 'T00:00:00');
+    var periodEnd = new Date(to + 'T23:59:59');
+    var before = null;
+    var uptoEnd = [];
+    log.forEach(function(l) {
+        var d = new Date(l.date);
+        if (d < periodStart) before = l;
+        if (d <= periodEnd) uptoEnd.push(l);
     });
+    if (!uptoEnd.length) return 0;
+    var endReading = uptoEnd[uptoEnd.length - 1];
+    var startReading = before || uptoEnd[0];
+    return Math.max(0, (endReading.hours || 0) - (startReading.hours || 0));
+}
+
+function computeFuelForEquipmentInRange(eq, from, to) {
+    return (fuelData || []).filter(function(f) {
+        return f.equipmentId === eq.id && f.date && f.date >= from && f.date <= to;
+    }).reduce(function(s, f) { return s + (f.amount || 0); }, 0);
 }
 
 function printOwnedEquipmentCycleReport() {
-    var monthStr = getCurrentCycleMonthStr();
-    var range = getPeriodRange(monthStr);
+    var range = readOwnedCycleReportRange();
     var eqList = getVisibleEquipment().filter(function(e) { return !isToolEquipment(e) && (e.ownership || 'ملك') !== 'إيجار'; });
     if (!eqList.length) { showToast('لا توجد معدات ملك لعرضها', true); return; }
 
     var statusMap = { 'يعمل': '🟢 تعمل', 'صيانة': '🟡 تحت الصيانة', 'متوقف': '🔴 متوقفة' };
 
     var rows = eqList.map(function(eq) {
-        var m = getMonthlyHoursForEquipment(eq, monthStr);
-        var hours = m ? (m.hours || 0) : 0;
-        var workDays = hours / 8;
-        var fuel = getMonthlyFuelForEquipment(eq, monthStr) || 0;
-        var maint = buildOwnedEquipmentCycleMaintenance(eq.id, range);
-        return { eq: eq, hours: hours, workDays: workDays, fuel: fuel, maint: maint };
+        var hours = computeHoursForEquipmentInRange(eq, range.from, range.to);
+        var fuel = computeFuelForEquipmentInRange(eq, range.from, range.to);
+        return { eq: eq, hours: hours, fuel: fuel };
     }).sort(function(a, b) { return b.hours - a.hours; });
 
     var totalHours = rows.reduce(function(s, r) { return s + r.hours; }, 0);
-    var totalWorkDays = rows.reduce(function(s, r) { return s + r.workDays; }, 0);
     var totalFuel = rows.reduce(function(s, r) { return s + r.fuel; }, 0);
-    var totalMaintCount = rows.reduce(function(s, r) { return s + r.maint.length; }, 0);
     var stoppedCount = rows.filter(function(r) { return r.eq.status === 'متوقف'; }).length;
     var underMaintCount = rows.filter(function(r) { return r.eq.status === 'صيانة'; }).length;
     var idleCount = rows.filter(function(r) { return r.hours === 0 && r.eq.status === 'يعمل'; }).length;
 
     var rowsHtml = rows.map(function(r, idx) {
-        var maintHtml = r.maint.length
-            ? r.maint.map(function(mm) { return escapeHtml(mm.type || 'صيانة') + ' (' + escapeHtml((mm.completedAt || mm.date || '').slice(0, 10)) + ')'; }).join('<br>')
-            : '<span style="color:#94a3b8">لا يوجد</span>';
         return '<tr>' +
             '<td>' + (idx + 1) + '</td>' +
             '<td style="text-align:right;font-weight:700">' + escapeHtml(r.eq.name || '—') + ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(r.eq.code || '—') + ')</span></td>' +
             '<td>' + (statusMap[r.eq.status] || escapeHtml(r.eq.status || '—')) + '</td>' +
-            '<td>' + r.workDays.toFixed(1) + ' يوم</td>' +
             '<td>' + r.hours.toFixed(1) + ' س</td>' +
             '<td>' + (r.fuel > 0 ? r.fuel.toLocaleString('ar-EG', { maximumFractionDigits: 1 }) + ' لتر' : '—') + '</td>' +
-            '<td style="text-align:right;font-size:10.5px">' + maintHtml + (r.maint.length ? ' <span style="color:#475569">(' + r.maint.length + ')</span>' : '') + '</td>' +
             '</tr>';
     }).join('');
 
     var w = window.open('', '_blank');
-    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير أيام عمل معدات الملك</title><style>' +
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير معدات الملك</title><style>' +
         'body{font-family:Arial;padding:18px;direction:rtl;color:#0d1b2a;font-size:12px}' +
         'table{width:100%;border-collapse:collapse;margin-top:12px;font-size:11px}' +
         'th,td{border:1px solid #e2e8f0;padding:6px 7px;text-align:center}' +
@@ -12885,22 +12901,19 @@ function printOwnedEquipmentCycleReport() {
         '.footer{margin-top:16px;font-size:9px;color:#999;text-align:center}' +
         '@media print{ .no-print{display:none} @page{ size:A4; margin:8mm } }' +
         '</style></head><body>' +
-        reportHeaderHtml('تقرير أيام عمل معدات الملك وحالتها التشغيلية والصيانة', rentalPeriodLabel(monthStr) + ' (' + range.from + ' → ' + range.to + ')') +
+        reportHeaderHtml('تقرير ساعات العمل واستهلاك الوقود لمعدات الملك', 'من ' + range.from + ' إلى ' + range.to) +
         '<div class="summary-box">' +
         '<div><div class="v">' + rows.length + '</div><div class="l">عدد معدات الملك</div></div>' +
-        '<div><div class="v">' + totalWorkDays.toFixed(1) + '</div><div class="l">إجمالي أيام العمل</div></div>' +
         '<div><div class="v">' + totalHours.toFixed(1) + '</div><div class="l">إجمالي ساعات العمل</div></div>' +
         '<div><div class="v">' + totalFuel.toLocaleString('ar-EG', { maximumFractionDigits: 0 }) + '</div><div class="l">إجمالي الوقود (لتر)</div></div>' +
-        '<div><div class="v">' + totalMaintCount + '</div><div class="l">صيانات منفذة في الدورة</div></div>' +
         '<div><div class="v">' + underMaintCount + '</div><div class="l">تحت الصيانة الآن</div></div>' +
         '<div><div class="v">' + stoppedCount + '</div><div class="l">متوقفة الآن</div></div>' +
         '</div>' +
-        (idleCount ? '<div style="background:#fff7ed;color:#92400e;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:11px">⚠️ يوجد ' + idleCount + ' معدة بحالة "تعمل" بدون أي ساعات عمل مسجّلة خلال الدورة</div>' : '') +
-        '<table><thead><tr><th>#</th><th>اسم المعدة</th><th>الحالة التشغيلية</th><th>أيام العمل</th><th>ساعات العمل</th><th>استهلاك الوقود</th><th>الصيانات المنفذة في الدورة</th></tr></thead><tbody>' +
+        (idleCount ? '<div style="background:#fff7ed;color:#92400e;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:11px">⚠️ يوجد ' + idleCount + ' معدة بحالة "تعمل" بدون أي ساعات عمل مسجّلة خلال الفترة</div>' : '') +
+        '<table><thead><tr><th>#</th><th>اسم المعدة</th><th>الحالة التشغيلية</th><th>ساعات العمل</th><th>استهلاك الوقود</th></tr></thead><tbody>' +
         rowsHtml +
         '</tbody></table>' +
-        '<div style="font-size:9.5px;color:#94a3b8;margin-top:6px">* أيام العمل = إجمالي ساعات العمل المسجّلة (من قراءات العداد) ÷ 8 = يوم عمل مكافئ. الحساب يشمل الفترة من بداية الدورة حتى آخر قراءة عداد مسجّلة.</div>' +
-        '<div class="footer">تم إصدار هذا التقرير آليًا من برنامج متابعة المعدات — ' + new Date().toLocaleString('ar-EG') + '</div>' +
+        '<div class="footer">تم إصدار التقرير بتاريخ ' + new Date().toLocaleString('ar-EG') + '</div>' +
         '<div class="no-print" style="text-align:center;margin-top:18px"><button onclick="window.print()" style="padding:10px 30px;background:#e8a020;border:none;border-radius:10px;font-weight:700;cursor:pointer">🖨️ طباعة</button></div>' +
         '</body></html>');
     w.document.close();
