@@ -131,6 +131,7 @@
       13489  شاشة الإدارة (Kiosk Mode)
       13880  مخطط الموقع (توزيع المولدات ولوحات الكهرباء)
       14182  التحليلات والتقارير
+      14453  تقارير ساعات العمل واستهلاك الوقود لمعدات الملك/الإيجار (بمدة مفتوحة: شهر أو عدة شهور) — تقرير ملك لوحده / إيجار لوحده / مقارنة الاثنين
       14640  التقرير الشهري الموحّد (كل الأقسام + كل المواقع)
       15522  شاشة تحكم بأسلوب أودو: شبكة أقسام قابلة للنقر
       15620  صفحة "الموظفين والسائقين" المدمجة — تبويبات مستقلة
@@ -1180,6 +1181,24 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <label style="font-size:12px;color:var(--gray);white-space:nowrap">📅 الشهر:</label>
       <input type="month" id="analytics-month" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:9px 14px;font-size:13px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
     </div>
+
+    <div style="background:white;border-radius:14px;padding:12px;margin-bottom:14px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12.5px;font-weight:800;color:#0d1b2a;margin-bottom:8px">📄 تقارير ساعات العمل واستهلاك الوقود — بمدة مفتوحة (شهر أو شهرين أو أكتر)</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="flex:1">
+          <label style="font-size:11px;color:var(--gray)">من شهر</label>
+          <input type="month" id="ownrent-report-from" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;box-sizing:border-box">
+        </div>
+        <div style="flex:1">
+          <label style="font-size:11px;color:var(--gray)">لغاية شهر</label>
+          <input type="month" id="ownrent-report-to" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;box-sizing:border-box">
+        </div>
+      </div>
+      <button onclick="printOwnedEquipmentReport()" class="big-btn" style="margin:0 0 8px;background:linear-gradient(135deg,#059669,#047857)">🔑 تقرير معدات الملك لوحدها</button>
+      <button onclick="printRentalEquipmentReport()" class="big-btn" style="margin:0 0 8px;background:linear-gradient(135deg,#0e7490,#155e75)">📋 تقرير معدات الإيجار لوحدها</button>
+      <button onclick="printOwnedVsRentalFullReport()" class="big-btn" style="margin:0;background:linear-gradient(135deg,#7c3aed,#4c1d95)">📊 تقرير مقارنة الملك بالإيجار (الاثنين معًا)</button>
+    </div>
+
     <div id="analytics-body"></div>
   </div></div>
   
@@ -14427,6 +14446,214 @@ function analyticsBarRow(label, value, maxValue, color, sub) {
         '<div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px"><span style="font-weight:600">' + escapeHtml(label) + '</span><span style="font-weight:700;color:' + color + '">' + value.toFixed(1) + ' س' + (sub ? ' <span style="color:var(--gray);font-weight:400">' + sub + '</span>' : '') + '</span></div>' +
         '<div style="background:#eef2f7;border-radius:8px;height:10px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:8px"></div></div>' +
         '</div>';
+}
+
+// ==================== تقارير ساعات العمل واستهلاك الوقود لمعدات الملك/الإيجار (بمدة مفتوحة: شهر أو عدة شهور) ====================
+// بيرجع مصفوفة شهور YYYY-MM من fromMonth لغاية toMonth شاملة الطرفين (بيرتّبهم لو مقلوبين بالغلط)
+function getMonthsInRange(fromMonth, toMonth) {
+    if (!fromMonth) fromMonth = toMonth;
+    if (!toMonth) toMonth = fromMonth;
+    if (fromMonth > toMonth) { var tmp = fromMonth; fromMonth = toMonth; toMonth = tmp; }
+    var months = [];
+    var cur = new Date(fromMonth + '-01T00:00:00');
+    var end = new Date(toMonth + '-01T00:00:00');
+    var guard = 0;
+    while (cur <= end && guard < 240) { // guard: حد أقصى 20 سنة تحسبًا لأي خطأ إدخال
+        months.push(localMonthStr(cur));
+        cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+        guard++;
+    }
+    return months;
+}
+
+// بيقرأ حقول "من شهر"/"لغاية شهر" الخاصة بتقارير الملك/الإيجار، وبيرجع افتراضيًا الدورة الحالية لو فاضيين
+function readOwnRentReportRange() {
+    var fromEl = document.getElementById('ownrent-report-from');
+    var toEl = document.getElementById('ownrent-report-to');
+    var fromMonth = (fromEl && fromEl.value) || getCurrentCycleMonthStr();
+    var toMonth = (toEl && toEl.value) || fromMonth;
+    return { fromMonth: fromMonth, toMonth: toMonth };
+}
+
+// بيحسب إجمالي الساعات والوقود لكل معدة عبر كل الشهور في النطاق المطلوب (مجموع كل شهر لوحده لتفادي التكرار)
+function buildOwnershipReportData(list, fromMonth, toMonth) {
+    var months = getMonthsInRange(fromMonth, toMonth);
+    var rows = list.map(function(eq) {
+        var totalHours = 0, totalFuel = 0;
+        months.forEach(function(month) {
+            var m = (eq.ownership === 'إيجار') ? getMonthlyRentalHours(eq, month) : getMonthlyHoursForEquipment(eq, month);
+            totalHours += m ? (m.hours || 0) : 0;
+            totalFuel += getMonthlyFuelForEquipment(eq, month) || 0;
+        });
+        var rate = (totalHours > 0 && totalFuel > 0) ? (totalFuel / totalHours) : null;
+        return { eq: eq, hours: totalHours, fuel: totalFuel, rate: rate };
+    }).sort(function(a, b) { return b.hours - a.hours; });
+
+    var totalHours = rows.reduce(function(s, r) { return s + r.hours; }, 0);
+    var totalFuel = rows.reduce(function(s, r) { return s + r.fuel; }, 0);
+    var avgRate = totalHours > 0 ? (totalFuel / totalHours) : null;
+    var idleCount = rows.filter(function(r) { return r.hours === 0 && r.eq.status !== 'متوقف'; }).length;
+    var stoppedCount = rows.filter(function(r) { return r.eq.status === 'متوقف'; }).length;
+    var highConsumption = rows.filter(function(r) { return r.rate !== null && avgRate && r.rate > avgRate * 1.3; });
+    var topPerformer = rows.length ? rows[0] : null;
+    return { rows: rows, totalHours: totalHours, totalFuel: totalFuel, avgRate: avgRate, idleCount: idleCount, stoppedCount: stoppedCount, highConsumption: highConsumption, topPerformer: topPerformer, count: rows.length, months: months };
+}
+
+function ownRentFmtNum(n) { return (n || 0).toLocaleString('ar-EG', { maximumFractionDigits: 1 }); }
+
+function ownRentExplanationParagraph(label, periodLabel, d) {
+    if (!d.count) return '<p style="margin:0 0 10px;font-size:12.5px;line-height:2;color:#334155">لا توجد ' + label + ' مسجّلة حاليًا ضمن نطاق هذا التقرير.</p>';
+    var parts = [];
+    parts.push('يضم هذا القسم <b>' + d.count + '</b> معدة، حقّقت خلال الفترة من ' + periodLabel + ' إجمالي <b>' + ownRentFmtNum(d.totalHours) + ' ساعة عمل</b>، واستهلكت ما مجموعه <b>' + ownRentFmtNum(d.totalFuel) + ' لتر وقود</b>' + (d.avgRate ? ('، بمتوسط استهلاك عام قدره <b>' + d.avgRate.toFixed(2) + ' لتر/ساعة</b>') : '') + '.');
+    if (d.topPerformer && d.topPerformer.hours > 0) {
+        parts.push('أعلى المعدات استخدامًا هي <b>' + escapeHtml(d.topPerformer.eq.name) + '</b> (' + escapeHtml(d.topPerformer.eq.code) + ') بإجمالي ' + ownRentFmtNum(d.topPerformer.hours) + ' ساعة عمل.');
+    }
+    if (d.idleCount > 0) {
+        parts.push('يوجد <b>' + d.idleCount + '</b> معدة بدون أي ساعات عمل مسجّلة رغم أنها بحالة "تعمل"، وهو ما يستحق المراجعة.');
+    }
+    if (d.stoppedCount > 0) {
+        parts.push('كما يوجد <b>' + d.stoppedCount + '</b> معدة متوقفة حاليًا ضمن هذا القسم.');
+    }
+    if (d.highConsumption.length) {
+        parts.push('رُصد <b>' + d.highConsumption.length + '</b> معدة باستهلاك وقود أعلى من متوسط القسم بنسبة تتجاوز 30%، وأبرزها: ' +
+            d.highConsumption.slice(0, 3).map(function(r) { return escapeHtml(r.eq.name) + ' (' + r.rate.toFixed(2) + ' لتر/س)'; }).join('، ') + '.');
+    }
+    if (!d.highConsumption.length && !d.idleCount && d.count) {
+        parts.push('بوجه عام، معدلات الاستخدام والاستهلاك في هذا القسم تبدو طبيعية ومتوازنة بدون ملاحظات تستدعي القلق.');
+    }
+    return '<p style="margin:0 0 10px;font-size:12.5px;line-height:2;color:#334155">' + parts.join(' ') + '</p>';
+}
+
+function ownRentTableRows(rows, groupAvgRate) {
+    if (!rows.length) return '<tr><td colspan="6" style="text-align:center;padding:16px;color:#94a3b8">لا توجد معدات</td></tr>';
+    return rows.map(function(r, idx) {
+        var flag = '';
+        if (r.fuel > 0 && r.hours === 0) flag = '<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700">⚠️ وقود بدون ساعات</span>';
+        else if (r.rate !== null && groupAvgRate && r.rate > groupAvgRate * 1.3) flag = '<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700">🔴 استهلاك مرتفع</span>';
+        else if (r.hours === 0 && r.eq.status !== 'متوقف') flag = '<span style="background:#fff7ed;color:#92400e;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700">⚠️ بدون استخدام</span>';
+        else if (r.eq.status === 'متوقف') flag = '<span style="background:#f1f5f9;color:#475569;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700">⛔ متوقفة</span>';
+        else if (r.hours > 0) flag = '<span style="background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700">🟢 طبيعي</span>';
+        return '<tr>' +
+            '<td>' + (idx + 1) + '</td>' +
+            '<td style="font-weight:700">' + escapeHtml(r.eq.name || '—') + ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(r.eq.code || '—') + ')</span></td>' +
+            '<td>' + ownRentFmtNum(r.hours) + ' س</td>' +
+            '<td>' + (r.fuel > 0 ? ownRentFmtNum(r.fuel) + ' لتر' : '—') + '</td>' +
+            '<td>' + (r.rate !== null ? r.rate.toFixed(2) + ' لتر/س' : '—') + '</td>' +
+            '<td>' + flag + '</td>' +
+            '</tr>';
+    }).join('');
+}
+
+var OWN_RENT_TABLE_HEADER = '<tr><th>م</th><th>اسم المعدة</th><th>ساعات العمل</th><th>استهلاك الوقود</th><th>معدل الاستهلاك</th><th>ملاحظة</th></tr>';
+
+function ownRentReportCss() {
+    return 'body{font-family:Arial;padding:22px;direction:rtl;color:#0d1b2a}' +
+        'table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px}' +
+        'th,td{border:1px solid #e2e8f0;padding:7px 8px;text-align:right}' +
+        'th{background:#0d1b2a;color:white;font-size:11.5px}' +
+        'tr:nth-child(even) td{background:#f8fafc}' +
+        '.section-title{font-size:15px;font-weight:800;margin:22px 0 6px;padding:10px 14px;border-radius:8px}' +
+        '.owned{background:#dbeafe;color:#1e3a8a}' +
+        '.rented{background:#fef3c7;color:#78350f}' +
+        '.compare{background:#ede9fe;color:#4c1d95}' +
+        '.info{background:#f1f5f9;padding:10px 14px;border-radius:8px;margin-bottom:10px;font-size:12.5px}' +
+        '.summary-box{background:#f8fafc;border-right:4px solid #0d1b2a;padding:10px 14px;border-radius:8px;margin-bottom:10px}' +
+        '@media print{ .no-print{display:none} }';
+}
+
+// تقرير مستقل لقسم واحد بس (ملك لوحدها، أو إيجار لوحدها) — بمدة مفتوحة
+function printSingleOwnershipReport(sectionTitle, sectionClass, icon, list, fromMonth, toMonth) {
+    var months = getMonthsInRange(fromMonth, toMonth);
+    var periodLabel = months.length > 1
+        ? (getPeriodRange(months[0]).from + ' \u2192 ' + getPeriodRange(months[months.length - 1]).to)
+        : (getPeriodRange(months[0]).from + ' \u2192 ' + getPeriodRange(months[0]).to);
+    var d = buildOwnershipReportData(list, fromMonth, toMonth);
+
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + sectionTitle + '</title><style>' + ownRentReportCss() + '</style></head><body>' +
+        reportHeaderHtml(sectionTitle, 'الفترة: ' + periodLabel + ' (' + months.length + ' شهر) — تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG')) +
+        '<div class="info">📊 يوضّح هذا التقرير ساعات العمل وإجمالي استهلاك الوقود لكل معدة ضمن هذا القسم خلال الفترة المحددة، مع شرح تفصيلي لأداء القسم ككل.</div>' +
+        '<div class="section-title ' + sectionClass + '">' + icon + ' ' + sectionTitle + ' (' + d.count + ')</div>' +
+        ownRentExplanationParagraph(sectionTitle, periodLabel, d) +
+        '<table><thead>' + OWN_RENT_TABLE_HEADER + '</thead><tbody>' + ownRentTableRows(d.rows, d.avgRate) + '</tbody></table>' +
+        '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة</button>' +
+        '</body></html>');
+    w.document.close();
+    setTimeout(function() { w.print(); }, 500);
+}
+
+function printOwnedEquipmentReport() {
+    var range = readOwnRentReportRange();
+    var eqList = getVisibleEquipment().filter(function(e) { return !isToolEquipment(e) && (e.ownership || 'ملك') !== 'إيجار'; });
+    printSingleOwnershipReport('تقرير معدات الملك', 'owned', '🔑', eqList, range.fromMonth, range.toMonth);
+}
+
+function printRentalEquipmentReport() {
+    var range = readOwnRentReportRange();
+    var eqList = getVisibleEquipment().filter(function(e) { return !isToolEquipment(e) && e.ownership === 'إيجار'; });
+    printSingleOwnershipReport('تقرير معدات الإيجار', 'rented', '📋', eqList, range.fromMonth, range.toMonth);
+}
+
+// تقرير مقارنة يجمع القسمين معًا (الملك والإيجار) في مستند واحد — بمدة مفتوحة أيضًا
+function printOwnedVsRentalFullReport() {
+    var range = readOwnRentReportRange();
+    var months = getMonthsInRange(range.fromMonth, range.toMonth);
+    var periodLabel = months.length > 1
+        ? (getPeriodRange(months[0]).from + ' \u2192 ' + getPeriodRange(months[months.length - 1]).to)
+        : (getPeriodRange(months[0]).from + ' \u2192 ' + getPeriodRange(months[0]).to);
+
+    var eqList = getVisibleEquipment().filter(function(e) { return !isToolEquipment(e); });
+    var ownedList = eqList.filter(function(e) { return (e.ownership || 'ملك') !== 'إيجار'; });
+    var rentalList = eqList.filter(function(e) { return e.ownership === 'إيجار'; });
+    var ownedData = buildOwnershipReportData(ownedList, range.fromMonth, range.toMonth);
+    var rentalStats = buildOwnershipReportData(rentalList, range.fromMonth, range.toMonth);
+    var fmtNum = ownRentFmtNum;
+
+    var comparisonHtml = '<table><thead><tr><th>البيان</th><th>🔑 معدات الملك</th><th>📋 معدات الإيجار</th></tr></thead><tbody>' +
+        '<tr><td>عدد المعدات</td><td>' + ownedData.count + '</td><td>' + rentalStats.count + '</td></tr>' +
+        '<tr><td>إجمالي ساعات العمل</td><td>' + fmtNum(ownedData.totalHours) + ' س</td><td>' + fmtNum(rentalStats.totalHours) + ' س</td></tr>' +
+        '<tr><td>إجمالي استهلاك الوقود</td><td>' + fmtNum(ownedData.totalFuel) + ' لتر</td><td>' + fmtNum(rentalStats.totalFuel) + ' لتر</td></tr>' +
+        '<tr><td>متوسط الاستهلاك (لتر/ساعة)</td><td>' + (ownedData.avgRate ? ownedData.avgRate.toFixed(2) : '—') + '</td><td>' + (rentalStats.avgRate ? rentalStats.avgRate.toFixed(2) : '—') + '</td></tr>' +
+        '<tr><td>معدات بدون استخدام</td><td>' + ownedData.idleCount + '</td><td>' + rentalStats.idleCount + '</td></tr>' +
+        '<tr><td>معدات متوقفة</td><td>' + ownedData.stoppedCount + '</td><td>' + rentalStats.stoppedCount + '</td></tr>' +
+        '</tbody></table>';
+
+    var grandTotalHours = ownedData.totalHours + rentalStats.totalHours;
+    var ownedHoursShare = grandTotalHours > 0 ? Math.round((ownedData.totalHours / grandTotalHours) * 100) : 0;
+    var rentalHoursShare = grandTotalHours > 0 ? (100 - ownedHoursShare) : 0;
+    var efficiencySentence = '';
+    if (ownedData.avgRate && rentalStats.avgRate) {
+        efficiencySentence = (ownedData.avgRate < rentalStats.avgRate)
+            ? ' من ناحية الكفاءة، معدات الملك أكثر اقتصادًا في استهلاك الوقود بمعدل ' + ownedData.avgRate.toFixed(2) + ' لتر/ساعة مقابل ' + rentalStats.avgRate.toFixed(2) + ' لتر/ساعة لمعدات الإيجار.'
+            : ' من ناحية الكفاءة، معدات الإيجار أكثر اقتصادًا في استهلاك الوقود بمعدل ' + rentalStats.avgRate.toFixed(2) + ' لتر/ساعة مقابل ' + ownedData.avgRate.toFixed(2) + ' لتر/ساعة لمعدات الملك.';
+    }
+    var conclusionHtml = '<p style="margin:0;font-size:12.5px;line-height:2;color:#334155">' +
+        'خلال هذه الفترة، ساهمت معدات الملك بنسبة <b>' + ownedHoursShare + '%</b> من إجمالي ساعات العمل مقابل <b>' + rentalHoursShare + '%</b> لمعدات الإيجار، ' +
+        'من إجمالي عام قدره <b>' + fmtNum(grandTotalHours) + ' ساعة عمل</b> و<b>' + fmtNum(ownedData.totalFuel + rentalStats.totalFuel) + ' لتر وقود</b> لكل المعدات.' +
+        efficiencySentence +
+        '</p>';
+
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير مقارنة معدات الملك والإيجار</title><style>' + ownRentReportCss() + '</style></head><body>' +
+        reportHeaderHtml('تقرير كامل: معدات الملك مقابل معدات الإيجار', 'الفترة: ' + periodLabel + ' (' + months.length + ' شهر) — تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG')) +
+        '<div class="info">📊 يوضّح هذا التقرير ساعات العمل واستهلاك الوقود لكل من معدات الملك ومعدات الإيجار خلال الفترة المحددة، مع شرح تفصيلي لأداء كل قسم على حدة، ثم مقارنة إجمالية بينهما.</div>' +
+
+        '<div class="section-title compare">📊 مقارنة إجمالية بين القسمين</div>' +
+        comparisonHtml +
+        '<div class="summary-box">' + conclusionHtml + '</div>' +
+
+        '<div class="section-title owned">🔑 قسم معدات الملك (' + ownedData.count + ')</div>' +
+        ownRentExplanationParagraph('معدات ملك', periodLabel, ownedData) +
+        '<table><thead>' + OWN_RENT_TABLE_HEADER + '</thead><tbody>' + ownRentTableRows(ownedData.rows, ownedData.avgRate) + '</tbody></table>' +
+
+        '<div class="section-title rented">📋 قسم معدات الإيجار (' + rentalStats.count + ')</div>' +
+        ownRentExplanationParagraph('معدات إيجار', periodLabel, rentalStats) +
+        '<table><thead>' + OWN_RENT_TABLE_HEADER + '</thead><tbody>' + ownRentTableRows(rentalStats.rows, rentalStats.avgRate) + '</tbody></table>' +
+
+        '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة</button>' +
+        '</body></html>');
+    w.document.close();
+    setTimeout(function() { w.print(); }, 500);
 }
 
 function renderAnalytics() {
