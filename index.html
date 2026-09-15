@@ -14612,6 +14612,14 @@ function buildOwnershipReportData(list, fromMonth, toMonth) {
 
 function ownRentFmtNum(n) { return (n || 0).toLocaleString('en-US', { maximumFractionDigits: 1 }); }
 
+// يجمع أسماء المشاريع (بدون تكرار) من قائمة معدات، ويرجعها كصف واضح يوضع تحت التاريخ في رأس التقرير
+function ownRentProjectNamesHtml(list) {
+    var projectNames = [];
+    (list || []).forEach(function(eq) { if (eq.projectSite && projectNames.indexOf(eq.projectSite) === -1) projectNames.push(eq.projectSite); });
+    var label = projectNames.length ? projectNames.join('، ') : '—';
+    return '<div style="margin:0 0 14px;padding:9px 14px;background:#f8fafc;border-radius:8px;font-size:13px;font-weight:800;color:#0d1b2a">🏗️ اسم المشروع: <span style="font-weight:800">' + escapeHtml(label) + '</span></div>';
+}
+
 function ownRentExplanationParagraph(label, periodLabel, d) {
     if (!d.count) return '<p style="margin:0 0 10px;font-size:12.5px;line-height:2;color:#334155">لا توجد ' + label + ' مسجّلة حاليًا ضمن نطاق هذا التقرير.</p>';
     var parts = [];
@@ -14685,6 +14693,7 @@ function printSingleOwnershipReport(sectionTitle, sectionClass, icon, list, from
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + sectionTitle + '</title><style>' + ownRentReportCss() + '</style></head><body>' +
         reportHeaderHtml(sectionTitle, 'الفترة: ' + periodLabel + ' (' + months.length + ' شهر) — تاريخ التقرير: ' + new Date().toLocaleDateString('en-GB')) +
+        ownRentProjectNamesHtml(list) +
         '<div class="info">📊 يوضّح هذا التقرير ساعات العمل وإجمالي استهلاك الوقود لكل معدة ضمن هذا القسم خلال الفترة المحددة، مع شرح تفصيلي لأداء القسم ككل.</div>' +
         '<div class="section-title ' + sectionClass + '">' + icon + ' ' + sectionTitle + ' (' + d.count + ')</div>' +
         ownRentExplanationParagraph(sectionTitle, periodLabel, d) +
@@ -14749,6 +14758,7 @@ function printOwnedVsRentalFullReport() {
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير مقارنة معدات الملك والإيجار</title><style>' + ownRentReportCss() + '</style></head><body>' +
         reportHeaderHtml('تقرير كامل: معدات الملك مقابل معدات الإيجار', 'الفترة: ' + periodLabel + ' (' + months.length + ' شهر) — تاريخ التقرير: ' + new Date().toLocaleDateString('en-GB')) +
+        ownRentProjectNamesHtml(eqList) +
         '<div class="info">📊 يوضّح هذا التقرير ساعات العمل واستهلاك الوقود لكل من معدات الملك ومعدات الإيجار خلال الفترة المحددة، مع شرح تفصيلي لأداء كل قسم على حدة، ثم مقارنة إجمالية بينهما.</div>' +
 
         '<div class="section-title compare">📊 مقارنة إجمالية بين القسمين</div>' +
