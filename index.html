@@ -20168,10 +20168,15 @@ function printFullAccountsStatement(includeCost) {
         var hours = dayData.records.reduce(function(s, d) { return s + (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0); }, 0);
         var total = (hours / 8) * r.dailyRate;
         var contractor = contractorsData.find(function(ct) { return ct.id === r.contractorId; });
-        return { name: name, total: total, daysWorked: daysWorked, contractorName: contractor ? contractor.name : '' };
+        return { name: name, total: total, daysWorked: daysWorked, contractorName: contractor ? contractor.name : '', projectSite: eq ? (eq.projectSite || '') : '' };
     });
 
     if (!rows.length) { showToast('لا توجد معدات إيجار لها سعر محدد لحساب المستخلص', true); return; }
+
+    // أسماء المشاريع المسجّلة في بيانات المعدات المشمولة بهذا التقرير (بدون تكرار)
+    var projectNames = [];
+    rows.forEach(function(row) { if (row.projectSite && projectNames.indexOf(row.projectSite) === -1) projectNames.push(row.projectSite); });
+    var projectNamesLabel = projectNames.length ? projectNames.join('، ') : '—';
 
     var groups = {};
     var groupOrder = [];
@@ -20214,9 +20219,8 @@ function printFullAccountsStatement(includeCost) {
     var tableHeader = includeCost
         ? '<tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل</th><th>التكلفة حتى اليوم</th><th>ملاحظات</th></tr>'
         : '<tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل</th><th>ملاحظات</th></tr>';
-    var projectEmployeeHeaderHtml = '<div style="display:flex;flex-wrap:wrap;gap:8px 34px;margin:0 0 14px;padding:9px 14px;background:#f8fafc;border-radius:8px;font-size:13px;font-weight:800;color:#0d1b2a">' +
-        '<div>🏗️ اسم المشروع: <span style="display:inline-block;min-width:170px;border-bottom:1.5px solid #94a3b8">&nbsp;</span></div>' +
-        '<div>👷 أسماء الموظفين: <span style="display:inline-block;min-width:230px;border-bottom:1.5px solid #94a3b8">&nbsp;</span></div>' +
+    var projectEmployeeHeaderHtml = '<div style="margin:0 0 14px;padding:9px 14px;background:#f8fafc;border-radius:8px;font-size:13px;font-weight:800;color:#0d1b2a">' +
+        '🏗️ اسم المشروع: <span style="font-weight:800">' + escapeHtml(projectNamesLabel) + '</span>' +
         '</div>';
 
     var w = window.open('', '_blank');
@@ -20226,7 +20230,7 @@ function printFullAccountsStatement(includeCost) {
         'table{width:100%;border-collapse:collapse;font-size:10.5px;margin-top:6px}' +
         'th{background:#0d1b2a;color:white;padding:4px 5px}' +
         'td{padding:3px 5px;border-bottom:1px solid #e2e8f0;text-align:center}' +
-        '.summary-box{background:linear-gradient(135deg,#166534,#14532d);color:white;border-radius:10px;padding:8px 12px;margin:8px 0}' +
+        '.summary-box{background:linear-gradient(135deg,#0d1b2a,#1e293b);color:white;border-radius:10px;padding:8px 12px;margin:8px 0}' +
         '.summary-box div{padding:2px 0!important;font-size:11px!important}' +
         '.summary-box .grand{display:flex;justify-content:space-between;padding-top:5px!important;margin-top:3px;font-size:13px!important;font-weight:800}' +
         '.deduct-box{background:#f8fafc;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:11px}' +
