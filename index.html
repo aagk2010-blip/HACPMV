@@ -1337,17 +1337,9 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <div style="font-size:12px;opacity:.9">احسب مستخلص كل معدة إيجار بناءً على الساعات المسجّلة وقيمة يوم العمل، واطبع مستخلص رسمي جاهز للتسليم.</div>
       </div>
 
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <button class="edit-btn" onclick="openContractorsModal()" style="flex:1;padding:11px;background:#e8a020;color:#0d1b2a;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">👷 المقاولين</button>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-bottom:8px">
-        <div style="flex:1"><label style="font-size:11px;color:var(--gray)">من تاريخ</label><input type="date" id="accounts-report-from" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;box-sizing:border-box"></div>
-        <div style="flex:1"><label style="font-size:11px;color:var(--gray)">إلى تاريخ</label><input type="date" id="accounts-report-to" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;box-sizing:border-box"></div>
-      </div>
       <div style="display:flex;gap:8px;margin-bottom:14px">
-        <button onclick="printFullAccountsStatement(true)" style="flex:1;padding:11px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">🖨️ شامل التكلفة</button>
-        <button onclick="printFullAccountsStatement(false)" style="flex:1;padding:11px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:12px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">📋 أيام العمل فقط</button>
+        <button class="edit-btn" onclick="openContractorsModal()" style="flex:1;padding:11px;background:#e8a020;color:#0d1b2a;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">👷 المقاولين</button>
+        <button onclick="printFullAccountsStatement()" style="flex:1.4;padding:11px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة تقرير أيام العمل والتكلفة</button>
       </div>
 
       <div id="accounts-total-card" style="background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
@@ -4161,12 +4153,6 @@ function generateSecurityReport() {
     var tableHeader = '<tr><th>م</th><th>اسم المعدة</th><th>النوع</th><th>تاريخ الدخول</th><th>الحالة</th><th>اسم الموقع</th></tr>';
     var toolTableHeader = '<tr><th>م</th><th>الاسم</th><th>النوع</th><th>تاريخ الدخول</th><th>الحالة</th><th>اسم الموقع</th><th>الملكية</th></tr>';
     var scopeLabel = (projectFilter || locationFilter) ? ('نطاق التقرير: ' + (projectFilter || locationFilter)) : 'كل المواقع والمشاريع';
-    var securityProjectNames = [];
-    filtered.forEach(function(eq) {
-        var p = (eq.projectSite || '').trim();
-        if (p && securityProjectNames.indexOf(p) === -1) securityProjectNames.push(p);
-    });
-    var securityProjectLabel = projectFilter || (securityProjectNames.length ? securityProjectNames.join('، ') : 'غير محدد');
 
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير قسم الأمن</title><style>' +
@@ -4182,7 +4168,7 @@ function generateSecurityReport() {
         '.info{background:#f1f5f9;padding:10px 14px;border-radius:8px;margin-bottom:6px;font-size:12.5px}' +
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
-        reportHeaderHtml('تقرير قسم الأمن — معدات الموقع', 'تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG') + '<br>🏗️ المشروع: ' + escapeHtml(securityProjectLabel)) +
+        reportHeaderHtml('تقرير قسم الأمن — معدات الموقع', 'تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG')) +
         '<div class="info">📍 ' + escapeHtml(scopeLabel) + '&nbsp;&nbsp;|&nbsp;&nbsp; الإجمالي: ' + filtered.length + ' (🔑 ملك: ' + owned.length + ' — 📋 إيجار: ' + rented.length + ' — 🧰 أدوات: ' + tools.length + ')</div>' +
         '<div class="section-title owned">🔑 معدات الملك (' + owned.length + ')</div>' +
         '<table><thead>' + tableHeader + '</thead><tbody>' + tableRows(owned) + '</tbody></table>' +
@@ -7944,9 +7930,6 @@ function exportEmployeesPDF() {
             '<tbody>' + rows + '</tbody></table>';
     }).join('');
 
-    var empProjectFilterEl = document.getElementById('employee-project-filter');
-    var employeesProjectLabel = (empProjectFilterEl && empProjectFilterEl.value) || 'كل المشاريع';
-
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>قائمة الموظفين</title><style>' +
         'body{font-family:Arial;padding:20px;direction:rtl}' +
@@ -7959,7 +7942,7 @@ function exportEmployeesPDF() {
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
         reportHeaderHtml('قائمة الموظفين', 'حصر فنيين الصيانة والمشغلين') +
-        '<div class="info">📅 <b>تاريخ التصدير:</b> ' + new Date().toLocaleDateString('ar-EG') + '<br>🏗️ <b>المشروع:</b> ' + escapeHtml(employeesProjectLabel) + '<br>👥 <b>إجمالي:</b> ' + list.length + ' موظف</div>' +
+        '<div class="info">📅 <b>تاريخ التصدير:</b> ' + new Date().toLocaleDateString('ar-EG') + '&nbsp;&nbsp; 👥 <b>إجمالي:</b> ' + list.length + ' موظف</div>' +
         bodyHtml +
         '<div class="footer">Hassan Allam Holding | قائمة الموظفين</div>' +
         '</body></html>');
@@ -12894,12 +12877,6 @@ function printOwnedEquipmentCycleReport() {
     var stoppedCount = rows.filter(function(r) { return r.eq.status === 'متوقف'; }).length;
     var underMaintCount = rows.filter(function(r) { return r.eq.status === 'صيانة'; }).length;
     var idleCount = rows.filter(function(r) { return r.hours === 0 && r.eq.status === 'يعمل'; }).length;
-    var projectNames = [];
-    eqList.forEach(function(eq) {
-        var p = (eq.projectSite || '').trim();
-        if (p && projectNames.indexOf(p) === -1) projectNames.push(p);
-    });
-    var projectLabel = projectNames.length ? projectNames.join('، ') : 'غير محدد';
 
     var rowsHtml = rows.map(function(r, idx) {
         return '<tr>' +
@@ -12907,7 +12884,7 @@ function printOwnedEquipmentCycleReport() {
             '<td style="text-align:right;font-weight:700">' + escapeHtml(r.eq.name || '—') + ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(r.eq.code || '—') + ')</span></td>' +
             '<td>' + (statusMap[r.eq.status] || escapeHtml(r.eq.status || '—')) + '</td>' +
             '<td>' + r.hours.toFixed(1) + ' س</td>' +
-            '<td>' + (r.fuel > 0 ? r.fuel.toLocaleString('en-US', { maximumFractionDigits: 1 }) + ' لتر' : '—') + '</td>' +
+            '<td>' + (r.fuel > 0 ? r.fuel.toLocaleString('ar-EG', { maximumFractionDigits: 1 }) + ' لتر' : '—') + '</td>' +
             '</tr>';
     }).join('');
 
@@ -12918,16 +12895,17 @@ function printOwnedEquipmentCycleReport() {
         'th,td{border:1px solid #e2e8f0;padding:6px 7px;text-align:center}' +
         'th{background:#0d1b2a;color:white;font-size:11px}' +
         'tr:nth-child(even) td{background:#f8fafc}' +
-        '.summary-box{background:#ffffff;border:1px solid #e2e8f0;color:#0d1b2a;border-radius:12px;padding:12px 16px;margin:12px 0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center}' +
+        '.summary-box{background:linear-gradient(135deg,#059669,#047857);color:white;border-radius:12px;padding:12px 16px;margin:12px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}' +
         '.summary-box .v{font-size:19px;font-weight:800}' +
         '.summary-box .l{font-size:10.5px;opacity:.85}' +
         '.footer{margin-top:16px;font-size:9px;color:#999;text-align:center}' +
         '@media print{ .no-print{display:none} @page{ size:A4; margin:8mm } }' +
         '</style></head><body>' +
-        reportHeaderHtml('تقرير العمل واستهلاك الوقود للمعدات الملك', 'من ' + range.from + ' إلى ' + range.to + '<br>🏗️ المشروع: ' + escapeHtml(projectLabel)) +
+        reportHeaderHtml('تقرير العمل واستهلاك الوقود للمعدات الملك', 'من ' + range.from + ' إلى ' + range.to) +
         '<div class="summary-box">' +
         '<div><div class="v">' + rows.length + '</div><div class="l">عدد معدات الملك</div></div>' +
-        '<div><div class="v">' + totalFuel.toLocaleString('en-US', { maximumFractionDigits: 0 }) + '</div><div class="l">إجمالي الوقود (لتر)</div></div>' +
+        '<div><div class="v">' + totalHours.toFixed(1) + '</div><div class="l">إجمالي ساعات العمل</div></div>' +
+        '<div><div class="v">' + totalFuel.toLocaleString('ar-EG', { maximumFractionDigits: 0 }) + '</div><div class="l">إجمالي الوقود (لتر)</div></div>' +
         '<div><div class="v">' + underMaintCount + '</div><div class="l">تحت الصيانة الآن</div></div>' +
         '<div><div class="v">' + stoppedCount + '</div><div class="l">متوقفة الآن</div></div>' +
         '</div>' +
@@ -12935,7 +12913,7 @@ function printOwnedEquipmentCycleReport() {
         '<table><thead><tr><th>#</th><th>اسم المعدة</th><th>الحالة التشغيلية</th><th>ساعات العمل</th><th>استهلاك الوقود</th></tr></thead><tbody>' +
         rowsHtml +
         '</tbody></table>' +
-        '<div class="footer">تم إصدار التقرير بتاريخ ' + new Date().toLocaleString('en-US') + '</div>' +
+        '<div class="footer">تم إصدار التقرير بتاريخ ' + new Date().toLocaleString('ar-EG') + '</div>' +
         '<div class="no-print" style="text-align:center;margin-top:18px"><button onclick="window.print()" style="padding:10px 30px;background:#e8a020;border:none;border-radius:10px;font-weight:700;cursor:pointer">🖨️ طباعة</button></div>' +
         '</body></html>');
     w.document.close();
@@ -14664,12 +14642,12 @@ function ownRentTableRows(rows, groupAvgRate) {
             '<td>' + (r.fuel > 0 ? ownRentFmtNum(r.fuel) + ' لتر' : '—') + '</td>' +
             '<td>' + (r.rate !== null ? r.rate.toFixed(2) + ' لتر/س' : '—') + '</td>' +
             '<td>' + flag + '</td>' +
-            '<td style="min-width:110px"></td>' +
+            '<td>&nbsp;</td>' +
             '</tr>';
     }).join('');
 }
 
-var OWN_RENT_TABLE_HEADER = '<tr><th>م</th><th>اسم المعدة</th><th>نوع المعدة</th><th>ساعات العمل</th><th>استهلاك الوقود</th><th>معدل الاستهلاك</th><th>ملاحظة</th><th>ملاحظات</th></tr>';
+var OWN_RENT_TABLE_HEADER = '<tr><th>م</th><th>اسم المعدة</th><th>النوع</th><th>ساعات العمل</th><th>استهلاك الوقود</th><th>معدل الاستهلاك</th><th>ملاحظة</th><th>ملاحظات</th></tr>';
 
 function ownRentReportCss() {
     return 'body{font-family:Arial;padding:22px;direction:rtl;color:#0d1b2a}' +
@@ -14693,16 +14671,10 @@ function printSingleOwnershipReport(sectionTitle, sectionClass, icon, list, from
         ? (getPeriodRange(months[0]).from + ' \u2192 ' + getPeriodRange(months[months.length - 1]).to)
         : (getPeriodRange(months[0]).from + ' \u2192 ' + getPeriodRange(months[0]).to);
     var d = buildOwnershipReportData(list, fromMonth, toMonth);
-    var singleOwnershipProjectNames = [];
-    (list || []).forEach(function(eq) {
-        var p = (eq.projectSite || '').trim();
-        if (p && singleOwnershipProjectNames.indexOf(p) === -1) singleOwnershipProjectNames.push(p);
-    });
-    var singleOwnershipProjectLabel = singleOwnershipProjectNames.length ? singleOwnershipProjectNames.join('، ') : 'غير محدد';
 
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + sectionTitle + '</title><style>' + ownRentReportCss() + '</style></head><body>' +
-        reportHeaderHtml(sectionTitle, 'الفترة: ' + periodLabel + ' (' + months.length + ' شهر) — تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG') + '<br>🏗️ المشروع: ' + escapeHtml(singleOwnershipProjectLabel)) +
+        reportHeaderHtml(sectionTitle, 'الفترة: ' + periodLabel + ' (' + months.length + ' شهر) — تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG')) +
         '<div class="info">📊 يوضّح هذا التقرير ساعات العمل وإجمالي استهلاك الوقود لكل معدة ضمن هذا القسم خلال الفترة المحددة، مع شرح تفصيلي لأداء القسم ككل.</div>' +
         '<div class="section-title ' + sectionClass + '">' + icon + ' ' + sectionTitle + ' (' + d.count + ')</div>' +
         ownRentExplanationParagraph(sectionTitle, periodLabel, d) +
@@ -14763,16 +14735,10 @@ function printOwnedVsRentalFullReport() {
         'من إجمالي عام قدره <b>' + fmtNum(grandTotalHours) + ' ساعة عمل</b> و<b>' + fmtNum(ownedData.totalFuel + rentalStats.totalFuel) + ' لتر وقود</b> لكل المعدات.' +
         efficiencySentence +
         '</p>';
-    var compareProjectNames = [];
-    eqList.forEach(function(eq) {
-        var p = (eq.projectSite || '').trim();
-        if (p && compareProjectNames.indexOf(p) === -1) compareProjectNames.push(p);
-    });
-    var compareProjectLabel = compareProjectNames.length ? compareProjectNames.join('، ') : 'غير محدد';
 
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير مقارنة معدات الملك والإيجار</title><style>' + ownRentReportCss() + '</style></head><body>' +
-        reportHeaderHtml('تقرير كامل: معدات الملك مقابل معدات الإيجار', 'الفترة: ' + periodLabel + ' (' + months.length + ' شهر) — تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG') + '<br>🏗️ المشروع: ' + escapeHtml(compareProjectLabel)) +
+        reportHeaderHtml('تقرير كامل: معدات الملك مقابل معدات الإيجار', 'الفترة: ' + periodLabel + ' (' + months.length + ' شهر) — تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG')) +
         '<div class="info">📊 يوضّح هذا التقرير ساعات العمل واستهلاك الوقود لكل من معدات الملك ومعدات الإيجار خلال الفترة المحددة، مع شرح تفصيلي لأداء كل قسم على حدة، ثم مقارنة إجمالية بينهما.</div>' +
 
         '<div class="section-title compare">📊 مقارنة إجمالية بين القسمين</div>' +
@@ -17117,7 +17083,7 @@ function printWorkOrder(id) {
         '.footer{margin-top:26px;font-size:10px;color:#999;text-align:center}' +
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
-        reportHeaderHtml('أمر عمل صيانة', 'رقم الأمر: #' + escapeHtml(w.orderNo||w.id.slice(-4)) + '<br>🏗️ المشروع: ' + escapeHtml((eq && eq.projectSite) || 'غير محدد')) +
+        reportHeaderHtml('أمر عمل صيانة', 'رقم الأمر: #' + escapeHtml(w.orderNo||w.id.slice(-4))) +
         '<div class="meta">' +
             '<div><b>تاريخ الأمر:</b> ' + escapeHtml(w.date||'—') + '</div>' +
             '<div><b>الحالة:</b> <span class="status-badge">' + escapeHtml(w.status||'مفتوح') + '</span></div>' +
@@ -18770,14 +18736,6 @@ function generateIssueVoucherReport() {
             '</tr>';
     }).join('') : '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px">لا توجد أذون صرف في الفترة المحددة</td></tr>';
 
-    var ivrProjectNames = [];
-    list.forEach(function(v) {
-        var eq = equipmentData.find(function(e) { return e.id === v.equipmentId; });
-        var p = (eq && eq.projectSite || '').trim();
-        if (p && ivrProjectNames.indexOf(p) === -1) ivrProjectNames.push(p);
-    });
-    var ivrProjectLabel = ivrProjectNames.length ? ivrProjectNames.join('، ') : 'غير محدد';
-
     var w2 = window.open('', '_blank');
     w2.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير أذون الصرف</title><style>' +
         'body{font-family:Arial;padding:22px;direction:rtl;color:#0d1b2a}' +
@@ -18790,7 +18748,7 @@ function generateIssueVoucherReport() {
         '.footer{margin-top:26px;font-size:10px;color:#999;text-align:center}' +
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
-        reportHeaderHtml('تقرير أذون الصرف من المخزن (SAP)', 'من ' + escapeHtml(from) + ' إلى ' + escapeHtml(to) + '<br>🏗️ المشروع: ' + escapeHtml(ivrProjectLabel)) +
+        reportHeaderHtml('تقرير أذون الصرف من المخزن (SAP)', 'من ' + escapeHtml(from) + ' إلى ' + escapeHtml(to)) +
         '<div class="meta">' +
         '<div><b>إجمالي عدد الأذون:</b> ' + list.length + '</div>' +
         '<div><b>🔵 مفتوحة:</b> ' + openCount + '</div>' +
@@ -20168,7 +20126,7 @@ function printRentalStatement(rentalId, dateFrom, dateTo) {
         '.footer{margin-top:26px;font-size:10px;color:#999;text-align:center}' +
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
-        reportHeaderHtml('مستخلص إيجار معدة', 'من ' + escapeHtml(dateFrom) + ' إلى ' + escapeHtml(dateTo) + '<br>🏗️ المشروع: ' + escapeHtml((eq && eq.projectSite) || 'غير محدد')) +
+        reportHeaderHtml('مستخلص إيجار معدة', 'من ' + escapeHtml(dateFrom) + ' إلى ' + escapeHtml(dateTo)) +
         '<div class="meta">' +
         '<div><b>المعدة:</b> ' + escapeHtml(eq ? (eq.name + ' (' + eq.code + ')') : (rental.equipmentCode||'—')) + '</div>' +
         '<div><b>شركة الإيجار:</b> ' + escapeHtml(rental.company || '—') + '</div>' +
@@ -20190,31 +20148,23 @@ function printRentalStatement(rentalId, dateFrom, dateTo) {
 }
 window.printRentalStatement = printRentalStatement;
 
-// ==================== طباعة تقرير أيام العمل والتكلفة لكل معدات الإيجار مجتمعة، بفترة يحدّدها المستخدم، مقسّم حسب المقاول ====================
-// includeCost = true  -> التقرير الشامل (أيام العمل + التكلفة + الخصومات)
-// includeCost = false -> تقرير أيام العمل فقط (بدون أي أرقام تكلفة)
-function printFullAccountsStatement(includeCost) {
+// ==================== طباعة تقرير أيام العمل والتكلفة لكل معدات الإيجار مجتمعة، محسوب حتى تاريخ اليوم، مقسّم حسب المقاول ====================
+function printFullAccountsStatement() {
     if (!canView('accounts')) { showToast('⛔ غير مصرح لك بالوصول لبيانات الحسابات', true); return; }
-    includeCost = includeCost !== false;
-
-    var fromEl = document.getElementById('accounts-report-from');
-    var toEl = document.getElementById('accounts-report-to');
     var monthStr = getCurrentCycleMonthStr();
-    var defaultRange = getPeriodRange(monthStr);
-    var from = (fromEl && fromEl.value) || defaultRange.from;
-    var to = (toEl && toEl.value) || defaultRange.to;
+    var range = getPeriodRange(monthStr);
     var todayStr = localDateStr(new Date());
 
     var rows = rentalData.filter(function(r) { return (r.dailyRate || 0) > 0; }).map(function(r) {
         var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
         var name = eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentCode || '—');
-        // buildRentalDayEntries بيوقف تلقائيًا عند تاريخ اليوم لو الفترة المطلوبة لسه معديتش
-        var dayData = buildRentalDayEntries(r.id, from, to);
+        // buildRentalDayEntries بيوقف تلقائيًا عند تاريخ اليوم لو نهاية الدورة لسه معديتش، فالنتيجة دايمًا "حتى اليوم"
+        var dayData = buildRentalDayEntries(r.id, range.from, range.to);
         var daysWorked = dayData.records.length;
         var hours = dayData.records.reduce(function(s, d) { return s + (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0); }, 0);
         var total = (hours / 8) * r.dailyRate;
         var contractor = contractorsData.find(function(ct) { return ct.id === r.contractorId; });
-        return { name: name, total: total, daysWorked: daysWorked, contractorName: contractor ? contractor.name : '', projectSite: eq ? (eq.projectSite || '') : '' };
+        return { name: name, total: total, daysWorked: daysWorked, contractorName: contractor ? contractor.name : '' };
     });
 
     if (!rows.length) { showToast('لا توجد معدات إيجار لها سعر محدد لحساب المستخلص', true); return; }
@@ -20232,50 +20182,36 @@ function printFullAccountsStatement(includeCost) {
 
     var contractorsSummaryHtml = groupOrder.map(function(key) {
         var g = groups[key];
-        return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;font-size:13px">' +
-            '<span>👷 ' + escapeHtml(g.name) + ' <span style="opacity:.75;font-size:11px">(' + g.days + ' يوم عمل)</span></span>' +
-            (includeCost ? '<span style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span>' : '') +
-            '</div>';
+        return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.2);font-size:13px">' +
+            '<span>👷 ' + escapeHtml(g.name) + ' <span style="opacity:.75;font-size:11px">(' + g.days + ' يوم عمل)</span></span><span style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>';
     }).join('');
 
     // ترتيب صفوف الجدول مجمّعة حسب المقاول: كل معدات المقاول تحت بعضها، مع صف فرعي بإجمالي المقاول (أيام العمل + التكلفة)
     var rowCounter = 0;
-    var colspanForGroupHeader = includeCost ? 3 : 3;
     var rowsHtml = groupOrder.map(function(key) {
         var g = groups[key];
-        var headerRow = '<tr style="background:#eef2f6"><td colspan="' + colspanForGroupHeader + '" style="text-align:right;font-weight:800;padding:8px 10px">👷 ' + escapeHtml(g.name) + '</td>' +
+        var headerRow = '<tr style="background:#eef2f6"><td colspan="3" style="text-align:right;font-weight:800;padding:8px 10px">👷 ' + escapeHtml(g.name) + '</td>' +
             '<td style="font-weight:800">' + g.days + '</td>' +
-            (includeCost ? '<td style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td>' : '') +
-            '<td></td>' +
-            '</tr>';
+            '<td style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td>' +
+            '<td>&nbsp;</td></tr>';
         var itemsHtml = g.rows.map(function(row) {
             rowCounter++;
             return '<tr><td>' + rowCounter + '</td><td style="text-align:right">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.contractorName || '—') + '</td>' +
                 '<td>' + row.daysWorked + '</td>' +
-                (includeCost ? '<td style="font-weight:bold">' + row.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td>' : '') +
-                '<td style="min-width:90px"></td>' +
-                '</tr>';
+                '<td style="font-weight:bold">' + row.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td>' +
+                '<td>&nbsp;</td></tr>';
         }).join('');
         return headerRow + itemsHtml;
     }).join('');
 
-    var reportTitle = includeCost ? 'تقرير أيام عمل وتكلفة معدات الإيجار' : 'تقرير أيام عمل معدات الإيجار';
-    var tableHeader = '<tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل</th>' + (includeCost ? '<th>التكلفة</th>' : '') + '<th>ملاحظات</th></tr>';
-    var accountsProjectNames = [];
-    rows.forEach(function(row) {
-        var p = (row.projectSite || '').trim();
-        if (p && accountsProjectNames.indexOf(p) === -1) accountsProjectNames.push(p);
-    });
-    var accountsProjectLabel = accountsProjectNames.length ? accountsProjectNames.join('، ') : 'غير محدد';
-
     var w = window.open('', '_blank');
-    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + reportTitle + '</title><style>' +
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>المستخلص الشهري الكامل</title><style>' +
         '*{box-sizing:border-box}' +
         'body{font-family:Arial;padding:10px 14px;direction:rtl;color:#0d1b2a;font-size:11.5px;line-height:1.3}' +
         'table{width:100%;border-collapse:collapse;font-size:10.5px;margin-top:6px}' +
         'th{background:#0d1b2a;color:white;padding:4px 5px}' +
         'td{padding:3px 5px;border-bottom:1px solid #e2e8f0;text-align:center}' +
-        '.summary-box{background:#f1f5f9;color:#0d1b2a;border-radius:10px;padding:8px 12px;margin:8px 0}' +
+        '.summary-box{background:linear-gradient(135deg,#166534,#14532d);color:white;border-radius:10px;padding:8px 12px;margin:8px 0}' +
         '.summary-box div{padding:2px 0!important;font-size:11px!important}' +
         '.summary-box .grand{display:flex;justify-content:space-between;padding-top:5px!important;margin-top:3px;font-size:13px!important;font-weight:800}' +
         '.deduct-box{background:#f8fafc;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:11px}' +
@@ -20287,36 +20223,26 @@ function printFullAccountsStatement(includeCost) {
         'img{height:34px!important}' +
         '@media print{ .no-print{display:none} @page{ size:A4; margin:7mm } body{ zoom:0.82 } }' +
         '</style></head><body>' +
-        reportHeaderHtml(reportTitle, 'من ' + from + ' إلى ' + to + '<br>🏗️ المشروع: ' + escapeHtml(accountsProjectLabel)) +
-        (includeCost ?
-            '<div class="summary-box">' +
-            '<div style="font-size:13px;opacity:.9;margin-bottom:6px">إجمالي التكلفة حسب المقاول</div>' +
-            contractorsSummaryHtml +
-            '<div class="grand"><span>الإجمالي الكلي</span><span id="grand-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>' +
-            '</div>'
-            :
-            '<div class="summary-box">' +
-            '<div style="font-size:13px;opacity:.9;margin-bottom:6px">إجمالي أيام العمل حسب المقاول</div>' +
-            contractorsSummaryHtml +
-            '</div>'
-        ) +
-        '<table><thead>' + tableHeader + '</thead><tbody>' +
+        reportHeaderHtml('تقرير أيام عمل وتكلفة معدات الإيجار', rentalPeriodLabel(monthStr) + ' (' + range.from + ' → ' + range.to + ') — محسوب حتى تاريخ اليوم ' + todayStr) +
+        '<div class="summary-box">' +
+        '<div style="font-size:13px;opacity:.9;margin-bottom:6px">إجمالي التكلفة حسب المقاول (حتى تاريخ اليوم)</div>' +
+        contractorsSummaryHtml +
+        '<div class="grand"><span>الإجمالي الكلي</span><span id="grand-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>' +
+        '</div>' +
+        '<table><thead><tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل</th><th>التكلفة حتى اليوم</th><th>ملاحظات</th></tr></thead><tbody>' +
         rowsHtml +
         '</tbody></table>' +
-        (includeCost ?
-            '<div class="deduct-box">' +
-            '<label style="display:block;margin-bottom:8px;font-weight:700">➖ خصومات (إن وجدت)</label>' +
-            '<input type="number" id="deduction-input" value="0" step="0.01" oninput="updateFullStatementTotal()">' +
-            '</div>' +
-            '<div class="final-box">' +
-            '<div>الإجمالي النهائي بعد الخصم</div>' +
-            '<div class="value" id="final-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</div>' +
-            '</div>'
-            : ''
-        ) +
-        '<div class="footer">تم إصدار التقرير بتاريخ ' + new Date().toLocaleString('en-US') + '</div>' +
+        '<div class="deduct-box">' +
+        '<label style="display:block;margin-bottom:8px;font-weight:700">➖ خصومات (إن وجدت)</label>' +
+        '<input type="number" id="deduction-input" value="0" step="0.01" oninput="updateFullStatementTotal()">' +
+        '</div>' +
+        '<div class="final-box">' +
+        '<div>الإجمالي النهائي بعد الخصم</div>' +
+        '<div class="value" id="final-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</div>' +
+        '</div>' +
+        '<div class="footer">تم إصدار هذا المستخلص آليًا من برنامج متابعة المعدات — ' + new Date().toLocaleString('ar-EG') + '</div>' +
         '<div class="no-print" style="text-align:center;margin-top:18px"><button onclick="window.print()" style="padding:10px 30px;background:#e8a020;border:none;border-radius:10px;font-weight:700;cursor:pointer">🖨️ طباعة</button></div>' +
-        (includeCost ? '<script>var GRAND_TOTAL=' + grandTotal + ';function updateFullStatementTotal(){var d=parseFloat(document.getElementById("deduction-input").value)||0;document.getElementById("final-total-display").textContent=(GRAND_TOTAL-d).toLocaleString(undefined,{maximumFractionDigits:2});}<\/script>' : '') +
+        '<script>var GRAND_TOTAL=' + grandTotal + ';function updateFullStatementTotal(){var d=parseFloat(document.getElementById("deduction-input").value)||0;document.getElementById("final-total-display").textContent=(GRAND_TOTAL-d).toLocaleString(undefined,{maximumFractionDigits:2});}<\/script>' +
         '</body></html>');
     w.document.close();
 }
@@ -20725,7 +20651,7 @@ function exportSingleRentalPDF(rentalId) {
         '@media print{ .no-print{display:none} * {-webkit-print-color-adjust:exact;print-color-adjust:exact} }'+
         '</style></head><body>'+
         '<div id="print-wrap">'+
-        reportHeaderHtml('تقرير معدة إيجار', (eq?eq.name:'') + '<br>🏗️ المشروع: ' + escapeHtml((eq && eq.projectSite) || 'غير محدد'))+
+        reportHeaderHtml('تقرير معدة إيجار', (eq?eq.name:'') )+
         '<div class="info"><div class="info-text"><b>المعدة:</b> '+(eq?eq.type+' — '+eq.name:'—')+'&nbsp;&nbsp;<b>الكود:</b> '+(eq?eq.code:'—')+'&nbsp;&nbsp;<b>السائق:</b> '+(drv?drv.name:'—')+'<br>'+
         '<b>الشركة:</b> '+(rental?rental.company||'—':'—')+'&nbsp;&nbsp;<b>الفترة:</b> '+periodLabel+'&nbsp;&nbsp;<b>الطباعة:</b> '+new Date().toLocaleDateString('ar-EG')+'</div>'+
         (qrUrl ? '<div class="info-qr"><div id="pdfQrBox"></div><div class="lbl">📱 امسح للتفاصيل</div></div>' : '')+
@@ -20832,12 +20758,6 @@ function printRentalDailyFullReport() {
     }
 
     var dir = reportDir(), align = reportAlign();
-    var dailyFullProjectNames = [];
-    rowsData.forEach(function(item) {
-        var p = (item.eq && item.eq.projectSite || '').trim();
-        if (p && dailyFullProjectNames.indexOf(p) === -1) dailyFullProjectNames.push(p);
-    });
-    var dailyFullProjectLabel = dailyFullProjectNames.length ? dailyFullProjectNames.join('، ') : 'غير محدد';
     var w = window.open('', '_blank');
     w.document.write('<!DOCTYPE html><html dir="' + dir + '"><head><meta charset="UTF-8"><title>' + (getAppLanguage() === 'en' ? 'Daily Report — Rental Equipment' : 'التقرير اليومي — معدات الإيجار') + '</title>' +
         '<style id="pageOrient">@page{size:A4 portrait;margin:8mm}</style>' +
@@ -20859,7 +20779,7 @@ function printRentalDailyFullReport() {
         '@media print{ .no-print{display:none} * {-webkit-print-color-adjust:exact;print-color-adjust:exact} }' +
         '</style></head><body>' +
         '<div id="print-wrap">' +
-        reportHeaderHtml({ en: 'Daily Report — Rental Equipment Attendance', ar: 'التقرير اليومي — حضور معدات الإيجار' }, { en: 'Date: ' + dateFilter + '<br>🏗️ Project: ' + escapeHtml(dailyFullProjectLabel), ar: 'التاريخ: ' + dateFilter + '<br>🏗️ المشروع: ' + escapeHtml(dailyFullProjectLabel) }) +
+        reportHeaderHtml({ en: 'Daily Report — Rental Equipment Attendance', ar: 'التقرير اليومي — حضور معدات الإيجار' }, { en: 'Date: ' + dateFilter, ar: 'التاريخ: ' + dateFilter }) +
         '<div class="summary">' +
         '<div class="sum-box"><div class="num">' + rowsData.length + '</div><div class="lbl">' + RL('Total Equipment', 'إجمالي المعدات') + '</div></div>' +
         '<div class="sum-box" style="background:#d1fae5"><div class="num" style="color:#065f46">' + presentCount + '</div><div class="lbl">' + RL('Present', 'حاضر') + '</div></div>' +
@@ -20909,14 +20829,6 @@ function printRentalDailyOvertimeReport() {
     }
 
     var totalExtra = overtimeList.reduce(function(s, r) { return s + (r.extraHours || 0) + (r.breakHours || 0); }, 0);
-    var overtimeProjectNames = [];
-    overtimeList.forEach(function(r) {
-        var rental = rentalData.find(function(x) { return x.id === r.equipmentId; });
-        var eq = rental ? equipmentData.find(function(e) { return e.id === rental.equipmentId; }) : null;
-        var p = (eq && eq.projectSite || '').trim();
-        if (p && overtimeProjectNames.indexOf(p) === -1) overtimeProjectNames.push(p);
-    });
-    var overtimeProjectLabel = overtimeProjectNames.length ? overtimeProjectNames.join('، ') : 'غير محدد';
 
     var dir = reportDir(), align = reportAlign();
     var w = window.open('', '_blank');
@@ -20929,7 +20841,7 @@ function printRentalDailyOvertimeReport() {
         '.info{background:#fef3c7;color:#92400e;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;font-weight:700}' +
         '@media print{ .no-print{display:none} }' +
         '</style></head><body>' +
-        reportHeaderHtml({ en: 'Daily Overtime Report — Rental Equipment', ar: 'تقرير الساعات الإضافية اليومي — معدات الإيجار' }, { en: 'Date: ' + dateFilter + '<br>🏗️ Project: ' + escapeHtml(overtimeProjectLabel), ar: 'التاريخ: ' + dateFilter + '<br>🏗️ المشروع: ' + escapeHtml(overtimeProjectLabel) }) +
+        reportHeaderHtml({ en: 'Daily Overtime Report — Rental Equipment', ar: 'تقرير الساعات الإضافية اليومي — معدات الإيجار' }, { en: 'Date: ' + dateFilter, ar: 'التاريخ: ' + dateFilter }) +
         '<div class="info">⚡ ' + RL('Equipment with overtime', 'عدد المعدات صاحبة إضافي') + ': ' + overtimeList.length + ' &nbsp;|&nbsp; ' + RL('Total overtime hours', 'إجمالي الساعات الإضافية') + ': ' + totalExtra.toFixed(2) + ' ' + RL('h', 'ساعة') + '</div>' +
         '<table><thead><tr><th>' + RL('#', 'م') + '</th><th>' + RL('Equipment', 'اسم المعدة') + '</th><th>' + RL('Driver', 'السائق') + '</th><th>' + RL('Overtime Hours (incl. break work)', 'ساعات الإضافي (شامل عمل الراحة)') + '</th><th>' + RL('Notes (reason for overtime)', 'ملاحظات (سبب الإضافي)') + '</th><th>' + RL('Recorded by', 'سجّلها') + '</th></tr></thead><tbody>' + rowsHtml(overtimeList) + '</tbody></table>' +
         '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ ' + RL('Print', 'طباعة') + '</button>' +
