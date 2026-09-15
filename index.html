@@ -12881,11 +12881,11 @@ function printOwnedEquipmentCycleReport() {
     var rowsHtml = rows.map(function(r, idx) {
         return '<tr>' +
             '<td>' + (idx + 1) + '</td>' +
-            '<td style="text-align:right;font-weight:700">' + escapeHtml(r.eq.name || '—') + ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(r.eq.code || '—') + ')</span></td>' +
+            '<td style="text-align:right;font-weight:700">' + escapeHtml(r.eq.code || '—') + ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(r.eq.name || '—') + ')</span></td>' +
             '<td>' + escapeHtml(r.eq.type || '—') + '</td>' +
             '<td>' + (statusMap[r.eq.status] || escapeHtml(r.eq.status || '—')) + '</td>' +
             '<td>' + r.hours.toFixed(1) + ' س</td>' +
-            '<td>' + (r.fuel > 0 ? r.fuel.toLocaleString('ar-EG', { maximumFractionDigits: 1 }) + ' لتر' : '—') + '</td>' +
+            '<td>' + (r.fuel > 0 ? r.fuel.toLocaleString('en-US', { maximumFractionDigits: 1 }) + ' لتر' : '—') + '</td>' +
             '<td>&nbsp;</td>' +
             '</tr>';
     }).join('');
@@ -12907,15 +12907,15 @@ function printOwnedEquipmentCycleReport() {
         '<div class="summary-box">' +
         '<div><div class="v">' + rows.length + '</div><div class="l">عدد معدات الملك</div></div>' +
         '<div><div class="v">' + totalHours.toFixed(1) + '</div><div class="l">إجمالي ساعات العمل</div></div>' +
-        '<div><div class="v">' + totalFuel.toLocaleString('ar-EG', { maximumFractionDigits: 0 }) + '</div><div class="l">إجمالي الوقود (لتر)</div></div>' +
+        '<div><div class="v">' + totalFuel.toLocaleString('en-US', { maximumFractionDigits: 0 }) + '</div><div class="l">إجمالي الوقود (لتر)</div></div>' +
         '<div><div class="v">' + underMaintCount + '</div><div class="l">تحت الصيانة الآن</div></div>' +
         '<div><div class="v">' + stoppedCount + '</div><div class="l">متوقفة الآن</div></div>' +
         '</div>' +
         (idleCount ? '<div style="background:#fff7ed;color:#92400e;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:11px">⚠️ يوجد ' + idleCount + ' معدة بحالة "تعمل" بدون أي ساعات عمل مسجّلة خلال الفترة</div>' : '') +
-        '<table><thead><tr><th>#</th><th>اسم المعدة</th><th>النوع</th><th>الحالة التشغيلية</th><th>ساعات العمل</th><th>استهلاك الوقود</th><th>ملاحظات</th></tr></thead><tbody>' +
+        '<table><thead><tr><th>#</th><th>كود المعدة</th><th>النوع</th><th>الحالة التشغيلية</th><th>ساعات العمل</th><th>استهلاك الوقود</th><th>ملاحظات</th></tr></thead><tbody>' +
         rowsHtml +
         '</tbody></table>' +
-        '<div class="footer">تم إصدار التقرير بتاريخ ' + new Date().toLocaleString('ar-EG') + '</div>' +
+        '<div class="footer">تم إصدار التقرير بتاريخ ' + new Date().toLocaleString('en-US') + '</div>' +
         '<div class="no-print" style="text-align:center;margin-top:18px"><button onclick="window.print()" style="padding:10px 30px;background:#e8a020;border:none;border-radius:10px;font-weight:700;cursor:pointer">🖨️ طباعة</button></div>' +
         '</body></html>');
     w.document.close();
