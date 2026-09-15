@@ -968,7 +968,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   <div class="header"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:20px;font-weight:900;color:white;letter-spacing:2px;flex-shrink:0;font-family:serif">HAC</span><div class="header-title" id="header-title" style="margin-bottom:0">📊 لوحة القيادة</div></div><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div class="header-sub" id="sync-status-placeholder" style="display:none"></div><div style="display:flex;gap:6px;align-items:center"><span id="conn-indicator" title="حالة الاتصال" style="font-size:18px;line-height:1;cursor:default">🔴</span><button id="global-search-toggle" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:14px;cursor:pointer" title="بحث عالمي">🔍</button><button id="export-pdf-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 10px;font-size:12px;cursor:pointer">📄 PDF</button><button id="notif-settings-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px">🔔 الإشعارات</button></div></div><div class="header-sub" id="sync-status">جاري الاتصال...</div></div>
   <div id="alert-bar" style="display:none"></div>
   
-  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title"><span class="i18n-label" data-en="Dashboard" data-ar="لوحة القيادة"></span></div><div class="dash-hero-sub"><span class="i18n-label" data-en="Real-time tracking of equipment, maintenance, and fuel status across all sites." data-ar="متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع."></span></div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))">🔄 <span class="i18n-label" data-en="Refresh Data Manually" data-ar="تحديث البيانات يدوياً"></span></button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="big-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 <span class="i18n-label" data-en="AI Smart Analysis" data-ar="تحليل ذكي بالـ AI"></span></button><button onclick="openAiReportModal()" class="big-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">🤖 <span class="i18n-label" data-en="Request Any Report from AI" data-ar="اطلب أي تقرير من AI"></span></button><button onclick="openExecutiveDashboard()" class="big-btn" style="background:linear-gradient(135deg,#0f172a,#1e293b)">📊 <span class="i18n-label" data-en="Executive Dashboard" data-ar="لوحة مؤشرات المديرين التنفيذيين (Executive Dashboard)"></span></button><div class="section" style="margin-top:14px"><div class="section-title">📂 <span class="i18n-label" data-en="Sections" data-ar="الأقسام"></span></div><div id="home-app-grid" class="app-grid"></div></div></div>
+  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title"><span class="i18n-label" data-en="Dashboard" data-ar="لوحة القيادة"></span></div><div class="dash-hero-sub"><span class="i18n-label" data-en="Real-time tracking of equipment, maintenance, and fuel status across all sites." data-ar="متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع."></span></div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))">🔄 <span class="i18n-label" data-en="Refresh Data Manually" data-ar="تحديث البيانات يدوياً"></span></button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="big-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 <span class="i18n-label" data-en="AI Smart Analysis" data-ar="تحليل ذكي بالـ AI"></span></button><button onclick="openAiReportModal()" class="big-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">🤖 <span class="i18n-label" data-en="Request Any Report from AI" data-ar="اطلب أي تقرير من AI"></span></button><button onclick="openExecutiveDashboard()" class="big-btn" style="background:linear-gradient(135deg,#0f172a,#1e293b)">📊 <span class="i18n-label" data-en="Executive Dashboard" data-ar="لوحة مؤشرات المديرين التنفيذيين (Executive Dashboard)"></span></button><button id="data-manager-btn" onclick="openDataManagerModal()" class="big-btn" style="background:linear-gradient(135deg,#0891b2,#155e75)">🗑️ <span class="i18n-label" data-en="Data Management &amp; Storage" data-ar="إدارة ومساحة التخزين"></span></button><div class="section" style="margin-top:14px"><div class="section-title">📂 <span class="i18n-label" data-en="Sections" data-ar="الأقسام"></span></div><div id="home-app-grid" class="app-grid"></div></div></div>
   <div id="view-sites" style="display:none"><div style="padding:14px">
     <div class="search-box"><span>🔍</span><input type="text" id="search-site" placeholder="بحث باسم الموقع..."></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -1166,6 +1166,75 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <div id="contractors-list"></div>
     </div>
   </div>
+  <div class="modal-overlay" id="gps-delete-modal">
+    <div class="modal-header" style="background:linear-gradient(135deg,#dc2626,#991b1b)">
+      <div class="modal-title">🗑️ حذف سجلات مواقع GPS</div>
+      <button class="modal-close" onclick="closeModal('gps-delete-modal')">✕</button>
+    </div>
+    <div style="padding:16px">
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:10px 12px;font-size:12px;color:#991b1b;margin-bottom:14px;line-height:1.6">
+        ⚠️ الحذف نهائي ولا يمكن التراجع عنه. اختر السائق ونطاق الحذف المطلوب.
+      </div>
+      <div class="form-group">
+        <div class="form-field">
+          <label class="form-label">👤 السائق</label>
+          <select class="form-select" id="gps-delete-driver-select"><option value="">كل السائقين</option></select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">📅 نطاق الحذف</label>
+          <select class="form-select" id="gps-delete-scope-select" onchange="document.getElementById('gps-delete-days-field').style.display = this.value === 'older' ? 'block' : 'none'">
+            <option value="all">حذف كل سجل المواقع نهائيًا</option>
+            <option value="older">حذف السجلات الأقدم من عدد أيام معيّن فقط</option>
+          </select>
+        </div>
+        <div class="form-field" id="gps-delete-days-field" style="display:none">
+          <label class="form-label">عدد الأيام (احتفظ بالأحدث من كده)</label>
+          <input class="form-input" type="number" min="0" step="1" id="gps-delete-days-input" value="7">
+        </div>
+      </div>
+      <button class="save-btn" style="background:#dc2626" id="gps-delete-confirm-btn" onclick="confirmDeleteGpsHistory()">🗑️ تأكيد الحذف</button>
+      <div id="gps-delete-result" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="data-manager-modal">
+    <div class="modal-header" style="background:linear-gradient(135deg,#0891b2,#155e75)">
+      <div class="modal-title">🗑️ إدارة ومساحة التخزين</div>
+      <button class="modal-close" onclick="closeModal('data-manager-modal')">✕</button>
+    </div>
+    <div style="padding:16px">
+
+      <div style="font-size:13px;font-weight:800;color:#0d1b2a;margin-bottom:10px">🗓️ حذف بيانات فترة زمنية معيّنة</div>
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px;font-size:11.5px;color:#92400e;margin-bottom:12px;line-height:1.6">
+        ⚠️ الحذف نهائي ولا يمكن التراجع عنه. اختار الفترة والأنواع اللي مش محتاجها، اعمل "معاينة" الأول عشان تشوف كام سجل هيتحذف قبل ما تأكّد.
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div style="flex:1">
+          <label class="form-label">من شهر</label>
+          <input class="form-input" type="month" id="dm-range-from">
+        </div>
+        <div style="flex:1">
+          <label class="form-label">لغاية شهر</label>
+          <input class="form-input" type="month" id="dm-range-to">
+        </div>
+      </div>
+      <div style="display:grid;gap:8px;margin-bottom:12px">
+        <label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:9px 12px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="dm-cat-gps" checked style="width:17px;height:17px">🛰️ سجلات مواقع GPS للسائقين</label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:9px 12px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="dm-cat-checks" checked style="width:17px;height:17px">🔍 مراجعات المعدات السريعة</label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:9px 12px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="dm-cat-faults" style="width:17px;height:17px">🚨 بلاغات الأعطال (مع صورها)</label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:9px 12px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="dm-cat-fuel" style="width:17px;height:17px">⛽ سجلات الوقود</label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:9px 12px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="dm-cat-maint" style="width:17px;height:17px">🔧 الصيانات المجدولة (المكتملة/الملغية فقط)</label>
+      </div>
+      <button class="save-btn" style="background:linear-gradient(135deg,#0891b2,#155e75);margin-bottom:8px" onclick="previewDataRangeDelete()">🔍 معاينة قبل الحذف</button>
+      <div id="dm-range-preview"></div>
+
+      <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0">
+
+      <div style="font-size:13px;font-weight:800;color:#0d1b2a;margin-bottom:10px">🖼️ تصفح وحذف الصور والمرفقات الكبيرة يدويًا</div>
+      <button onclick="scanLargeData()" id="dm-scan-large-data-btn" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;border:none;border-radius:12px;padding:12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit;margin-bottom:12px">🔍 فحص البيانات الكبيرة (صور ومرفقات)</button>
+      <div id="dm-large-data-summary"></div>
+      <div id="dm-large-data-list" style="max-height:380px;overflow-y:auto;margin-top:8px"></div>
+    </div>
+  </div>
   <div id="view-map" style="display:none">
     <div id="map-content-card" style="display:block">
       <div style="padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -1182,6 +1251,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <input type="date" id="route-date-input" style="border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;background:white">
         <button onclick="showDriverRoute()" style="background:linear-gradient(135deg,#0891b2,#155e75);color:white;border:none;border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">🛣️ عرض المسار</button>
         <button onclick="clearDriverRoute()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">✖️ مسح</button>
+        <button id="map-delete-gps-btn" onclick="openGpsDeleteModal()" style="display:none;background:#fee2e2;color:#991b1b;border:none;border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">🗑️ حذف سجلات GPS</button>
       </div>
       <div id="route-info" style="display:none;margin:0 14px 8px;font-size:11.5px;color:#64748b"></div>
       <div id="route-ai-insight" style="display:none;margin:0 14px 10px"></div>
@@ -1654,6 +1724,10 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     </div>
     <div id="cleanup-result"></div>
     <div id="cleanup-last-run" style="font-size:11px;color:#94a3b8;text-align:center"></div>
+
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:12px;margin:18px 0 0;font-size:12px;color:#1e40af">
+      📦 لتصفح وحذف الصور والمرفقات الكبيرة، أو حذف بيانات فترة زمنية معيّنة (زي بيانات سنة قديمة مش محتاجها)، استخدم أداة "🗑️ إدارة ومساحة التخزين" الموجودة في الصفحة الرئيسية.
+    </div>
   </div>
 
   <div id="atab-firebase" style="padding:14px;display:none">
@@ -1954,6 +2028,313 @@ function runDataCleanup() {
     return Promise.all([gpsPromise, checksPromise]).then(function(results) {
         localStorage.setItem('lastDataCleanupAt', new Date().toISOString());
         return { gpsDaysDeleted: results[0], checksDeleted: results[1] };
+    });
+}
+
+// ==================== فحص البيانات الكبيرة (صور/مرفقات base64) وأدوات حذفها لتقليل مساحة قاعدة البيانات ====================
+function estimateBase64Bytes(dataUrl) {
+    if (!dataUrl || typeof dataUrl !== 'string') return 0;
+    var idx = dataUrl.indexOf(',');
+    var b64 = idx >= 0 ? dataUrl.slice(idx + 1) : dataUrl;
+    var len = b64.length;
+    var padding = (b64.endsWith('==') ? 2 : (b64.endsWith('=') ? 1 : 0));
+    return Math.max(0, Math.round(len * 0.75) - padding);
+}
+
+function formatBytesHuman(bytes) {
+    if (!bytes) return '0 KB';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+// ==================== أداة إدارة ومساحة التخزين (الصفحة الرئيسية) — حذف بيانات فترة زمنية معيّنة ====================
+function openDataManagerModal() {
+    if (!hasPermission('all')) { showAccessDeniedModal(); return; }
+    var fromEl = document.getElementById('dm-range-from');
+    var toEl = document.getElementById('dm-range-to');
+    if (fromEl && !fromEl.value) {
+        var d = new Date(); d.setMonth(d.getMonth() - 12);
+        fromEl.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    }
+    if (toEl && !toEl.value) {
+        var d2 = new Date(); d2.setMonth(d2.getMonth() - 6);
+        toEl.value = d2.getFullYear() + '-' + String(d2.getMonth() + 1).padStart(2, '0');
+    }
+    document.getElementById('dm-range-preview').innerHTML = '';
+    document.getElementById('dm-large-data-summary').innerHTML = '';
+    document.getElementById('dm-large-data-list').innerHTML = '';
+    document.getElementById('data-manager-modal').classList.add('active');
+}
+
+// بيحوّل قيمة input[type=month] (YYYY-MM) لمفتاح بداية/نهاية الشهر بصيغة YYYY-MM-DD للمقارنة النصية
+function dmMonthToRangeKeys(fromMonth, toMonth) {
+    var fromKey = fromMonth ? (fromMonth + '-01') : null;
+    var toKey = toMonth ? (toMonth + '-31') : null; // '31' كحد أقصى نصي آمن للمقارنة حتى لو الشهر أقصر
+    return { fromKey: fromKey, toKey: toKey };
+}
+
+function dmGetSelectedCategories() {
+    return {
+        gps: document.getElementById('dm-cat-gps').checked,
+        checks: document.getElementById('dm-cat-checks').checked,
+        faults: document.getElementById('dm-cat-faults').checked,
+        fuel: document.getElementById('dm-cat-fuel').checked,
+        maint: document.getElementById('dm-cat-maint').checked
+    };
+}
+
+function previewDataRangeDelete() {
+    var fromMonth = document.getElementById('dm-range-from').value;
+    var toMonth = document.getElementById('dm-range-to').value;
+    var previewEl = document.getElementById('dm-range-preview');
+    if (!fromMonth || !toMonth) { showToast('اختار الفترة (من شهر - لغاية شهر)', true); return; }
+    if (fromMonth > toMonth) { showToast('"من شهر" لازم يكون قبل "لغاية شهر"', true); return; }
+    var cats = dmGetSelectedCategories();
+    if (!cats.gps && !cats.checks && !cats.faults && !cats.fuel && !cats.maint) { showToast('اختار نوع واحد على الأقل', true); return; }
+    var keys = dmMonthToRangeKeys(fromMonth, toMonth);
+    previewEl.innerHTML = '<div style="text-align:center;padding:10px;color:#94a3b8;font-size:12.5px">⏳ جاري حساب عدد السجلات في الفترة دي...</div>';
+
+    var counts = { gps: 0, checks: 0, faults: 0, fuel: 0, maint: 0 };
+    var jobs = [];
+
+    if (cats.gps) {
+        jobs.push(countGpsHistoryInRange(keys.fromKey, keys.toKey).then(function(c) { counts.gps = c; }));
+    }
+    if (cats.checks) {
+        counts.checks = equipmentChecksData.filter(function(c) {
+            var d = (c.checkedAt || '').slice(0, 10);
+            return d && d >= keys.fromKey && d <= keys.toKey;
+        }).length;
+    }
+    if (cats.faults) {
+        counts.faults = maintenanceReportsData.filter(function(r) {
+            var d = (r.reportedAt || '').slice(0, 10);
+            return d && d >= keys.fromKey && d <= keys.toKey;
+        }).length;
+    }
+    if (cats.fuel) {
+        counts.fuel = fuelData.filter(function(f) {
+            return f.date && f.date >= keys.fromKey && f.date <= keys.toKey;
+        }).length;
+    }
+    if (cats.maint) {
+        counts.maint = maintenanceSchedules.filter(function(m) {
+            return m.date && m.date >= keys.fromKey && m.date <= keys.toKey && (m.status === 'مكتمل' || m.status === 'ملغي' || m.status === 'ملغى');
+        }).length;
+    }
+
+    Promise.all(jobs).then(function() {
+        var rows = [];
+        if (cats.gps) rows.push(['🛰️ سجلات مواقع GPS', counts.gps + ' يوم/سائق']);
+        if (cats.checks) rows.push(['🔍 مراجعات المعدات السريعة', counts.checks + ' مراجعة']);
+        if (cats.faults) rows.push(['🚨 بلاغات الأعطال', counts.faults + ' بلاغ']);
+        if (cats.fuel) rows.push(['⛽ سجلات الوقود', counts.fuel + ' سجل']);
+        if (cats.maint) rows.push(['🔧 الصيانات المجدولة (مكتملة/ملغية)', counts.maint + ' صيانة']);
+        var totalCount = counts.gps + counts.checks + counts.faults + counts.fuel + counts.maint;
+
+        previewEl.innerHTML = '<div style="background:white;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px;margin-top:8px">' +
+            '<div style="font-size:12px;font-weight:800;color:#0d1b2a;margin-bottom:8px">📋 هيتم حذف الآتي من ' + fromMonth + ' لغاية ' + toMonth + ':</div>' +
+            rows.map(function(r) {
+                return '<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px solid #f1f5f9"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>';
+            }).join('') +
+            (totalCount === 0
+                ? '<div style="text-align:center;color:#94a3b8;font-size:12px;padding:10px 0 0">✅ مفيش سجلات في الفترة دي</div>'
+                : '<button class="save-btn" style="background:#dc2626;margin-top:12px" onclick="executeDataRangeDelete(\'' + fromMonth + '\',\'' + toMonth + '\')">🗑️ تأكيد حذف كل ده نهائيًا</button>') +
+            '</div>';
+    });
+}
+
+function executeDataRangeDelete(fromMonth, toMonth) {
+    if (!confirm('تأكيد نهائي: هيتم حذف البيانات المختارة من ' + fromMonth + ' لغاية ' + toMonth + ' نهائيًا ومش هترجع تاني. متأكد؟')) return;
+    var cats = dmGetSelectedCategories();
+    var keys = dmMonthToRangeKeys(fromMonth, toMonth);
+    var previewEl = document.getElementById('dm-range-preview');
+    previewEl.innerHTML = '<div style="text-align:center;padding:10px;color:#94a3b8;font-size:12.5px">⏳ جاري الحذف...</div>';
+
+    var jobs = [];
+    var summary = {};
+
+    if (cats.gps) {
+        jobs.push(deleteGpsHistoryInRange(keys.fromKey, keys.toKey).then(function(n) { summary.gps = n; }));
+    }
+    if (cats.checks) {
+        var checkIds = equipmentChecksData.filter(function(c) {
+            var d = (c.checkedAt || '').slice(0, 10);
+            return d && d >= keys.fromKey && d <= keys.toKey;
+        }).map(function(c) { return c.id; });
+        if (checkIds.length) {
+            var u1 = {}; checkIds.forEach(function(id) { u1['equipmentChecks/' + id] = null; });
+            jobs.push(fbDb.ref().update(u1).then(function() { summary.checks = checkIds.length; }));
+        } else summary.checks = 0;
+    }
+    if (cats.faults) {
+        var faultIds = maintenanceReportsData.filter(function(r) {
+            var d = (r.reportedAt || '').slice(0, 10);
+            return d && d >= keys.fromKey && d <= keys.toKey;
+        }).map(function(r) { return r.id; });
+        if (faultIds.length) {
+            var u2 = {}; faultIds.forEach(function(id) { u2['maintenanceReports/' + id] = null; });
+            jobs.push(fbDb.ref().update(u2).then(function() { summary.faults = faultIds.length; }));
+        } else summary.faults = 0;
+    }
+    if (cats.fuel) {
+        var fuelIds = fuelData.filter(function(f) {
+            return f.date && f.date >= keys.fromKey && f.date <= keys.toKey;
+        }).map(function(f) { return f.id; });
+        if (fuelIds.length) {
+            var u3 = {}; fuelIds.forEach(function(id) { u3['fuelData/' + id] = null; });
+            jobs.push(fbDb.ref().update(u3).then(function() { summary.fuel = fuelIds.length; }));
+        } else summary.fuel = 0;
+    }
+    if (cats.maint) {
+        var maintIds = maintenanceSchedules.filter(function(m) {
+            return m.date && m.date >= keys.fromKey && m.date <= keys.toKey && (m.status === 'مكتمل' || m.status === 'ملغي' || m.status === 'ملغى');
+        }).map(function(m) { return m.id; });
+        if (maintIds.length) {
+            var u4 = {}; maintIds.forEach(function(id) { u4['maintenanceSchedules/' + id] = null; });
+            jobs.push(fbDb.ref().update(u4).then(function() { summary.maint = maintIds.length; }));
+        } else summary.maint = 0;
+    }
+
+    Promise.all(jobs).then(function() {
+        var parts = [];
+        if (summary.gps !== undefined) parts.push(summary.gps + ' يوم GPS');
+        if (summary.checks !== undefined) parts.push(summary.checks + ' مراجعة');
+        if (summary.faults !== undefined) parts.push(summary.faults + ' بلاغ عطل');
+        if (summary.fuel !== undefined) parts.push(summary.fuel + ' سجل وقود');
+        if (summary.maint !== undefined) parts.push(summary.maint + ' صيانة');
+        previewEl.innerHTML = '<div style="background:#d1fae5;border-radius:10px;padding:12px;font-size:12.5px;color:#065f46;text-align:center">✅ تم الحذف بنجاح: ' + parts.join('، ') + '</div>';
+        showToast('✅ تم حذف البيانات المحددة');
+    }).catch(function(e) {
+        previewEl.innerHTML = '<div style="color:#dc2626;font-size:12px;text-align:center">❌ حصل خطأ أثناء الحذف: ' + e.message + '</div>';
+    });
+}
+
+// ==================== فحص البيانات الكبيرة (صور/مرفقات base64) وأدوات حذفها لتقليل مساحة قاعدة البيانات ====================
+function scanLargeData() {
+    var btn = document.getElementById('dm-scan-large-data-btn');
+    var summaryEl = document.getElementById('dm-large-data-summary');
+    var listEl = document.getElementById('dm-large-data-list');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري الفحص...'; }
+    if (listEl) listEl.innerHTML = '';
+    if (summaryEl) summaryEl.innerHTML = '<div style="text-align:center;padding:10px;color:#94a3b8;font-size:12.5px">⏳ جاري فحص المرفقات والصور...</div>';
+
+    setTimeout(function() {
+        var items = [];
+        var totalBytes = 0;
+
+        equipmentData.forEach(function(eq) {
+            (eq.attachments || []).forEach(function(att, idx) {
+                var size = estimateBase64Bytes(att.dataUrl);
+                totalBytes += size;
+                items.push({
+                    size: size,
+                    icon: att.type === 'pdf' ? '📄' : '🖼️',
+                    label: (eq.name || '') + ' — ' + (att.name || 'مرفق'),
+                    deleteFn: "deleteEquipmentAttachmentByIndex('" + eq.id + "'," + idx + ")"
+                });
+            });
+            ['inspectionFile', 'calibrationFile'].forEach(function(key) {
+                var f = eq[key];
+                if (f && f.data) {
+                    var size2 = estimateBase64Bytes(f.data);
+                    totalBytes += size2;
+                    var title = key === 'inspectionFile' ? 'فحص المعدة' : 'شهادة المعايرة';
+                    items.push({
+                        size: size2,
+                        icon: '📎',
+                        label: (eq.name || '') + ' — ' + title,
+                        deleteFn: "deleteMainAppEquipmentFile('" + eq.id + "','" + key + "','" + title + "')"
+                    });
+                }
+            });
+        });
+
+        maintenanceReportsData.forEach(function(r) {
+            if (r.photo) {
+                var size3 = estimateBase64Bytes(r.photo);
+                totalBytes += size3;
+                items.push({
+                    size: size3,
+                    icon: '🖼️',
+                    label: 'بلاغ عطل — ' + (r.equipmentName || '') + (r.description ? (' — ' + r.description.slice(0, 30)) : ''),
+                    deleteFn: "deleteMaintenanceReportPhoto('" + r.id + "')"
+                });
+            }
+        });
+
+        maintenanceSchedules.forEach(function(m) {
+            if (m.attachment) {
+                var size4 = estimateBase64Bytes(m.attachment);
+                totalBytes += size4;
+                var eqName = (equipmentData.find(function(e) { return e.id === m.equipmentId; }) || {}).name || '';
+                items.push({
+                    size: size4,
+                    icon: '📎',
+                    label: 'مرفق صيانة — ' + eqName + (m.type ? (' — ' + m.type) : ''),
+                    deleteFn: "deleteMaintenanceScheduleAttachment('" + m.id + "')"
+                });
+            }
+        });
+
+        items.sort(function(a, b) { return b.size - a.size; });
+
+        if (summaryEl) {
+            summaryEl.innerHTML = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;font-size:12.5px;color:#065f46;text-align:center;margin-bottom:6px">' +
+                '📦 إجمالي حجم المرفقات والصور: <b>' + formatBytesHuman(totalBytes) + '</b> عبر ' + items.length + ' عنصر</div>';
+        }
+
+        var topItems = items.slice(0, 60);
+        if (listEl) {
+            if (!topItems.length) {
+                listEl.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12.5px;padding:14px 0">✅ مفيش مرفقات أو صور كبيرة محفوظة حاليًا</div>';
+            } else {
+                listEl.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">أكبر ' + topItems.length + ' عنصر (مرتّبين من الأكبر للأصغر):</div>' +
+                    topItems.map(function(it) {
+                        return '<div style="display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid #f1f5f9">' +
+                            '<span style="font-size:16px">' + it.icon + '</span>' +
+                            '<div style="flex:1;min-width:0;font-size:12px;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(it.label) + '</div>' +
+                            '<span style="font-size:11px;font-weight:800;color:#0891b2;white-space:nowrap">' + formatBytesHuman(it.size) + '</span>' +
+                            '<button onclick="' + it.deleteFn + '; scanLargeData();" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;font-family:inherit">🗑️</button>' +
+                            '</div>';
+                    }).join('');
+            }
+        }
+        if (btn) { btn.disabled = false; btn.textContent = '🔍 فحص البيانات الكبيرة (صور ومرفقات)'; }
+    }, 30);
+}
+
+// بيحذف مرفق واحد بس من مصفوفة مرفقات المعدة (attachments) على Firebase مباشرة
+function deleteEquipmentAttachmentByIndex(eqId, idx) {
+    if (!confirm('حذف هذا المرفق نهائيًا؟')) return;
+    var eq = equipmentData.find(function(e) { return e.id === eqId; });
+    if (!eq || !eq.attachments) return;
+    var updated = eq.attachments.slice();
+    updated.splice(idx, 1);
+    fbDb.ref('equipment/' + eqId + '/attachments').set(updated).then(function() {
+        showToast('🗑️ تم حذف المرفق');
+    }).catch(function(err) {
+        showToast('❌ فشل الحذف: ' + err.message, true);
+    });
+}
+
+// بيحذف صورة بلاغ العطل بس، ويسيب باقي بيانات البلاغ زي ما هي
+function deleteMaintenanceReportPhoto(reportId) {
+    if (!confirm('حذف صورة البلاغ نهائيًا؟')) return;
+    fbDb.ref('maintenanceReports/' + reportId + '/photo').remove().then(function() {
+        showToast('🗑️ تم حذف الصورة');
+    }).catch(function(err) {
+        showToast('❌ فشل الحذف: ' + err.message, true);
+    });
+}
+
+// بيحذف مرفق جدول الصيانة بس، ويسيب باقي بيانات الصيانة زي ما هي
+function deleteMaintenanceScheduleAttachment(scheduleId) {
+    if (!confirm('حذف مرفق الصيانة نهائيًا؟')) return;
+    fbDb.ref('maintenanceSchedules/' + scheduleId + '/attachment').remove().then(function() {
+        showToast('🗑️ تم حذف المرفق');
+    }).catch(function(err) {
+        showToast('❌ فشل الحذف: ' + err.message, true);
     });
 }
 
@@ -9449,6 +9830,108 @@ function refreshMapView() {
     renderEquipmentMap();
     populateRouteDriverSelect();
     startMapColorTimer();
+    var delBtn = document.getElementById('map-delete-gps-btn');
+    if (delBtn) delBtn.style.display = hasPermission('all') ? 'inline-block' : 'none';
+}
+
+// ==================== حذف سجلات مواقع GPS يدويًا من صفحة الخريطة ====================
+function openGpsDeleteModal() {
+    if (!hasPermission('all')) { showToast('⛔ غير مصرح', true); return; }
+    var sel = document.getElementById('gps-delete-driver-select');
+    if (sel) {
+        sel.innerHTML = '<option value="">كل السائقين</option>' +
+            driversData.map(function(d) { return '<option value="' + d.id + '">' + escapeHtml(d.name) + '</option>'; }).join('');
+    }
+    var scopeSel = document.getElementById('gps-delete-scope-select');
+    if (scopeSel) scopeSel.value = 'all';
+    var daysField = document.getElementById('gps-delete-days-field');
+    if (daysField) daysField.style.display = 'none';
+    var resultEl = document.getElementById('gps-delete-result');
+    if (resultEl) resultEl.innerHTML = '';
+    document.getElementById('gps-delete-modal').classList.add('active');
+}
+
+// بيحذف سجل مواقع GPS (driverLocationHistory) لسائق معيّن أو كل السائقين حسب أي شرط على مفتاح التاريخ (dateKey)
+function deleteGpsHistoryByKeyPredicate(driverId, predicateFn) {
+    if (!fbDb) return Promise.reject(new Error('لا يوجد اتصال بالسيرفر'));
+    var ref = driverId ? fbDb.ref('driverLocationHistory/' + driverId) : fbDb.ref('driverLocationHistory');
+    return ref.once('value').then(function(snap) {
+        var val = snap.val() || {};
+        var updates = {};
+        var deletedDays = 0;
+        var basePath = driverId ? 'driverLocationHistory/' + driverId + '/' : 'driverLocationHistory/';
+        if (driverId) {
+            Object.keys(val).forEach(function(dateKey) {
+                if (predicateFn(dateKey)) { updates[basePath + dateKey] = null; deletedDays++; }
+            });
+        } else {
+            Object.keys(val).forEach(function(did) {
+                var dates = val[did] || {};
+                Object.keys(dates).forEach(function(dateKey) {
+                    if (predicateFn(dateKey)) { updates[basePath + did + '/' + dateKey] = null; deletedDays++; }
+                });
+            });
+        }
+        if (!deletedDays) return 0;
+        return fbDb.ref().update(updates).then(function() { return deletedDays; });
+    });
+}
+
+// بيعُدّ بس (من غير حذف) عدد أيام سجل الـ GPS اللي بتقع في نطاق تاريخي معيّن — للمعاينة قبل الحذف
+function countGpsHistoryInRange(fromKey, toKey) {
+    if (!fbDb) return Promise.resolve(0);
+    return fbDb.ref('driverLocationHistory').once('value').then(function(snap) {
+        var val = snap.val() || {};
+        var count = 0;
+        Object.keys(val).forEach(function(did) {
+            var dates = val[did] || {};
+            Object.keys(dates).forEach(function(dateKey) {
+                if ((!fromKey || dateKey >= fromKey) && (!toKey || dateKey <= toKey)) count++;
+            });
+        });
+        return count;
+    });
+}
+
+function toGpsDateKey(d) {
+    var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+}
+
+// إما بالكامل أو الأقدم من عدد أيام معيّن — منفصل تمامًا عن التنظيف التلقائي (TTL) في الإعدادات
+function deleteGpsHistory(driverId, olderThanDays) {
+    var cutoffKey = (olderThanDays === null || olderThanDays === undefined) ? null : toGpsDateKey(new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000));
+    return deleteGpsHistoryByKeyPredicate(driverId, function(dateKey) { return !cutoffKey || dateKey < cutoffKey; });
+}
+
+// بيحذف سجل مواقع GPS لكل السائقين ضمن نطاق تاريخي محدد (fromKey/toKey بصيغة YYYY-MM-DD)، تستخدمها أداة "إدارة ومساحة التخزين"
+function deleteGpsHistoryInRange(fromKey, toKey) {
+    return deleteGpsHistoryByKeyPredicate(null, function(dateKey) {
+        return (!fromKey || dateKey >= fromKey) && (!toKey || dateKey <= toKey);
+    });
+}
+
+function confirmDeleteGpsHistory() {
+    var driverId = (document.getElementById('gps-delete-driver-select') || {}).value || '';
+    var scope = (document.getElementById('gps-delete-scope-select') || {}).value || 'all';
+    var days = scope === 'older' ? (parseInt((document.getElementById('gps-delete-days-input') || {}).value, 10) || 0) : null;
+    var driverName = driverId ? (driversData.find(function(d) { return d.id === driverId; }) || {}).name : 'كل السائقين';
+    var confirmMsg = scope === 'all'
+        ? 'هيتم حذف كل سجل مواقع GPS لـ' + (driverId ? ' السائق "' + driverName + '"' : ' كل السائقين') + ' نهائيًا. متأكد؟'
+        : 'هيتم حذف سجل المواقع الأقدم من ' + days + ' يوم لـ' + (driverId ? ' السائق "' + driverName + '"' : ' كل السائقين') + '. متأكد؟';
+    if (!confirm(confirmMsg)) return;
+    var btn = document.getElementById('gps-delete-confirm-btn');
+    var resultEl = document.getElementById('gps-delete-result');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري الحذف...'; }
+    if (resultEl) resultEl.innerHTML = '<div style="text-align:center;padding:8px;color:#94a3b8;font-size:12.5px">⏳ جاري حذف السجلات...</div>';
+    deleteGpsHistory(driverId || null, days).then(function(deletedDays) {
+        if (btn) { btn.disabled = false; btn.textContent = '🗑️ تأكيد الحذف'; }
+        if (resultEl) resultEl.innerHTML = '<div style="background:#d1fae5;border-radius:10px;padding:12px;font-size:12.5px;color:#065f46;text-align:center">✅ تم حذف ' + deletedDays + ' يوم من سجلات GPS</div>';
+        showToast('✅ تم حذف سجلات GPS');
+    }).catch(function(e) {
+        if (btn) { btn.disabled = false; btn.textContent = '🗑️ تأكيد الحذف'; }
+        if (resultEl) resultEl.innerHTML = '<div style="color:#dc2626;font-size:12px;text-align:center">❌ تعذّر الحذف: ' + e.message + '</div>';
+    });
 }
 
 function stopMapColorTimer() {
