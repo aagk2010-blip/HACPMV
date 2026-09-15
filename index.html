@@ -1212,6 +1212,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     <div style="display:flex;gap:10px;margin-bottom:10px"><button id="meter-update-btn" class="big-btn" style="margin:0;flex:1">⏱️ <span class="i18n-label" data-en="Daily Meter Update" data-ar="تحديث العدادات اليومي"></span></button><button id="export-hours-excel-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#10b981,#0e7490)">📊 <span class="i18n-label" data-en="Export Meter Log" data-ar="تصدير سجل العدادات"></span></button></div>
     <div style="display:flex;gap:10px;margin-bottom:10px"><button id="delete-all-equipment-btn" class="big-btn" style="margin:0;flex:1;background:#dc2626">🗑️ <span class="i18n-label" data-en="Delete All" data-ar="حذف الكل"></span></button><button id="export-owned-daily-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📆 <span class="i18n-label" data-en="Export Owned Equipment Hours" data-ar="تصدير ساعات معدات الملك"></span></button></div>
     <div style="display:flex;gap:10px;margin-bottom:10px"><button id="print-qr-labels-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="openQRLabelsModal()">🏷️ <span class="i18n-label" data-en="Print QR Labels" data-ar="طباعة ملصقات QR"></span></button><button id="security-report-btn" class="big-btn" style="margin:0;flex:1;background:linear-gradient(135deg,#0d1b2a,#1b2838)" onclick="generateSecurityReport()">🛡️ <span class="i18n-label" data-en="Security Department Report" data-ar="تقرير قسم الأمن"></span></button></div>
+    <button id="owned-cycle-report-btn" class="big-btn" style="margin:0 0 10px;background:linear-gradient(135deg,#059669,#047857)" onclick="printOwnedEquipmentCycleReport()">📄 <span class="i18n-label" data-en="Owned Equipment Cycle Report (Work Days + Status + Maintenance)" data-ar="تقرير أيام العمل والحالة والصيانة لمعدات الملك (الدورة 21-20)"></span></button>
     <div id="equipment-list"></div>
   </div></div>
   
@@ -1334,7 +1335,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
       <div style="display:flex;gap:8px;margin-bottom:14px">
         <button class="edit-btn" onclick="openContractorsModal()" style="flex:1;padding:11px;background:#e8a020;color:#0d1b2a;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">👷 المقاولين</button>
-        <button onclick="printFullAccountsStatement()" style="flex:1.4;padding:11px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة المستخلص الكامل</button>
+        <button onclick="printFullAccountsStatement()" style="flex:1.4;padding:11px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة تقرير أيام العمل والتكلفة</button>
       </div>
 
       <div id="accounts-total-card" style="background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
@@ -12819,6 +12820,93 @@ function exportOwnedEquipmentHoursExcel() {
     }
 }
 
+// ==================== تقرير معدات الملك: أيام العمل + الحالة التشغيلية + الصيانات المنفذة خلال الدورة الحالية (21 → 20) ====================
+// الصيانات المنفذة = سجلات maintenanceSchedules بحالة "مكتمل" وتاريخ إكمال (completedAt أو date) داخل نطاق الدورة
+function buildOwnedEquipmentCycleMaintenance(eqId, range) {
+    return maintenanceSchedules.filter(function(m) {
+        if (m.equipmentId !== eqId || m.status !== 'مكتمل') return false;
+        var d = (m.completedAt || m.date || '').slice(0, 10);
+        return d && d >= range.from && d <= range.to;
+    }).sort(function(a, b) {
+        return ((a.completedAt || a.date) || '').localeCompare((b.completedAt || b.date) || '');
+    });
+}
+
+function printOwnedEquipmentCycleReport() {
+    var monthStr = getCurrentCycleMonthStr();
+    var range = getPeriodRange(monthStr);
+    var eqList = getVisibleEquipment().filter(function(e) { return !isToolEquipment(e) && (e.ownership || 'ملك') !== 'إيجار'; });
+    if (!eqList.length) { showToast('لا توجد معدات ملك لعرضها', true); return; }
+
+    var statusMap = { 'يعمل': '🟢 تعمل', 'صيانة': '🟡 تحت الصيانة', 'متوقف': '🔴 متوقفة' };
+
+    var rows = eqList.map(function(eq) {
+        var m = getMonthlyHoursForEquipment(eq, monthStr);
+        var hours = m ? (m.hours || 0) : 0;
+        var workDays = hours / 8;
+        var fuel = getMonthlyFuelForEquipment(eq, monthStr) || 0;
+        var maint = buildOwnedEquipmentCycleMaintenance(eq.id, range);
+        return { eq: eq, hours: hours, workDays: workDays, fuel: fuel, maint: maint };
+    }).sort(function(a, b) { return b.hours - a.hours; });
+
+    var totalHours = rows.reduce(function(s, r) { return s + r.hours; }, 0);
+    var totalWorkDays = rows.reduce(function(s, r) { return s + r.workDays; }, 0);
+    var totalFuel = rows.reduce(function(s, r) { return s + r.fuel; }, 0);
+    var totalMaintCount = rows.reduce(function(s, r) { return s + r.maint.length; }, 0);
+    var stoppedCount = rows.filter(function(r) { return r.eq.status === 'متوقف'; }).length;
+    var underMaintCount = rows.filter(function(r) { return r.eq.status === 'صيانة'; }).length;
+    var idleCount = rows.filter(function(r) { return r.hours === 0 && r.eq.status === 'يعمل'; }).length;
+
+    var rowsHtml = rows.map(function(r, idx) {
+        var maintHtml = r.maint.length
+            ? r.maint.map(function(mm) { return escapeHtml(mm.type || 'صيانة') + ' (' + escapeHtml((mm.completedAt || mm.date || '').slice(0, 10)) + ')'; }).join('<br>')
+            : '<span style="color:#94a3b8">لا يوجد</span>';
+        return '<tr>' +
+            '<td>' + (idx + 1) + '</td>' +
+            '<td style="text-align:right;font-weight:700">' + escapeHtml(r.eq.name || '—') + ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(r.eq.code || '—') + ')</span></td>' +
+            '<td>' + (statusMap[r.eq.status] || escapeHtml(r.eq.status || '—')) + '</td>' +
+            '<td>' + r.workDays.toFixed(1) + ' يوم</td>' +
+            '<td>' + r.hours.toFixed(1) + ' س</td>' +
+            '<td>' + (r.fuel > 0 ? r.fuel.toLocaleString('ar-EG', { maximumFractionDigits: 1 }) + ' لتر' : '—') + '</td>' +
+            '<td style="text-align:right;font-size:10.5px">' + maintHtml + (r.maint.length ? ' <span style="color:#475569">(' + r.maint.length + ')</span>' : '') + '</td>' +
+            '</tr>';
+    }).join('');
+
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير أيام عمل معدات الملك</title><style>' +
+        'body{font-family:Arial;padding:18px;direction:rtl;color:#0d1b2a;font-size:12px}' +
+        'table{width:100%;border-collapse:collapse;margin-top:12px;font-size:11px}' +
+        'th,td{border:1px solid #e2e8f0;padding:6px 7px;text-align:center}' +
+        'th{background:#0d1b2a;color:white;font-size:11px}' +
+        'tr:nth-child(even) td{background:#f8fafc}' +
+        '.summary-box{background:linear-gradient(135deg,#059669,#047857);color:white;border-radius:12px;padding:12px 16px;margin:12px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}' +
+        '.summary-box .v{font-size:19px;font-weight:800}' +
+        '.summary-box .l{font-size:10.5px;opacity:.85}' +
+        '.footer{margin-top:16px;font-size:9px;color:#999;text-align:center}' +
+        '@media print{ .no-print{display:none} @page{ size:A4; margin:8mm } }' +
+        '</style></head><body>' +
+        reportHeaderHtml('تقرير أيام عمل معدات الملك وحالتها التشغيلية والصيانة', rentalPeriodLabel(monthStr) + ' (' + range.from + ' → ' + range.to + ')') +
+        '<div class="summary-box">' +
+        '<div><div class="v">' + rows.length + '</div><div class="l">عدد معدات الملك</div></div>' +
+        '<div><div class="v">' + totalWorkDays.toFixed(1) + '</div><div class="l">إجمالي أيام العمل</div></div>' +
+        '<div><div class="v">' + totalHours.toFixed(1) + '</div><div class="l">إجمالي ساعات العمل</div></div>' +
+        '<div><div class="v">' + totalFuel.toLocaleString('ar-EG', { maximumFractionDigits: 0 }) + '</div><div class="l">إجمالي الوقود (لتر)</div></div>' +
+        '<div><div class="v">' + totalMaintCount + '</div><div class="l">صيانات منفذة في الدورة</div></div>' +
+        '<div><div class="v">' + underMaintCount + '</div><div class="l">تحت الصيانة الآن</div></div>' +
+        '<div><div class="v">' + stoppedCount + '</div><div class="l">متوقفة الآن</div></div>' +
+        '</div>' +
+        (idleCount ? '<div style="background:#fff7ed;color:#92400e;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:11px">⚠️ يوجد ' + idleCount + ' معدة بحالة "تعمل" بدون أي ساعات عمل مسجّلة خلال الدورة</div>' : '') +
+        '<table><thead><tr><th>#</th><th>اسم المعدة</th><th>الحالة التشغيلية</th><th>أيام العمل</th><th>ساعات العمل</th><th>استهلاك الوقود</th><th>الصيانات المنفذة في الدورة</th></tr></thead><tbody>' +
+        rowsHtml +
+        '</tbody></table>' +
+        '<div style="font-size:9.5px;color:#94a3b8;margin-top:6px">* أيام العمل = إجمالي ساعات العمل المسجّلة (من قراءات العداد) ÷ 8 = يوم عمل مكافئ. الحساب يشمل الفترة من بداية الدورة حتى آخر قراءة عداد مسجّلة.</div>' +
+        '<div class="footer">تم إصدار هذا التقرير آليًا من برنامج متابعة المعدات — ' + new Date().toLocaleString('ar-EG') + '</div>' +
+        '<div class="no-print" style="text-align:center;margin-top:18px"><button onclick="window.print()" style="padding:10px 30px;background:#e8a020;border:none;border-radius:10px;font-weight:700;cursor:pointer">🖨️ طباعة</button></div>' +
+        '</body></html>');
+    w.document.close();
+}
+window.printOwnedEquipmentCycleReport = printOwnedEquipmentCycleReport;
+
 function exportInventoryExcel() {
     if (!inventoryItems.length) {
         showToast('لا توجد بيانات في المخزون');
@@ -20045,20 +20133,23 @@ function printRentalStatement(rentalId, dateFrom, dateTo) {
 }
 window.printRentalStatement = printRentalStatement;
 
-// ==================== طباعة مستخلص شامل لكل معدات الإيجار مجتمعة، مقسّم حسب المقاول ====================
+// ==================== طباعة تقرير أيام العمل والتكلفة لكل معدات الإيجار مجتمعة، محسوب حتى تاريخ اليوم، مقسّم حسب المقاول ====================
 function printFullAccountsStatement() {
     if (!canView('accounts')) { showToast('⛔ غير مصرح لك بالوصول لبيانات الحسابات', true); return; }
     var monthStr = getCurrentCycleMonthStr();
     var range = getPeriodRange(monthStr);
+    var todayStr = localDateStr(new Date());
 
     var rows = rentalData.filter(function(r) { return (r.dailyRate || 0) > 0; }).map(function(r) {
         var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
         var name = eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentCode || '—');
+        // buildRentalDayEntries بيوقف تلقائيًا عند تاريخ اليوم لو نهاية الدورة لسه معديتش، فالنتيجة دايمًا "حتى اليوم"
         var dayData = buildRentalDayEntries(r.id, range.from, range.to);
+        var daysWorked = dayData.records.length;
         var hours = dayData.records.reduce(function(s, d) { return s + (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0); }, 0);
         var total = (hours / 8) * r.dailyRate;
         var contractor = contractorsData.find(function(ct) { return ct.id === r.contractorId; });
-        return { name: name, total: total, contractorName: contractor ? contractor.name : '' };
+        return { name: name, total: total, daysWorked: daysWorked, contractorName: contractor ? contractor.name : '' };
     });
 
     if (!rows.length) { showToast('لا توجد معدات إيجار لها سعر محدد لحساب المستخلص', true); return; }
@@ -20067,8 +20158,9 @@ function printFullAccountsStatement() {
     var groupOrder = [];
     rows.forEach(function(row) {
         var key = row.contractorName || '__none__';
-        if (!groups[key]) { groups[key] = { name: row.contractorName || 'بدون مقاول', total: 0, rows: [] }; groupOrder.push(key); }
+        if (!groups[key]) { groups[key] = { name: row.contractorName || 'بدون مقاول', total: 0, days: 0, rows: [] }; groupOrder.push(key); }
         groups[key].total += row.total;
+        groups[key].days += row.daysWorked;
         groups[key].rows.push(row);
     });
     var grandTotal = rows.reduce(function(s, row) { return s + row.total; }, 0);
@@ -20076,18 +20168,20 @@ function printFullAccountsStatement() {
     var contractorsSummaryHtml = groupOrder.map(function(key) {
         var g = groups[key];
         return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.2);font-size:13px">' +
-            '<span>👷 ' + escapeHtml(g.name) + '</span><span style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>';
+            '<span>👷 ' + escapeHtml(g.name) + ' <span style="opacity:.75;font-size:11px">(' + g.days + ' يوم عمل)</span></span><span style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>';
     }).join('');
 
-    // ترتيب صفوف الجدول مجمّعة حسب المقاول: كل معدات المقاول تحت بعضها، مع صف فرعي بإجمالي المقاول
+    // ترتيب صفوف الجدول مجمّعة حسب المقاول: كل معدات المقاول تحت بعضها، مع صف فرعي بإجمالي المقاول (أيام العمل + التكلفة)
     var rowCounter = 0;
     var rowsHtml = groupOrder.map(function(key) {
         var g = groups[key];
         var headerRow = '<tr style="background:#eef2f6"><td colspan="3" style="text-align:right;font-weight:800;padding:8px 10px">👷 ' + escapeHtml(g.name) + '</td>' +
+            '<td style="font-weight:800">' + g.days + '</td>' +
             '<td style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td></tr>';
         var itemsHtml = g.rows.map(function(row) {
             rowCounter++;
             return '<tr><td>' + rowCounter + '</td><td style="text-align:right">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.contractorName || '—') + '</td>' +
+                '<td>' + row.daysWorked + '</td>' +
                 '<td style="font-weight:bold">' + row.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td></tr>';
         }).join('');
         return headerRow + itemsHtml;
@@ -20112,13 +20206,13 @@ function printFullAccountsStatement() {
         'img{height:34px!important}' +
         '@media print{ .no-print{display:none} @page{ size:A4; margin:7mm } body{ zoom:0.82 } }' +
         '</style></head><body>' +
-        reportHeaderHtml('المستخلص الشهري الكامل لمعدات الإيجار', rentalPeriodLabel(monthStr) + ' (' + range.from + ' → ' + range.to + ')') +
+        reportHeaderHtml('تقرير أيام عمل وتكلفة معدات الإيجار', rentalPeriodLabel(monthStr) + ' (' + range.from + ' → ' + range.to + ') — محسوب حتى تاريخ اليوم ' + todayStr) +
         '<div class="summary-box">' +
-        '<div style="font-size:13px;opacity:.9;margin-bottom:6px">إجمالي المستخلص حسب المقاول</div>' +
+        '<div style="font-size:13px;opacity:.9;margin-bottom:6px">إجمالي التكلفة حسب المقاول (حتى تاريخ اليوم)</div>' +
         contractorsSummaryHtml +
         '<div class="grand"><span>الإجمالي الكلي</span><span id="grand-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>' +
         '</div>' +
-        '<table><thead><tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>التكلفة خلال الشهر</th></tr></thead><tbody>' +
+        '<table><thead><tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل</th><th>التكلفة حتى اليوم</th></tr></thead><tbody>' +
         rowsHtml +
         '</tbody></table>' +
         '<div class="deduct-box">' +
