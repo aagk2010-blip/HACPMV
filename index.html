@@ -1337,9 +1337,10 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <div style="font-size:12px;opacity:.9">احسب مستخلص كل معدة إيجار بناءً على الساعات المسجّلة وقيمة يوم العمل، واطبع مستخلص رسمي جاهز للتسليم.</div>
       </div>
 
-      <div style="display:flex;gap:8px;margin-bottom:14px">
-        <button class="edit-btn" onclick="openContractorsModal()" style="flex:1;padding:11px;background:#e8a020;color:#0d1b2a;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">👷 المقاولين</button>
-        <button onclick="printFullAccountsStatement()" style="flex:1.4;padding:11px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة تقرير أيام العمل والتكلفة</button>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="edit-btn" onclick="openContractorsModal()" style="flex:1;min-width:120px;padding:11px;background:#e8a020;color:#0d1b2a;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">👷 المقاولين</button>
+        <button onclick="printFullAccountsStatement(true)" style="flex:1.4;min-width:160px;padding:11px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة بالتكلفة</button>
+        <button onclick="printFullAccountsStatement(false)" style="flex:1.4;min-width:160px;padding:11px;background:linear-gradient(135deg,#0369a1,#075985);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة أيام العمل فقط</button>
       </div>
 
       <div id="accounts-total-card" style="background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
@@ -12881,7 +12882,7 @@ function printOwnedEquipmentCycleReport() {
     var rowsHtml = rows.map(function(r, idx) {
         return '<tr>' +
             '<td>' + (idx + 1) + '</td>' +
-            '<td style="text-align:right;font-weight:700">' + escapeHtml(r.eq.code || '—') + ' <span style="color:#94a3b8;font-size:10px;font-weight:400">(' + escapeHtml(r.eq.name || '—') + ')</span></td>' +
+            '<td style="text-align:right;font-weight:800;font-size:13px">' + escapeHtml(r.eq.code || '—') + '</td>' +
             '<td>' + escapeHtml(r.eq.type || '—') + '</td>' +
             '<td>' + (statusMap[r.eq.status] || escapeHtml(r.eq.status || '—')) + '</td>' +
             '<td>' + r.hours.toFixed(1) + ' س</td>' +
@@ -20151,7 +20152,8 @@ function printRentalStatement(rentalId, dateFrom, dateTo) {
 window.printRentalStatement = printRentalStatement;
 
 // ==================== طباعة تقرير أيام العمل والتكلفة لكل معدات الإيجار مجتمعة، محسوب حتى تاريخ اليوم، مقسّم حسب المقاول ====================
-function printFullAccountsStatement() {
+function printFullAccountsStatement(includeCost) {
+    if (includeCost !== false) includeCost = true;
     if (!canView('accounts')) { showToast('⛔ غير مصرح لك بالوصول لبيانات الحسابات', true); return; }
     var monthStr = getCurrentCycleMonthStr();
     var range = getPeriodRange(monthStr);
@@ -20188,26 +20190,37 @@ function printFullAccountsStatement() {
             '<span>👷 ' + escapeHtml(g.name) + ' <span style="opacity:.75;font-size:11px">(' + g.days + ' يوم عمل)</span></span><span style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>';
     }).join('');
 
-    // ترتيب صفوف الجدول مجمّعة حسب المقاول: كل معدات المقاول تحت بعضها، مع صف فرعي بإجمالي المقاول (أيام العمل + التكلفة)
+    // ترتيب صفوف الجدول مجمّعة حسب المقاول: كل معدات المقاول تحت بعضها، مع صف فرعي بإجمالي المقاول (أيام العمل + التكلفة لو مطلوبة)
+    var groupColspan = includeCost ? 3 : 3;
     var rowCounter = 0;
     var rowsHtml = groupOrder.map(function(key) {
         var g = groups[key];
-        var headerRow = '<tr style="background:#eef2f6"><td colspan="3" style="text-align:right;font-weight:800;padding:8px 10px">👷 ' + escapeHtml(g.name) + '</td>' +
+        var headerRow = '<tr style="background:#eef2f6"><td colspan="' + groupColspan + '" style="text-align:right;font-weight:800;padding:8px 10px">👷 ' + escapeHtml(g.name) + '</td>' +
             '<td style="font-weight:800">' + g.days + '</td>' +
-            '<td style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td>' +
+            (includeCost ? '<td style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td>' : '') +
             '<td>&nbsp;</td></tr>';
         var itemsHtml = g.rows.map(function(row) {
             rowCounter++;
             return '<tr><td>' + rowCounter + '</td><td style="text-align:right">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.contractorName || '—') + '</td>' +
                 '<td>' + row.daysWorked + '</td>' +
-                '<td style="font-weight:bold">' + row.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td>' +
+                (includeCost ? '<td style="font-weight:bold">' + row.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td>' : '') +
                 '<td>&nbsp;</td></tr>';
         }).join('');
         return headerRow + itemsHtml;
     }).join('');
 
+    var reportTitle = includeCost ? 'تقرير أيام عمل وتكلفة معدات الإيجار' : 'تقرير أيام عمل معدات الإيجار';
+    var docTitle = includeCost ? 'المستخلص الشهري الكامل' : 'تقرير أيام العمل (بدون تكلفة)';
+    var tableHeader = includeCost
+        ? '<tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل</th><th>التكلفة حتى اليوم</th><th>ملاحظات</th></tr>'
+        : '<tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل</th><th>ملاحظات</th></tr>';
+    var projectEmployeeHeaderHtml = '<div style="display:flex;flex-wrap:wrap;gap:8px 34px;margin:0 0 14px;padding:9px 14px;background:#f8fafc;border-radius:8px;font-size:13px;font-weight:800;color:#0d1b2a">' +
+        '<div>🏗️ اسم المشروع: <span style="display:inline-block;min-width:170px;border-bottom:1.5px solid #94a3b8">&nbsp;</span></div>' +
+        '<div>👷 أسماء الموظفين: <span style="display:inline-block;min-width:230px;border-bottom:1.5px solid #94a3b8">&nbsp;</span></div>' +
+        '</div>';
+
     var w = window.open('', '_blank');
-    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>المستخلص الشهري الكامل</title><style>' +
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + docTitle + '</title><style>' +
         '*{box-sizing:border-box}' +
         'body{font-family:Arial;padding:10px 14px;direction:rtl;color:#0d1b2a;font-size:11.5px;line-height:1.3}' +
         'table{width:100%;border-collapse:collapse;font-size:10.5px;margin-top:6px}' +
@@ -20225,26 +20238,31 @@ function printFullAccountsStatement() {
         'img{height:34px!important}' +
         '@media print{ .no-print{display:none} @page{ size:A4; margin:7mm } body{ zoom:0.82 } }' +
         '</style></head><body>' +
-        reportHeaderHtml('تقرير أيام عمل وتكلفة معدات الإيجار', rentalPeriodLabel(monthStr) + ' (' + range.from + ' → ' + range.to + ') — محسوب حتى تاريخ اليوم ' + todayStr) +
-        '<div class="summary-box">' +
-        '<div style="font-size:13px;opacity:.9;margin-bottom:6px">إجمالي التكلفة حسب المقاول (حتى تاريخ اليوم)</div>' +
-        contractorsSummaryHtml +
-        '<div class="grand"><span>الإجمالي الكلي</span><span id="grand-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>' +
-        '</div>' +
-        '<table><thead><tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل</th><th>التكلفة حتى اليوم</th><th>ملاحظات</th></tr></thead><tbody>' +
+        reportHeaderHtml(reportTitle, rentalPeriodLabel(monthStr) + ' (' + range.from + ' → ' + range.to + ') — محسوب حتى تاريخ اليوم ' + todayStr) +
+        projectEmployeeHeaderHtml +
+        (includeCost ? (
+            '<div class="summary-box">' +
+            '<div style="font-size:13px;opacity:.9;margin-bottom:6px">إجمالي التكلفة حسب المقاول (حتى تاريخ اليوم)</div>' +
+            contractorsSummaryHtml +
+            '<div class="grand"><span>الإجمالي الكلي</span><span id="grand-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>' +
+            '</div>'
+        ) : '') +
+        '<table><thead>' + tableHeader + '</thead><tbody>' +
         rowsHtml +
         '</tbody></table>' +
-        '<div class="deduct-box">' +
-        '<label style="display:block;margin-bottom:8px;font-weight:700">➖ خصومات (إن وجدت)</label>' +
-        '<input type="number" id="deduction-input" value="0" step="0.01" oninput="updateFullStatementTotal()">' +
-        '</div>' +
-        '<div class="final-box">' +
-        '<div>الإجمالي النهائي بعد الخصم</div>' +
-        '<div class="value" id="final-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</div>' +
-        '</div>' +
+        (includeCost ? (
+            '<div class="deduct-box">' +
+            '<label style="display:block;margin-bottom:8px;font-weight:700">➖ خصومات (إن وجدت)</label>' +
+            '<input type="number" id="deduction-input" value="0" step="0.01" oninput="updateFullStatementTotal()">' +
+            '</div>' +
+            '<div class="final-box">' +
+            '<div>الإجمالي النهائي بعد الخصم</div>' +
+            '<div class="value" id="final-total-display">' + grandTotal.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</div>' +
+            '</div>'
+        ) : '') +
         '<div class="footer">تم إصدار هذا المستخلص آليًا من برنامج متابعة المعدات — ' + new Date().toLocaleString('ar-EG') + '</div>' +
         '<div class="no-print" style="text-align:center;margin-top:18px"><button onclick="window.print()" style="padding:10px 30px;background:#e8a020;border:none;border-radius:10px;font-weight:700;cursor:pointer">🖨️ طباعة</button></div>' +
-        '<script>var GRAND_TOTAL=' + grandTotal + ';function updateFullStatementTotal(){var d=parseFloat(document.getElementById("deduction-input").value)||0;document.getElementById("final-total-display").textContent=(GRAND_TOTAL-d).toLocaleString(undefined,{maximumFractionDigits:2});}<\/script>' +
+        (includeCost ? '<script>var GRAND_TOTAL=' + grandTotal + ';function updateFullStatementTotal(){var d=parseFloat(document.getElementById("deduction-input").value)||0;document.getElementById("final-total-display").textContent=(GRAND_TOTAL-d).toLocaleString(undefined,{maximumFractionDigits:2});}<\/script>' : '') +
         '</body></html>');
     w.document.close();
 }
