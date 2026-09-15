@@ -14612,11 +14612,15 @@ function buildOwnershipReportData(list, fromMonth, toMonth) {
 
 function ownRentFmtNum(n) { return (n || 0).toLocaleString('en-US', { maximumFractionDigits: 1 }); }
 
-// يجمع أسماء المشاريع (بدون تكرار) من قائمة معدات، ويرجعها كصف واضح يوضع تحت التاريخ في رأس التقرير
+// يجمع أسماء المشاريع (بدون تكرار) من قائمة معدات، ويرجعها كصف واضح يوضع تحت التاريخ في رأس التقرير — مرة واحدة فقط، وتلقائيًا من بيانات المعدات
 function ownRentProjectNamesHtml(list) {
     var projectNames = [];
-    (list || []).forEach(function(eq) { if (eq.projectSite && projectNames.indexOf(eq.projectSite) === -1) projectNames.push(eq.projectSite); });
-    var label = projectNames.length ? projectNames.join('، ') : '—';
+    (list || []).forEach(function(eq) {
+        // لو المعدة معندهاش اسم مشروع مسجّل، بناخد اسم الموقع بدله عشان الخانة ما تفضلش فاضية
+        var name = (eq.projectSite && eq.projectSite.trim()) || (eq.location && eq.location.trim());
+        if (name && projectNames.indexOf(name) === -1) projectNames.push(name);
+    });
+    var label = projectNames.length ? projectNames.join('، ') : 'غير محدد';
     return '<div style="margin:0 0 14px;padding:9px 14px;background:#f8fafc;border-radius:8px;font-size:13px;font-weight:800;color:#0d1b2a">🏗️ اسم المشروع: <span style="font-weight:800">' + escapeHtml(label) + '</span></div>';
 }
 
