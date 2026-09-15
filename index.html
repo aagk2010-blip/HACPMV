@@ -1338,9 +1338,10 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       </div>
 
       <div style="background:white;border-radius:12px;padding:10px 12px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <label style="font-size:12.5px;font-weight:700;color:#0d1b2a">📅 فترة المستخلص:</label>
-        <input type="month" id="accounts-statement-month" class="form-input" style="max-width:160px" onchange="updateAccountsPeriodPreview()">
-        <span id="accounts-period-preview" style="font-size:11.5px;color:#64748b"></span>
+        <label style="font-size:12.5px;font-weight:700;color:#0d1b2a">📅 من:</label>
+        <input type="date" id="accounts-statement-from" class="form-input" style="max-width:150px">
+        <label style="font-size:12.5px;font-weight:700;color:#0d1b2a">إلى:</label>
+        <input type="date" id="accounts-statement-to" class="form-input" style="max-width:150px">
       </div>
 
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
@@ -19927,8 +19928,13 @@ function renderAccountsSummary() {
     var summaryEl = document.getElementById('accounts-total-summary');
     if (!summaryEl) return;
 
-    var monthInputEl = document.getElementById('accounts-statement-month');
-    if (monthInputEl && !monthInputEl.value) { monthInputEl.value = getCurrentCycleMonthStr(); updateAccountsPeriodPreview(); }
+    var fromInputEl = document.getElementById('accounts-statement-from');
+    var toInputEl = document.getElementById('accounts-statement-to');
+    if (fromInputEl && toInputEl && !fromInputEl.value && !toInputEl.value) {
+        var defaultRange = getPeriodRange(getCurrentCycleMonthStr());
+        fromInputEl.value = defaultRange.from;
+        toInputEl.value = defaultRange.to;
+    }
 
     var months = [];
     var cursor = getCurrentCycleMonthStr();
@@ -20161,25 +20167,20 @@ function printRentalStatement(rentalId, dateFrom, dateTo) {
 window.printRentalStatement = printRentalStatement;
 
 // ==================== طباعة تقرير أيام العمل والتكلفة لكل معدات الإيجار مجتمعة، محسوب حتى تاريخ اليوم، مقسّم حسب المقاول ====================
-function readAccountsStatementMonth() {
-    var el = document.getElementById('accounts-statement-month');
-    return (el && el.value) || getCurrentCycleMonthStr();
-}
-
-// بيعرض للمستخدم الفترة الفعلية (21 → 20) المقابلة للشهر المختار في حقل التاريخ
-function updateAccountsPeriodPreview() {
-    var previewEl = document.getElementById('accounts-period-preview');
-    if (!previewEl) return;
-    var monthStr = readAccountsStatementMonth();
-    var range = getPeriodRange(monthStr);
-    previewEl.textContent = 'الفترة الفعلية: ' + range.from + ' → ' + range.to;
+function readAccountsStatementRange() {
+    var fromEl = document.getElementById('accounts-statement-from');
+    var toEl = document.getElementById('accounts-statement-to');
+    var defaultRange = getPeriodRange(getCurrentCycleMonthStr());
+    var from = (fromEl && fromEl.value) || defaultRange.from;
+    var to = (toEl && toEl.value) || defaultRange.to;
+    if (from > to) { var tmp = from; from = to; to = tmp; }
+    return { from: from, to: to };
 }
 
 function printFullAccountsStatement(includeCost) {
     if (includeCost !== false) includeCost = true;
     if (!canView('accounts')) { showToast('⛔ غير مصرح لك بالوصول لبيانات الحسابات', true); return; }
-    var monthStr = readAccountsStatementMonth();
-    var range = getPeriodRange(monthStr);
+    var range = readAccountsStatementRange();
     var todayStr = localDateStr(new Date());
 
     var rows = rentalData.filter(function(r) { return (r.dailyRate || 0) > 0; }).map(function(r) {
@@ -20265,7 +20266,7 @@ function printFullAccountsStatement(includeCost) {
         'img{height:34px!important}' +
         '@media print{ .no-print{display:none} @page{ size:A4; margin:7mm } body{ zoom:0.82 } }' +
         '</style></head><body>' +
-        reportHeaderHtml(reportTitle, rentalPeriodLabel(monthStr) + ' (' + range.from + ' → ' + range.to + ') — محسوب حتى تاريخ اليوم ' + todayStr) +
+        reportHeaderHtml(reportTitle, 'الفترة: ' + range.from + ' → ' + range.to + ' — محسوب حتى تاريخ اليوم ' + todayStr) +
         projectEmployeeHeaderHtml +
         (includeCost ? (
             '<div class="summary-box">' +
