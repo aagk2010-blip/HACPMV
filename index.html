@@ -19124,6 +19124,20 @@ var RENTAL_GENERATOR_STANDARD_HOURS = 12;
 function rentalStandardHours(equipmentType) {
     return (equipmentType === 'مولد كهربائي') ? RENTAL_GENERATOR_STANDARD_HOURS : 8;
 }
+// عدد ساعات العمل اللي بتساوي "يوم محاسب عليه" في المستخلص: 8 ساعات = يوم، والمولد الكهربائي 12 ساعة = يوم
+function rentalBillingDayHours(rental) {
+    if (!rental) return 8;
+    var type = rental.equipmentType;
+    if (!type) {
+        var eq = equipmentData.find(function(e) { return e.id === rental.equipmentId; });
+        type = eq ? eq.type : '';
+    }
+    return rentalStandardHours(String(type || '').trim());
+}
+// تنسيق عدد الأيام الفعلي (لحد رقمين عشريين بدون أصفار زايدة)
+function formatBillableDays(n) {
+    return String(Math.round((n || 0) * 100) / 100);
+}
 function calcRentalHours(inTime, outTime, breakWorked, standardHours) {
     standardHours = standardHours || 8;
     if (!inTime || !outTime) return { total:0, basic:0, break:0, extra:0 };
@@ -19884,7 +19898,7 @@ function computeAccountsMonthTotal(monthStr) {
         var dayData = buildRentalDayEntries(r.id, range.from, range.to);
         var records = dayData.records;
         var hours = records.reduce(function(s, d) { return s + (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0); }, 0);
-        total += (hours / 8) * rate;
+        total += (hours / rentalBillingDayHours(r)) * rate;
     });
     return total;
 }
@@ -19900,7 +19914,7 @@ function computeContractorMonthTotal(contractorId, monthStr) {
         var dayData = buildRentalDayEntries(r.id, range.from, range.to);
         var records = dayData.records;
         var hours = records.reduce(function(s, d) { return s + (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0); }, 0);
-        total += (hours / 8) * rate;
+        total += (hours / rentalBillingDayHours(r)) * rate;
     });
     return total;
 }
@@ -20132,7 +20146,8 @@ function printRentalStatement(rentalId, dateFrom, dateTo) {
     var sk = records.reduce(function(s,d){ return s+(d.breakHours||0); }, 0);
     var se = records.reduce(function(s,d){ return s+(d.extraHours||0); }, 0);
     var totalHours = sb + sk + se;
-    var equivalentDays = totalHours / 8;
+    var dayHrs = rentalBillingDayHours(rental);
+    var equivalentDays = totalHours / dayHrs;
     var statementValue = equivalentDays * dailyRate;
 
     var rowsHtml = days.map(function(dayEntry, idx) {
@@ -20164,13 +20179,13 @@ function printRentalStatement(rentalId, dateFrom, dateTo) {
         '<div><b>المعدة:</b> ' + escapeHtml(eq ? (eq.name + ' (' + eq.code + ')') : (rental.equipmentCode||'—')) + '</div>' +
         '<div><b>شركة الإيجار:</b> ' + escapeHtml(rental.company || '—') + '</div>' +
         '<div><b>السائق:</b> ' + escapeHtml(drv ? drv.name : '—') + '</div>' +
-        '<div><b>قيمة يوم العمل (8 ساعات):</b> ' + dailyRate.toLocaleString() + '</div>' +
+        '<div><b>قيمة يوم العمل (' + dayHrs + ' ساعات):</b> ' + dailyRate.toLocaleString() + '</div>' +
         '</div>' +
         '<table><thead><tr><th>#</th><th>التاريخ</th><th>حضور</th><th>انصراف</th><th>أساسي</th><th>راحة+إضافي</th><th>الإجمالي</th></tr></thead><tbody>' +
         rowsHtml +
         '</tbody></table>' +
         '<div class="calc-box">' +
-        '<div>إجمالي الساعات (' + totalHours.toFixed(2) + ') ÷ 8 = ' + equivalentDays.toFixed(2) + ' يوم مكافئ &nbsp;×&nbsp; ' + dailyRate.toLocaleString() + '</div>' +
+        '<div>إجمالي الساعات (' + totalHours.toFixed(2) + ') ÷ ' + dayHrs + ' = ' + equivalentDays.toFixed(2) + ' يوم مكافئ &nbsp;×&nbsp; ' + dailyRate.toLocaleString() + '</div>' +
         '<div class="value">' + statementValue.toLocaleString(undefined,{maximumFractionDigits:2}) + '</div>' +
         (absentCount ? '<div style="font-size:11px;margin-top:6px;opacity:.85">⚠️ ' + absentCount + ' يوم غياب خلال الفترة (غير محسوب)</div>' : '') +
         '</div>' +
@@ -20203,9 +20218,11 @@ function printFullAccountsStatement(includeCost) {
         var name = eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentCode || '—');
         // buildRentalDayEntries بيوقف تلقائيًا عند تاريخ اليوم لو نهاية الدورة لسه معديتش، فالنتيجة دايمًا "حتى اليوم"
         var dayData = buildRentalDayEntries(r.id, range.from, range.to);
-        var daysWorked = dayData.records.length;
         var hours = dayData.records.reduce(function(s, d) { return s + (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0); }, 0);
-        var total = (hours / 8) * r.dailyRate;
+        // أيام العمل الفعلية المحاسب عليها = إجمالي الساعات ÷ ساعات اليوم (8، أو 12 للمولد الكهربائي)
+        var dayHrs = rentalBillingDayHours(r);
+        var daysWorked = hours / dayHrs;
+        var total = daysWorked * r.dailyRate;
         var contractor = contractorsData.find(function(ct) { return ct.id === r.contractorId; });
         return { name: name, total: total, daysWorked: daysWorked, contractorName: contractor ? contractor.name : '', projectSite: eq ? (eq.projectSite || '') : '' };
     });
@@ -20231,7 +20248,7 @@ function printFullAccountsStatement(includeCost) {
     var contractorsSummaryHtml = groupOrder.map(function(key) {
         var g = groups[key];
         return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.2);font-size:13px">' +
-            '<span>👷 ' + escapeHtml(g.name) + ' <span style="opacity:.75;font-size:11px">(' + g.days + ' يوم عمل)</span></span><span style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>';
+            '<span>👷 ' + escapeHtml(g.name) + ' <span style="opacity:.75;font-size:11px">(' + formatBillableDays(g.days) + ' يوم عمل)</span></span><span style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</span></div>';
     }).join('');
 
     // ترتيب صفوف الجدول مجمّعة حسب المقاول: كل معدات المقاول تحت بعضها، مع صف فرعي بإجمالي المقاول (أيام العمل + التكلفة لو مطلوبة)
@@ -20240,13 +20257,13 @@ function printFullAccountsStatement(includeCost) {
     var rowsHtml = groupOrder.map(function(key) {
         var g = groups[key];
         var headerRow = '<tr style="background:#eef2f6"><td colspan="' + groupColspan + '" style="text-align:right;font-weight:800;padding:8px 10px">👷 ' + escapeHtml(g.name) + '</td>' +
-            '<td style="font-weight:800">' + g.days + '</td>' +
+            '<td style="font-weight:800">' + formatBillableDays(g.days) + '</td>' +
             (includeCost ? '<td style="font-weight:800">' + g.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td>' : '') +
             '<td>&nbsp;</td></tr>';
         var itemsHtml = g.rows.map(function(row) {
             rowCounter++;
             return '<tr><td>' + rowCounter + '</td><td style="text-align:right">' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.contractorName || '—') + '</td>' +
-                '<td>' + row.daysWorked + '</td>' +
+                '<td>' + formatBillableDays(row.daysWorked) + '</td>' +
                 (includeCost ? '<td style="font-weight:bold">' + row.total.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '</td>' : '') +
                 '<td>&nbsp;</td></tr>';
         }).join('');
@@ -20256,8 +20273,8 @@ function printFullAccountsStatement(includeCost) {
     var reportTitle = includeCost ? 'تقرير أيام عمل وتكلفة معدات الإيجار' : 'تقرير أيام عمل معدات الإيجار';
     var docTitle = includeCost ? 'المستخلص الشهري الكامل' : 'تقرير أيام العمل (بدون تكلفة)';
     var tableHeader = includeCost
-        ? '<tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل</th><th>التكلفة حتى اليوم</th><th>ملاحظات</th></tr>'
-        : '<tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل</th><th>ملاحظات</th></tr>';
+        ? '<tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل الفعلية</th><th>التكلفة حتى اليوم</th><th>ملاحظات</th></tr>'
+        : '<tr><th>#</th><th>اسم المعدة</th><th>المقاول</th><th>أيام العمل الفعلية</th><th>ملاحظات</th></tr>';
     var projectEmployeeHeaderHtml = '<div style="margin:0 0 14px;padding:9px 14px;background:#f8fafc;border-radius:8px;font-size:13px;font-weight:800;color:#0d1b2a">' +
         '🏗️ اسم المشروع: <span style="font-weight:800">' + escapeHtml(projectNamesLabel) + '</span>' +
         '</div>';
@@ -20293,6 +20310,7 @@ function printFullAccountsStatement(includeCost) {
         '<table><thead>' + tableHeader + '</thead><tbody>' +
         rowsHtml +
         '</tbody></table>' +
+        '<div style="margin-top:6px;font-size:10px;color:#64748b">* أيام العمل الفعلية = إجمالي ساعات العمل ÷ 8 (كل 8 ساعات = يوم)، والمولد الكهربائي كل 12 ساعة = يوم.</div>' +
         (includeCost ? (
             '<div class="deduct-box">' +
             '<label style="display:block;margin-bottom:8px;font-weight:700">➖ خصومات (إن وجدت)</label>' +
@@ -20448,7 +20466,8 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo, showFinancials) {
     var se=records.reduce(function(s,d){ return s+(d.extraHours||0); },0);
     var st=sb+sk+se;
     var dailyRate = rental ? (rental.dailyRate || 0) : 0;
-    var equivalentDays = st / 8;
+    var dayHrs = rentalBillingDayHours(rental);
+    var equivalentDays = st / dayHrs;
     var statementValue = equivalentDays * dailyRate;
     window._currentRentalReportEquivalentDays = equivalentDays;
     window._currentRentalReportValue = statementValue;
@@ -20458,7 +20477,7 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo, showFinancials) {
     var html='<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border-radius:14px;padding:14px;color:white;margin-bottom:10px">'+
         '<div style="font-weight:700;margin-bottom:8px">\u{1F4CA} '+periodLabel+'</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin-bottom:6px">'+
-        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+records.length+'</div><div>'+RL('Work days (base 8h/day)','يوم عمل (أساس 8س/يوم)')+'</div></div>'+
+        '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+formatBillableDays(equivalentDays)+'</div><div>'+RL('Work days (base '+dayHrs+'h/day)','يوم عمل فعلي (أساس '+dayHrs+'س/يوم)')+'</div></div>'+
         '<div style="background:rgba(255,255,255,.15);padding:8px;border-radius:8px;text-align:center"><div style="font-size:22px;font-weight:700">'+st.toFixed(1)+'</div><div>'+RL('Total Hours','إجمالي الساعات')+'</div></div>'+
         '</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;font-size:13px">'+
@@ -20471,7 +20490,7 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo, showFinancials) {
             '<div style="background:linear-gradient(135deg,#166534,#14532d);border-radius:14px;padding:14px;color:white;margin-bottom:10px">'+
             '<div style="font-weight:700;margin-bottom:8px">\u{1F4B0} '+RL('Settlement (Extract)','قيمة المستخلص')+'</div>'+
             '<div style="font-size:12px;opacity:.9;line-height:1.8">'+
-            RL('Total hours','إجمالي الساعات')+' ('+st.toFixed(2)+') \u00f7 8 = <strong>'+equivalentDays.toFixed(2)+'</strong> '+RL('equivalent days','يوم مكافئ')+'<br>'+
+            RL('Total hours','إجمالي الساعات')+' ('+st.toFixed(2)+') \u00f7 '+dayHrs+' = <strong>'+equivalentDays.toFixed(2)+'</strong> '+RL('equivalent days','يوم مكافئ')+'<br>'+
             equivalentDays.toFixed(2)+' \u00d7 '+dailyRate.toLocaleString()+' = ' +
             '</div>'+
             '<div style="font-size:26px;font-weight:800;margin-top:6px">'+statementValue.toLocaleString(undefined,{maximumFractionDigits:2})+'</div>'+
