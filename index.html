@@ -1342,6 +1342,8 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <input type="date" id="accounts-statement-from" class="form-input" style="max-width:150px">
         <label style="font-size:12.5px;font-weight:700;color:#0d1b2a">إلى:</label>
         <input type="date" id="accounts-statement-to" class="form-input" style="max-width:150px">
+        <label style="font-size:12.5px;font-weight:700;color:#0d1b2a">👷 المقاول:</label>
+        <select id="accounts-contractor-filter" class="form-input" style="max-width:190px" onchange="renderAccountsRentalList()"><option value="">كل المقاولين</option></select>
       </div>
 
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
@@ -20025,11 +20027,38 @@ function renderAccountsSummary() {
 }
 window.renderAccountsSummary = renderAccountsSummary;
 
+// ---- فلتر المقاول (بيأثر على قائمة العقود وعلى تقارير الطباعة) ----
+function populateAccountsContractorFilter() {
+    var sel = document.getElementById('accounts-contractor-filter');
+    if (!sel) return;
+    var prev = sel.value;
+    sel.innerHTML = '<option value="">كل المقاولين</option>' +
+        contractorsData.map(function(ct) { return '<option value="' + ct.id + '">' + escapeHtml(ct.name) + '</option>'; }).join('') +
+        '<option value="__none__">بدون مقاول</option>';
+    var exists = Array.prototype.some.call(sel.options, function(o) { return o.value === prev; });
+    sel.value = exists ? prev : '';
+}
+function accountsContractorMatches(r) {
+    var sel = document.getElementById('accounts-contractor-filter');
+    var v = sel ? sel.value : '';
+    if (!v) return true;
+    if (v === '__none__') return !r.contractorId;
+    return r.contractorId === v;
+}
+function accountsContractorFilterLabel() {
+    var sel = document.getElementById('accounts-contractor-filter');
+    if (!sel || !sel.value) return '';
+    return sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+}
+window.populateAccountsContractorFilter = populateAccountsContractorFilter;
+
 function renderAccountsRentalList() {
     var c = document.getElementById('accounts-rental-list');
     if (!c) return;
+    populateAccountsContractorFilter();
     var q = ((document.getElementById('accounts-search') || {}).value || '').toLowerCase().trim();
     var list = rentalData.filter(function(r) {
+        if (!accountsContractorMatches(r)) return false;
         if (!q) return true;
         var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
         var hay = ((eq ? (eq.code + ' ' + eq.name) : (r.equipmentCode || '')) + ' ' + (r.company || '')).toLowerCase();
@@ -20213,7 +20242,7 @@ function printFullAccountsStatement(includeCost) {
     var range = readAccountsStatementRange();
     var todayStr = localDateStr(new Date());
 
-    var rows = rentalData.filter(function(r) { return (r.dailyRate || 0) > 0; }).map(function(r) {
+    var rows = rentalData.filter(function(r) { return (r.dailyRate || 0) > 0 && accountsContractorMatches(r); }).map(function(r) {
         var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
         var name = eq ? (eq.name + ' (' + eq.code + ')') : (r.equipmentCode || '—');
         // buildRentalDayEntries بيوقف تلقائيًا عند تاريخ اليوم لو نهاية الدورة لسه معديتش، فالنتيجة دايمًا "حتى اليوم"
@@ -20298,7 +20327,7 @@ function printFullAccountsStatement(includeCost) {
         'img{height:34px!important}' +
         '@media print{ .no-print{display:none} @page{ size:A4; margin:7mm } body{ zoom:0.82 } }' +
         '</style></head><body>' +
-        reportHeaderHtml(reportTitle, 'الفترة: ' + range.from + ' → ' + range.to + ' — محسوب حتى تاريخ اليوم ' + todayStr) +
+        reportHeaderHtml(reportTitle, 'الفترة: ' + range.from + ' → ' + range.to + ' — محسوب حتى تاريخ اليوم ' + todayStr + (accountsContractorFilterLabel() ? ' — المقاول: ' + escapeHtml(accountsContractorFilterLabel()) : '')) +
         projectEmployeeHeaderHtml +
         (includeCost ? (
             '<div class="summary-box">' +
