@@ -10863,6 +10863,73 @@ function showCloseWarningModal(title, msg, isFinal) {
     document.getElementById('close-warn-stay').onclick = function() { el.remove(); };
 }
 
+// ==================== التحقق من تفعيل صلاحية الموقع (GPS) قبل السماح بـ "بدء العمل" ====================
+// السائق مينفعش يضغط "بدء العمل" ويشتغل الزرار غير لو صلاحية الموقع مفعّلة فعليًا على جهازه.
+// لو مش مفعّلة (أو المستخدم رافضها)، بنمنع بدء العمل ونوريه رسالة واضحة + زرار يودّيه على إعدادات الموقع في جهازه.
+function openDeviceLocationSettings() {
+    var ua = navigator.userAgent || '';
+    var isAndroid = /Android/i.test(ua);
+    var isIOS = /iPhone|iPad|iPod/i.test(ua);
+    try {
+        if (isAndroid) {
+            // بيفتح شاشة إعدادات الموقع في نظام الأندرويد مباشرة (بيشتغل في المتصفحات اللي بتدعم روابط intent مثل Chrome على أندرويد)
+            window.location.href = 'intent://#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end';
+        } else if (isIOS) {
+            // آيفون: مفيش رابط ويب بيفتح "خدمات الموقع" مباشرة، فبنودّي المستخدم على الأقل لإعدادات التطبيق نفسه
+            window.location.href = 'app-settings:';
+        }
+    } catch (e) {}
+}
+
+function gateLocationPermissionThenRun(statusEl, onGranted) {
+    function renderBlocked(msg) {
+        statusEl.style.color = '#dc2626'; statusEl.style.background = '#fee2e2';
+        statusEl.innerHTML = '<div style="text-align:right;line-height:1.6">' +
+            '<div style="margin-bottom:8px">🚫 ' + msg + '</div>' +
+            '<div style="font-size:11px;color:#7f1d1d;margin-bottom:10px">فعّل خدمة الموقع (GPS) من إعدادات جهازك، واسمح للمتصفح بالوصول لموقعك، وبعدين اضغط "حاول تاني".</div>' +
+            '<div style="display:flex;gap:6px">' +
+            '<button type="button" id="loc-gate-settings-btn" style="flex:1;padding:9px;border:none;border-radius:10px;background:#0d1b2a;color:white;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit">⚙️ إعدادات الموقع</button>' +
+            '<button type="button" id="loc-gate-retry-btn" style="flex:1;padding:9px;border:none;border-radius:10px;background:#10b981;color:white;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit">🔄 حاول تاني</button>' +
+            '</div></div>';
+        var settingsBtn = document.getElementById('loc-gate-settings-btn');
+        var retryBtn = document.getElementById('loc-gate-retry-btn');
+        if (settingsBtn) settingsBtn.onclick = openDeviceLocationSettings;
+        if (retryBtn) retryBtn.onclick = function() { gateLocationPermissionThenRun(statusEl, onGranted); };
+    }
+
+    if (!navigator.geolocation) {
+        renderBlocked('الجهاز/المتصفح مش بيدعم تحديد الموقع');
+        return;
+    }
+
+    statusEl.style.color = '#0369a1'; statusEl.style.background = '#e0f2fe';
+    statusEl.innerHTML = '⏳ جاري التأكد من تفعيل صلاحية الموقع...';
+
+    function attemptGetLocation() {
+        navigator.geolocation.getCurrentPosition(
+            function() { onGranted(); },
+            function(err) {
+                renderBlocked(err.code === 1 ? 'صلاحية الموقع مش مفعّلة أو تم رفضها' : 'تعذّر تحديد موقعك — تأكد إن GPS مفعّل وحاول تاني');
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'geolocation' }).then(function(status) {
+            if (status.state === 'granted') {
+                onGranted();
+            } else if (status.state === 'denied') {
+                renderBlocked('صلاحية الموقع متمنوعة من إعدادات جهازك/متصفحك');
+            } else {
+                attemptGetLocation();
+            }
+        }).catch(function() { attemptGetLocation(); });
+    } else {
+        attemptGetLocation();
+    }
+}
+
 function buildWorkStatusCardHtml() {
     return '<div style="background:white;border-radius:20px;padding:22px 22px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);margin-bottom:14px">' +
         '<div style="font-size:34px;margin-bottom:6px">🛠️</div>' +
@@ -11169,7 +11236,6 @@ function wireOwnedEquipmentWorkCard(driverId, eqType) {
     }
 
     btn.onclick = function() {
-        if (!navigator.geolocation) { statusEl.innerHTML = '❌ الجهاز مش بيدعم تحديد الموقع'; return; }
         if (!sharing) {
             var meterVal = parseFloat(meterInput.value);
             if (isNaN(meterVal)) {
@@ -11177,18 +11243,21 @@ function wireOwnedEquipmentWorkCard(driverId, eqType) {
                 statusEl.innerHTML = '⚠️ من فضلك اكتب قراءة العداد الحالية';
                 meterInput.focus(); return;
             }
-            startSharing(meterVal);
+            // ميبدأش العمل غير لو صلاحية الموقع مفعّلة فعليًا على الجهاز
+            gateLocationPermissionThenRun(statusEl, function() { startSharing(meterVal); });
         } else {
             stopSharing();
         }
     };
 
     // استرجاع آخر حالة كانت محفوظة على الجهاز: لو السائق كان شغّال قبل ما يقفل الصفحة،
-    // نكمّل تسجيل الموقع تلقائيًا من غير ما يضغط "بدء العمل" تاني (المتصفح مش هيطلب الإذن تاني بعد أول مرة يوافق فيها)
+    // نكمّل تسجيل الموقع تلقائيًا من غير ما يضغط "بدء العمل" تاني — لكن برضو بعد التأكد إن صلاحية الموقع لسه مفعّلة
     if (sharing && startMeter != null) {
-        startSharing(startMeter);
-        statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
-        statusEl.innerHTML = '🟢 شغّال دلوقتي — تم استكمال الجلسة تلقائيًا';
+        gateLocationPermissionThenRun(statusEl, function() {
+            startSharing(startMeter);
+            statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
+            statusEl.innerHTML = '🟢 شغّال دلوقتي — تم استكمال الجلسة تلقائيًا';
+        });
     }
 }
 
@@ -11434,8 +11503,12 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
         }
 
         locBtn.onclick = function() {
-            if (!navigator.geolocation) { locStatusEl.innerHTML = '❌ الجهاز مش بيدعم العملية دي'; return; }
-            if (!sharing) startLocSharing(); else stopLocSharing();
+            if (!sharing) {
+                // ميبدأش العمل غير لو صلاحية الموقع مفعّلة فعليًا على الجهاز
+                gateLocationPermissionThenRun(locStatusEl, startLocSharing);
+            } else {
+                stopLocSharing();
+            }
         };
 
         window.addEventListener('online', tryFlushQueue);
@@ -11443,12 +11516,14 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
         updateQueueBadge();
 
         // استرجاع آخر حالة كانت محفوظة على الجهاز: لو السائق كان شغّال قبل ما يقفل الصفحة،
-        // نكمّل تسجيل الموقع تلقائيًا من غير ما يضغط "بدء العمل" تاني (المتصفح مش هيطلب الإذن تاني بعد أول مرة يوافق فيها)
+        // نكمّل تسجيل الموقع تلقائيًا من غير ما يضغط "بدء العمل" تاني — لكن برضو بعد التأكد إن صلاحية الموقع لسه مفعّلة
         var savedLocState = getSavedLocState();
         if (savedLocState && savedLocState.sharing) {
-            startLocSharing();
-            locStatusEl.style.color = '#065f46'; locStatusEl.style.background = '#d1fae5';
-            locStatusEl.innerHTML = '🟢 شغّال دلوقتي — تم استكمال الجلسة تلقائيًا';
+            gateLocationPermissionThenRun(locStatusEl, function() {
+                startLocSharing();
+                locStatusEl.style.color = '#065f46'; locStatusEl.style.background = '#d1fae5';
+                locStatusEl.innerHTML = '🟢 شغّال دلوقتي — تم استكمال الجلسة تلقائيًا';
+            });
         }
     })();
 }
@@ -11628,11 +11703,11 @@ function initEquipmentMeterSharePage(driverId) {
     }
 
     btn.onclick = function() {
-        if (!navigator.geolocation) { statusEl.innerHTML = '❌ الجهاز مش بيدعم تحديد الموقع'; return; }
         if (!sharing) {
             var meterVal = parseFloat(meterInput.value);
             if (isNaN(meterVal)) { showToastLike('من فضلك اكتب قراءة العداد الحالية'); meterInput.focus(); return; }
-            startSharing(meterVal);
+            // ميبدأش العمل غير لو صلاحية الموقع مفعّلة فعليًا على الجهاز
+            gateLocationPermissionThenRun(statusEl, function() { startSharing(meterVal); });
         } else {
             stopSharing();
         }
@@ -11644,11 +11719,13 @@ function initEquipmentMeterSharePage(driverId) {
     }
 
     // استرجاع آخر حالة كانت محفوظة على الجهاز: لو السائق كان شغّال قبل ما يقفل الصفحة،
-    // نكمّل تسجيل الموقع تلقائيًا من غير ما يضغط "بدء العمل" تاني (المتصفح مش هيطلب الإذن تاني بعد أول مرة يوافق فيها)
+    // نكمّل تسجيل الموقع تلقائيًا من غير ما يضغط "بدء العمل" تاني — لكن برضو بعد التأكد إن صلاحية الموقع لسه مفعّلة
     if (sharing && startMeter != null) {
-        startSharing(startMeter);
-        statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
-        statusEl.innerHTML = '🟢 شغّال دلوقتي — تم استكمال الجلسة تلقائيًا';
+        gateLocationPermissionThenRun(statusEl, function() {
+            startSharing(startMeter);
+            statusEl.style.color = '#065f46'; statusEl.style.background = '#d1fae5';
+            statusEl.innerHTML = '🟢 شغّال دلوقتي — تم استكمال الجلسة تلقائيًا';
+        });
     }
 }
 
