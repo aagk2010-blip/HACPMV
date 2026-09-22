@@ -1933,7 +1933,8 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
   <div id="atab-cleanup" style="padding:14px;display:none">
     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;color:#92400e">
-      🧹 سجل مواقع GPS للسائقين ومراجعات المعدات السريعة بيكبروا مع الوقت وبيزودوا حجم قاعدة البيانات. حدّد مدة الاحتفاظ المناسبة، والبيانات الأقدم من كده هتتحذف نهائيًا ومش هترجع.
+      🧹 سجلات مواقع GPS ومراجعات المعدات وسجلات النقل/التعديل والوقود وتقارير الصيانة بتكبر مع الوقت وبتزوّد حجم قاعدة البيانات وتبطّئ تحميل البرنامج. حدّد مدة الاحتفاظ المناسبة لكل نوع، والبيانات الأقدم من كده هتتحذف نهائيًا ومش هترجع.<br><br>
+      ✅ التنظيف التلقائي مفعّل الآن افتراضيًا، وبيغطّي 6 أنواع من السجلات (مش بس مواقع GPS) — تقدر تغيّر أي مدة من هنا في أي وقت.
     </div>
     <div style="background:white;border-radius:14px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:14px">
       <div style="display:grid;gap:14px;margin-bottom:14px">
@@ -1945,6 +1946,23 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
           <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">🔍 الاحتفاظ بسجل المراجعات السريعة للمعدات (equipmentChecks) (بالأيام)</label>
           <input id="cleanup-checks-days" type="number" step="1" min="30" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;font-family:inherit;box-sizing:border-box;outline:none">
         </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">📝 الاحتفاظ بسجل تعديلات المعدات (changeLogs) (بالأيام)</label>
+          <input id="cleanup-changelogs-days" type="number" step="1" min="30" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;font-family:inherit;box-sizing:border-box;outline:none">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">🚚 الاحتفاظ بسجل نقل المعدات بين المواقع (transferLogs) (بالأيام)</label>
+          <input id="cleanup-transferlogs-days" type="number" step="1" min="30" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;font-family:inherit;box-sizing:border-box;outline:none">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">⛽ الاحتفاظ بسجلات الوقود (fuelRecords) (بالأيام)</label>
+          <input id="cleanup-fuelrecords-days" type="number" step="1" min="30" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;font-family:inherit;box-sizing:border-box;outline:none">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">🔧 الاحتفاظ بتقارير/بلاغات الصيانة (maintenanceReports) (بالأيام)</label>
+          <input id="cleanup-maintreports-days" type="number" step="1" min="30" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;font-family:inherit;box-sizing:border-box;outline:none">
+        </div>
+        <div style="font-size:10.5px;color:#94a3b8">💡 سجلات النقل والوقود وتقارير الصيانة بتتوقف عادةً على مدة أطول لأنها مهمة للتقارير والمحاسبة والضمانات — القيم الافتراضية محافظة (سنة إلى سنتين) عشان متتحذفش بيانات لسه محتاجينها.</div>
         <label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="cleanup-auto-enabled" style="width:18px;height:18px">تشغيل التنظيف تلقائيًا مرة كل يوم عند دخول أي مدير للتطبيق</label>
       </div>
       <button onclick="saveDataRetentionSettings()" style="width:100%;background:linear-gradient(135deg,#4f46e5,#3730a3);color:white;border:none;border-radius:12px;padding:12px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit;margin-bottom:10px">✅ حفظ الإعدادات</button>
@@ -2186,6 +2204,10 @@ function loadDataRetentionFields() {
     if (!gpsEl) return;
     gpsEl.value = dataRetentionSettings.driverLocationHistoryDays || 90;
     document.getElementById('cleanup-checks-days').value = dataRetentionSettings.equipmentChecksDays || 365;
+    document.getElementById('cleanup-changelogs-days').value = dataRetentionSettings.changeLogsDays || 365;
+    document.getElementById('cleanup-transferlogs-days').value = dataRetentionSettings.transferLogsDays || 730;
+    document.getElementById('cleanup-fuelrecords-days').value = dataRetentionSettings.fuelRecordsDays || 730;
+    document.getElementById('cleanup-maintreports-days').value = dataRetentionSettings.maintenanceReportsDays || 730;
     document.getElementById('cleanup-auto-enabled').checked = !!dataRetentionSettings.autoCleanupEnabled;
     var lastRunEl = document.getElementById('cleanup-last-run');
     if (lastRunEl) {
@@ -2200,9 +2222,17 @@ function saveDataRetentionSettings() {
     if (!fbDb) { showToast('❌ لا يوجد اتصال بالسيرفر', true); return; }
     var gpsDays = parseInt(document.getElementById('cleanup-gps-days').value, 10) || 90;
     var checksDays = parseInt(document.getElementById('cleanup-checks-days').value, 10) || 365;
+    var changeLogsDays = parseInt(document.getElementById('cleanup-changelogs-days').value, 10) || 365;
+    var transferLogsDays = parseInt(document.getElementById('cleanup-transferlogs-days').value, 10) || 730;
+    var fuelRecordsDays = parseInt(document.getElementById('cleanup-fuelrecords-days').value, 10) || 730;
+    var maintenanceReportsDays = parseInt(document.getElementById('cleanup-maintreports-days').value, 10) || 730;
     var data = {
         driverLocationHistoryDays: gpsDays,
         equipmentChecksDays: checksDays,
+        changeLogsDays: changeLogsDays,
+        transferLogsDays: transferLogsDays,
+        fuelRecordsDays: fuelRecordsDays,
+        maintenanceReportsDays: maintenanceReportsDays,
         autoCleanupEnabled: document.getElementById('cleanup-auto-enabled').checked,
         updatedAt: new Date().toISOString(),
         updatedBy: (currentUser && (currentUser.name || currentUser.username)) || 'غير معروف'
@@ -2218,17 +2248,33 @@ function saveDataRetentionSettings() {
 // المنطق الأساسي للتنظيف: بيرجع Promise بعدد العناصر المحذوفة من كل نوع.
 // driverLocationHistory متخزّنة بالشكل driverLocationHistory/{driverId}/{yyyy-mm-dd}/{pushId}،
 // فبنحذف عُقدة اليوم كاملة دفعة واحدة (أرخص وأسرع بكتير من حذف كل نقطة GPS لوحدها).
-// equipmentChecks مجموعة مسطّحة فيها checkedAt (ISO)، فبنستعلم بيها مباشرة.
+// equipmentChecks و changeLogs و transferLogs و fuelRecords و maintenanceReports مجموعات مسطّحة
+// فيها حقل تاريخ (checkedAt / changedAt / createdAt / createdAt / reportedAt)، فبنستعلم بيها مباشرة.
+// أي استعلام يفشل (مثلاً لعدم وجود index على الحقل) بيرجع 0 بدل ما يوقف باقي عمليات التنظيف.
 function runDataCleanup() {
     if (!fbDb) return Promise.reject(new Error('لا يوجد اتصال بالسيرفر'));
     function toDateKey(d) {
         var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
         return y + '-' + m + '-' + day;
     }
+    function cutoffISO(days) {
+        return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    }
+    function purgeByDateField(path, field, days) {
+        return fbDb.ref(path).orderByChild(field).endAt(cutoffISO(days)).once('value').then(function(snap) {
+            var val = snap.val() || {};
+            var keys = Object.keys(val);
+            if (!keys.length) return 0;
+            var updates = {};
+            keys.forEach(function(k) { updates[path + '/' + k] = null; });
+            return fbDb.ref().update(updates).then(function() { return keys.length; });
+        }).catch(function() {
+            return 0;
+        });
+    }
+
     var gpsDays = dataRetentionSettings.driverLocationHistoryDays || 90;
-    var checksDays = dataRetentionSettings.equipmentChecksDays || 365;
     var gpsCutoffKey = toDateKey(new Date(Date.now() - gpsDays * 24 * 60 * 60 * 1000));
-    var checksCutoffISO = new Date(Date.now() - checksDays * 24 * 60 * 60 * 1000).toISOString();
 
     var gpsPromise = fbDb.ref('driverLocationHistory').once('value').then(function(snap) {
         var val = snap.val() || {};
@@ -2247,21 +2293,22 @@ function runDataCleanup() {
         return fbDb.ref().update(updates).then(function() { return deletedDays; });
     });
 
-    var checksPromise = fbDb.ref('equipmentChecks').orderByChild('checkedAt').endAt(checksCutoffISO).once('value').then(function(snap) {
-        var val = snap.val() || {};
-        var keys = Object.keys(val);
-        if (!keys.length) return 0;
-        var updates = {};
-        keys.forEach(function(k) { updates['equipmentChecks/' + k] = null; });
-        return fbDb.ref().update(updates).then(function() { return keys.length; });
-    }).catch(function() {
-        // لو مفيش index على checkedAt، بنرجع 0 بدل ما نوقف التنظيف بالكامل — سجل GPS برضه هيتنضف
-        return 0;
-    });
+    var checksPromise = purgeByDateField('equipmentChecks', 'checkedAt', dataRetentionSettings.equipmentChecksDays || 365);
+    var changeLogsPromise = purgeByDateField('changeLogs', 'changedAt', dataRetentionSettings.changeLogsDays || 365);
+    var transferLogsPromise = purgeByDateField('transferLogs', 'createdAt', dataRetentionSettings.transferLogsDays || 730);
+    var fuelRecordsPromise = purgeByDateField('fuelRecords', 'createdAt', dataRetentionSettings.fuelRecordsDays || 730);
+    var maintenanceReportsPromise = purgeByDateField('maintenanceReports', 'reportedAt', dataRetentionSettings.maintenanceReportsDays || 730);
 
-    return Promise.all([gpsPromise, checksPromise]).then(function(results) {
+    return Promise.all([gpsPromise, checksPromise, changeLogsPromise, transferLogsPromise, fuelRecordsPromise, maintenanceReportsPromise]).then(function(results) {
         localStorage.setItem('lastDataCleanupAt', new Date().toISOString());
-        return { gpsDaysDeleted: results[0], checksDeleted: results[1] };
+        return {
+            gpsDaysDeleted: results[0],
+            checksDeleted: results[1],
+            changeLogsDeleted: results[2],
+            transferLogsDeleted: results[3],
+            fuelRecordsDeleted: results[4],
+            maintenanceReportsDeleted: results[5]
+        };
     });
 }
 
@@ -2580,7 +2627,15 @@ function runDataCleanupNow() {
     runDataCleanup().then(function(res) {
         if (btn) { btn.disabled = false; btn.textContent = '🗑️ تشغيل التنظيف الآن'; }
         if (resultEl) {
-            resultEl.innerHTML = '<div style="background:#d1fae5;border-radius:10px;padding:12px;font-size:12.5px;color:#065f46;text-align:center">✅ تم حذف ' + res.gpsDaysDeleted + ' يوم من سجلات GPS القديمة، و ' + res.checksDeleted + ' مراجعة معدات قديمة</div>';
+            resultEl.innerHTML = '<div style="background:#d1fae5;border-radius:10px;padding:12px;font-size:12.5px;color:#065f46;text-align:right;line-height:1.9">' +
+                '✅ تم الانتهاء من التنظيف:<br>' +
+                '📍 ' + res.gpsDaysDeleted + ' يوم من سجلات GPS القديمة<br>' +
+                '🔍 ' + res.checksDeleted + ' مراجعة معدات قديمة<br>' +
+                '📝 ' + res.changeLogsDeleted + ' سجل تعديل معدات قديم<br>' +
+                '🚚 ' + res.transferLogsDeleted + ' سجل نقل معدات قديم<br>' +
+                '⛽ ' + res.fuelRecordsDeleted + ' سجل وقود قديم<br>' +
+                '🔧 ' + res.maintenanceReportsDeleted + ' تقرير/بلاغ صيانة قديم' +
+                '</div>';
         }
         loadDataRetentionFields();
     }).catch(function(e) {
@@ -3510,7 +3565,19 @@ let driversData = [];
 let employeesData = [];
 let fuelData = [];
 var currentFuelPrices = { diesel: 0, gasoline: 0 };
-var dataRetentionSettings = { driverLocationHistoryDays: 90, equipmentChecksDays: 365, autoCleanupEnabled: false }; // مدة الاحتفاظ بسجلات GPS ومراجعات المعدات قبل الحذف التلقائي (TTL)
+// مدة الاحتفاظ بسجلات GPS ومراجعات المعدات وسجلات التعديل/النقل والوقود وتقارير الصيانة قبل الحذف التلقائي (TTL)
+// القيم دي هي الافتراضية لأي تركيب جديد ولحد ما يتفق فعليًا على إعداد مختلف من appSettings/dataRetention:
+// التنظيف التلقائي مفعّل افتراضيًا. مواقع GPS ومراجعات المعدات مدتهم أقصر لأنهم بيكبروا بسرعة كبيرة،
+// وسجلات النقل/التعديل والوقود وتقارير الصيانة مدتهم أطول (سنة إلى سنتين) لأنها مهمة للتقارير والمحاسبة والضمانات.
+var dataRetentionSettings = {
+    driverLocationHistoryDays: 30,
+    equipmentChecksDays: 365,
+    changeLogsDays: 365,
+    transferLogsDays: 730,
+    fuelRecordsDays: 730,
+    maintenanceReportsDays: 730,
+    autoCleanupEnabled: true
+};
 let maintenanceSchedules = [];
 let inventoryItems = [];
 let equipmentFilterLinks = [];
@@ -4689,7 +4756,17 @@ function attachFirebaseListeners() {
 
     listen('appSettings/dataRetention', function(snapshot) {
         var d = snapshot.val();
-        if (d && typeof d === 'object') dataRetentionSettings = Object.assign({}, dataRetentionSettings, d);
+        if (d && typeof d === 'object') {
+            dataRetentionSettings = Object.assign({}, dataRetentionSettings, d);
+        } else if (currentUser && currentUser.role === 'admin') {
+            // أول مرة يتشغّل فيها البرنامج ومفيش إعداد محفوظ خالص لحد الآن:
+            // نحفظ القيم الافتراضية الجديدة (تنظيف تلقائي مفعّل + احتفاظ بمواقع GPS لمدة 30 يوم) في قاعدة البيانات نفسها،
+            // عشان الإعداد يبقى موحّد لكل الأجهزة ولكل من يفتح لوحة التحكم، مش مجرد قيمة افتراضية محلية في المتصفح.
+            fbDb.ref('appSettings/dataRetention').set(Object.assign({}, dataRetentionSettings, {
+                updatedAt: new Date().toISOString(),
+                updatedBy: 'تفعيل تلقائي (إعداد افتراضي جديد)'
+            })).catch(function() {});
+        }
     });
     
     listen('maintenanceSchedules', function(snapshot) {
