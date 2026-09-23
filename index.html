@@ -1934,7 +1934,8 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   <div id="atab-cleanup" style="padding:14px;display:none">
     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:12px;margin-bottom:14px;font-size:12px;color:#92400e">
       🧹 سجلات مواقع GPS ومراجعات المعدات وسجلات النقل/التعديل والوقود وتقارير الصيانة بتكبر مع الوقت وبتزوّد حجم قاعدة البيانات وتبطّئ تحميل البرنامج. حدّد مدة الاحتفاظ المناسبة لكل نوع، والبيانات الأقدم من كده هتتحذف نهائيًا ومش هترجع.<br><br>
-      ✅ التنظيف التلقائي مفعّل الآن افتراضيًا، وبيغطّي 6 أنواع من السجلات (مش بس مواقع GPS) — تقدر تغيّر أي مدة من هنا في أي وقت.
+      ✅ التنظيف التلقائي مفعّل الآن افتراضيًا، وبيغطّي 7 أنواع من السجلات — بما فيها حذف الصيانات المجدولة المكتملة/الملغاة القديمة مع صورها ومرفقاتها (base64) اللي بتضخّم قاعدة البيانات. تقدر تغيّر أي مدة من هنا في أي وقت.<br><br>
+      💡 لو حابب تشوف وتحذف صور/مرفقات كبيرة بعينها يدويًا (زي مرفقات المعدات الدائمة اللي مش بتتحذف تلقائيًا)، استخدم أداة "🔍 فحص البيانات الكبيرة" في شاشة إدارة التخزين.
     </div>
     <div style="background:white;border-radius:14px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:14px">
       <div style="display:grid;gap:14px;margin-bottom:14px">
@@ -1961,6 +1962,10 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <div>
           <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">🔧 الاحتفاظ بتقارير/بلاغات الصيانة (maintenanceReports) (بالأيام)</label>
           <input id="cleanup-maintreports-days" type="number" step="1" min="30" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;font-family:inherit;box-sizing:border-box;outline:none">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">🗓️ الاحتفاظ بالصيانات المجدولة المكتملة/الملغاة القديمة ومرفقاتها (بالأيام)</label>
+          <input id="cleanup-maintschedules-days" type="number" step="1" min="30" dir="ltr" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;font-family:inherit;box-sizing:border-box;outline:none">
         </div>
         <div style="font-size:10.5px;color:#94a3b8">💡 سجلات النقل والوقود وتقارير الصيانة بتتوقف عادةً على مدة أطول لأنها مهمة للتقارير والمحاسبة والضمانات — القيم الافتراضية محافظة (سنة إلى سنتين) عشان متتحذفش بيانات لسه محتاجينها.</div>
         <label style="display:flex;align-items:center;gap:8px;background:var(--light);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer"><input type="checkbox" id="cleanup-auto-enabled" style="width:18px;height:18px">تشغيل التنظيف تلقائيًا مرة كل يوم عند دخول أي مدير للتطبيق</label>
@@ -2208,6 +2213,7 @@ function loadDataRetentionFields() {
     document.getElementById('cleanup-transferlogs-days').value = dataRetentionSettings.transferLogsDays || 730;
     document.getElementById('cleanup-fuelrecords-days').value = dataRetentionSettings.fuelRecordsDays || 730;
     document.getElementById('cleanup-maintreports-days').value = dataRetentionSettings.maintenanceReportsDays || 730;
+    document.getElementById('cleanup-maintschedules-days').value = dataRetentionSettings.maintenanceSchedulesDays || 365;
     document.getElementById('cleanup-auto-enabled').checked = !!dataRetentionSettings.autoCleanupEnabled;
     var lastRunEl = document.getElementById('cleanup-last-run');
     if (lastRunEl) {
@@ -2226,6 +2232,7 @@ function saveDataRetentionSettings() {
     var transferLogsDays = parseInt(document.getElementById('cleanup-transferlogs-days').value, 10) || 730;
     var fuelRecordsDays = parseInt(document.getElementById('cleanup-fuelrecords-days').value, 10) || 730;
     var maintenanceReportsDays = parseInt(document.getElementById('cleanup-maintreports-days').value, 10) || 730;
+    var maintenanceSchedulesDays = parseInt(document.getElementById('cleanup-maintschedules-days').value, 10) || 365;
     var data = {
         driverLocationHistoryDays: gpsDays,
         equipmentChecksDays: checksDays,
@@ -2233,6 +2240,7 @@ function saveDataRetentionSettings() {
         transferLogsDays: transferLogsDays,
         fuelRecordsDays: fuelRecordsDays,
         maintenanceReportsDays: maintenanceReportsDays,
+        maintenanceSchedulesDays: maintenanceSchedulesDays,
         autoCleanupEnabled: document.getElementById('cleanup-auto-enabled').checked,
         updatedAt: new Date().toISOString(),
         updatedBy: (currentUser && (currentUser.name || currentUser.username)) || 'غير معروف'
@@ -2299,7 +2307,22 @@ function runDataCleanup() {
     var fuelRecordsPromise = purgeByDateField('fuelRecords', 'createdAt', dataRetentionSettings.fuelRecordsDays || 730);
     var maintenanceReportsPromise = purgeByDateField('maintenanceReports', 'reportedAt', dataRetentionSettings.maintenanceReportsDays || 730);
 
-    return Promise.all([gpsPromise, checksPromise, changeLogsPromise, transferLogsPromise, fuelRecordsPromise, maintenanceReportsPromise]).then(function(results) {
+    // الصيانات المجدولة المكتملة/الملغاة القديمة: بنحذف السجل كامل (بما فيه مرفقه/صورته base64 لو موجودة)
+    // عشان دي أكبر مصدر لمرفقات كبيرة متراكمة من غير أي تنظيف تلقائي قبل كده.
+    // بنستخدم النسخة المحمّلة محليًا (maintenanceSchedules) بدل استعلام جديد، لأنها أصلاً محمّلة بالكامل عبر المستمع الحي.
+    var maintSchedulesDays = dataRetentionSettings.maintenanceSchedulesDays || 365;
+    var maintSchedulesCutoffKey = toDateKey(new Date(Date.now() - maintSchedulesDays * 24 * 60 * 60 * 1000));
+    var maintenanceSchedulesPromise = (function() {
+        var ids = (maintenanceSchedules || []).filter(function(m) {
+            return m.date && m.date < maintSchedulesCutoffKey && (m.status === 'مكتمل' || m.status === 'ملغي' || m.status === 'ملغى');
+        }).map(function(m) { return m.id; });
+        if (!ids.length) return Promise.resolve(0);
+        var updates = {};
+        ids.forEach(function(id) { updates['maintenanceSchedules/' + id] = null; });
+        return fbDb.ref().update(updates).then(function() { return ids.length; });
+    })();
+
+    return Promise.all([gpsPromise, checksPromise, changeLogsPromise, transferLogsPromise, fuelRecordsPromise, maintenanceReportsPromise, maintenanceSchedulesPromise]).then(function(results) {
         localStorage.setItem('lastDataCleanupAt', new Date().toISOString());
         return {
             gpsDaysDeleted: results[0],
@@ -2307,7 +2330,8 @@ function runDataCleanup() {
             changeLogsDeleted: results[2],
             transferLogsDeleted: results[3],
             fuelRecordsDeleted: results[4],
-            maintenanceReportsDeleted: results[5]
+            maintenanceReportsDeleted: results[5],
+            maintenanceSchedulesDeleted: results[6]
         };
     });
 }
@@ -2463,7 +2487,7 @@ function executeDataRangeDelete(fromMonth, toMonth) {
             return f.date && f.date >= keys.fromKey && f.date <= keys.toKey;
         }).map(function(f) { return f.id; });
         if (fuelIds.length) {
-            var u3 = {}; fuelIds.forEach(function(id) { u3['fuelData/' + id] = null; });
+            var u3 = {}; fuelIds.forEach(function(id) { u3['fuelRecords/' + id] = null; });
             jobs.push(fbDb.ref().update(u3).then(function() { summary.fuel = fuelIds.length; }));
         } else summary.fuel = 0;
     }
@@ -2634,7 +2658,8 @@ function runDataCleanupNow() {
                 '📝 ' + res.changeLogsDeleted + ' سجل تعديل معدات قديم<br>' +
                 '🚚 ' + res.transferLogsDeleted + ' سجل نقل معدات قديم<br>' +
                 '⛽ ' + res.fuelRecordsDeleted + ' سجل وقود قديم<br>' +
-                '🔧 ' + res.maintenanceReportsDeleted + ' تقرير/بلاغ صيانة قديم' +
+                '🔧 ' + res.maintenanceReportsDeleted + ' تقرير/بلاغ صيانة قديم<br>' +
+                '🗓️ ' + res.maintenanceSchedulesDeleted + ' صيانة مجدولة قديمة (مع مرفقاتها)' +
                 '</div>';
         }
         loadDataRetentionFields();
@@ -2690,6 +2715,8 @@ function loadAdminUsers() {
     renderUsersList(listEl);
     renderAccountRequests();
     renderPasswordResetRequestsList();
+    // ترقية أي حساب لسه محتفظ بكلمة سر نص عادي (من قبل تفعيل التشفير) لصيغة مشفّرة تلقائيًا
+    migrateAnyPlaintextPasswords();
 }
 
 function renderUsersList(listEl) {
@@ -2814,8 +2841,8 @@ function openEditUserModal(idx) {
         '<input id="uem-name" value="' + escapeHtml(user.name) + '" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>' +
         '<div><label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645</label>' +
         '<input id="uem-username" value="' + escapeHtml(user.username) + '" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>' +
-        '<div><label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631</label>' +
-        '<input id="uem-password" type="text" value="' + escapeHtml(user.password) + '" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>' +
+        '<div><label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631' + (isNew ? '' : ' <span style="font-weight:400;color:#94a3b8">(اتركها فاضية لو مش هتغيّرها)</span>') + '</label>' +
+        '<input id="uem-password" type="text" placeholder="' + (isNew ? 'اكتب كلمة مرور للمستخدم الجديد' : '••••••••') + '" style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px"></div>' +
         '<div style="border-top:1px solid #f1f5f9;padding-top:10px">' +
         '<label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:6px">\u0646\u0648\u0639 \u0627\u0644\u062D\u0633\u0627\u0628</label>' +
         '<div style="display:flex;gap:6px">' +
@@ -2997,7 +3024,7 @@ function openEditUserModal(idx) {
         var name = document.getElementById('uem-name').value.trim();
         var uname = document.getElementById('uem-username').value.trim();
         var pass = document.getElementById('uem-password').value.trim();
-        if (!name || !uname || !pass) { showToast('\u0623\u0643\u0645\u0644 \u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0644', true); return; }
+        if (!name || !uname || (isNew && !pass)) { showToast('\u0623\u0643\u0645\u0644 \u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0644', true); return; }
 
         // تحقق من تكرار اسم المستخدم
         var dup = APP_USERS.find(function(u, i) {
@@ -3021,27 +3048,46 @@ function openEditUserModal(idx) {
             document.querySelectorAll('.uem-site-cb:checked').forEach(function(cb) { sites.push(cb.value); });
         }
 
-        if (isNew) {
-            APP_USERS.push({ id: user.id, username: uname, password: pass, name: name, role: selectedRole, active: true, sections: sections, sites: sites });
+        // لو المدير كتب كلمة سر جديدة، بنشفّرها الأول قبل أي حفظ (مفيش نص عادي بيتخزن خالص)
+        var passwordFieldsPromise;
+        if (pass) {
+            var newSalt = generatePasswordSalt();
+            passwordFieldsPromise = hashPasswordWithSalt(pass, newSalt).then(function(hash) {
+                return { passwordHash: hash, passwordSalt: newSalt };
+            });
         } else {
-            APP_USERS[idx].name = name;
-            APP_USERS[idx].username = uname;
-            APP_USERS[idx].password = pass;
-            APP_USERS[idx].role = selectedRole;
-            APP_USERS[idx].sections = sections;
-            APP_USERS[idx].sites = sites;
+            passwordFieldsPromise = Promise.resolve(null);
         }
-        saveAppUsers();
-        // تحديث صلاحيات المستخدم الحالي إذا كان هو المعدَّل
-        if (currentUser && !isNew && APP_USERS[idx] && currentUser.id === APP_USERS[idx].id) {
-            currentUser.role = selectedRole;
-            currentUser.sections = sections;
-            currentUser.sites = sites;
-            currentUser.name = name;
-        }
-        modal.remove();
-        renderUsersList();
-        showToast(isNew ? '✅ تم إضافة المستخدم' : '✅ تم تحديث البيانات');
+
+        passwordFieldsPromise.then(function(passwordFields) {
+            if (isNew) {
+                var newUserObj = { id: user.id, username: uname, name: name, role: selectedRole, active: true, sections: sections, sites: sites };
+                Object.assign(newUserObj, passwordFields);
+                APP_USERS.push(newUserObj);
+            } else {
+                APP_USERS[idx].name = name;
+                APP_USERS[idx].username = uname;
+                APP_USERS[idx].role = selectedRole;
+                APP_USERS[idx].sections = sections;
+                APP_USERS[idx].sites = sites;
+                if (passwordFields) {
+                    APP_USERS[idx].passwordHash = passwordFields.passwordHash;
+                    APP_USERS[idx].passwordSalt = passwordFields.passwordSalt;
+                    delete APP_USERS[idx].password;
+                }
+            }
+            saveAppUsers();
+            // تحديث صلاحيات المستخدم الحالي إذا كان هو المعدَّل
+            if (currentUser && !isNew && APP_USERS[idx] && currentUser.id === APP_USERS[idx].id) {
+                currentUser.role = selectedRole;
+                currentUser.sections = sections;
+                currentUser.sites = sites;
+                currentUser.name = name;
+            }
+            modal.remove();
+            renderUsersList();
+            showToast(isNew ? '✅ تم إضافة المستخدم' : '✅ تم تحديث البيانات');
+        });
     };
 }
 
@@ -3576,6 +3622,7 @@ var dataRetentionSettings = {
     transferLogsDays: 730,
     fuelRecordsDays: 730,
     maintenanceReportsDays: 730,
+    maintenanceSchedulesDays: 365,
     autoCleanupEnabled: true
 };
 let maintenanceSchedules = [];
@@ -5016,6 +5063,75 @@ function openViewerPermissionsModal() {
     };
 }
 
+// ==================== تشفير كلمات مرور المستخدمين (SHA-256 + salt عشوائي لكل مستخدم) ====================
+// بدل ما نخزّن كلمة السر نص عادي، بنخزّن بصمة (hash) منها فقط. البصمة دي اتجاه واحد —
+// مينفعش نرجع منها لكلمة السر الأصلية تاني أبدًا (حتى لو حد قرا قاعدة البيانات مباشرة).
+function generatePasswordSalt() {
+    var arr = new Uint8Array(16);
+    (window.crypto || window.msCrypto).getRandomValues(arr);
+    return Array.prototype.map.call(arr, function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+}
+
+function hashPasswordWithSalt(password, salt) {
+    if (window.crypto && window.crypto.subtle && window.crypto.subtle.digest) {
+        var enc = new TextEncoder().encode(salt + ':' + password);
+        return crypto.subtle.digest('SHA-256', enc).then(function(buf) {
+            return Array.prototype.map.call(new Uint8Array(buf), function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+        }).catch(function() { return simpleFallbackHash(salt + ':' + password); });
+    }
+    // احتياطي نادر الاستخدام لو المتصفح مش بيدعم Web Crypto خالص — أضعف من SHA-256 لكن أفضل بكتير من نص عادي مكشوف
+    return Promise.resolve(simpleFallbackHash(salt + ':' + password));
+}
+
+function simpleFallbackHash(str) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (var i = 0; i < str.length; i++) {
+        var ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 'fb_' + (h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0');
+}
+
+// بيرجع Promise<boolean>: هل كلمة السر المدخلة مطابقة لحساب المستخدم ده؟
+// لو المستخدم لسه على النظام القديم (كلمة سر نص عادي من قبل التحديث)، بيتحقق منها عادي،
+// ولو صحيحة بيرقّي الحساب فورًا لصيغة مشفّرة تلقائيًا من غير ما المستخدم يحس بأي فرق.
+function verifyUserPassword(user, enteredPassword) {
+    if (user.passwordHash && user.passwordSalt) {
+        return hashPasswordWithSalt(enteredPassword, user.passwordSalt).then(function(h) {
+            return h === user.passwordHash;
+        });
+    }
+    if (user.password !== undefined && user.password === enteredPassword) {
+        return migrateUserPasswordToHash(user, enteredPassword).then(function() { return true; }).catch(function() { return true; });
+    }
+    return Promise.resolve(false);
+}
+
+// بيحوّل حساب مستخدم من كلمة سر نص عادي لصيغة مشفّرة، ويحذف النص العادي من قاعدة البيانات نهائيًا
+function migrateUserPasswordToHash(user, plainPassword) {
+    var salt = generatePasswordSalt();
+    return hashPasswordWithSalt(plainPassword, salt).then(function(hash) {
+        user.passwordHash = hash;
+        user.passwordSalt = salt;
+        delete user.password;
+        if (!(typeof fbDb !== 'undefined' && fbDb) || !user.id) return;
+        return fbDb.ref('appUsers/' + user.id).update({ passwordHash: hash, passwordSalt: salt, password: null });
+    });
+}
+
+// بيفحص كل المستخدمين المحمّلين حاليًا، ولو لاقى حد لسه بكلمة سر نص عادي (معملش عليها تسجيل دخول لحد دلوقتي)، بيرقّيه تلقائيًا
+function migrateAnyPlaintextPasswords() {
+    if (!(typeof fbDb !== 'undefined' && fbDb)) return;
+    (APP_USERS || []).forEach(function(u) {
+        if (u.password !== undefined && u.password !== null && !(u.passwordHash && u.passwordSalt)) {
+            migrateUserPasswordToHash(u, u.password).catch(function() {});
+        }
+    });
+}
+
 function secureLogin() {
     if (!loginDataReady) {
         showToast('⏳ جاري تحميل بيانات الدخول، انتظر لحظة...', true);
@@ -5036,7 +5152,7 @@ function secureLogin() {
         var found = null;
         for (var i = 0; i < APP_USERS.length; i++) {
             var u = APP_USERS[i];
-            if (u.username.toLowerCase() === username.toLowerCase() && u.password === password) {
+            if (u.username.toLowerCase() === username.toLowerCase()) {
                 found = u; break;
             }
         }
@@ -5045,24 +5161,31 @@ function secureLogin() {
             if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
             return;
         }
-        if (!found.active) {
-            if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = 'هذا الحساب معطّل. تواصل مع المدير'; }
+        verifyUserPassword(found, password).then(function(passwordOk) {
+            if (!passwordOk) {
+                if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة'; }
+                if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
+                return;
+            }
+            if (!found.active) {
+                if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = 'هذا الحساب معطّل. تواصل مع المدير'; }
+                if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
+                return;
+            }
+            currentUid = found.id;
+            currentUserRole = found.role === 'admin' ? 'admin' : 'custom';
+            currentUserPlan = found.role === 'admin' ? 'premium' : 'basic';
+            currentUserStatus = 'active';
+            currentUser = {
+                id: found.id, username: found.username, name: found.name,
+                role: found.role, sections: found.sections || {},
+                permissions: found.role === 'admin' ? ['all'] : ['view']
+            };
+            if (errDiv) errDiv.style.display = 'none';
             if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
-            return;
-        }
-        currentUid = found.id;
-        currentUserRole = found.role === 'admin' ? 'admin' : 'custom';
-        currentUserPlan = found.role === 'admin' ? 'premium' : 'basic';
-        currentUserStatus = 'active';
-        currentUser = {
-            id: found.id, username: found.username, name: found.name,
-            role: found.role, sections: found.sections || {},
-            permissions: found.role === 'admin' ? ['all'] : ['view']
-        };
-        if (errDiv) errDiv.style.display = 'none';
-        if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
-        showToast('مرحباً ' + found.name + ' ✅');
-        proceedToApp();
+            showToast('مرحباً ' + found.name + ' ✅');
+            proceedToApp();
+        });
     }
 
     // تحميل أحدث بيانات المستخدمين من Firebase أولاً
@@ -5275,17 +5398,21 @@ function approveAccountRequest(id) {
     var roleSel = document.getElementById('req-role-' + id);
     var role = roleSel ? roleSel.value : 'viewer';
     var roleLabels = { viewer:'👁️ مشاهد', editor:'✏️ محرر', manager:'🔧 مدير قسم', admin:'👑 مدير النظام' };
-    APP_USERS.push({
-        id: 'user_' + Date.now(),
-        username: req.username,
-        password: req.password,
-        name: req.name,
-        role: role === 'admin' ? 'admin' : 'custom',
-        active: true,
-        sections: sectionsForRole(role),
-        sites: []
-    });
-    saveAppUsers().then(function() {
+    var salt = generatePasswordSalt();
+    hashPasswordWithSalt(req.password, salt).then(function(hash) {
+        APP_USERS.push({
+            id: 'user_' + Date.now(),
+            username: req.username,
+            passwordHash: hash,
+            passwordSalt: salt,
+            name: req.name,
+            role: role === 'admin' ? 'admin' : 'custom',
+            active: true,
+            sections: sectionsForRole(role),
+            sites: []
+        });
+        return saveAppUsers();
+    }).then(function() {
         return fbDb.ref('accountRequests/' + id).remove();
     }).then(function() {
         showToast('✅ تم قبول الطلب — الحساب مفعّل بصلاحية ' + (roleLabels[role] || role));
@@ -5409,14 +5536,40 @@ function passwordResetRequestCardHtml(r) {
         '</div></div>';
 }
 
+// بيولّد كلمة سر عشوائية سهلة القراءة (من غير حروف/أرقام ممكن تتلخبط زي 0/O أو 1/l/I)
+function generateReadablePassword() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    var out = '';
+    var arr = new Uint8Array(8);
+    (window.crypto || window.msCrypto).getRandomValues(arr);
+    for (var i = 0; i < 8; i++) out += chars[arr[i] % chars.length];
+    return out;
+}
+
 function sendPasswordResetWhatsApp(id) {
     var req = passwordResetRequestsData.find(function(r) { return r.id === id; });
     if (!req) return;
     var user = APP_USERS.find(function(u) { return u.username.toLowerCase() === req.username.toLowerCase(); });
     if (!user) { showToast('⛔ هذا المستخدم لم يعد موجودًا في النظام', true); return; }
-    var text = 'مرحبا ' + (user.name || '') + '\nبيانات الدخول الخاصة بك:\nاسم المستخدم: ' + user.username + '\nكلمة المرور: ' + user.password;
-    // من غير رقم محدد: واتساب بتفتح وتسيب المستخدم يختار الشخص/الرقم بنفسه من قائمة جهات الاتصال
-    window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
+    // بعد التشفير مبقاش ممكن نسترجع كلمة السر القديمة (اتجاه واحد بس)، فبنحدد كلمة سر جديدة للمستخدم ونبعتها بدل القديمة
+    var newPassword = generateReadablePassword();
+    var salt = generatePasswordSalt();
+    hashPasswordWithSalt(newPassword, salt).then(function(hash) {
+        user.passwordHash = hash;
+        user.passwordSalt = salt;
+        delete user.password;
+        return saveAppUsers();
+    }).then(function() {
+        var text = 'مرحبا ' + (user.name || '') + '\nتم تحديد كلمة مرور جديدة لحسابك:\nاسم المستخدم: ' + user.username + '\nكلمة المرور الجديدة: ' + newPassword + '\n\nممكن تغيّرها لاحقًا من داخل البرنامج.';
+        // من غير رقم محدد: واتساب بتفتح وتسيب المستخدم يختار الشخص/الرقم بنفسه من قائمة جهات الاتصال
+        window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
+        return fbDb.ref('passwordResetRequests/' + id).remove();
+    }).then(function() {
+        renderPasswordResetRequestsList();
+        showToast('✅ تم تحديد كلمة مرور جديدة للمستخدم وإرسالها');
+    }).catch(function(e) {
+        showToast('❌ حصل خطأ أثناء تحديد كلمة المرور الجديدة: ' + e.message, true);
+    });
 }
 
 function dismissPasswordResetRequest(id) {
@@ -5442,6 +5595,7 @@ function proceedToApp() {
 
     var isAdmin = currentUser && currentUser.role === 'admin';
     if (isAdmin) setTimeout(function() { maybeAutoRunDataCleanup(); }, 5000);
+    if (isAdmin) setTimeout(function() { migrateAnyPlaintextPasswords(); }, 6000);
 
     // عرض اسم المستخدم ودوره
     var userNameDisplay = document.getElementById('user-name-display');
@@ -7124,21 +7278,28 @@ function eqpvVerifyEditAccess(eqId, fileKey, title) {
         var val = snap.val() || {};
         var users = Object.values(val);
         var found = users.find(function(u) {
-            return u.username && u.username.toLowerCase() === username.toLowerCase() && u.password === password;
+            return u.username && u.username.toLowerCase() === username.toLowerCase();
         });
-        if (!found || !found.active) {
+        if (!found) {
             statusEl.style.color = '#dc2626';
             statusEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
             return;
         }
-        var canEditEquipment = found.role === 'admin' || (found.sections && (found.sections.equipment === 'edit' || found.sections.equipment === 'full'));
-        if (!canEditEquipment) {
-            statusEl.style.color = '#dc2626';
-            statusEl.textContent = 'هذا الحساب ليس لديه صلاحية تعديل المعدات';
-            return;
-        }
-        _eqpvFileUploadAuth = { name: found.name || found.username };
-        openEquipmentFileModal(eqId, fileKey, title, _eqpvCurrentFileIcon);
+        verifyUserPassword(found, password).then(function(passwordOk) {
+            if (!passwordOk || !found.active) {
+                statusEl.style.color = '#dc2626';
+                statusEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                return;
+            }
+            var canEditEquipment = found.role === 'admin' || (found.sections && (found.sections.equipment === 'edit' || found.sections.equipment === 'full'));
+            if (!canEditEquipment) {
+                statusEl.style.color = '#dc2626';
+                statusEl.textContent = 'هذا الحساب ليس لديه صلاحية تعديل المعدات';
+                return;
+            }
+            _eqpvFileUploadAuth = { name: found.name || found.username };
+            openEquipmentFileModal(eqId, fileKey, title, _eqpvCurrentFileIcon);
+        });
     }).catch(function() {
         statusEl.style.color = '#dc2626';
         statusEl.textContent = 'تعذّر التحقق — تأكد من الاتصال بالإنترنت';
