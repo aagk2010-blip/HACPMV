@@ -3063,7 +3063,12 @@ function openEditUserModal(idx) {
             if (isNew) {
                 var newUserObj = { id: user.id, username: uname, name: name, role: selectedRole, active: true, sections: sections, sites: sites };
                 Object.assign(newUserObj, passwordFields);
-                APP_USERS.push(newUserObj);
+                // ننشئ حساب حقيقي في Firebase Authentication تلقائيًا لأي مستخدم جديد، عشان يدخل بالطريقة الآمنة من أول يوم
+                createFirebaseAuthAccountSafely(uname, pass).then(function(uid) {
+                    if (uid) newUserObj.firebaseUid = uid;
+                    APP_USERS.push(newUserObj);
+                    finishSaveUser();
+                });
             } else {
                 APP_USERS[idx].name = name;
                 APP_USERS[idx].username = uname;
@@ -3074,19 +3079,27 @@ function openEditUserModal(idx) {
                     APP_USERS[idx].passwordHash = passwordFields.passwordHash;
                     APP_USERS[idx].passwordSalt = passwordFields.passwordSalt;
                     delete APP_USERS[idx].password;
+                    if (APP_USERS[idx].firebaseUid) {
+                        // الحساب ده أصلاً على Firebase Authentication — كلمة السر هناك متتغيرش تلقائيًا من هنا (قيد تقني معروف)
+                        showToast('⚠️ لازم تحديث كلمة السر يدويًا في Firebase Authentication كمان لهذا الحساب', true);
+                    }
                 }
             }
-            saveAppUsers();
-            // تحديث صلاحيات المستخدم الحالي إذا كان هو المعدَّل
-            if (currentUser && !isNew && APP_USERS[idx] && currentUser.id === APP_USERS[idx].id) {
-                currentUser.role = selectedRole;
-                currentUser.sections = sections;
-                currentUser.sites = sites;
-                currentUser.name = name;
+            if (!isNew) finishSaveUser();
+
+            function finishSaveUser() {
+                saveAppUsers();
+                // تحديث صلاحيات المستخدم الحالي إذا كان هو المعدَّل
+                if (currentUser && !isNew && APP_USERS[idx] && currentUser.id === APP_USERS[idx].id) {
+                    currentUser.role = selectedRole;
+                    currentUser.sections = sections;
+                    currentUser.sites = sites;
+                    currentUser.name = name;
+                }
+                modal.remove();
+                renderUsersList();
+                showToast(isNew ? '✅ تم إضافة المستخدم' : '✅ تم تحديث البيانات');
             }
-            modal.remove();
-            renderUsersList();
-            showToast(isNew ? '✅ تم إضافة المستخدم' : '✅ تم تحديث البيانات');
         });
     };
 }
@@ -5132,6 +5145,34 @@ function migrateAnyPlaintextPasswords() {
     });
 }
 
+// إنشاء حساب حقيقي في Firebase Authentication لمستخدم جديد، من غير ما نأثر على جلسة دخول المدير الحالية.
+// الحيلة: بنستخدم "نسخة تانية مؤقتة" من تطبيق Firebase (مش النسخة الأساسية اللي المدير داخل بيها) عشان ننشئ الحساب عليها،
+// وبعدين نمسح النسخة المؤقتة دي فورًا. بالطريقة دي جلسة دخول المدير الأساسية متتأثرش خالص.
+function createFirebaseAuthAccountSafely(username, plainPassword) {
+    if (typeof firebase === 'undefined' || !firebase.initializeApp) return Promise.resolve(null);
+    var email = username.toLowerCase() + '@hac.com';
+    var tempAppName = 'user-create-' + Date.now();
+    var tempApp;
+    try {
+        tempApp = firebase.initializeApp(FIREBASE_CONFIG, tempAppName);
+    } catch (e) {
+        return Promise.resolve(null);
+    }
+    return tempApp.auth().createUserWithEmailAndPassword(email, plainPassword).then(function(cred) {
+        var uid = cred.user.uid;
+        return tempApp.auth().signOut().catch(function() {}).then(function() {
+            return tempApp.delete().catch(function() {});
+        }).then(function() { return uid; });
+    }).catch(function(err) {
+        try { tempApp.delete(); } catch (e2) {}
+        // لو الحساب موجود بالفعل في Authentication (اتعمل قبل كده يدويًا مثلاً)، نبلّغ المستخدم بدل ما نفشل بصمت
+        if (err && err.code === 'auth/email-already-in-use') {
+            showToast('⚠️ يوجد حساب Firebase بنفس اسم المستخدم ده بالفعل — لازم تربطه يدويًا (firebaseUid)', true);
+        }
+        return null;
+    });
+}
+
 function secureLogin() {
     if (!loginDataReady) {
         showToast('⏳ جاري تحميل بيانات الدخول، انتظر لحظة...', true);
@@ -5161,15 +5202,15 @@ function secureLogin() {
             if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
             return;
         }
-        verifyUserPassword(found, password).then(function(passwordOk) {
-            if (!passwordOk) {
-                if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة'; }
-                if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
-                return;
-            }
+
+        function showLoginError(msg) {
+            if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = msg; }
+            if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
+        }
+
+        function finalizeLogin() {
             if (!found.active) {
-                if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = 'هذا الحساب معطّل. تواصل مع المدير'; }
-                if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
+                showLoginError('هذا الحساب معطّل. تواصل مع المدير');
                 return;
             }
             currentUid = found.id;
@@ -5185,6 +5226,33 @@ function secureLogin() {
             if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
             showToast('مرحباً ' + found.name + ' ✅');
             proceedToApp();
+        }
+
+        // المستخدم له حساب حقيقي في Firebase Authentication (اتربط بـ firebaseUid) — بنسجّل دخوله بالطريقة الرسمية والآمنة.
+        // بريد الدخول ثابت بالاتفاق: اسم المستخدم + @hac.com (بنفس الطريقة اللي اتعمل بيها كل حساب في الكونسول)
+        if (found.firebaseUid && typeof firebase !== 'undefined' && firebase.auth) {
+            var authEmail = found.username.toLowerCase() + '@hac.com';
+            firebase.auth().signInWithEmailAndPassword(authEmail, password).then(function() {
+                finalizeLogin();
+            }).catch(function(err) {
+                if (err && (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email')) {
+                    // احتياطي فقط: الحساب متعلّم بـ firebaseUid بس الحساب الفعلي في Authentication مش موجود لأي سبب — نرجع للتحقق القديم بدل ما نقفل عليه بالغلط
+                    verifyUserPassword(found, password).then(function(ok) {
+                        if (!ok) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
+                        finalizeLogin();
+                    });
+                } else {
+                    // auth/wrong-password أو أي خطأ تاني من Firebase Auth نفسه = كلمة السر غلط فعلاً، مفيش داعي نرجع للطريقة القديمة
+                    showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة');
+                }
+            });
+            return;
+        }
+
+        // مستخدم لسه معملوش حساب في Firebase Authentication (مفيش firebaseUid) — التحقق بالطريقة القديمة زي ما هي
+        verifyUserPassword(found, password).then(function(passwordOk) {
+            if (!passwordOk) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
+            finalizeLogin();
         });
     }
 
