@@ -1661,65 +1661,137 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
 <div class="modal-overlay" id="notif-center-modal"><div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><div class="modal-title">🔔 <span class="i18n-label" data-en="Notification Center" data-ar="مركز التنبيهات"></span></div><button class="modal-close" onclick="closeNotifCenter()">✕</button></div><div id="notif-center-body" style="padding:14px"></div></div>
 
-<div id="kiosk-mode-overlay" style="display:none;position:fixed;inset:0;z-index:5000;background:#0d1b2a;color:white;overflow:hidden">
+<style id="kiosk-theme-css">
+/* ===== شاشة الإدارة: ألوان قابلة للتبديل (ليلي / نهاري) + خلفية صورة ===== */
+#kiosk-mode-overlay{
+  --k-bg:#0d1b2a;--k-text:#ffffff;--k-muted:#94a3b8;--k-soft:#c3ccd6;--k-accent:#e8a020;
+  --k-card:rgba(255,255,255,.06);--k-card2:rgba(255,255,255,.05);--k-btn:rgba(255,255,255,.12);
+  --k-line:rgba(255,255,255,.08);--k-track:rgba(255,255,255,.1);--k-dot:rgba(255,255,255,.25);
+  --k-input-bg:rgba(255,255,255,.06);--k-input-line:rgba(255,255,255,.2);--k-settings-bg:rgba(13,27,42,.97);
+  --k-green:#4ade80;--k-red:#f87171;--k-yellow:#fbbf24;--k-shadow:none;
+  --k-side:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  background:var(--k-bg);color:var(--k-text);color-scheme:dark;
+}
+#kiosk-mode-overlay.kiosk-light{
+  --k-bg:#eef1f6;--k-text:#0d1b2a;--k-muted:#5b6675;--k-soft:#334155;--k-accent:#b06a00;
+  --k-card:#ffffff;--k-card2:#ffffff;--k-btn:rgba(13,27,42,.08);
+  --k-line:rgba(13,27,42,.1);--k-track:rgba(13,27,42,.1);--k-dot:rgba(13,27,42,.22);
+  --k-input-bg:#ffffff;--k-input-line:rgba(13,27,42,.22);--k-settings-bg:rgba(238,241,246,.98);
+  --k-green:#059669;--k-red:#dc2626;--k-yellow:#b45309;--k-shadow:0 2px 10px rgba(13,27,42,.08);
+  --k-side:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.55));
+  color-scheme:light;
+}
+/* لما تكون فيه صورة خلفية: كروت زجاجية عشان الكلام يفضل مقروء */
+#kiosk-mode-overlay.kiosk-has-bg{
+  --k-card:rgba(13,27,42,.48);--k-card2:rgba(13,27,42,.42);--k-btn:rgba(13,27,42,.55);
+  --k-side:rgba(13,27,42,.38);--k-line:rgba(255,255,255,.14);
+}
+#kiosk-mode-overlay.kiosk-light.kiosk-has-bg{
+  --k-card:rgba(255,255,255,.74);--k-card2:rgba(255,255,255,.68);--k-btn:rgba(255,255,255,.78);
+  --k-side:rgba(255,255,255,.55);--k-line:rgba(13,27,42,.12);
+}
+#kiosk-mode-overlay [style*="var(--k-card"]{box-shadow:var(--k-shadow)}
+#kiosk-mode-overlay.kiosk-has-bg [style*="var(--k-card"],
+#kiosk-mode-overlay.kiosk-has-bg #kiosk-side-panel{-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+#kiosk-mode-overlay.kiosk-has-bg:not(.kiosk-light) #kiosk-slide-body,
+#kiosk-mode-overlay.kiosk-has-bg:not(.kiosk-light) #kiosk-side-panel{text-shadow:0 1px 6px rgba(0,0,0,.4)}
+#kiosk-mode-overlay .k-opt{display:flex;align-items:center;gap:10px;background:var(--k-card);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px;box-shadow:var(--k-shadow)}
+#kiosk-mode-overlay .k-opt-sm{gap:8px;border-radius:10px;padding:9px 12px;font-size:13px}
+#kiosk-mode-overlay .k-seg{flex:1;text-align:center;justify-content:center;background:var(--k-card);border:2px solid transparent;border-radius:12px;padding:11px 6px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:var(--k-shadow);display:flex;flex-direction:column;gap:2px;align-items:center}
+#kiosk-mode-overlay .k-seg input{display:none}
+#kiosk-mode-overlay .k-seg:has(input:checked){border-color:var(--k-accent);color:var(--k-accent)}
+#kiosk-mode-overlay .k-seg small{font-size:10px;font-weight:500;color:var(--k-muted)}
+#kiosk-mode-overlay .k-lbl{font-size:12px;color:var(--k-muted);display:block;margin-bottom:6px}
+#kiosk-mode-overlay .k-btn-sm{background:var(--k-btn);color:var(--k-text);border:none;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+#kiosk-mode-overlay input[type=range]{width:100%;accent-color:var(--k-accent)}
+#kiosk-mode-overlay input[type=checkbox]{accent-color:var(--k-accent)}
+</style>
+<div id="kiosk-mode-overlay" style="display:none;position:fixed;inset:0;z-index:5000;overflow:hidden">
+  <div id="kiosk-bg-layer" style="display:none;position:absolute;inset:-24px;background-size:cover;background-position:center;background-repeat:no-repeat;z-index:0"></div>
+  <div id="kiosk-bg-tint" style="position:absolute;inset:0;background:var(--k-bg);opacity:0;z-index:0;pointer-events:none;transition:opacity .4s"></div>
   <div style="position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;z-index:2">
     <div style="display:flex;align-items:center;gap:10px">
       <span style="font-size:15px;font-weight:800">🏗️ Hassan Allam Holding — شاشة الإدارة</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
-      <button onclick="openKioskSettingsPanel()" style="background:rgba(255,255,255,0.12);border:none;color:white;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:inherit">⚙️ الضبط</button>
-      <button onclick="exitKioskMode()" style="background:rgba(255,255,255,0.12);border:none;color:white;border-radius:20px;padding:6px 16px;font-size:12px;cursor:pointer;font-family:inherit">✕ خروج</button>
+      <button id="kiosk-theme-btn" onclick="toggleKioskTheme()" style="background:var(--k-btn);border:none;color:var(--k-text);border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:inherit">☀️ نهاري</button>
+      <button onclick="openKioskSettingsPanel()" style="background:var(--k-btn);border:none;color:var(--k-text);border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:inherit">⚙️ الضبط</button>
+      <button onclick="exitKioskMode()" style="background:var(--k-btn);border:none;color:var(--k-text);border-radius:20px;padding:6px 16px;font-size:12px;cursor:pointer;font-family:inherit">✕ خروج</button>
     </div>
   </div>
-  <div id="kiosk-side-panel" style="position:absolute;top:60px;bottom:36px;left:0;width:300px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border-left:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px 16px;box-sizing:border-box;z-index:1;overflow-y:auto">
-    <div id="kiosk-side-time" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:52px;color:#e8a020;letter-spacing:1px;text-align:center;line-height:1.1;direction:ltr"></div>
-    <div id="kiosk-side-day" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:24px;color:white;text-align:center"></div>
+  <div id="kiosk-side-panel" style="position:absolute;top:60px;bottom:36px;left:0;width:300px;background:var(--k-side);border-left:1px solid var(--k-line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px 16px;box-sizing:border-box;z-index:1;overflow-y:auto">
+    <div id="kiosk-side-time" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:52px;color:var(--k-accent);letter-spacing:1px;text-align:center;line-height:1.1;direction:ltr"></div>
+    <div id="kiosk-side-day" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:24px;color:var(--k-text);text-align:center"></div>
     <div style="width:60px;height:2px;background:rgba(232,160,32,.5);border-radius:2px"></div>
-    <div id="kiosk-side-date" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:16px;color:#b9c2cc;text-align:center;direction:ltr"></div>
-    <div style="width:100%;background:rgba(255,255,255,.05);border-radius:14px;padding:12px 10px;margin-top:6px">
-      <div id="kiosk-side-month" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:14px;color:#e8a020;text-align:center;margin-bottom:8px"></div>
+    <div id="kiosk-side-date" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:16px;color:var(--k-soft);text-align:center;direction:ltr"></div>
+    <div style="width:100%;background:var(--k-card2);border-radius:14px;padding:12px 10px;margin-top:6px">
+      <div id="kiosk-side-month" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:14px;color:var(--k-accent);text-align:center;margin-bottom:8px"></div>
       <div id="kiosk-side-calendar"></div>
     </div>
-    <div style="width:100%;background:rgba(255,255,255,.05);border-radius:14px;padding:14px 10px;margin-top:10px;text-align:center">
-      <div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:13px;color:#94a3b8;margin-bottom:6px">⏳ الوقت المتبقي لانتهاء العمل</div>
-      <div id="kiosk-side-countdown" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:800;font-size:30px;color:#e8a020;direction:ltr"></div>
+    <div style="width:100%;background:var(--k-card2);border-radius:14px;padding:14px 10px;margin-top:10px;text-align:center">
+      <div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:13px;color:var(--k-muted);margin-bottom:6px">⏳ الوقت المتبقي لانتهاء العمل</div>
+      <div id="kiosk-side-countdown" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:800;font-size:30px;color:var(--k-accent);direction:ltr"></div>
     </div>
   </div>
   <div id="kiosk-slide-body" style="position:absolute;top:60px;bottom:36px;right:0;left:300px;overflow-y:auto;padding:20px 30px"></div>
   <div id="kiosk-dots" style="position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:8px"></div>
 
-  <div id="kiosk-settings-panel" style="display:none;position:absolute;inset:0;z-index:10;background:rgba(13,27,42,.97);padding:24px;overflow-y:auto">
+  <div id="kiosk-settings-panel" style="display:none;position:absolute;inset:0;z-index:10;background:var(--k-settings-bg);padding:24px;overflow-y:auto">
     <div style="max-width:420px;margin:0 auto">
       <div style="font-size:19px;font-weight:800;margin-bottom:4px">⚙️ ضبط شاشة الإدارة</div>
-      <div style="font-size:12px;color:#94a3b8;margin-bottom:18px">اختر الشرائح المناسبة لهذا الجهاز — مثلًا شاشة المخزن تظهر لها "المخزن" بس، وشاشة الموقع تظهر لها "المواقع" و"الأسطول". الإعداد بيتحفظ على هذا الجهاز فقط.</div>
+      <div style="font-size:12px;color:var(--k-muted);margin-bottom:18px">اختر الشرائح المناسبة لهذا الجهاز — مثلًا شاشة المخزن تظهر لها "المخزن" بس، وشاشة الموقع تظهر لها "المواقع" و"الأسطول". الإعداد بيتحفظ على هذا الجهاز فقط.</div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
-        <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px"><input type="checkbox" id="kiosk-cfg-sites" style="width:18px;height:18px">🏢 نظرة عامة على المواقع</label>
-        <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px"><input type="checkbox" id="kiosk-cfg-alerts" style="width:18px;height:18px">🔔 التنبيهات الحرجة</label>
-        <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px"><input type="checkbox" id="kiosk-cfg-fleet" style="width:18px;height:18px">📈 أداء المعدات (الأسطول)</label>
-        <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px"><input type="checkbox" id="kiosk-cfg-warehouse" style="width:18px;height:18px">📦 نظرة عامة على المخزن</label>
+        <label class="k-opt"><input type="checkbox" id="kiosk-cfg-sites" style="width:18px;height:18px">🏢 نظرة عامة على المواقع</label>
+        <label class="k-opt"><input type="checkbox" id="kiosk-cfg-alerts" style="width:18px;height:18px">🔔 التنبيهات الحرجة</label>
+        <label class="k-opt"><input type="checkbox" id="kiosk-cfg-fleet" style="width:18px;height:18px">📈 أداء المعدات (الأسطول)</label>
+        <label class="k-opt"><input type="checkbox" id="kiosk-cfg-warehouse" style="width:18px;height:18px">📦 نظرة عامة على المخزن</label>
+      </div>
+
+      <div style="margin-bottom:22px">
+        <label class="k-lbl">🎨 مظهر الشاشة</label>
+        <div style="display:flex;gap:8px">
+          <label class="k-seg"><input type="radio" name="kiosk-cfg-theme" value="dark">🌙 ليلي</label>
+          <label class="k-seg"><input type="radio" name="kiosk-cfg-theme" value="light">☀️ نهاري</label>
+          <label class="k-seg"><input type="radio" name="kiosk-cfg-theme" value="auto">🌓 تلقائي<small>نهاري من 6 ص لـ 6 م</small></label>
+        </div>
+      </div>
+
+      <div style="margin-bottom:22px">
+        <label class="k-lbl">🖼️ صورة خلفية الشاشة (لشاشة الاستراحة)</label>
+        <div id="kiosk-cfg-bg-preview" style="width:100%;aspect-ratio:16/9;border-radius:12px;background:var(--k-card) center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--k-muted);margin-bottom:10px;overflow:hidden;box-shadow:var(--k-shadow)">لا توجد صورة</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <label class="k-btn-sm" style="flex:1;text-align:center">📷 اختيار صورة<input id="kiosk-cfg-bg-file" type="file" accept="image/*" style="display:none" onchange="onKioskBgPicked(this)"></label>
+          <button type="button" class="k-btn-sm" onclick="removeKioskBg()">🗑️ إزالة</button>
+        </div>
+        <div id="kiosk-cfg-bg-msg" style="font-size:12px;min-height:16px;margin-bottom:10px"></div>
+        <label class="k-lbl">تعتيم الصورة (يزيد وضوح الكلام): <b id="kiosk-cfg-dim-val" style="color:var(--k-text)"></b></label>
+        <input id="kiosk-cfg-dim" type="range" min="0" max="90" step="5" oninput="document.getElementById('kiosk-cfg-dim-val').textContent=this.value+'%'" style="margin-bottom:12px">
+        <label class="k-lbl">تغبيش الصورة: <b id="kiosk-cfg-blur-val" style="color:var(--k-text)"></b></label>
+        <input id="kiosk-cfg-blur" type="range" min="0" max="20" step="1" oninput="document.getElementById('kiosk-cfg-blur-val').textContent=this.value+'px'">
+      </div>
+
+      <div style="margin-bottom:22px">
+        <label class="k-lbl">⏱️ مدة عرض كل شريحة (بالثواني)</label>
+        <input id="kiosk-cfg-seconds" type="number" min="5" max="120" dir="ltr" style="width:100%;border:1.5px solid var(--k-input-line);background:var(--k-input-bg);color:var(--k-text);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;box-sizing:border-box;outline:none;font-family:inherit">
       </div>
       <div style="margin-bottom:22px">
-        <label style="font-size:12px;color:#94a3b8;display:block;margin-bottom:6px">⏱️ مدة عرض كل شريحة (بالثواني)</label>
-        <input id="kiosk-cfg-seconds" type="number" min="5" max="120" dir="ltr" style="width:100%;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:white;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;box-sizing:border-box;outline:none;font-family:inherit">
+        <label class="k-lbl">⏰ وقت انتهاء العمل اليومي</label>
+        <input id="kiosk-cfg-endtime" type="time" dir="ltr" style="width:100%;border:1.5px solid var(--k-input-line);background:var(--k-input-bg);color:var(--k-text);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;box-sizing:border-box;outline:none;font-family:inherit">
       </div>
       <div style="margin-bottom:22px">
-        <label style="font-size:12px;color:#94a3b8;display:block;margin-bottom:6px">⏰ وقت انتهاء العمل اليومي</label>
-        <input id="kiosk-cfg-endtime" type="time" dir="ltr" style="width:100%;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:white;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;box-sizing:border-box;outline:none;font-family:inherit">
-      </div>
-      <div style="margin-bottom:22px">
-        <label style="font-size:12px;color:#94a3b8;display:block;margin-bottom:8px">🚫 أيام الإجازة الأسبوعية (يظهر "يوم إجازة" بدل العدّاد)</label>
+        <label class="k-lbl" style="margin-bottom:8px">🚫 أيام الإجازة الأسبوعية (يظهر "يوم إجازة" بدل العدّاد)</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <label style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:13px"><input type="checkbox" id="kiosk-cfg-off-0" style="width:16px;height:16px">الأحد</label>
-          <label style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:13px"><input type="checkbox" id="kiosk-cfg-off-1" style="width:16px;height:16px">الإثنين</label>
-          <label style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:13px"><input type="checkbox" id="kiosk-cfg-off-2" style="width:16px;height:16px">الثلاثاء</label>
-          <label style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:13px"><input type="checkbox" id="kiosk-cfg-off-3" style="width:16px;height:16px">الأربعاء</label>
-          <label style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:13px"><input type="checkbox" id="kiosk-cfg-off-4" style="width:16px;height:16px">الخميس</label>
-          <label style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:13px"><input type="checkbox" id="kiosk-cfg-off-5" style="width:16px;height:16px">الجمعة</label>
-          <label style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:13px"><input type="checkbox" id="kiosk-cfg-off-6" style="width:16px;height:16px">السبت</label>
+          <label class="k-opt k-opt-sm"><input type="checkbox" id="kiosk-cfg-off-0" style="width:16px;height:16px">الأحد</label>
+          <label class="k-opt k-opt-sm"><input type="checkbox" id="kiosk-cfg-off-1" style="width:16px;height:16px">الإثنين</label>
+          <label class="k-opt k-opt-sm"><input type="checkbox" id="kiosk-cfg-off-2" style="width:16px;height:16px">الثلاثاء</label>
+          <label class="k-opt k-opt-sm"><input type="checkbox" id="kiosk-cfg-off-3" style="width:16px;height:16px">الأربعاء</label>
+          <label class="k-opt k-opt-sm"><input type="checkbox" id="kiosk-cfg-off-4" style="width:16px;height:16px">الخميس</label>
+          <label class="k-opt k-opt-sm"><input type="checkbox" id="kiosk-cfg-off-5" style="width:16px;height:16px">الجمعة</label>
+          <label class="k-opt k-opt-sm"><input type="checkbox" id="kiosk-cfg-off-6" style="width:16px;height:16px">السبت</label>
         </div>
       </div>
       <button onclick="saveKioskSettings()" style="width:100%;background:linear-gradient(135deg,#e8a020,#c2790a);color:#0d1b2a;border:none;border-radius:12px;padding:13px;font-weight:800;cursor:pointer;font-size:14px;font-family:inherit;margin-bottom:10px">✅ حفظ وتشغيل</button>
-      <button onclick="closeKioskSettingsPanel()" style="width:100%;background:rgba(255,255,255,.1);color:white;border:none;border-radius:12px;padding:11px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">إلغاء</button>
+      <button onclick="closeKioskSettingsPanel()" style="width:100%;background:var(--k-btn);color:var(--k-text);border:none;border-radius:12px;padding:11px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit">إلغاء</button>
     </div>
   </div>
 </div>
@@ -14245,7 +14317,13 @@ var KIOSK_DEFAULT_SECONDS = 15;
 var KIOSK_DEFAULT_SLIDES = ['sites', 'alerts', 'fleet', 'warehouse'];
 var KIOSK_DEFAULT_WORK_END = '17:30';
 var KIOSK_DEFAULT_OFF_DAYS = [5]; // الجمعة (getDay(): 0=أحد ... 5=جمعة ... 6=سبت)
-var kioskSettings = { slides: KIOSK_DEFAULT_SLIDES.slice(), seconds: KIOSK_DEFAULT_SECONDS, workEndTime: KIOSK_DEFAULT_WORK_END, offDays: KIOSK_DEFAULT_OFF_DAYS.slice() };
+var KIOSK_DEFAULT_THEME = 'dark';   // dark | light | auto
+var KIOSK_DEFAULT_BG_DIM = 45;      // % تعتيم صورة الخلفية
+var KIOSK_DEFAULT_BG_BLUR = 0;      // px تغبيش صورة الخلفية
+var KIOSK_AUTO_LIGHT_FROM = 6, KIOSK_AUTO_LIGHT_TO = 18; // الوضع التلقائي: نهاري من 6 ص لـ 6 م
+var kioskBgData = '';               // صورة الخلفية (Data URL مضغوطة) — محفوظة على الجهاز فقط
+var kioskBgPending;                 // undefined = بدون تغيير | '' = إزالة | نص = صورة جديدة (لحد ما يضغط حفظ)
+var kioskSettings = { slides: KIOSK_DEFAULT_SLIDES.slice(), seconds: KIOSK_DEFAULT_SECONDS, workEndTime: KIOSK_DEFAULT_WORK_END, offDays: KIOSK_DEFAULT_OFF_DAYS.slice(), theme: KIOSK_DEFAULT_THEME, bgDim: KIOSK_DEFAULT_BG_DIM, bgBlur: KIOSK_DEFAULT_BG_BLUR };
 var kioskSlides = kioskSettings.slides; // القائمة الفعلية المستخدمة في العرض الحالي (بتتحدّث من kioskSettings)
 
 // الإعداد بيتحفظ على الجهاز نفسه فقط (localStorage) — عشان كل شاشة (مخزن/موقع/إدارة) تقدر تُضبط
@@ -14258,11 +14336,117 @@ function loadKioskSettings() {
                 slides: saved.slides,
                 seconds: parseInt(saved.seconds, 10) || KIOSK_DEFAULT_SECONDS,
                 workEndTime: saved.workEndTime || KIOSK_DEFAULT_WORK_END,
-                offDays: Array.isArray(saved.offDays) ? saved.offDays : KIOSK_DEFAULT_OFF_DAYS.slice()
+                offDays: Array.isArray(saved.offDays) ? saved.offDays : KIOSK_DEFAULT_OFF_DAYS.slice(),
+                theme: ['dark', 'light', 'auto'].indexOf(saved.theme) !== -1 ? saved.theme : KIOSK_DEFAULT_THEME,
+                bgDim: isNaN(parseInt(saved.bgDim, 10)) ? KIOSK_DEFAULT_BG_DIM : Math.min(90, Math.max(0, parseInt(saved.bgDim, 10))),
+                bgBlur: isNaN(parseInt(saved.bgBlur, 10)) ? KIOSK_DEFAULT_BG_BLUR : Math.min(20, Math.max(0, parseInt(saved.bgBlur, 10)))
             };
         }
     } catch (e) {}
+    try { kioskBgData = localStorage.getItem('kioskBgImage') || ''; } catch (e) { kioskBgData = ''; }
     kioskSlides = kioskSettings.slides;
+}
+
+// ---------- المظهر (ليلي / نهاري / تلقائي) + صورة الخلفية ----------
+function kioskIsLight() {
+    var t = kioskSettings.theme;
+    if (t === 'light') return true;
+    if (t === 'auto') { var h = new Date().getHours(); return h >= KIOSK_AUTO_LIGHT_FROM && h < KIOSK_AUTO_LIGHT_TO; }
+    return false;
+}
+
+function applyKioskAppearance() {
+    var overlay = document.getElementById('kiosk-mode-overlay');
+    if (!overlay) return;
+    var light = kioskIsLight(), hasBg = !!kioskBgData;
+    overlay.classList.toggle('kiosk-light', light);
+    overlay.classList.toggle('kiosk-has-bg', hasBg);
+    var layer = document.getElementById('kiosk-bg-layer');
+    var tint = document.getElementById('kiosk-bg-tint');
+    if (layer) {
+        if (hasBg) {
+            layer.style.display = 'block';
+            layer.style.backgroundImage = 'url("' + kioskBgData + '")';
+            layer.style.filter = kioskSettings.bgBlur > 0 ? 'blur(' + kioskSettings.bgBlur + 'px)' : 'none';
+        } else {
+            layer.style.display = 'none';
+            layer.style.backgroundImage = 'none';
+        }
+    }
+    if (tint) tint.style.opacity = hasBg ? String(((kioskSettings.bgDim || 0) / 100) * (light ? 0.6 : 1)) : '0'; // الطبقة الفاتحة محتاجة تعتيم أقل
+    var btn = document.getElementById('kiosk-theme-btn');
+    if (btn) btn.textContent = light ? '🌙 ليلي' : '☀️ نهاري';
+}
+
+function persistKioskSettings() {
+    try { localStorage.setItem('kioskSettings', JSON.stringify(kioskSettings)); } catch (e) {}
+}
+
+// زر سريع في الشريط العلوي: يبدّل بين الليلي والنهاري فورًا
+function toggleKioskTheme() {
+    kioskSettings.theme = kioskIsLight() ? 'dark' : 'light';
+    persistKioskSettings();
+    applyKioskAppearance();
+}
+
+function setKioskBgMsg(text, isError) {
+    var el = document.getElementById('kiosk-cfg-bg-msg');
+    if (!el) return;
+    el.textContent = text || '';
+    el.style.color = isError ? 'var(--k-red)' : 'var(--k-muted)';
+}
+
+function updateKioskBgPreview(data) {
+    var box = document.getElementById('kiosk-cfg-bg-preview');
+    if (!box) return;
+    if (data) { box.style.backgroundImage = 'url("' + data + '")'; box.textContent = ''; }
+    else { box.style.backgroundImage = 'none'; box.textContent = 'لا توجد صورة'; }
+}
+
+// بيصغّر الصورة (أقصى 1920px) ويضغطها JPEG عشان تتحفظ على الجهاز من غير ما تملّا التخزين
+function kioskPrepareBgImage(file, done) {
+    var reader = new FileReader();
+    reader.onerror = function() { done(null); };
+    reader.onload = function(ev) {
+        var img = new Image();
+        img.onerror = function() { done(null); };
+        img.onload = function() {
+            var tries = [[1920, 0.82], [1600, 0.72], [1280, 0.62]], out = null;
+            for (var i = 0; i < tries.length; i++) {
+                var w = img.naturalWidth, h = img.naturalHeight;
+                var r = Math.min(1, tries[i][0] / Math.max(w, h));
+                var c = document.createElement('canvas');
+                c.width = Math.max(1, Math.round(w * r));
+                c.height = Math.max(1, Math.round(h * r));
+                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                out = c.toDataURL('image/jpeg', tries[i][1]);
+                if (out.length <= 1300000) break;
+            }
+            done(out);
+        };
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function onKioskBgPicked(input) {
+    var file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { setKioskBgMsg('اختر ملف صورة فقط (JPG / PNG / WebP)', true); return; }
+    setKioskBgMsg('جاري تجهيز الصورة…', false);
+    kioskPrepareBgImage(file, function(data) {
+        if (!data) { setKioskBgMsg('تعذّر قراءة الصورة، جرّب صورة تانية', true); return; }
+        kioskBgPending = data;
+        updateKioskBgPreview(data);
+        setKioskBgMsg('تمام ✅ — اضغط "حفظ وتشغيل" لتطبيق الصورة', false);
+    });
+}
+
+function removeKioskBg() {
+    kioskBgPending = '';
+    updateKioskBgPreview('');
+    setKioskBgMsg('هتتشال الصورة بعد ما تضغط "حفظ وتشغيل"', false);
 }
 loadKioskSettings();
 
@@ -14279,11 +14463,21 @@ function openKioskSettingsPanel() {
         var cb = document.getElementById('kiosk-cfg-off-' + d);
         if (cb) cb.checked = kioskSettings.offDays.indexOf(d) !== -1;
     }
+    var themeRadio = document.querySelector('input[name="kiosk-cfg-theme"][value="' + kioskSettings.theme + '"]');
+    if (themeRadio) themeRadio.checked = true;
+    kioskBgPending = undefined;
+    updateKioskBgPreview(kioskBgData);
+    setKioskBgMsg('', false);
+    document.getElementById('kiosk-cfg-dim').value = kioskSettings.bgDim;
+    document.getElementById('kiosk-cfg-dim-val').textContent = kioskSettings.bgDim + '%';
+    document.getElementById('kiosk-cfg-blur').value = kioskSettings.bgBlur;
+    document.getElementById('kiosk-cfg-blur-val').textContent = kioskSettings.bgBlur + 'px';
     panel.style.display = 'block';
     if (kioskIntervalId) { clearInterval(kioskIntervalId); kioskIntervalId = null; }
 }
 
 function closeKioskSettingsPanel() {
+    kioskBgPending = undefined;
     var panel = document.getElementById('kiosk-settings-panel');
     if (panel) panel.style.display = 'none';
     startKioskRotation();
@@ -14303,10 +14497,28 @@ function saveKioskSettings() {
         var cb = document.getElementById('kiosk-cfg-off-' + d);
         if (cb && cb.checked) offDays.push(d);
     }
-    kioskSettings = { slides: slides, seconds: seconds, workEndTime: workEndTime, offDays: offDays };
+    var themeEl = document.querySelector('input[name="kiosk-cfg-theme"]:checked');
+    var theme = themeEl ? themeEl.value : KIOSK_DEFAULT_THEME;
+    var bgDim = parseInt(document.getElementById('kiosk-cfg-dim').value, 10);
+    var bgBlur = parseInt(document.getElementById('kiosk-cfg-blur').value, 10);
+    // صورة الخلفية: بتتحفظ الأول — لو التخزين مليان بنوقف ونعرض رسالة داخل اللوحة
+    if (kioskBgPending !== undefined) {
+        try {
+            if (kioskBgPending) localStorage.setItem('kioskBgImage', kioskBgPending);
+            else localStorage.removeItem('kioskBgImage');
+            kioskBgData = kioskBgPending;
+        } catch (e) {
+            setKioskBgMsg('مساحة التخزين على الجهاز مش كافية للصورة دي، جرّب صورة أصغر', true);
+            return;
+        }
+        kioskBgPending = undefined;
+    }
+    kioskSettings = { slides: slides, seconds: seconds, workEndTime: workEndTime, offDays: offDays, theme: theme,
+        bgDim: isNaN(bgDim) ? KIOSK_DEFAULT_BG_DIM : bgDim, bgBlur: isNaN(bgBlur) ? KIOSK_DEFAULT_BG_BLUR : bgBlur };
     kioskSlides = slides;
-    try { localStorage.setItem('kioskSettings', JSON.stringify(kioskSettings)); } catch (e) {}
+    persistKioskSettings();
     kioskSlideIndex = 0;
+    applyKioskAppearance();
     closeKioskSettingsPanel();
     renderKioskSlide();
 }
@@ -14316,6 +14528,7 @@ function enterKioskMode() {
     if (!overlay) return;
     loadKioskSettings();
     overlay.style.display = 'block';
+    applyKioskAppearance();
     kioskSlideIndex = 0;
     renderKioskSlide();
     updateKioskClock();
@@ -14360,6 +14573,8 @@ function updateKioskClock() {
         calEl.innerHTML = buildKioskCalendarHtml(now);
     }
     updateKioskWorkCountdown(now);
+    var ov = document.getElementById('kiosk-mode-overlay');
+    if (kioskSettings.theme === 'auto' && ov && ov.classList.contains('kiosk-light') !== kioskIsLight()) applyKioskAppearance();
 }
 
 // بيحسب ويعرض الوقت المتبقي لحد نهاية العمل (حسب الإعداد المحفوظ)، أو "يوم إجازة" في أيام الإجازة الأسبوعية
@@ -14369,7 +14584,7 @@ function updateKioskWorkCountdown(now) {
     if (kioskSettings.offDays && kioskSettings.offDays.indexOf(now.getDay()) !== -1) {
         el.textContent = '🎉 يوم إجازة';
         el.style.fontSize = '22px';
-        el.style.color = '#94a3b8';
+        el.style.color = 'var(--k-muted)';
         return;
     }
     var parts = (kioskSettings.workEndTime || KIOSK_DEFAULT_WORK_END).split(':');
@@ -14381,7 +14596,7 @@ function updateKioskWorkCountdown(now) {
     if (diffMs <= 0) {
         el.textContent = '✅ انتهى وقت العمل';
         el.style.fontSize = '20px';
-        el.style.color = '#4ade80';
+        el.style.color = 'var(--k-green)';
         return;
     }
     var totalSeconds = Math.floor(diffMs / 1000);
@@ -14390,7 +14605,7 @@ function updateKioskWorkCountdown(now) {
     var s = totalSeconds % 60;
     el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
     el.style.fontSize = '30px';
-    el.style.color = '#e8a020';
+    el.style.color = 'var(--k-accent)';
 }
 
 // بيبني شبكة تقويم الشهر الحالي، ويحدد يوم النهاردة بلون مميز
@@ -14401,13 +14616,13 @@ function buildKioskCalendarHtml(now) {
     var dayLabels = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
     var html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;width:100%;direction:ltr">';
     dayLabels.forEach(function(d) {
-        html += '<div style="font-size:10px;color:#8b94a0;text-align:center;font-weight:800">' + d + '</div>';
+        html += '<div style="font-size:10px;color:var(--k-muted);text-align:center;font-weight:800">' + d + '</div>';
     });
     for (var i = 0; i < firstDayIndex; i++) html += '<div></div>';
     for (var d = 1; d <= daysInMonth; d++) {
         var isToday = d === today;
         html += '<div style="font-size:12px;text-align:center;padding:4px 0;border-radius:6px;' +
-            (isToday ? 'background:#e8a020;color:#0d1b2a;font-weight:800' : 'color:#d7dde3') + '">' + d + '</div>';
+            (isToday ? 'background:#e8a020;color:#0d1b2a;font-weight:800' : 'color:var(--k-soft)') + '">' + d + '</div>';
     }
     html += '</div>';
     return html;
@@ -14426,7 +14641,7 @@ function renderKioskSlide() {
     if (dots) {
         dots.innerHTML = kioskSlides.map(function(s, i) {
             var active = i === kioskSlideIndex;
-            return '<span style="width:' + (active?22:8) + 'px;height:8px;border-radius:4px;background:' + (active?'#e8a020':'rgba(255,255,255,.25)') + ';transition:all .3s"></span>';
+            return '<span style="width:' + (active?22:8) + 'px;height:8px;border-radius:4px;background:' + (active?'var(--k-accent)':'var(--k-dot)') + ';transition:all .3s"></span>';
         }).join('');
     }
 }
@@ -14438,23 +14653,23 @@ function renderKioskSitesSlide() {
     var sites = Object.values(sitesMap).sort(function(a,b){ return b.total - a.total; });
     var cards = sites.map(function(s) {
         var color = s.overdue > 0 ? '#dc2626' : (s.soon > 0 ? '#d97706' : '#059669');
-        return '<div style="background:rgba(255,255,255,.06);border-right:5px solid ' + color + ';border-radius:14px;padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">' +
+        return '<div style="background:var(--k-card);border-right:5px solid ' + color + ';border-radius:14px;padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">' +
             '<div style="font-size:19px;font-weight:800">' + escapeHtml(s.name) + '</div>' +
             '<div style="display:flex;gap:22px;font-size:15px">' +
             '<span>🚜 <b>' + s.total + '</b></span>' +
-            '<span style="color:#4ade80">✅ <b>' + s.working + '</b></span>' +
-            '<span style="color:#f87171">⚠️ <b>' + s.overdue + '</b></span>' +
-            '<span style="color:#fbbf24">🟡 <b>' + s.soon + '</b></span>' +
-            '<span style="color:#94a3b8">⛔ <b>' + s.stopped + '</b></span>' +
+            '<span style="color:var(--k-green)">✅ <b>' + s.working + '</b></span>' +
+            '<span style="color:var(--k-red)">⚠️ <b>' + s.overdue + '</b></span>' +
+            '<span style="color:var(--k-yellow)">🟡 <b>' + s.soon + '</b></span>' +
+            '<span style="color:var(--k-muted)">⛔ <b>' + s.stopped + '</b></span>' +
             '</div></div>';
     }).join('');
-    return '<div style="font-size:22px;font-weight:800;margin-bottom:18px">🏢 نظرة عامة على المواقع</div>' + (cards || '<div style="color:#94a3b8;font-size:16px">لا توجد بيانات</div>');
+    return '<div style="font-size:22px;font-weight:800;margin-bottom:18px">🏢 نظرة عامة على المواقع</div>' + (cards || '<div style="color:var(--k-muted);font-size:16px">لا توجد بيانات</div>');
 }
 
 function renderKioskAlertsSlide() {
     var a = getAllSmartAlerts();
     function row(icon, text, color) {
-        return '<div style="background:rgba(255,255,255,.06);border-right:5px solid ' + color + ';border-radius:12px;padding:14px 18px;margin-bottom:10px;font-size:16px">' + icon + ' ' + escapeHtml(text) + '</div>';
+        return '<div style="background:var(--k-card);border-right:5px solid ' + color + ';border-radius:12px;padding:14px 18px;margin-bottom:10px;font-size:16px">' + icon + ' ' + escapeHtml(text) + '</div>';
     }
     var rows = '';
     a.maintOverdue.forEach(function(eq){ rows += row('🚨', 'صيانة متأخرة: ' + eq.name + ' (' + eq.code + ')', '#dc2626'); });
@@ -14462,7 +14677,7 @@ function renderKioskAlertsSlide() {
     a.lowStock.forEach(function(it){ rows += row('📦', 'مخزون منخفض: ' + it.name + ' (' + (it.qty||0) + '/' + (it.minQty||0) + ')', '#d97706'); });
     a.licExpired.forEach(function(d){ rows += row('📜', 'رخصة منتهية: ' + d.name, '#dc2626'); });
     a.rentExpired.forEach(function(r){ rows += row('📄', 'عقد إيجار منتهي: ' + (r.equipmentType||'') + ' — ' + (r.equipmentCode||''), '#dc2626'); });
-    if (!rows) rows = '<div style="color:#4ade80;font-size:18px;text-align:center;padding:40px 0">✅ لا توجد تنبيهات حرجة حاليًا — كل شيء تمام</div>';
+    if (!rows) rows = '<div style="color:var(--k-green);font-size:18px;text-align:center;padding:40px 0">✅ لا توجد تنبيهات حرجة حاليًا — كل شيء تمام</div>';
     return '<div style="font-size:22px;font-weight:800;margin-bottom:18px">🔔 التنبيهات الحرجة</div>' + rows;
 }
 
@@ -14480,16 +14695,16 @@ function renderKioskFleetSlide() {
     var maxH = usage.length ? usage[0].hours : 1;
     var bars = usage.map(function(u) {
         var pct = maxH > 0 ? Math.max(3, Math.round((u.hours/maxH)*100)) : 0;
-        return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span>' + escapeHtml(u.eq.name) + '</span><span style="font-weight:700;color:#e8a020">' + u.hours.toFixed(1) + ' س</span></div>' +
-            '<div style="background:rgba(255,255,255,.1);border-radius:8px;height:12px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#7c3aed,#4f46e5);border-radius:8px"></div></div></div>';
+        return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span>' + escapeHtml(u.eq.name) + '</span><span style="font-weight:700;color:var(--k-accent)">' + u.hours.toFixed(1) + ' س</span></div>' +
+            '<div style="background:var(--k-track);border-radius:8px;height:12px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#7c3aed,#4f46e5);border-radius:8px"></div></div></div>';
     }).join('');
     return '<div style="font-size:22px;font-weight:800;margin-bottom:18px">📈 أداء المعدات (الفترة الحالية)</div>' +
         '<div style="display:flex;gap:16px;margin-bottom:24px">' +
-        '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#4ade80">' + healthy + '</div><div style="font-size:13px;color:#94a3b8">سليمة</div></div>' +
-        '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#f87171">' + overdue + '</div><div style="font-size:13px;color:#94a3b8">متأخرة</div></div>' +
-        '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#94a3b8">' + stopped + '</div><div style="font-size:13px;color:#94a3b8">متوقفة</div></div>' +
+        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:var(--k-green)">' + healthy + '</div><div style="font-size:13px;color:var(--k-muted)">سليمة</div></div>' +
+        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:var(--k-red)">' + overdue + '</div><div style="font-size:13px;color:var(--k-muted)">متأخرة</div></div>' +
+        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:var(--k-muted)">' + stopped + '</div><div style="font-size:13px;color:var(--k-muted)">متوقفة</div></div>' +
         '</div>' +
-        '<div style="font-size:16px;font-weight:700;margin-bottom:12px">🏆 الأعلى استخدامًا</div>' + (bars || '<div style="color:#94a3b8">لا توجد بيانات</div>');
+        '<div style="font-size:16px;font-weight:700;margin-bottom:12px">🏆 الأعلى استخدامًا</div>' + (bars || '<div style="color:var(--k-muted)">لا توجد بيانات</div>');
 }
 
 function renderKioskWarehouseSlide() {
@@ -14498,18 +14713,18 @@ function renderKioskWarehouseSlide() {
     var outOfStock = items.filter(function(it) { return (it.qty || 0) <= 0; });
     var totalValue = items.reduce(function(s, it) { return s + ((it.qty || 0) * (it.price || 0)); }, 0);
     var lowRows = low.slice(0, 8).map(function(it) {
-        return '<div style="background:rgba(255,255,255,.06);border-right:5px solid ' + (it.qty<=0?'#dc2626':'#d97706') + ';border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;font-size:15px">' +
+        return '<div style="background:var(--k-card);border-right:5px solid ' + (it.qty<=0?'#dc2626':'#d97706') + ';border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;font-size:15px">' +
             '<span>' + escapeHtml(it.name) + '</span><span style="font-weight:700">' + (it.qty||0) + ' / ' + (it.minQty||0) + ' ' + escapeHtml(it.unit||'') + '</span></div>';
     }).join('');
     return '<div style="font-size:22px;font-weight:800;margin-bottom:18px">📦 نظرة عامة على المخزن</div>' +
         '<div style="display:flex;gap:16px;margin-bottom:24px">' +
-        '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#4ade80">' + items.length + '</div><div style="font-size:13px;color:#94a3b8">إجمالي الأصناف</div></div>' +
-        '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#fbbf24">' + low.length + '</div><div style="font-size:13px;color:#94a3b8">تحت الحد الأدنى</div></div>' +
-        '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:#f87171">' + outOfStock.length + '</div><div style="font-size:13px;color:#94a3b8">نفد تمامًا</div></div>' +
+        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:var(--k-green)">' + items.length + '</div><div style="font-size:13px;color:var(--k-muted)">إجمالي الأصناف</div></div>' +
+        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:var(--k-yellow)">' + low.length + '</div><div style="font-size:13px;color:var(--k-muted)">تحت الحد الأدنى</div></div>' +
+        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:var(--k-red)">' + outOfStock.length + '</div><div style="font-size:13px;color:var(--k-muted)">نفد تمامًا</div></div>' +
         '</div>' +
-        '<div style="font-size:14px;color:#94a3b8;margin-bottom:16px">💰 القيمة التقديرية للمخزون: <b style="color:white">' + formatNumber(totalValue) + ' ج.م</b></div>' +
+        '<div style="font-size:14px;color:var(--k-muted);margin-bottom:16px">💰 القيمة التقديرية للمخزون: <b style="color:var(--k-text)">' + formatNumber(totalValue) + ' ج.م</b></div>' +
         '<div style="font-size:16px;font-weight:700;margin-bottom:12px">⚠️ الأصناف المحتاجة تزويد</div>' +
-        (lowRows || '<div style="color:#4ade80;font-size:16px">✅ كل الأصناف فوق الحد الأدنى</div>');
+        (lowRows || '<div style="color:var(--k-green);font-size:16px">✅ كل الأصناف فوق الحد الأدنى</div>');
 }
 
 function computeSitesStats(equipmentData) {
