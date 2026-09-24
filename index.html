@@ -1665,14 +1665,19 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   <div style="position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;z-index:2">
     <div style="display:flex;align-items:center;gap:10px">
       <span style="font-size:15px;font-weight:800">🏗️ Hassan Allam Holding — شاشة الإدارة</span>
-      <span id="kiosk-clock" style="font-size:13px;color:#94a3b8"></span>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       <button onclick="openKioskSettingsPanel()" style="background:rgba(255,255,255,0.12);border:none;color:white;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:inherit">⚙️ الضبط</button>
       <button onclick="exitKioskMode()" style="background:rgba(255,255,255,0.12);border:none;color:white;border-radius:20px;padding:6px 16px;font-size:12px;cursor:pointer;font-family:inherit">✕ خروج</button>
     </div>
   </div>
-  <div id="kiosk-slide-body" style="position:absolute;top:60px;bottom:36px;right:0;left:0;overflow-y:auto;padding:20px 30px"></div>
+  <div id="kiosk-side-panel" style="position:absolute;top:60px;bottom:36px;left:0;width:230px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border-left:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px 12px;box-sizing:border-box;z-index:1">
+    <div id="kiosk-side-time" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:48px;color:#e8a020;letter-spacing:1px;text-align:center;line-height:1.1;direction:ltr"></div>
+    <div id="kiosk-side-day" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:23px;color:white;text-align:center"></div>
+    <div style="width:60px;height:2px;background:rgba(232,160,32,.5);border-radius:2px"></div>
+    <div id="kiosk-side-date" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:16px;color:#b9c2cc;text-align:center;direction:ltr"></div>
+  </div>
+  <div id="kiosk-slide-body" style="position:absolute;top:60px;bottom:36px;right:0;left:230px;overflow-y:auto;padding:20px 30px"></div>
   <div id="kiosk-dots" style="position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:8px"></div>
 
   <div id="kiosk-settings-panel" style="display:none;position:absolute;inset:0;z-index:10;background:rgba(13,27,42,.97);padding:24px;overflow-y:auto">
@@ -14296,8 +14301,13 @@ function exitKioskMode() {
 }
 
 function updateKioskClock() {
-    var el = document.getElementById('kiosk-clock');
-    if (el) el.textContent = new Date().toLocaleString('ar-EG', { weekday: 'long', hour: '2-digit', minute: '2-digit' });
+    var now = new Date();
+    var timeEl = document.getElementById('kiosk-side-time');
+    var dayEl = document.getElementById('kiosk-side-day');
+    var dateEl = document.getElementById('kiosk-side-date');
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    if (dayEl) dayEl.textContent = now.toLocaleDateString('ar-EG', { weekday: 'long' });
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function renderKioskSlide() {
