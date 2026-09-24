@@ -5173,6 +5173,14 @@ function createFirebaseAuthAccountSafely(username, plainPassword) {
     });
 }
 
+// بيحوّل أي نص (زي اسم مستخدم فيه @ أو نقطة) لمفتاح آمن يقبله Firebase كاسم عقدة
+// (Firebase مبيسمحش بـ . # $ [ ] جوه اسم المفتاح)
+function toFirebaseKey(str) {
+    return String(str || '').toLowerCase().replace(/[.#$\[\]]/g, function(ch) {
+        return { '.': ',', '#': '_h_', '$': '_d_', '[': '_lb_', ']': '_rb_' }[ch];
+    });
+}
+
 function secureLogin() {
     if (!loginDataReady) {
         showToast('⏳ جاري تحميل بيانات الدخول، انتظر لحظة...', true);
@@ -5336,23 +5344,22 @@ function registerNewUser() {
     btn.innerHTML = 'جاري الإرسال... <span class="loading-spinner"></span>';
     btn.disabled = true;
 
-    fbDb.ref('accountRequests').once('value').then(function(snap) {
-        var data = snap.val() || {};
-        var alreadyPending = Object.values(data).some(function(r) {
-            return r.username && r.username.toLowerCase() === email.toLowerCase();
-        });
+    fbDb.ref('accountRequestUsernames/' + toFirebaseKey(email)).once('value').then(function(snap) {
+        var alreadyPending = !!snap.val();
         if (alreadyPending) {
             showErr('تم إرسال طلب بهذا البريد/الرقم مسبقاً، انتظر موافقة المدير.');
             btn.innerHTML = '✨ انشاء حساب';
             btn.disabled = false;
             return;
         }
-        return fbDb.ref('accountRequests').push({
-            name: name,
-            username: email,
-            contactType: isEmailContact ? 'email' : 'phone',
-            password: pass,
-            requestedAt: new Date().toISOString()
+        return fbDb.ref('accountRequestUsernames/' + toFirebaseKey(email)).set(true).then(function() {
+            return fbDb.ref('accountRequests').push({
+                name: name,
+                username: email,
+                contactType: isEmailContact ? 'email' : 'phone',
+                password: pass,
+                requestedAt: new Date().toISOString()
+            });
         }).then(function() {
             showSuc('✅ تم إرسال طلبك بنجاح. انتظر موافقة المدير لتفعيل حسابك، ثم يمكنك تسجيل الدخول.');
             document.getElementById('reg-name').value = '';
@@ -5468,20 +5475,26 @@ function approveAccountRequest(id) {
     var roleLabels = { viewer:'👁️ مشاهد', editor:'✏️ محرر', manager:'🔧 مدير قسم', admin:'👑 مدير النظام' };
     var salt = generatePasswordSalt();
     hashPasswordWithSalt(req.password, salt).then(function(hash) {
-        APP_USERS.push({
-            id: 'user_' + Date.now(),
-            username: req.username,
-            passwordHash: hash,
-            passwordSalt: salt,
-            name: req.name,
-            role: role === 'admin' ? 'admin' : 'custom',
-            active: true,
-            sections: sectionsForRole(role),
-            sites: []
+        return createFirebaseAuthAccountSafely(req.username, req.password).then(function(uid) {
+            var newUserObj = {
+                id: 'user_' + Date.now(),
+                username: req.username,
+                passwordHash: hash,
+                passwordSalt: salt,
+                name: req.name,
+                role: role === 'admin' ? 'admin' : 'custom',
+                active: true,
+                sections: sectionsForRole(role),
+                sites: []
+            };
+            if (uid) newUserObj.firebaseUid = uid;
+            APP_USERS.push(newUserObj);
+            return saveAppUsers();
         });
-        return saveAppUsers();
     }).then(function() {
         return fbDb.ref('accountRequests/' + id).remove();
+    }).then(function() {
+        return fbDb.ref('accountRequestUsernames/' + toFirebaseKey(req.username)).remove();
     }).then(function() {
         showToast('✅ تم قبول الطلب — الحساب مفعّل بصلاحية ' + (roleLabels[role] || role));
         loadAdminUsers();
@@ -5493,7 +5506,10 @@ function approveAccountRequest(id) {
 
 function rejectAccountRequest(id) {
     if (!confirm('هل تريد رفض هذا الطلب؟ لن يتمكن المتقدّم من الدخول.')) return;
+    var req = accountRequestsData.find(function(r) { return r.id === id; });
     fbDb.ref('accountRequests/' + id).remove().then(function() {
+        if (req && req.username) return fbDb.ref('accountRequestUsernames/' + toFirebaseKey(req.username)).remove();
+    }).then(function() {
         showToast('🚫 تم رفض الطلب');
         runSmartAlertsRefresh();
     }).catch(function(e) {
@@ -5541,19 +5557,20 @@ function submitForgotPasswordRequest() {
     var btn = document.getElementById('forgot-pass-submit');
     if (btn) { btn.disabled = true; btn.innerHTML = '⏳ جاري الإرسال...'; }
 
-    fbDb.ref('passwordResetRequests').once('value').then(function(snap) {
-        var data = snap.val() || {};
-        var alreadyPending = Object.values(data).some(function(r) { return r.username && r.username.toLowerCase() === username.toLowerCase(); });
+    fbDb.ref('passwordResetRequestUsernames/' + toFirebaseKey(username)).once('value').then(function(snap) {
+        var alreadyPending = !!snap.val();
         if (alreadyPending) {
             showToast('تم إرسال طلب بنفس اسم المستخدم من قبل، انتظر رد المدير', true);
             if (btn) { btn.disabled = false; btn.innerHTML = '📤 إرسال الطلب للمدير'; }
             return;
         }
-        return fbDb.ref('passwordResetRequests').push({
-            username: matchedUser.username,
-            name: matchedUser.name || '',
-            phone: phone,
-            requestedAt: new Date().toISOString()
+        return fbDb.ref('passwordResetRequestUsernames/' + toFirebaseKey(username)).set(true).then(function() {
+            return fbDb.ref('passwordResetRequests').push({
+                username: matchedUser.username,
+                name: matchedUser.name || '',
+                phone: phone,
+                requestedAt: new Date().toISOString()
+            });
         }).then(function() {
             showToast('✅ تم إرسال طلبك، هيتواصل معاك المدير على واتساب قريبًا');
             var m = document.getElementById('forgot-password-modal');
@@ -5633,6 +5650,8 @@ function sendPasswordResetWhatsApp(id) {
         window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
         return fbDb.ref('passwordResetRequests/' + id).remove();
     }).then(function() {
+        return fbDb.ref('passwordResetRequestUsernames/' + toFirebaseKey(req.username)).remove();
+    }).then(function() {
         renderPasswordResetRequestsList();
         showToast('✅ تم تحديد كلمة مرور جديدة للمستخدم وإرسالها');
     }).catch(function(e) {
@@ -5642,7 +5661,10 @@ function sendPasswordResetWhatsApp(id) {
 
 function dismissPasswordResetRequest(id) {
     if (!fbDb) return;
+    var req = passwordResetRequestsData.find(function(r) { return r.id === id; });
     fbDb.ref('passwordResetRequests/' + id).remove().then(function() {
+        if (req && req.username) return fbDb.ref('passwordResetRequestUsernames/' + toFirebaseKey(req.username)).remove();
+    }).then(function() {
         showToast('✅ تم حذف الطلب');
     }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
 }
