@@ -5145,12 +5145,21 @@ function migrateAnyPlaintextPasswords() {
     });
 }
 
+// بيحوّل اسم المستخدم لإيميل صالح لـ Firebase Authentication:
+// لو اسم المستخدم أصلاً إيميل حقيقي (زي حالة التسجيل الذاتي اللي بتسمح بإيميل أو رقم تليفون)، بنستخدمه زي ما هو،
+// ولو اسم بسيط أو رقم تليفون، بنضيفله @hac.com — عشان منعملش إيميلين فوق بعض غلط زي name@hac.com@hac.com
+function usernameToAuthEmail(username) {
+    var u = String(username || '').trim().toLowerCase();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)) return u;
+    return u + '@hac.com';
+}
+
 // إنشاء حساب حقيقي في Firebase Authentication لمستخدم جديد، من غير ما نأثر على جلسة دخول المدير الحالية.
 // الحيلة: بنستخدم "نسخة تانية مؤقتة" من تطبيق Firebase (مش النسخة الأساسية اللي المدير داخل بيها) عشان ننشئ الحساب عليها،
 // وبعدين نمسح النسخة المؤقتة دي فورًا. بالطريقة دي جلسة دخول المدير الأساسية متتأثرش خالص.
 function createFirebaseAuthAccountSafely(username, plainPassword) {
     if (typeof firebase === 'undefined' || !firebase.initializeApp) return Promise.resolve(null);
-    var email = username.toLowerCase() + '@hac.com';
+    var email = usernameToAuthEmail(username);
     var tempAppName = 'user-create-' + Date.now();
     var tempApp;
     try {
@@ -5239,7 +5248,7 @@ function secureLogin() {
         // المستخدم له حساب حقيقي في Firebase Authentication (اتربط بـ firebaseUid) — بنسجّل دخوله بالطريقة الرسمية والآمنة.
         // بريد الدخول ثابت بالاتفاق: اسم المستخدم + @hac.com (بنفس الطريقة اللي اتعمل بيها كل حساب في الكونسول)
         if (found.firebaseUid && typeof firebase !== 'undefined' && firebase.auth) {
-            var authEmail = found.username.toLowerCase() + '@hac.com';
+            var authEmail = usernameToAuthEmail(found.username);
             firebase.auth().signInWithEmailAndPassword(authEmail, password).then(function() {
                 finalizeLogin();
             }).catch(function(err) {
