@@ -1744,6 +1744,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-alerts" style="width:18px;height:18px">🔔 التنبيهات الحرجة</label>
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-fleet" style="width:18px;height:18px">📈 أداء المعدات (الأسطول)</label>
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-warehouse" style="width:18px;height:18px">📦 نظرة عامة على المخزن</label>
+        <label class="k-opt"><input type="checkbox" id="kiosk-cfg-maintenance" style="width:18px;height:18px">🔧 أقرب 10 معدات لموعد الصيانة</label>
       </div>
 
       <div style="margin-bottom:22px">
@@ -14313,7 +14314,7 @@ var kioskIntervalId = null;
 var kioskClockIntervalId = null;
 var kioskSlideIndex = 0;
 var KIOSK_DEFAULT_SECONDS = 15;
-var KIOSK_DEFAULT_SLIDES = ['sites', 'alerts', 'fleet', 'warehouse'];
+var KIOSK_DEFAULT_SLIDES = ['sites', 'alerts', 'fleet', 'warehouse', 'maintenance'];
 var KIOSK_DEFAULT_WORK_END = '17:30';
 var KIOSK_DEFAULT_OFF_DAYS = [5]; // الجمعة (getDay(): 0=أحد ... 5=جمعة ... 6=سبت)
 var KIOSK_DEFAULT_THEME = 'dark';   // dark | light | auto
@@ -14456,6 +14457,7 @@ function openKioskSettingsPanel() {
     document.getElementById('kiosk-cfg-alerts').checked = kioskSettings.slides.indexOf('alerts') !== -1;
     document.getElementById('kiosk-cfg-fleet').checked = kioskSettings.slides.indexOf('fleet') !== -1;
     document.getElementById('kiosk-cfg-warehouse').checked = kioskSettings.slides.indexOf('warehouse') !== -1;
+    document.getElementById('kiosk-cfg-maintenance').checked = kioskSettings.slides.indexOf('maintenance') !== -1;
     document.getElementById('kiosk-cfg-seconds').value = kioskSettings.seconds;
     document.getElementById('kiosk-cfg-endtime').value = kioskSettings.workEndTime;
     for (var d = 0; d <= 6; d++) {
@@ -14488,6 +14490,7 @@ function saveKioskSettings() {
     if (document.getElementById('kiosk-cfg-alerts').checked) slides.push('alerts');
     if (document.getElementById('kiosk-cfg-fleet').checked) slides.push('fleet');
     if (document.getElementById('kiosk-cfg-warehouse').checked) slides.push('warehouse');
+    if (document.getElementById('kiosk-cfg-maintenance').checked) slides.push('maintenance');
     if (!slides.length) { showToast('اختر شريحة واحدة على الأقل', true); return; }
     var seconds = parseInt(document.getElementById('kiosk-cfg-seconds').value, 10) || KIOSK_DEFAULT_SECONDS;
     var workEndTime = document.getElementById('kiosk-cfg-endtime').value || KIOSK_DEFAULT_WORK_END;
@@ -14635,6 +14638,7 @@ function renderKioskSlide() {
     if (slide === 'sites') body.innerHTML = renderKioskSitesSlide();
     else if (slide === 'alerts') body.innerHTML = renderKioskAlertsSlide();
     else if (slide === 'warehouse') body.innerHTML = renderKioskWarehouseSlide();
+    else if (slide === 'maintenance') body.innerHTML = renderKioskMaintenanceSlide();
     else body.innerHTML = renderKioskFleetSlide();
 
     if (dots) {
@@ -14704,6 +14708,47 @@ function renderKioskFleetSlide() {
         '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:30px;font-weight:800;color:var(--k-muted)">' + stopped + '</div><div style="font-size:13px;color:var(--k-muted)">متوقفة</div></div>' +
         '</div>' +
         '<div style="font-size:16px;font-weight:700;margin-bottom:12px">🏆 الأعلى استخدامًا</div>' + (bars || '<div style="color:var(--k-muted)">لا توجد بيانات</div>');
+}
+
+// ألوان وحالة الشريط التفاعلي بنفس منطق صفحة المعدة (getBarColor/getRemainingStatus)، لكن بألوان شاشة الإدارة نفسها عشان تتماشى مع الوضع الليلي/النهاري بتاعها
+function kioskBarColor(remaining) {
+    if (remaining <= 0) return 'var(--k-red)';
+    if (remaining <= 10) return 'var(--k-red)';
+    if (remaining <= 50) return 'var(--k-yellow)';
+    if (remaining <= 100) return '#f59e0b';
+    return 'var(--k-green)';
+}
+function kioskRemainingStatus(eq) {
+    var r = hoursRemaining(eq);
+    if (r <= 0) return { text: '⚠️ تجاوز ' + Math.abs(r) + ' س', color: 'var(--k-red)' };
+    if (r <= 10) return { text: '🔴 باقي ' + r + ' س فقط', color: 'var(--k-red)' };
+    if (r <= 50) return { text: '🟡 باقي ' + r + ' س', color: 'var(--k-yellow)' };
+    return { text: '✅ باقي ' + r + ' س', color: 'var(--k-green)' };
+}
+
+// شريحة: أقرب 10 معدات لموعد الصيانة، وتحت كل معدة نفس الشريط التفاعلي الموجود في صفحة المعدة (نسبة الاستهلاك من الدورة الحالية)
+function renderKioskMaintenanceSlide() {
+    var eqList = getVisibleEquipment().filter(function(e) { return !isToolEquipment(e) && e.status !== 'متوقف'; });
+    var upcoming = eqList.slice().sort(function(a, b) { return hoursRemaining(a) - hoursRemaining(b); }).slice(0, 10);
+
+    var rows = upcoming.map(function(eq) {
+        var remaining = hoursRemaining(eq);
+        var percent = getRemainingPercent(eq);
+        var status = kioskRemainingStatus(eq);
+        return '<div style="background:var(--k-card);border-radius:14px;padding:14px 20px;margin-bottom:12px">' +
+            '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:9px">' +
+            '<div style="font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(eq.name) + ' <span style="font-size:12px;font-weight:400;color:var(--k-muted)">(' + escapeHtml(eq.code || '—') + ')</span></div>' +
+            '<div style="font-size:14px;font-weight:800;color:' + status.color + ';white-space:nowrap">' + status.text + '</div>' +
+            '</div>' +
+            '<div style="background:var(--k-track);border-radius:8px;height:14px;overflow:hidden;margin-bottom:7px"><div style="width:' + percent + '%;height:100%;background:' + kioskBarColor(remaining) + ';border-radius:8px"></div></div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--k-muted)">' +
+            '<span>📍 ' + escapeHtml(eq.location || 'غير محدد') + '</span>' +
+            '<span>العداد: ' + formatNumber(eq.hours || 0) + ' س ← الصيانة القادمة: ' + formatNumber(eq.nextHours || 0) + ' س</span>' +
+            '</div></div>';
+    }).join('');
+
+    return '<div style="font-size:22px;font-weight:800;margin-bottom:18px">🔧 أقرب 10 معدات لموعد الصيانة</div>' +
+        (rows || '<div style="color:var(--k-muted);font-size:16px">لا توجد بيانات</div>');
 }
 
 function renderKioskWarehouseSlide() {
