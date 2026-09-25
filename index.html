@@ -14735,16 +14735,13 @@ function renderKioskMaintenanceSlide() {
         var remaining = hoursRemaining(eq);
         var percent = getRemainingPercent(eq);
         var status = kioskRemainingStatus(eq);
-        return '<div style="background:var(--k-card);border-radius:14px;padding:14px 20px;margin-bottom:12px">' +
-            '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:9px">' +
-            '<div style="font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(eq.name) + ' <span style="font-size:12px;font-weight:400;color:var(--k-muted)">(' + escapeHtml(eq.code || '—') + ')</span></div>' +
-            '<div style="font-size:14px;font-weight:800;color:' + status.color + ';white-space:nowrap">' + status.text + '</div>' +
+        return '<div style="background:var(--k-card);border-radius:10px;padding:7px 16px;margin-bottom:6px">' +
+            '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px">' +
+            '<div style="font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(eq.name) + ' <span style="font-size:11px;font-weight:400;color:var(--k-muted)">(' + escapeHtml(eq.code || '—') + ')</span></div>' +
+            '<div style="font-size:12.5px;font-weight:800;color:' + status.color + ';white-space:nowrap">' + status.text + '</div>' +
             '</div>' +
-            '<div style="background:var(--k-track);border-radius:8px;height:14px;overflow:hidden;margin-bottom:7px"><div style="width:' + percent + '%;height:100%;background:' + kioskBarColor(remaining) + ';border-radius:8px"></div></div>' +
-            '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--k-muted)">' +
-            '<span>📍 ' + escapeHtml(eq.location || 'غير محدد') + '</span>' +
-            '<span>العداد: ' + formatNumber(eq.hours || 0) + ' س ← الصيانة القادمة: ' + formatNumber(eq.nextHours || 0) + ' س</span>' +
-            '</div></div>';
+            '<div style="background:var(--k-track);border-radius:6px;height:7px;overflow:hidden"><div style="width:' + percent + '%;height:100%;background:' + kioskBarColor(remaining) + ';border-radius:6px"></div></div>' +
+            '</div>';
     }).join('');
 
     return '<div style="font-size:22px;font-weight:800;margin-bottom:18px">🔧 أقرب 10 معدات لموعد الصيانة</div>' +
