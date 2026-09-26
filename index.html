@@ -229,8 +229,13 @@ body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--light);direction
 .page-topbar-sync{font-size:10.5px;color:var(--gray);padding:0 14px 7px;margin-top:-3px}
 html[data-theme="dark"] .page-topbar-actions button{background:rgba(255,255,255,.10);color:#f1f5f9}
 html[data-theme="dark"] .page-topbar-title{color:#f1f5f9}
-.home-usage-chart-card{background:var(--white);border-radius:16px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow-sm)}
+.home-usage-chart-card{background:var(--white);border-radius:16px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow-sm);position:relative}
 .home-usage-chart-title{font-weight:800;font-size:12.5px;color:var(--primary);margin-bottom:8px;text-align:center}
+.home-quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px 16px}
+@media (max-width:340px){ .home-quick-actions{grid-template-columns:repeat(2,1fr)} }
+.home-quick-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:none;cursor:pointer;font-family:inherit;border-radius:14px;padding:9px 4px;color:white;font-weight:700;font-size:10px;text-align:center;line-height:1.25;box-shadow:0 4px 10px rgba(13,27,42,.14);transition:transform .15s ease,box-shadow .15s ease}
+.home-quick-btn:active{transform:scale(.94)}
+.home-quick-btn .qi{font-size:18px;line-height:1}
 .home-usage-delta{font-size:10.5px;margin-top:3px;font-weight:700}
 .stats-row{display:flex;gap:10px;padding:14px;overflow-x:auto;scrollbar-width:none}.stats-row::-webkit-scrollbar{display:none}.stat-card{background:var(--white);border-radius:20px;padding:12px 16px;min-width:85px;text-align:center;box-shadow:var(--shadow-sm)}.stat-number{font-size:26px;font-weight:800}.stat-label{font-size:11px;color:var(--gray);margin-top:4px}
 .section{padding:0 14px;margin-top:20px}.section-title{font-size:13px;font-weight:700;color:var(--gray);margin-bottom:12px;display:flex;justify-content:space-between}
@@ -1171,7 +1176,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   <div class="page-topbar"><div class="page-topbar-title"><span id="header-title">📊 لوحة القيادة</span><span id="sync-status-placeholder" style="display:none"></span></div><div class="page-topbar-actions"><span id="conn-indicator" title="حالة الاتصال">🔴</span><button id="global-search-toggle" title="بحث عالمي">🔍</button><button id="kiosk-mode-btn" title="شاشة الإدارة">🖥️</button><button id="export-pdf-btn" title="تصدير PDF">📄</button><button id="notif-settings-btn" title="الإشعارات">🔔</button></div></div><div class="page-topbar-sync" id="sync-status">جاري الاتصال...</div>
   <div id="alert-bar" style="display:none"></div>
   
-  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title"><span class="i18n-label" data-en="Dashboard" data-ar="لوحة القيادة"></span></div><div class="dash-hero-sub"><span class="i18n-label" data-en="Real-time tracking of equipment, maintenance, and fuel status across all sites." data-ar="متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع."></span></div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><div id="home-usage-section" style="padding:0 14px;margin-bottom:6px"><div class="section-title">📊 <span class="i18n-label" data-en="Equipment Usage: Owned vs Rented" data-ar="استخدام المعدات: الملك والإيجار"></span></div><div id="home-usage-note" style="font-size:10.5px;color:var(--gray);margin:-6px 0 10px"></div><div class="stats-row" id="home-usage-cards" style="padding:0;margin-bottom:2px"></div><div class="home-usage-chart-card"><div class="home-usage-chart-title">⏱️ ساعات التشغيل: من أول الشهر لحد النهاردة مقابل نفس المدة الشهر اللي فات</div><canvas id="chart-home-hours"></canvas></div><div class="home-usage-chart-card"><div class="home-usage-chart-title">💰 تكلفة الإيجار التقديرية: نفس المقارنة</div><canvas id="chart-home-cost"></canvas></div><div class="home-usage-chart-card"><div class="home-usage-chart-title">🥯 نسبة ساعات التشغيل الحالية: ملك مقابل إيجار</div><canvas id="chart-home-split"></canvas></div></div><button id="force-refresh-btn" class="big-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))">🔄 <span class="i18n-label" data-en="Refresh Data Manually" data-ar="تحديث البيانات يدوياً"></span></button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="big-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 <span class="i18n-label" data-en="AI Smart Analysis" data-ar="تحليل ذكي بالـ AI"></span></button><button onclick="openAiReportModal()" class="big-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">🤖 <span class="i18n-label" data-en="Request Any Report from AI" data-ar="اطلب أي تقرير من AI"></span></button><button onclick="openExecutiveDashboard()" class="big-btn" style="background:linear-gradient(135deg,#0f172a,#1e293b)">📊 <span class="i18n-label" data-en="Executive Dashboard" data-ar="لوحة مؤشرات المديرين التنفيذيين (Executive Dashboard)"></span></button><button id="data-manager-btn" onclick="openDataManagerModal()" class="big-btn" style="background:linear-gradient(135deg,#0891b2,#155e75)">🗑️ <span class="i18n-label" data-en="Data Management &amp; Storage" data-ar="إدارة ومساحة التخزين"></span></button><div class="section" style="margin-top:14px"><div class="section-title">📂 <span class="i18n-label" data-en="Sections" data-ar="الأقسام"></span></div><div id="home-app-grid" class="app-grid"></div></div></div>
+  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title"><span class="i18n-label" data-en="Dashboard" data-ar="لوحة القيادة"></span></div><div class="dash-hero-sub"><span class="i18n-label" data-en="Real-time tracking of equipment, maintenance, and fuel status across all sites." data-ar="متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع."></span></div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><div id="home-usage-section" style="padding:0 14px;margin-bottom:6px"><div class="section-title">📊 <span class="i18n-label" data-en="Equipment Usage: Owned vs Rented" data-ar="استخدام المعدات: الملك والإيجار"></span></div><div id="home-usage-note" style="font-size:10.5px;color:var(--gray);margin:-6px 0 10px"></div><div class="stats-row" id="home-usage-cards" style="padding:0;margin-bottom:2px"></div><div class="home-usage-chart-card"><div class="home-usage-chart-title">⏱️ ساعات التشغيل: من بداية الدورة (21 → 20) لحد النهاردة مقابل نفس المدة من الدورة اللي فاتت</div><canvas id="chart-home-hours" height="200"></canvas></div><div class="home-usage-chart-card"><div class="home-usage-chart-title">💰 تكلفة الإيجار التقديرية: نفس المقارنة</div><canvas id="chart-home-cost" height="180"></canvas></div><div class="home-usage-chart-card"><div class="home-usage-chart-title">🥯 نسبة ساعات التشغيل الحالية: ملك مقابل إيجار</div><canvas id="chart-home-split" height="220"></canvas></div></div><div class="home-quick-actions"><button id="force-refresh-btn" class="home-quick-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))"><span class="qi">🔄</span><span class="i18n-label" data-en="Refresh" data-ar="تحديث البيانات"></span></button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)"><span class="qi">🤖</span><span class="i18n-label" data-en="AI Analysis" data-ar="تحليل ذكي AI"></span></button><button onclick="openAiReportModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)"><span class="qi">🤖</span><span class="i18n-label" data-en="AI Report" data-ar="تقرير AI"></span></button><button onclick="openExecutiveDashboard()" class="home-quick-btn" style="background:linear-gradient(135deg,#0f172a,#1e293b)"><span class="qi">📊</span><span class="i18n-label" data-en="Executive" data-ar="لوحة تنفيذية"></span></button><button id="data-manager-btn" onclick="openDataManagerModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#0891b2,#155e75)"><span class="qi">🗑️</span><span class="i18n-label" data-en="Data & Storage" data-ar="البيانات والمساحة"></span></button></div><div class="section" style="margin-top:14px"><div class="section-title">📂 <span class="i18n-label" data-en="Sections" data-ar="الأقسام"></span></div><div id="home-app-grid" class="app-grid"></div></div></div>
   <div id="view-sites" style="display:none"><div style="padding:14px">
     <div class="search-box"><span>🔍</span><input type="text" id="search-site" placeholder="بحث باسم الموقع..."></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -16834,17 +16839,25 @@ function rentalHoursAndCostInRange(eq, fromStr, toStr) {
     return { hours: hours, cost: cost };
 }
 
-// بيحسب مقارنة الاستخدام: من أول الشهر الحالي لحد النهاردة، مقابل نفس عدد الأيام من الشهر اللي فات
+// بيحسب مقارنة الاستخدام: من بداية الدورة الحالية (21 → 20، نفس نظام الإيجار والملك) لحد النهاردة، مقابل نفس عدد الأيام من الدورة اللي فاتت
 function computeHomeUsageComparison(equipmentList) {
-    var today = new Date();
-    var y = today.getFullYear(), m = today.getMonth();
-    var curFrom = localDateStr(new Date(y, m, 1));
-    var curTo = localDateStr(today);
-    var prevMonthFirst = new Date(y, m - 1, 1);
-    var daysInPrevMonth = new Date(prevMonthFirst.getFullYear(), prevMonthFirst.getMonth() + 1, 0).getDate();
-    var prevToDay = Math.min(today.getDate(), daysInPrevMonth);
-    var prevFrom = localDateStr(prevMonthFirst);
-    var prevTo = localDateStr(new Date(prevMonthFirst.getFullYear(), prevMonthFirst.getMonth(), prevToDay));
+    var todayStr = localDateStr(new Date());
+    var curMonthStr = getCurrentCycleMonthStr();
+    var prevMonthStr = getPreviousCycleMonthStr(curMonthStr);
+    var curRange = getPeriodRange(curMonthStr);
+    var prevRange = getPeriodRange(prevMonthStr);
+
+    var curFrom = curRange.from;
+    // الدورة النشطة ممكن تكون لسه شغالة، فبنوقف عند النهاردة أو عند نهاية الدورة أيهما الأقرب
+    var curTo = todayStr < curRange.to ? todayStr : curRange.to;
+    // نفس عدد الأيام بالظبط من بداية الدورة اللي فاتت
+    var daysSoFar = Math.round((new Date(curTo + 'T00:00:00') - new Date(curFrom + 'T00:00:00')) / 86400000) + 1;
+    var prevFromDate = new Date(prevRange.from + 'T00:00:00');
+    var prevToDate = new Date(prevFromDate.getTime() + (daysSoFar - 1) * 86400000);
+    var prevRangeEndDate = new Date(prevRange.to + 'T00:00:00');
+    if (prevToDate > prevRangeEndDate) prevToDate = prevRangeEndDate;
+    var prevFrom = prevRange.from;
+    var prevTo = localDateStr(prevToDate);
 
     var list = (equipmentList || []).filter(function(e) { return !isToolEquipment(e); });
     var owned = list.filter(function(e) { return (e.ownership || 'ملك') !== 'إيجار'; });
@@ -16865,7 +16878,7 @@ function computeHomeUsageComparison(equipmentList) {
     });
 
     return {
-        days: today.getDate(), curFrom: curFrom, curTo: curTo, prevFrom: prevFrom, prevTo: prevTo,
+        days: daysSoFar, curFrom: curFrom, curTo: curTo, prevFrom: prevFrom, prevTo: prevTo,
         owned: { cur: ownedCur, prev: ownedPrev, count: owned.length },
         rented: { curHours: rentedCurHours, prevHours: rentedPrevHours, curCost: rentedCurCost, prevCost: rentedPrevCost, count: rented.length }
     };
@@ -16877,15 +16890,16 @@ function homeUsageDeltaHtml(cur, prev) {
     var pct = ((cur - prev) / prev) * 100;
     var up = pct >= 0;
     var color = up ? 'var(--success)' : 'var(--danger)';
-    return '<span class="home-usage-delta" style="color:' + color + '">' + (up ? '▲' : '▼') + ' ' + Math.abs(pct).toFixed(0) + '% عن نفس المدة الشهر اللي فات</span>';
+    return '<span class="home-usage-delta" style="color:' + color + '">' + (up ? '▲' : '▼') + ' ' + Math.abs(pct).toFixed(0) + '% عن نفس المدة من الدورة اللي فاتت</span>';
 }
 
 var homeChartInstances = {};
+var homeChartsRetryTimer = null;
 function renderHomeUsageCharts(equipmentList) {
     var data = computeHomeUsageComparison(equipmentList);
     var noteEl = document.getElementById('home-usage-note');
     if (noteEl) {
-        noteEl.textContent = '📅 المقارنة: من ' + data.curFrom + ' لحد ' + data.curTo + ' (' + data.days + ' يوم) مقابل نفس المدة من الشهر اللي فات (' + data.prevFrom + ' → ' + data.prevTo + ')';
+        noteEl.textContent = '📅 دورة 21 → 20: من ' + data.curFrom + ' لحد ' + data.curTo + ' (' + data.days + ' يوم) مقابل نفس المدة من الدورة اللي فاتت (' + data.prevFrom + ' → ' + data.prevTo + ')';
     }
 
     var cardsEl = document.getElementById('home-usage-cards');
@@ -16896,7 +16910,17 @@ function renderHomeUsageCharts(equipmentList) {
             '<div class="stat-card"><div class="stat-number" style="color:var(--warning);font-size:15px">' + formatNumber(Math.round(data.rented.curCost)) + '</div><div class="stat-label">تكلفة الإيجار ج.م 💰</div>' + homeUsageDeltaHtml(data.rented.curCost, data.rented.prevCost) + '</div>';
     }
 
-    if (!window.Chart) return; // لو مكتبة الرسم لسه بتتحمّل من الـ CDN، منسيبش الصفحة توقع
+    if (!window.Chart) {
+        // لو مكتبة الرسم لسه بتتحمّل من الـ CDN (بطء نت في بعض المواقع)، نجرب تاني كل نص ثانية لحد ما تتحمّل بدل ما نسيب الشارتات فاضية للأبد
+        if (!homeChartsRetryTimer) {
+            homeChartsRetryTimer = setTimeout(function() {
+                homeChartsRetryTimer = null;
+                renderHomeUsageCharts(equipmentList);
+            }, 500);
+        }
+        return;
+    }
+    if (homeChartsRetryTimer) { clearTimeout(homeChartsRetryTimer); homeChartsRetryTimer = null; }
     Object.keys(homeChartInstances).forEach(function(k) {
         if (homeChartInstances[k]) { homeChartInstances[k].destroy(); homeChartInstances[k] = null; }
     });
@@ -16909,7 +16933,7 @@ function renderHomeUsageCharts(equipmentList) {
                 labels: ['معدات الملك 🔑', 'معدات الإيجار 📋'],
                 datasets: [
                     { label: 'الفترة الحالية', data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: '#059669', borderRadius: 6 },
-                    { label: 'نفس المدة الشهر اللي فات', data: [Math.round(data.owned.prev), Math.round(data.rented.prevHours)], backgroundColor: '#94a3b8', borderRadius: 6 }
+                    { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.owned.prev), Math.round(data.rented.prevHours)], backgroundColor: '#94a3b8', borderRadius: 6 }
                 ]
             },
             options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 10.5 }, padding: 10 } } }, scales: { y: { beginAtZero: true, title: { display: true, text: 'ساعة' } } } }
@@ -16924,7 +16948,7 @@ function renderHomeUsageCharts(equipmentList) {
                 labels: ['تكلفة معدات الإيجار'],
                 datasets: [
                     { label: 'الفترة الحالية', data: [Math.round(data.rented.curCost)], backgroundColor: '#d97706', borderRadius: 6 },
-                    { label: 'نفس المدة الشهر اللي فات', data: [Math.round(data.rented.prevCost)], backgroundColor: '#94a3b8', borderRadius: 6 }
+                    { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.rented.prevCost)], backgroundColor: '#94a3b8', borderRadius: 6 }
                 ]
             },
             options: { indexAxis: 'y', responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 10.5 }, padding: 10 } } }, scales: { x: { beginAtZero: true, title: { display: true, text: 'ج.م' } } } }
