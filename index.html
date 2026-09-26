@@ -16896,6 +16896,17 @@ function homeUsageDeltaHtml(cur, prev) {
 var homeChartInstances = {};
 var homeChartsRetryTimer = null;
 function renderHomeUsageCharts(equipmentList) {
+    try {
+        renderHomeUsageChartsInner(equipmentList);
+    } catch (err) {
+        console.error('renderHomeUsageCharts error:', err);
+        ['chart-home-hours', 'chart-home-cost', 'chart-home-split'].forEach(function(id) {
+            var c = document.getElementById(id);
+            if (c && c.parentElement) c.parentElement.innerHTML += '<div style="color:var(--danger);font-size:11px;text-align:center;padding:6px">⚠️ تعذر رسم الشارت (' + escapeHtml(err.message || String(err)) + ')</div>';
+        });
+    }
+}
+function renderHomeUsageChartsInner(equipmentList) {
     var data = computeHomeUsageComparison(equipmentList);
     var noteEl = document.getElementById('home-usage-note');
     if (noteEl) {
