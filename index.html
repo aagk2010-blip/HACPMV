@@ -16982,6 +16982,11 @@ function renderHomeUsageChartsInner(equipmentList) {
 function updateHomeStatsAndList() {
     var equipmentData = getVisibleEquipment();
 
+    // بيانات مقارنة الاستخدام (ملك/إيجار) مستقلة تمامًا عن باقي حسابات الصفحة الرئيسية —
+    // بتتنفذ الأول وبمعزل (try/catch جواها أصلاً) عشان أي خطأ في أي جزء تاني من الصفحة
+    // (زي شبكة الأقسام أو حساب النواقص) ميوقفش عرض المقارنة والرسومات
+    renderHomeUsageCharts(equipmentData);
+
     // تذكير بإرسال التقرير الدوري (يظهر فقط لصاحب الصلاحية الكاملة، وبعد 7 أيام من آخر تقرير)
     var bannerEl = document.getElementById('report-reminder-banner');
     if (bannerEl) {
@@ -17008,26 +17013,29 @@ function updateHomeStatsAndList() {
         }
     }
 
-    var working = equipmentData.filter(function(e) { return e.status === 'يعمل'; }).length;
-    var overdue = equipmentData.filter(function(e) { return e.status !== 'متوقف' && hoursRemaining(e) <= 0; }).length;
-    var scheduled = maintenanceSchedules.filter(function(m) { return m.status === 'مجدول'; }).length;
-    var needs = calculateEnhancedOrderNeeds();
-    var shortagesCount = Object.values(needs).filter(function(n) { return n.shortage > 0; }).length;
-    var totalFuel = fuelData.reduce(function(sum, f) { return sum + (f.amount || 0); }, 0);
-    var expiredLicenses = driversData.filter(function(d) { return d.licenseExpiry && new Date(d.licenseExpiry) < new Date() && d.status === 'نشط'; }).length;
-    var totalMaintCost = maintenanceSchedules.reduce(function(sum, m) { return sum + (parseFloat(m.estimatedCost) || 0); }, 0);
-    
-    document.getElementById('stats-summary').innerHTML = '<div class="stat-card"><div class="stat-number">' + equipmentData.length + '</div><div class="stat-label">' + RL('Equipment', 'المعدات') + '</div></div>' +
-        '<div class="stat-card"><div class="stat-number" style="color:var(--success)">' + working + '</div><div class="stat-label">' + RL('Working', 'تعمل') + ' ✅</div></div>' +
-        '<div class="stat-card"><div class="stat-number" style="color:var(--danger)">' + overdue + '</div><div class="stat-label">' + RL('Overdue', 'متأخرة') + ' ⚠️</div></div>' +
-        '<div class="stat-card"><div class="stat-number" style="color:var(--warning)">' + scheduled + '</div><div class="stat-label">' + RL('Scheduled', 'مجدولة') + ' 🔧</div></div>' +
-        '<div class="stat-card"><div class="stat-number" style="color:var(--purple)">' + shortagesCount + '</div><div class="stat-label">' + RL('Shortages', 'نواقص') + ' 📦</div></div>' +
-        '<div class="stat-card"><div class="stat-number" style="color:var(--info)">' + formatNumber(totalFuel) + '</div><div class="stat-label">' + RL('Liters', 'لتر') + ' ⛽</div></div>' +
-        (expiredLicenses > 0 ? '<div class="stat-card" style="border:2px solid var(--danger)"><div class="stat-number" style="color:var(--danger)">' + expiredLicenses + '</div><div class="stat-label">' + RL('Expired License', 'رخصة منتهية') + ' ❌</div></div>' : '') +
-        (totalMaintCost > 0 ? '<div class="stat-card"><div class="stat-number" style="color:var(--success);font-size:12px">' + totalMaintCost.toLocaleString() + '</div><div class="stat-label">' + RL('EGP Maintenance', 'ج.م صيانة') + ' 💰</div></div>' : '');
+    try {
+        var working = equipmentData.filter(function(e) { return e.status === 'يعمل'; }).length;
+        var overdue = equipmentData.filter(function(e) { return e.status !== 'متوقف' && hoursRemaining(e) <= 0; }).length;
+        var scheduled = maintenanceSchedules.filter(function(m) { return m.status === 'مجدول'; }).length;
+        var needs = calculateEnhancedOrderNeeds();
+        var shortagesCount = Object.values(needs).filter(function(n) { return n.shortage > 0; }).length;
+        var totalFuel = fuelData.reduce(function(sum, f) { return sum + (f.amount || 0); }, 0);
+        var expiredLicenses = driversData.filter(function(d) { return d.licenseExpiry && new Date(d.licenseExpiry) < new Date() && d.status === 'نشط'; }).length;
+        var totalMaintCost = maintenanceSchedules.reduce(function(sum, m) { return sum + (parseFloat(m.estimatedCost) || 0); }, 0);
 
-    renderHomeAppGrid({ equipmentCount: equipmentData.length, overdue: overdue, scheduled: scheduled, shortagesCount: shortagesCount, expiredLicenses: expiredLicenses });
-    renderHomeUsageCharts(equipmentData);
+        document.getElementById('stats-summary').innerHTML = '<div class="stat-card"><div class="stat-number">' + equipmentData.length + '</div><div class="stat-label">' + RL('Equipment', 'المعدات') + '</div></div>' +
+            '<div class="stat-card"><div class="stat-number" style="color:var(--success)">' + working + '</div><div class="stat-label">' + RL('Working', 'تعمل') + ' ✅</div></div>' +
+            '<div class="stat-card"><div class="stat-number" style="color:var(--danger)">' + overdue + '</div><div class="stat-label">' + RL('Overdue', 'متأخرة') + ' ⚠️</div></div>' +
+            '<div class="stat-card"><div class="stat-number" style="color:var(--warning)">' + scheduled + '</div><div class="stat-label">' + RL('Scheduled', 'مجدولة') + ' 🔧</div></div>' +
+            '<div class="stat-card"><div class="stat-number" style="color:var(--purple)">' + shortagesCount + '</div><div class="stat-label">' + RL('Shortages', 'نواقص') + ' 📦</div></div>' +
+            '<div class="stat-card"><div class="stat-number" style="color:var(--info)">' + formatNumber(totalFuel) + '</div><div class="stat-label">' + RL('Liters', 'لتر') + ' ⛽</div></div>' +
+            (expiredLicenses > 0 ? '<div class="stat-card" style="border:2px solid var(--danger)"><div class="stat-number" style="color:var(--danger)">' + expiredLicenses + '</div><div class="stat-label">' + RL('Expired License', 'رخصة منتهية') + ' ❌</div></div>' : '') +
+            (totalMaintCost > 0 ? '<div class="stat-card"><div class="stat-number" style="color:var(--success);font-size:12px">' + totalMaintCost.toLocaleString() + '</div><div class="stat-label">' + RL('EGP Maintenance', 'ج.م صيانة') + ' 💰</div></div>' : '');
+
+        renderHomeAppGrid({ equipmentCount: equipmentData.length, overdue: overdue, scheduled: scheduled, shortagesCount: shortagesCount, expiredLicenses: expiredLicenses });
+    } catch (err) {
+        console.error('updateHomeStatsAndList (KPI/app-grid section) error:', err);
+    }
 }
 
 // ==================== شاشة تحكم بأسلوب أودو: شبكة أقسام قابلة للنقر مع عدّادات سريعة ====================
