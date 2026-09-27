@@ -1390,10 +1390,10 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <select id="accounts-contractor-filter" class="form-input" style="max-width:190px" onchange="renderAccountsRentalList()"><option value="">كل المقاولين</option></select>
       </div>
 
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-        <button class="edit-btn" onclick="openContractorsModal()" style="flex:1;min-width:120px;padding:11px;background:#e8a020;color:#0d1b2a;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">👷 المقاولين</button>
-        <button onclick="printFullAccountsStatement(true)" style="flex:1.4;min-width:160px;padding:11px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة بالتكلفة</button>
-        <button onclick="printFullAccountsStatement(false)" style="flex:1.4;min-width:160px;padding:11px;background:linear-gradient(135deg,#0369a1,#075985);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة أيام العمل فقط</button>
+      <div class="home-quick-actions" style="padding:0 0 14px">
+        <button class="edit-btn home-quick-btn" onclick="openContractorsModal()" style="background:#e8a020;color:#0d1b2a"><span class="qi">👷</span>المقاولين</button>
+        <button onclick="printFullAccountsStatement(true)" class="home-quick-btn" style="background:linear-gradient(135deg,#166534,#14532d)"><span class="qi">🖨️</span>طباعة بالتكلفة</button>
+        <button onclick="printFullAccountsStatement(false)" class="home-quick-btn" style="background:linear-gradient(135deg,#0369a1,#075985)"><span class="qi">🖨️</span>أيام العمل فقط</button>
       </div>
 
       <div id="accounts-total-card" style="background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
@@ -5923,6 +5923,14 @@ function proceedToApp() {
         if (isViewOnlyUser()) {
             css += '.save-btn,.big-btn,.add-btn,.edit-btn,.delete-btn,.danger-btn,' +
                    '.fab-section,#fab-btn,.edit-equipment-btn,.fuel-edit-btn,.qty-btn' +
+                   '{display:none!important}';
+            // أزرار الشبكة المضغوطة (home-quick-btn) بقت بتستخدم في أكتر من صفحة أزرار أوامر —
+            // نخفيها لمستخدم "مشاهدة فقط" بنفس منطق .big-btn، لكن بس في الصفحات اللي كانت
+            // أزرارها الأصلية بيانات إجراءات (وقود/صيانة/مخزون/تحليلات/مواقع/معدات)، عشان
+            // نسيب أزرار الصفحة الرئيسية (تحديث/تحليل AI) زي ما هي متاحة كما كانت دايمًا
+            css += '#view-fuel .home-quick-btn,#view-maintenance .home-quick-btn,' +
+                   '#view-inventory .home-quick-btn,#view-analytics .home-quick-btn,' +
+                   '#view-sites .home-quick-btn,#view-equipment .home-quick-btn' +
                    '{display:none!important}';
         }
 
