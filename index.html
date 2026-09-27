@@ -1353,11 +1353,11 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <button id="rental-tab-daily" onclick="switchRentalTab('daily')" style="flex:1;padding:8px;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--gray)">📋 السجل اليومي</button>
       </div>
       <div id="rental-section-equipment">
-        <div style="display:flex;gap:8px;margin-bottom:10px">
-          <button id="add-rental-btn" style="flex:1;padding:10px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">➕ إضافة عقد إيجار</button>
-          <button id="delete-all-rental-btn" style="padding:10px 14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;cursor:pointer" title="حذف جميع السجلات">🗑️</button>
+        <div class="home-quick-actions" style="padding:0 0 10px">
+          <button id="add-rental-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><span class="qi">➕</span>إضافة عقد إيجار</button>
+          <button onclick="openOvertimeAnomalyModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><span class="qi">⚠️</span>كشف الإضافي المشبوه</button>
+          <button id="delete-all-rental-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" title="حذف جميع السجلات"><span class="qi">🗑️</span>حذف الكل</button>
         </div>
-        <button onclick="openOvertimeAnomalyModal()" style="width:100%;padding:11px;margin-bottom:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">⚠️ كشف الإضافي المشبوه (مقارنة بين المعدات المتشابهة)</button>
         <div id="rental-equipment-list"></div>
       </div>
       <div id="rental-section-daily" style="display:none">
