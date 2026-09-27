@@ -4012,6 +4012,7 @@ let activeListeners = [];
 let isOnline = true;
 let refreshTimeout = null;
 let isListeningAttached = false;
+let didAutoRefreshOnStart = false;
 let dbRequest = null;
 let isImporting = false;
 let windowInvAltCount = 0;
@@ -5954,6 +5955,14 @@ function proceedToApp() {
     initFirebase();
     initIndexedDB();
     initSessionTimeout();
+
+    // تحديث تلقائي كامل للبيانات مرة واحدة بعد بدء تشغيل البرنامج (بدل الاعتماد على ضغط
+    // المستخدم يدويًا على زرار "🔄 تحديث البيانات" في الصفحة الرئيسية) — بننتظر شوية عشان
+    // الاتصال بقاعدة البيانات يكون اتظبط، وبنعمل ده مرة واحدة بس لكل جلسة تسجيل دخول
+    if (!didAutoRefreshOnStart) {
+        didAutoRefreshOnStart = true;
+        setTimeout(function() { forceRefreshData(); }, 2500);
+    }
 
     var startView = firstAllowedView || 'home';
     setTimeout(function() { switchView(startView); }, 100);
