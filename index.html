@@ -1787,6 +1787,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <div style="font-size:19px;font-weight:800;margin-bottom:4px">⚙️ ضبط شاشة الإدارة</div>
       <div style="font-size:12px;color:var(--k-muted);margin-bottom:18px">اختر الشرائح المناسبة لهذا الجهاز — مثلًا شاشة المخزن تظهر لها "المخزن" بس، وشاشة الموقع تظهر لها "المواقع" و"الأسطول". الإعداد بيتحفظ على هذا الجهاز فقط.</div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
+        <label class="k-opt"><input type="checkbox" id="kiosk-cfg-usage" style="width:18px;height:18px">📊 استخدام المعدات (ملك/إيجار) — نفس شارت الصفحة الرئيسية</label>
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-sites" style="width:18px;height:18px">🏢 نظرة عامة على المواقع</label>
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-alerts" style="width:18px;height:18px">🔔 التنبيهات الحرجة</label>
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-fleet" style="width:18px;height:18px">📈 أداء المعدات (الأسطول)</label>
@@ -14376,7 +14377,7 @@ var kioskIntervalId = null;
 var kioskClockIntervalId = null;
 var kioskSlideIndex = 0;
 var KIOSK_DEFAULT_SECONDS = 15;
-var KIOSK_DEFAULT_SLIDES = ['sites', 'alerts', 'fleet', 'warehouse', 'maintenance'];
+var KIOSK_DEFAULT_SLIDES = ['usage', 'sites', 'alerts', 'fleet', 'warehouse', 'maintenance'];
 var KIOSK_DEFAULT_WORK_END = '17:30';
 var KIOSK_DEFAULT_OFF_DAYS = [5]; // الجمعة (getDay(): 0=أحد ... 5=جمعة ... 6=سبت)
 var KIOSK_DEFAULT_THEME = 'dark';   // dark | light | auto
@@ -14515,6 +14516,7 @@ loadKioskSettings();
 function openKioskSettingsPanel() {
     var panel = document.getElementById('kiosk-settings-panel');
     if (!panel) return;
+    document.getElementById('kiosk-cfg-usage').checked = kioskSettings.slides.indexOf('usage') !== -1;
     document.getElementById('kiosk-cfg-sites').checked = kioskSettings.slides.indexOf('sites') !== -1;
     document.getElementById('kiosk-cfg-alerts').checked = kioskSettings.slides.indexOf('alerts') !== -1;
     document.getElementById('kiosk-cfg-fleet').checked = kioskSettings.slides.indexOf('fleet') !== -1;
@@ -14548,6 +14550,7 @@ function closeKioskSettingsPanel() {
 
 function saveKioskSettings() {
     var slides = [];
+    if (document.getElementById('kiosk-cfg-usage').checked) slides.push('usage');
     if (document.getElementById('kiosk-cfg-sites').checked) slides.push('sites');
     if (document.getElementById('kiosk-cfg-alerts').checked) slides.push('alerts');
     if (document.getElementById('kiosk-cfg-fleet').checked) slides.push('fleet');
@@ -14697,7 +14700,8 @@ function renderKioskSlide() {
     var dots = document.getElementById('kiosk-dots');
     if (!body) return;
     var slide = kioskSlides[kioskSlideIndex];
-    if (slide === 'sites') body.innerHTML = renderKioskSitesSlide();
+    if (slide === 'usage') body.innerHTML = renderKioskUsageSlide();
+    else if (slide === 'sites') body.innerHTML = renderKioskSitesSlide();
     else if (slide === 'alerts') body.innerHTML = renderKioskAlertsSlide();
     else if (slide === 'warehouse') body.innerHTML = renderKioskWarehouseSlide();
     else if (slide === 'maintenance') body.innerHTML = renderKioskMaintenanceSlide();
@@ -14709,6 +14713,34 @@ function renderKioskSlide() {
             return '<span style="width:' + (active?22:8) + 'px;height:8px;border-radius:4px;background:' + (active?'var(--k-accent)':'var(--k-dot)') + ';transition:all .3s"></span>';
         }).join('');
     }
+}
+
+// شريحة: نفس بيانات شارت "استخدام المعدات: الملك والإيجار" الموجود في الصفحة الرئيسية
+// (بتستخدم نفس دالة الحساب computeHomeUsageComparison عشان الأرقام تفضل مطابقة تمامًا للي ظاهر في الرئيسية)
+function renderKioskUsageSlide() {
+    var data = computeHomeUsageComparison(getVisibleEquipment());
+    var totalHours = (data.owned.cur || 0) + (data.rented.curHours || 0);
+    var ownedPct = totalHours > 0 ? Math.round((data.owned.cur / totalHours) * 100) : 0;
+    var rentedPct = totalHours > 0 ? (100 - ownedPct) : 0;
+
+    var cards = '<div style="display:flex;gap:16px;margin-bottom:24px">' +
+        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:26px;font-weight:800;color:var(--k-green)">' + formatNumber(Math.round(data.owned.cur)) + '</div><div style="font-size:13px;color:var(--k-muted)">ساعات الملك 🔑</div>' + homeUsageDeltaHtml(data.owned.cur, data.owned.prev) + '</div>' +
+        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:26px;font-weight:800;color:#3b82f6">' + formatNumber(Math.round(data.rented.curHours)) + '</div><div style="font-size:13px;color:var(--k-muted)">ساعات الإيجار 📋</div>' + homeUsageDeltaHtml(data.rented.curHours, data.rented.prevHours) + '</div>' +
+        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#d97706">' + formatNumber(Math.round(data.rented.curCost)) + '</div><div style="font-size:13px;color:var(--k-muted)">تكلفة الإيجار ج.م 💰</div>' + homeUsageDeltaHtml(data.rented.curCost, data.rented.prevCost) + '</div>' +
+        '</div>';
+
+    var splitBar = totalHours > 0
+        ? '<div style="font-size:16px;font-weight:700;margin-bottom:10px">🥯 نسبة الساعات: ملك مقابل إيجار</div>' +
+          '<div style="background:var(--k-track);border-radius:10px;height:26px;overflow:hidden;display:flex;margin-bottom:8px">' +
+          '<div style="width:' + ownedPct + '%;background:#059669;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">' + (ownedPct > 8 ? ownedPct + '%' : '') + '</div>' +
+          '<div style="width:' + rentedPct + '%;background:#f59e0b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">' + (rentedPct > 8 ? rentedPct + '%' : '') + '</div>' +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--k-muted)">🟢 ملك ' + ownedPct + '%  •  🟠 إيجار ' + rentedPct + '%</div>'
+        : '<div style="color:var(--k-muted);font-size:16px">لا توجد بيانات كافية حاليًا</div>';
+
+    return '<div style="font-size:22px;font-weight:800;margin-bottom:6px">📊 استخدام المعدات: الملك والإيجار</div>' +
+        '<div style="font-size:12px;color:var(--k-muted);margin-bottom:18px">📅 دورة 21 → 20: من ' + data.curFrom + ' لحد ' + data.curTo + ' مقابل نفس المدة من الدورة اللي فاتت</div>' +
+        cards + splitBar;
 }
 
 function renderKioskSitesSlide() {
