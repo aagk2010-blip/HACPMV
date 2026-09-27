@@ -4922,10 +4922,13 @@ function attachFirebaseListeners() {
     function listen(path, callback) {
         var ref = fbDb.ref(path);
         var handler = ref.on('value', callback, function(err) {
-            // من غير كول باك للخطأ هنا، فايربيز كانت بتوقف المزامنة على المسار ده بصمت للأبد
-            // (زي ما حصل مع صفحة المخزن) من غير أي إشعار — دلوقتي هيظهر تنبيه واضح يوضح المسار والسبب
             console.error('Firebase listener error on "' + path + '":', err);
-            showToast('⚠️ تعذرت مزامنة بيانات "' + path + '" (' + (err && err.message || err) + ') — راجع صلاحيات فايربيز', true);
+            // "الصلاحيات مرفوضة" (permission_denied) غالبًا مقصودة — بعض المسارات (زي بيانات المقاولين/التكلفة)
+            // محجوبة عمدًا عن صلاحيات معينة، فمش لازم تظهر كتنبيه مزعج لكل مستخدم عنده صلاحية أقل.
+            // أي نوع تاني من الأخطاء (مشكلة شبكة، إعداد فايربيز غلط، إلخ) لازم يظهر فعلاً لأنه غير متوقع
+            if (err && err.code !== 'PERMISSION_DENIED') {
+                showToast('⚠️ تعذرت مزامنة بيانات "' + path + '" (' + (err.message || err) + ')', true);
+            }
         });
         activeListeners.push({ ref: ref, handler: handler });
     }
@@ -5343,6 +5346,25 @@ function toFirebaseKey(str) {
     });
 }
 
+// نظام الدخول بتاع التطبيق مخصوص (يتحقق من appUsers مباشرة) ومبيمرّش أبدًا بـ Firebase Authentication الحقيقي،
+// لكن قواعد قاعدة البيانات (Rules) بقت تشترط "auth != null" على معظم المسارات. الحل: تسجيل دخول "مجهول" (Anonymous)
+// لفايربيز نفسه بعد نجاح تسجيل الدخول العادي، عشان الشرط ده يتحقق من غير ما نغيّر نظام كلمة المرور خالص.
+// ملحوظة: خانة "Anonymous" لازم تكون مفعّلة من Firebase Console → Authentication → Sign-in method.
+function ensureFirebaseAnonymousAuth(cb) {
+    if (typeof firebase === 'undefined' || !firebase.auth) { cb(); return; }
+    try {
+        if (firebase.auth().currentUser) { cb(); return; }
+        firebase.auth().signInAnonymously().then(function() { cb(); }).catch(function(err) {
+            console.error('Firebase anonymous sign-in failed:', err);
+            showToast('⚠️ تعذر تفعيل صلاحيات قاعدة البيانات (' + (err.message || err) + ') — فعّل "Anonymous" في Firebase Authentication', true);
+            cb(); // نكمّل الدخول للتطبيق حتى لو فشلت المصادقة، أفضل من توقيف المستخدم بالكامل
+        });
+    } catch (e) {
+        console.error('ensureFirebaseAnonymousAuth error:', e);
+        cb();
+    }
+}
+
 function secureLogin() {
     if (!loginDataReady) {
         showToast('⏳ جاري تحميل بيانات الدخول، انتظر لحظة...', true);
@@ -5395,7 +5417,10 @@ function secureLogin() {
             if (errDiv) errDiv.style.display = 'none';
             if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
             showToast('مرحباً ' + found.name + ' ✅');
-            proceedToApp();
+            // نظام الدخول بتاعنا بيتحقق من اسم المستخدم وكلمة المرور مباشرة من appUsers (من غير Firebase Authentication).
+            // لكن قواعد قاعدة البيانات (Rules) بتشترط "auth != null" على معظم المسارات (المخزن، الوقود، الصيانة، إلخ)،
+            // فلازم نعمل تسجيل دخول "مجهول" (Anonymous) لفايربيز نفسه عشان الشرط ده يتحقق ويقدر يقرأ البيانات دي كلها.
+            ensureFirebaseAnonymousAuth(function() { proceedToApp(); });
         }
 
         // التحقق المباشر من كلمة المرور (بالطريقة الأصلية) لكل المستخدمين، بدون المرور بـ Firebase Authentication
