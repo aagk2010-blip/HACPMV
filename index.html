@@ -14450,6 +14450,7 @@ function toggleKioskTheme() {
     kioskSettings.theme = kioskIsLight() ? 'dark' : 'light';
     persistKioskSettings();
     applyKioskAppearance();
+    if (kioskSlides[kioskSlideIndex] === 'usage') renderKioskUsageCharts();
 }
 
 function setKioskBgMsg(text, isError) {
@@ -14642,7 +14643,10 @@ function updateKioskClock() {
     }
     updateKioskWorkCountdown(now);
     var ov = document.getElementById('kiosk-mode-overlay');
-    if (kioskSettings.theme === 'auto' && ov && ov.classList.contains('kiosk-light') !== kioskIsLight()) applyKioskAppearance();
+    if (kioskSettings.theme === 'auto' && ov && ov.classList.contains('kiosk-light') !== kioskIsLight()) {
+        applyKioskAppearance();
+        if (kioskSlides[kioskSlideIndex] === 'usage') renderKioskUsageCharts();
+    }
 }
 
 // بيحسب ويعرض الوقت المتبقي لحد نهاية العمل (حسب الإعداد المحفوظ)، أو "يوم إجازة" في أيام الإجازة الأسبوعية
@@ -14727,28 +14731,36 @@ function destroyKioskUsageCharts() {
 }
 
 function renderKioskUsageSlideHtml() {
-    return '<div style="font-size:22px;font-weight:800;margin-bottom:6px">📊 استخدام المعدات: الملك والإيجار</div>' +
+    return '<div style="font-size:22px;font-weight:800;margin-bottom:6px;color:var(--k-text)">📊 استخدام المعدات: الملك والإيجار</div>' +
         '<div id="kiosk-usage-note" style="font-size:12px;color:var(--k-muted);margin-bottom:10px"></div>' +
-        '<div class="stats-row" id="kiosk-usage-cards" style="padding:0;margin-bottom:14px"></div>' +
+        '<div id="kiosk-usage-cards" style="display:flex;gap:10px;margin-bottom:14px;overflow-x:auto"></div>' +
         '<div class="home-usage-charts-grid">' +
-        '<div class="home-usage-chart-card"><div class="home-usage-chart-title">⏱️ ساعات التشغيل</div><div style="position:relative;height:230px"><canvas id="kiosk-chart-hours"></canvas></div></div>' +
-        '<div class="home-usage-chart-card"><div class="home-usage-chart-title">💰 تكلفة الإيجار</div><div style="position:relative;height:230px"><canvas id="kiosk-chart-cost"></canvas></div></div>' +
-        '<div class="home-usage-chart-card"><div class="home-usage-chart-title">🥯 ملك مقابل إيجار</div><div style="position:relative;height:230px"><canvas id="kiosk-chart-split"></canvas></div></div>' +
+        '<div style="background:var(--k-card);border-radius:14px;padding:10px;box-shadow:var(--k-shadow)"><div style="font-weight:800;font-size:13px;color:var(--k-text);margin-bottom:4px;text-align:center">⏱️ ساعات التشغيل</div><div style="position:relative;height:230px"><canvas id="kiosk-chart-hours"></canvas></div></div>' +
+        '<div style="background:var(--k-card);border-radius:14px;padding:10px;box-shadow:var(--k-shadow)"><div style="font-weight:800;font-size:13px;color:var(--k-text);margin-bottom:4px;text-align:center">💰 تكلفة الإيجار</div><div style="position:relative;height:230px"><canvas id="kiosk-chart-cost"></canvas></div></div>' +
+        '<div style="background:var(--k-card);border-radius:14px;padding:10px;box-shadow:var(--k-shadow)"><div style="font-weight:800;font-size:13px;color:var(--k-text);margin-bottom:4px;text-align:center">🥯 ملك مقابل إيجار</div><div style="position:relative;height:230px"><canvas id="kiosk-chart-split"></canvas></div></div>' +
         '</div>';
 }
 
 function renderKioskUsageCharts() {
     var data = computeHomeUsageComparison(getVisibleEquipment());
+    var light = kioskIsLight();
+    var textColor = light ? '#0d1b2a' : '#ffffff';
+    var mutedColor = light ? '#5b6675' : '#94a3b8';
 
     var noteEl = document.getElementById('kiosk-usage-note');
     if (noteEl) noteEl.textContent = '📅 دورة 21 → 20: من ' + data.curFrom + ' لحد ' + data.curTo + ' (' + data.days + ' يوم) مقابل نفس المدة من الدورة اللي فاتت (' + data.prevFrom + ' → ' + data.prevTo + ')';
 
     var cardsEl = document.getElementById('kiosk-usage-cards');
     if (cardsEl) {
+        function kioskStatCard(color, number, label, deltaHtml) {
+            return '<div style="flex:1;min-width:110px;background:var(--k-card);border-radius:16px;padding:12px 14px;text-align:center;box-shadow:var(--k-shadow)">' +
+                '<div style="font-size:22px;font-weight:800;color:' + color + '">' + number + '</div>' +
+                '<div style="font-size:11px;color:var(--k-muted);margin-top:2px">' + label + '</div>' + deltaHtml + '</div>';
+        }
         cardsEl.innerHTML =
-            '<div class="stat-card"><div class="stat-number" style="color:var(--success)">' + formatNumber(Math.round(data.owned.cur)) + '</div><div class="stat-label">ساعات الملك 🔑</div>' + homeUsageDeltaHtml(data.owned.cur, data.owned.prev) + '</div>' +
-            '<div class="stat-card"><div class="stat-number" style="color:var(--info)">' + formatNumber(Math.round(data.rented.curHours)) + '</div><div class="stat-label">ساعات الإيجار 📋</div>' + homeUsageDeltaHtml(data.rented.curHours, data.rented.prevHours) + '</div>' +
-            '<div class="stat-card"><div class="stat-number" style="color:var(--warning);font-size:15px">' + formatNumber(Math.round(data.rented.curCost)) + '</div><div class="stat-label">تكلفة الإيجار ج.م 💰</div>' + homeUsageDeltaHtml(data.rented.curCost, data.rented.prevCost) + '</div>';
+            kioskStatCard('var(--k-green)', formatNumber(Math.round(data.owned.cur)), 'ساعات الملك 🔑', homeUsageDeltaHtml(data.owned.cur, data.owned.prev)) +
+            kioskStatCard('#3b82f6', formatNumber(Math.round(data.rented.curHours)), 'ساعات الإيجار 📋', homeUsageDeltaHtml(data.rented.curHours, data.rented.prevHours)) +
+            kioskStatCard('#d97706', formatNumber(Math.round(data.rented.curCost)), 'تكلفة الإيجار ج.م 💰', homeUsageDeltaHtml(data.rented.curCost, data.rented.prevCost));
     }
 
     if (!window.Chart) return; // شاشة الإدارة بتتفتح بعد تحميل الصفحة الرئيسية أصلاً، فمكتبة الرسم غالبًا محمّلة من قبل
@@ -14764,7 +14776,7 @@ function renderKioskUsageCharts() {
                     { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.owned.prev), Math.round(data.rented.prevHours)], backgroundColor: '#94a3b8', borderRadius: 6 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 6 } } }, scales: { y: { beginAtZero: true, ticks: { font: { size: 11 } } }, x: { ticks: { font: { size: 11 } } } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 6, color: textColor } } }, scales: { y: { beginAtZero: true, ticks: { font: { size: 11 }, color: mutedColor }, grid: { color: light ? 'rgba(13,27,42,.08)' : 'rgba(255,255,255,.12)' } }, x: { ticks: { font: { size: 11 }, color: mutedColor }, grid: { color: light ? 'rgba(13,27,42,.08)' : 'rgba(255,255,255,.12)' } } } }
         });
     }
 
@@ -14779,7 +14791,7 @@ function renderKioskUsageCharts() {
                     { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.rented.prevCost)], backgroundColor: '#94a3b8', borderRadius: 6 }
                 ]
             },
-            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 6 } } }, scales: { x: { beginAtZero: true, ticks: { font: { size: 11 } } }, y: { ticks: { font: { size: 11 } } } } }
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 6, color: textColor } } }, scales: { x: { beginAtZero: true, ticks: { font: { size: 11 }, color: mutedColor }, grid: { color: light ? 'rgba(13,27,42,.08)' : 'rgba(255,255,255,.12)' } }, y: { ticks: { font: { size: 11 }, color: mutedColor }, grid: { color: light ? 'rgba(13,27,42,.08)' : 'rgba(255,255,255,.12)' } } } }
         });
     }
 
@@ -14797,10 +14809,10 @@ function renderKioskUsageCharts() {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.font = "700 20px Cairo, sans-serif";
-                ctx.fillStyle = '#0f172a';
+                ctx.fillStyle = textColor;
                 ctx.fillText(formatNumber(Math.round(total)), arc.x, arc.y - 9);
                 ctx.font = "600 11px Cairo, sans-serif";
-                ctx.fillStyle = '#64748b';
+                ctx.fillStyle = mutedColor;
                 ctx.fillText('إجمالي الساعات', arc.x, arc.y + 11);
                 ctx.restore();
             }
@@ -14809,9 +14821,9 @@ function renderKioskUsageCharts() {
             type: 'doughnut',
             data: {
                 labels: ['ساعات الملك 🔑', 'ساعات الإيجار 📋'],
-                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 2, borderColor: '#fff' }]
+                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 2, borderColor: light ? '#ffffff' : '#0d1b2a' }]
             },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 6 } }, tooltip: { callbacks: { label: function(ctx) {
+            options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 6, color: textColor } }, tooltip: { callbacks: { label: function(ctx) {
                 var total = ctx.dataset.data.reduce(function(s, v) { return s + (v || 0); }, 0);
                 var pct = total > 0 ? Math.round((ctx.parsed / total) * 100) : 0;
                 return ctx.label + ': ' + formatNumber(ctx.parsed) + ' ساعة (' + pct + '%)';
