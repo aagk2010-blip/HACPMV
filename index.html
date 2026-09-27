@@ -5395,9 +5395,25 @@ function secureLogin() {
         // بريد الدخول ثابت بالاتفاق: اسم المستخدم + @hac.com (بنفس الطريقة اللي اتعمل بيها كل حساب في الكونسول)
         if (found.firebaseUid && typeof firebase !== 'undefined' && firebase.auth) {
             var authEmail = usernameToAuthEmail(found.username);
+            var authSettled = false;
+            var authFallbackTimer = setTimeout(function() {
+                if (authSettled) return;
+                authSettled = true;
+                // الاتصال بـ Firebase Authentication تأخر جدًا (شبكة بطيئة/محجوبة) — نرجع للتحقق المحلي القديم بدل ما نسيب المستخدم معلّق للأبد
+                verifyUserPassword(found, password).then(function(ok) {
+                    if (!ok) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
+                    finalizeLogin();
+                });
+            }, 10000);
             firebase.auth().signInWithEmailAndPassword(authEmail, password).then(function() {
+                if (authSettled) return;
+                authSettled = true;
+                clearTimeout(authFallbackTimer);
                 finalizeLogin();
             }).catch(function(err) {
+                if (authSettled) return;
+                authSettled = true;
+                clearTimeout(authFallbackTimer);
                 if (err && (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email')) {
                     // احتياطي فقط: الحساب متعلّم بـ firebaseUid بس الحساب الفعلي في Authentication مش موجود لأي سبب — نرجع للتحقق القديم بدل ما نقفل عليه بالغلط
                     verifyUserPassword(found, password).then(function(ok) {
@@ -5419,18 +5435,26 @@ function secureLogin() {
         });
     }
 
-    // تحميل أحدث بيانات المستخدمين من Firebase أولاً
+    // تحميل أحدث بيانات المستخدمين من Firebase أولاً (بحد أقصى 8 ثواني — لو الاتصال بطيء جدًا أو الطلب اتعلّق، نكمل بالبيانات المحمّلة مسبقًا بدل ما نسيب زر الدخول معلّق للأبد)
+    var loginProceeded = false;
+    function proceedToDoLogin() {
+        if (loginProceeded) return;
+        loginProceeded = true;
+        doLogin();
+    }
+    function startUsersRefresh() {
+        if (typeof fbDb !== 'undefined' && fbDb) {
+            loadAppUsersFromFirebase(proceedToDoLogin);
+            setTimeout(proceedToDoLogin, 8000);
+        } else {
+            proceedToDoLogin();
+        }
+    }
     if (typeof fbDb !== 'undefined' && fbDb) {
-        loadAppUsersFromFirebase(doLogin);
+        startUsersRefresh();
     } else {
         // Firebase لم يتهيأ بعد — انتظر ثانية ثم حاول
-        setTimeout(function() {
-            if (typeof fbDb !== 'undefined' && fbDb) {
-                loadAppUsersFromFirebase(doLogin);
-            } else {
-                doLogin();
-            }
-        }, 1000);
+        setTimeout(startUsersRefresh, 1000);
     }
 }
 
