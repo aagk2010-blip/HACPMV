@@ -3213,7 +3213,7 @@ function openEditUserModal(idx) {
                 Object.assign(newUserObj, passwordFields);
                 // ننشئ حساب حقيقي في Firebase Authentication تلقائيًا لأي مستخدم جديد، عشان يدخل بالطريقة الآمنة من أول يوم
                 createFirebaseAuthAccountSafely(uname, pass).then(function(uid) {
-                    if (uid) newUserObj.firebaseUid = uid;
+                    if (uid) { newUserObj.firebaseUid = uid; newUserObj.authEmail = usernameToAuthEmail(uname); }
                     APP_USERS.push(newUserObj);
                     finishSaveUser();
                 });
@@ -4921,15 +4921,7 @@ function attachFirebaseListeners() {
     
     function listen(path, callback) {
         var ref = fbDb.ref(path);
-        var handler = ref.on('value', callback, function(err) {
-            console.error('Firebase listener error on "' + path + '":', err);
-            // "الصلاحيات مرفوضة" (permission_denied) غالبًا مقصودة — بعض المسارات (زي بيانات المقاولين/التكلفة)
-            // محجوبة عمدًا عن صلاحيات معينة، فمش لازم تظهر كتنبيه مزعج لكل مستخدم عنده صلاحية أقل.
-            // أي نوع تاني من الأخطاء (مشكلة شبكة، إعداد فايربيز غلط، إلخ) لازم يظهر فعلاً لأنه غير متوقع
-            if (err && err.code !== 'PERMISSION_DENIED') {
-                showToast('⚠️ تعذرت مزامنة بيانات "' + path + '" (' + (err.message || err) + ')', true);
-            }
-        });
+        var handler = ref.on('value', callback);
         activeListeners.push({ ref: ref, handler: handler });
     }
 
@@ -5346,25 +5338,6 @@ function toFirebaseKey(str) {
     });
 }
 
-// نظام الدخول بتاع التطبيق مخصوص (يتحقق من appUsers مباشرة) ومبيمرّش أبدًا بـ Firebase Authentication الحقيقي،
-// لكن قواعد قاعدة البيانات (Rules) بقت تشترط "auth != null" على معظم المسارات. الحل: تسجيل دخول "مجهول" (Anonymous)
-// لفايربيز نفسه بعد نجاح تسجيل الدخول العادي، عشان الشرط ده يتحقق من غير ما نغيّر نظام كلمة المرور خالص.
-// ملحوظة: خانة "Anonymous" لازم تكون مفعّلة من Firebase Console → Authentication → Sign-in method.
-function ensureFirebaseAnonymousAuth(cb) {
-    if (typeof firebase === 'undefined' || !firebase.auth) { cb(); return; }
-    try {
-        if (firebase.auth().currentUser) { cb(); return; }
-        firebase.auth().signInAnonymously().then(function() { cb(); }).catch(function(err) {
-            console.error('Firebase anonymous sign-in failed:', err);
-            showToast('⚠️ تعذر تفعيل صلاحيات قاعدة البيانات (' + (err.message || err) + ') — فعّل "Anonymous" في Firebase Authentication', true);
-            cb(); // نكمّل الدخول للتطبيق حتى لو فشلت المصادقة، أفضل من توقيف المستخدم بالكامل
-        });
-    } catch (e) {
-        console.error('ensureFirebaseAnonymousAuth error:', e);
-        cb();
-    }
-}
-
 function secureLogin() {
     if (!loginDataReady) {
         showToast('⏳ جاري تحميل بيانات الدخول، انتظر لحظة...', true);
@@ -5417,13 +5390,33 @@ function secureLogin() {
             if (errDiv) errDiv.style.display = 'none';
             if (submitBtn) submitBtn.innerHTML = '🔐 دخول';
             showToast('مرحباً ' + found.name + ' ✅');
-            // نظام الدخول بتاعنا بيتحقق من اسم المستخدم وكلمة المرور مباشرة من appUsers (من غير Firebase Authentication).
-            // لكن قواعد قاعدة البيانات (Rules) بتشترط "auth != null" على معظم المسارات (المخزن، الوقود، الصيانة، إلخ)،
-            // فلازم نعمل تسجيل دخول "مجهول" (Anonymous) لفايربيز نفسه عشان الشرط ده يتحقق ويقدر يقرأ البيانات دي كلها.
-            ensureFirebaseAnonymousAuth(function() { proceedToApp(); });
+            proceedToApp();
         }
 
-        // التحقق المباشر من كلمة المرور (بالطريقة الأصلية) لكل المستخدمين، بدون المرور بـ Firebase Authentication
+        // بريد الدخول في Firebase: نفضّل القيمة الصريحة المحفوظة (authEmail) لو موجودة (الأدق والأضمن)،
+        // ولو مش موجودة (حسابات قديمة اتعمل يدويًا) نحسبها من اسم المستخدم بنفس القاعدة المتعارف عليها
+        function getAuthEmail(u) { return u.authEmail || usernameToAuthEmail(u.username); }
+
+        // المستخدم له حساب حقيقي في Firebase Authentication (اتربط بـ firebaseUid) — بنسجّل دخوله بالطريقة الرسمية والآمنة
+        if (found.firebaseUid && typeof firebase !== 'undefined' && firebase.auth) {
+            firebase.auth().signInWithEmailAndPassword(getAuthEmail(found), password).then(function() {
+                finalizeLogin();
+            }).catch(function(err) {
+                if (err && (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email')) {
+                    // احتياطي: الحساب متعلّم بـ firebaseUid بس الحساب الفعلي في Authentication مش متطابق لأي سبب — نرجع للتحقق القديم بدل ما نقفل عليه بالغلط
+                    verifyUserPassword(found, password).then(function(ok) {
+                        if (!ok) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
+                        finalizeLogin();
+                    });
+                } else {
+                    // auth/wrong-password أو أي خطأ تاني من Firebase Auth نفسه = كلمة السر غلط فعلاً
+                    showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة');
+                }
+            });
+            return;
+        }
+
+        // مستخدم لسه معملوش حساب في Firebase Authentication (مفيش firebaseUid) — التحقق بالطريقة القديمة زي ما هي
         verifyUserPassword(found, password).then(function(passwordOk) {
             if (!passwordOk) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
             finalizeLogin();
@@ -5661,7 +5654,7 @@ function approveAccountRequest(id) {
                 sections: sectionsForRole(role),
                 sites: []
             };
-            if (uid) newUserObj.firebaseUid = uid;
+            if (uid) { newUserObj.firebaseUid = uid; newUserObj.authEmail = usernameToAuthEmail(req.username); }
             APP_USERS.push(newUserObj);
             return saveAppUsers();
         });
@@ -14344,38 +14337,38 @@ function forceRefreshData() {
         if (!val) return [];
         return Object.entries(val).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; });
     }
-    // كل مسار بيتحدّث لوحده وبمعزل عن الباقي — لو مسار واحد فشل (مثلاً بسبب صلاحيات فايربيز)
-    // ميوقفش تحديث باقي البيانات، وهيتحدد بالاسم في رسالة التنبيه بدل ما تفشل العملية كلها برسالة عامة
-    var refs = [
-        { path: 'equipment', apply: function(v) { equipmentData = toArr(v); }, label: 'المعدات' },
-        { path: 'inventoryItems', apply: function(v) { inventoryItems = toArr(v); }, label: 'المخزن' },
-        { path: 'drivers', apply: function(v) { driversData = toArr(v); }, label: 'السائقين' },
-        { path: 'fuelRecords', apply: function(v) { fuelData = toArr(v); }, label: 'الوقود' },
-        { path: 'maintenanceSchedules', apply: function(v) { maintenanceSchedules = toArr(v); }, label: 'الصيانة' },
-        { path: 'equipmentFilterLinks', apply: function(v) { equipmentFilterLinks = toArr(v); }, label: 'روابط الفلاتر' },
-        { path: 'equipmentOilLinks', apply: function(v) { equipmentOilLinks = toArr(v); }, label: 'روابط الزيوت' },
-        { path: 'filterAlternatives', apply: function(v) { filterAlternatives = toArr(v); }, label: 'بدائل الفلاتر' },
-        { path: 'transferLogs', apply: function(v) { transferLogs = toArr(v); }, label: 'سجل التحويلات' },
-        { path: 'changeLogs', apply: function(v) { changeLogs = toArr(v); }, label: 'سجل التعديلات' },
-        { path: 'employees', apply: function(v) { employeesData = toArr(v); }, label: 'الموظفين' },
-        { path: 'equipmentChecks', apply: function(v) { equipmentChecksData = toArr(v); }, label: 'فحوصات المعدات' }
-    ];
-    var failed = [];
-    Promise.all(refs.map(function(r) {
-        return fbDb.ref(r.path).once('value').then(function(snap) {
-            r.apply(snap.val());
-        }).catch(function(err) {
-            failed.push(r.label);
-            console.error('forceRefreshData failed for "' + r.path + '":', err);
-        });
-    })).then(function() {
+    Promise.all([
+        fbDb.ref('equipment').once('value'),
+        fbDb.ref('inventoryItems').once('value'),
+        fbDb.ref('drivers').once('value'),
+        fbDb.ref('fuelRecords').once('value'),
+        fbDb.ref('maintenanceSchedules').once('value'),
+        fbDb.ref('equipmentFilterLinks').once('value'),
+        fbDb.ref('equipmentOilLinks').once('value'),
+        fbDb.ref('filterAlternatives').once('value'),
+        fbDb.ref('transferLogs').once('value'),
+        fbDb.ref('changeLogs').once('value'),
+        fbDb.ref('employees').once('value'),
+        fbDb.ref('equipmentChecks').once('value')
+    ]).then(function(results) {
+        equipmentData = toArr(results[0].val());
+        inventoryItems = toArr(results[1].val());
+        driversData = toArr(results[2].val());
+        fuelData = toArr(results[3].val());
+        maintenanceSchedules = toArr(results[4].val());
+        equipmentFilterLinks = toArr(results[5].val());
+        equipmentOilLinks = toArr(results[6].val());
+        filterAlternatives = toArr(results[7].val());
+        transferLogs = toArr(results[8].val());
+        changeLogs = toArr(results[9].val());
+        employeesData = toArr(results[10].val());
+        equipmentChecksData = toArr(results[11].val());
         debouncedRefresh();
         updateBellCounter();
-        if (failed.length) {
-            showToast('⚠️ تحديث جزئي — تعذر تحميل: ' + failed.join('، ') + ' (راجع صلاحيات فايربيز لهذه المسارات)', true);
-        } else {
-            showToast('✅ تم التحديث: ' + equipmentData.length + ' معدة، ' + inventoryItems.length + ' صنف');
-        }
+        showToast('✅ تم التحديث: ' + equipmentData.length + ' معدة، ' + inventoryItems.length + ' صنف');
+    }).catch(function(err) {
+        console.error(err);
+        showToast('حدث خطأ أثناء التحديث', true);
     });
 }
 
