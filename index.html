@@ -5391,44 +5391,7 @@ function secureLogin() {
             proceedToApp();
         }
 
-        // المستخدم له حساب حقيقي في Firebase Authentication (اتربط بـ firebaseUid) — بنسجّل دخوله بالطريقة الرسمية والآمنة.
-        // بريد الدخول ثابت بالاتفاق: اسم المستخدم + @hac.com (بنفس الطريقة اللي اتعمل بيها كل حساب في الكونسول)
-        if (found.firebaseUid && typeof firebase !== 'undefined' && firebase.auth) {
-            var authEmail = usernameToAuthEmail(found.username);
-            var authSettled = false;
-            var authFallbackTimer = setTimeout(function() {
-                if (authSettled) return;
-                authSettled = true;
-                // الاتصال بـ Firebase Authentication تأخر جدًا (شبكة بطيئة/محجوبة) — نرجع للتحقق المحلي القديم بدل ما نسيب المستخدم معلّق للأبد
-                verifyUserPassword(found, password).then(function(ok) {
-                    if (!ok) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
-                    finalizeLogin();
-                });
-            }, 10000);
-            firebase.auth().signInWithEmailAndPassword(authEmail, password).then(function() {
-                if (authSettled) return;
-                authSettled = true;
-                clearTimeout(authFallbackTimer);
-                finalizeLogin();
-            }).catch(function(err) {
-                if (authSettled) return;
-                authSettled = true;
-                clearTimeout(authFallbackTimer);
-                if (err && (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email')) {
-                    // احتياطي فقط: الحساب متعلّم بـ firebaseUid بس الحساب الفعلي في Authentication مش موجود لأي سبب — نرجع للتحقق القديم بدل ما نقفل عليه بالغلط
-                    verifyUserPassword(found, password).then(function(ok) {
-                        if (!ok) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
-                        finalizeLogin();
-                    });
-                } else {
-                    // auth/wrong-password أو أي خطأ تاني من Firebase Auth نفسه = كلمة السر غلط فعلاً، مفيش داعي نرجع للطريقة القديمة
-                    showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة');
-                }
-            });
-            return;
-        }
-
-        // مستخدم لسه معملوش حساب في Firebase Authentication (مفيش firebaseUid) — التحقق بالطريقة القديمة زي ما هي
+        // التحقق المباشر من كلمة المرور (بالطريقة الأصلية) لكل المستخدمين، بدون المرور بـ Firebase Authentication
         verifyUserPassword(found, password).then(function(passwordOk) {
             if (!passwordOk) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
             finalizeLogin();
