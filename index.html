@@ -204,7 +204,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" onerror="(function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';s.onerror=function(){window.__chartLoadFailed=true;};document.head.appendChild(s);})();"></script>
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    PART 1 — التنسيقات (CSS)
@@ -15851,8 +15851,44 @@ function renderAnalytics() {
 
 // رسم/تحديث كل الشارتات التفاعلية الخاصة بلوحة التحكم — بيدمّر أي نسخة قديمة أولاً لتفادي تعارض الكانفاس
 var analyticsChartInstances = {};
+var analyticsChartsRetryTimer = null;
+var analyticsChartsRetryCount = 0;
 function renderAnalyticsCharts(data) {
-    if (!window.Chart) return; // لو المكتبة لسه بتتحمّل من الـ CDN، منسيبش الصفحة توقع
+    if (!window.Chart) {
+        // لو مكتبة الرسم لسه بتتحمّل من الـ CDN، منسيبش الصفحة توقع — نجرب تاني كل نص ثانية
+        // بحد أقصى 20 محاولة (~10 ثواني)، بعدها نوضح رسالة واضحة بدل ما تفضل الشارتات فاضية للأبد
+        analyticsChartsRetryCount++;
+        if (window.__chartLoadFailed || analyticsChartsRetryCount > 20) {
+            analyticsChartsRetryCount = 0;
+            ['chart-fleet-status', 'chart-maint-trend', 'chart-fuel-trend', 'chart-top-equipment'].forEach(function(id) {
+                var c = document.getElementById(id);
+                if (c && c.parentElement && !c.parentElement.querySelector('.analytics-chart-load-error')) {
+                    c.style.display = 'none';
+                    var warn = document.createElement('div');
+                    warn.className = 'analytics-chart-load-error';
+                    warn.style.cssText = 'color:var(--danger);font-size:11.5px;text-align:center;padding:14px 6px';
+                    warn.innerHTML = '⚠️ تعذر تحميل مكتبة الرسم البياني (تأكد من الاتصال بالإنترنت) — <a href="#" onclick="window.__chartLoadFailed=false;analyticsChartsRetryCount=0;renderAnalyticsCharts(window.__lastAnalyticsChartData);return false;" style="color:var(--purple);font-weight:700">إعادة المحاولة</a>';
+                    c.parentElement.appendChild(warn);
+                }
+            });
+            return;
+        }
+        if (!analyticsChartsRetryTimer) {
+            window.__lastAnalyticsChartData = data;
+            analyticsChartsRetryTimer = setTimeout(function() {
+                analyticsChartsRetryTimer = null;
+                renderAnalyticsCharts(data);
+            }, 500);
+        }
+        return;
+    }
+    analyticsChartsRetryCount = 0;
+    if (analyticsChartsRetryTimer) { clearTimeout(analyticsChartsRetryTimer); analyticsChartsRetryTimer = null; }
+    document.querySelectorAll('.analytics-chart-load-error').forEach(function(w) { w.remove(); });
+    ['chart-fleet-status', 'chart-maint-trend', 'chart-fuel-trend', 'chart-top-equipment'].forEach(function(id) {
+        var c = document.getElementById(id);
+        if (c) c.style.display = '';
+    });
     Object.keys(analyticsChartInstances).forEach(function(k) {
         if (analyticsChartInstances[k]) { analyticsChartInstances[k].destroy(); analyticsChartInstances[k] = null; }
     });
@@ -16895,6 +16931,7 @@ function homeUsageDeltaHtml(cur, prev) {
 
 var homeChartInstances = {};
 var homeChartsRetryTimer = null;
+var homeChartsRetryCount = 0;
 function renderHomeUsageCharts(equipmentList) {
     try {
         renderHomeUsageChartsInner(equipmentList);
@@ -16922,7 +16959,28 @@ function renderHomeUsageChartsInner(equipmentList) {
     }
 
     if (!window.Chart) {
-        // لو مكتبة الرسم لسه بتتحمّل من الـ CDN (بطء نت في بعض المواقع)، نجرب تاني كل نص ثانية لحد ما تتحمّل بدل ما نسيب الشارتات فاضية للأبد
+        // لو مكتبة الرسم لسه بتتحمّل من الـ CDN (بطء نت في بعض المواقع)، نجرب تاني كل نص ثانية لحد ما تتحمّل
+        // بحد أقصى 20 محاولة (~10 ثواني) — بعدها نوقف المحاولات ونوضح للمستخدم إن فيه مشكلة اتصال
+        // بدل ما نسيب الكروت فاضية للأبد من غير أي رسالة
+        homeChartsRetryCount = (homeChartsRetryCount || 0) + 1;
+        if (window.__chartLoadFailed || homeChartsRetryCount > 20) {
+            homeChartsRetryCount = 0;
+            ['chart-home-hours', 'chart-home-cost', 'chart-home-split'].forEach(function(id) {
+                var c = document.getElementById(id);
+                if (c && c.parentElement) {
+                    c.style.display = 'none';
+                    var warn = c.parentElement.querySelector('.home-chart-load-error');
+                    if (!warn) {
+                        warn = document.createElement('div');
+                        warn.className = 'home-chart-load-error';
+                        warn.style.cssText = 'color:var(--danger);font-size:11.5px;text-align:center;padding:14px 6px';
+                        warn.innerHTML = '⚠️ تعذر تحميل مكتبة الرسم البياني (تأكد من الاتصال بالإنترنت) — <a href="#" onclick="window.__chartLoadFailed=false;homeChartsRetryCount=0;renderHomeUsageCharts(getVisibleEquipment());return false;" style="color:var(--purple);font-weight:700">إعادة المحاولة</a>';
+                        c.parentElement.appendChild(warn);
+                    }
+                }
+            });
+            return;
+        }
         if (!homeChartsRetryTimer) {
             homeChartsRetryTimer = setTimeout(function() {
                 homeChartsRetryTimer = null;
@@ -16931,7 +16989,14 @@ function renderHomeUsageChartsInner(equipmentList) {
         }
         return;
     }
+    homeChartsRetryCount = 0;
     if (homeChartsRetryTimer) { clearTimeout(homeChartsRetryTimer); homeChartsRetryTimer = null; }
+    var existingWarn = document.querySelectorAll('.home-chart-load-error');
+    existingWarn.forEach(function(w) { w.remove(); });
+    ['chart-home-hours', 'chart-home-cost', 'chart-home-split'].forEach(function(id) {
+        var c = document.getElementById(id);
+        if (c) c.style.display = '';
+    });
     Object.keys(homeChartInstances).forEach(function(k) {
         if (homeChartInstances[k]) { homeChartInstances[k].destroy(); homeChartInstances[k] = null; }
     });
