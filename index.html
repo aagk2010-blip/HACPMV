@@ -1183,10 +1183,10 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <button id="sites-mode-cards-btn" class="big-btn" style="margin:0;flex:1;font-size:12px;padding:8px">🗂️ عرض الكروت</button>
       <button id="sites-mode-kpi-btn" class="big-btn" style="margin:0;flex:1;font-size:12px;padding:8px;background:linear-gradient(135deg,var(--purple),var(--info))">📊 مقارنة الأداء</button>
     </div>
-    <button id="sites-report-btn" class="big-btn" style="margin:0 0 10px 0;background:linear-gradient(135deg,#16a34a,#15803d);font-size:13px;padding:9px">📤 إرسال تقرير دوري لكل المواقع</button>
-    <div style="display:flex;gap:6px;margin-bottom:12px">
-      <input type="month" id="unified-report-month" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:9px 14px;font-size:12.5px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
-      <button id="unified-report-btn" class="big-btn" style="margin:0;flex:1.4;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📋 تقرير شهري موحّد (PDF)</button>
+    <input type="month" id="unified-report-month" style="width:100%;box-sizing:border-box;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:9px 14px;font-size:12.5px;box-shadow:0 1px 3px rgba(0,0,0,0.05);margin-bottom:8px">
+    <div class="home-quick-actions" style="grid-template-columns:repeat(2,1fr);padding:0 0 10px">
+      <button id="sites-report-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#16a34a,#15803d)"><span class="qi">📤</span>تقرير دوري لكل المواقع</button>
+      <button id="unified-report-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><span class="qi">📋</span>تقرير شهري موحّد PDF</button>
     </div>
     <div id="sites-summary-row" style="display:flex;gap:8px;margin-bottom:12px"></div>
     <div id="sites-dashboard-list"></div>
@@ -17058,7 +17058,7 @@ function renderHomeUsageChartsInner(equipmentList) {
             type: 'doughnut',
             data: {
                 labels: ['ساعات الملك 🔑', 'ساعات الإيجار 📋'],
-                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#059669', '#0e7490'], borderWidth: 2, borderColor: '#fff' }]
+                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 2, borderColor: '#fff' }]
             },
             options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, padding: 12 } } } }
         });
