@@ -14616,6 +14616,7 @@ function exitKioskMode() {
     var overlay = document.getElementById('kiosk-mode-overlay');
     if (overlay) overlay.style.display = 'none';
     closeKioskSettingsPanel();
+    destroyKioskUsageCharts();
     if (kioskIntervalId) clearInterval(kioskIntervalId);
     if (kioskClockIntervalId) clearInterval(kioskClockIntervalId);
     kioskIntervalId = null; kioskClockIntervalId = null;
@@ -14700,7 +14701,8 @@ function renderKioskSlide() {
     var dots = document.getElementById('kiosk-dots');
     if (!body) return;
     var slide = kioskSlides[kioskSlideIndex];
-    if (slide === 'usage') body.innerHTML = renderKioskUsageSlide();
+    destroyKioskUsageCharts();
+    if (slide === 'usage') { body.innerHTML = renderKioskUsageSlideHtml(); renderKioskUsageCharts(); }
     else if (slide === 'sites') body.innerHTML = renderKioskSitesSlide();
     else if (slide === 'alerts') body.innerHTML = renderKioskAlertsSlide();
     else if (slide === 'warehouse') body.innerHTML = renderKioskWarehouseSlide();
@@ -14715,32 +14717,108 @@ function renderKioskSlide() {
     }
 }
 
-// شريحة: نفس بيانات شارت "استخدام المعدات: الملك والإيجار" الموجود في الصفحة الرئيسية
-// (بتستخدم نفس دالة الحساب computeHomeUsageComparison عشان الأرقام تفضل مطابقة تمامًا للي ظاهر في الرئيسية)
-function renderKioskUsageSlide() {
-    var data = computeHomeUsageComparison(getVisibleEquipment());
-    var totalHours = (data.owned.cur || 0) + (data.rented.curHours || 0);
-    var ownedPct = totalHours > 0 ? Math.round((data.owned.cur / totalHours) * 100) : 0;
-    var rentedPct = totalHours > 0 ? (100 - ownedPct) : 0;
+// شريحة: نفس الـ 3 شارتات الموجودة في "استخدام المعدات: الملك والإيجار" بالصفحة الرئيسية، جنب بعض وبنفس شكل العرض
+// (نفس الكلاسات CSS ونفس إعدادات Chart.js المستخدمة في renderHomeUsageChartsInner، عشان تطلع مطابقة تمامًا)
+var kioskUsageChartInstances = {};
+function destroyKioskUsageCharts() {
+    Object.keys(kioskUsageChartInstances).forEach(function(k) {
+        if (kioskUsageChartInstances[k]) { try { kioskUsageChartInstances[k].destroy(); } catch (e) {} kioskUsageChartInstances[k] = null; }
+    });
+}
 
-    var cards = '<div style="display:flex;gap:16px;margin-bottom:24px">' +
-        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:26px;font-weight:800;color:var(--k-green)">' + formatNumber(Math.round(data.owned.cur)) + '</div><div style="font-size:13px;color:var(--k-muted)">ساعات الملك 🔑</div>' + homeUsageDeltaHtml(data.owned.cur, data.owned.prev) + '</div>' +
-        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:26px;font-weight:800;color:#3b82f6">' + formatNumber(Math.round(data.rented.curHours)) + '</div><div style="font-size:13px;color:var(--k-muted)">ساعات الإيجار 📋</div>' + homeUsageDeltaHtml(data.rented.curHours, data.rented.prevHours) + '</div>' +
-        '<div style="flex:1;background:var(--k-card);border-radius:14px;padding:16px;text-align:center"><div style="font-size:22px;font-weight:800;color:#d97706">' + formatNumber(Math.round(data.rented.curCost)) + '</div><div style="font-size:13px;color:var(--k-muted)">تكلفة الإيجار ج.م 💰</div>' + homeUsageDeltaHtml(data.rented.curCost, data.rented.prevCost) + '</div>' +
-        '</div>';
-
-    var splitBar = totalHours > 0
-        ? '<div style="font-size:16px;font-weight:700;margin-bottom:10px">🥯 نسبة الساعات: ملك مقابل إيجار</div>' +
-          '<div style="background:var(--k-track);border-radius:10px;height:26px;overflow:hidden;display:flex;margin-bottom:8px">' +
-          '<div style="width:' + ownedPct + '%;background:#059669;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">' + (ownedPct > 8 ? ownedPct + '%' : '') + '</div>' +
-          '<div style="width:' + rentedPct + '%;background:#f59e0b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">' + (rentedPct > 8 ? rentedPct + '%' : '') + '</div>' +
-          '</div>' +
-          '<div style="font-size:12px;color:var(--k-muted)">🟢 ملك ' + ownedPct + '%  •  🟠 إيجار ' + rentedPct + '%</div>'
-        : '<div style="color:var(--k-muted);font-size:16px">لا توجد بيانات كافية حاليًا</div>';
-
+function renderKioskUsageSlideHtml() {
     return '<div style="font-size:22px;font-weight:800;margin-bottom:6px">📊 استخدام المعدات: الملك والإيجار</div>' +
-        '<div style="font-size:12px;color:var(--k-muted);margin-bottom:18px">📅 دورة 21 → 20: من ' + data.curFrom + ' لحد ' + data.curTo + ' مقابل نفس المدة من الدورة اللي فاتت</div>' +
-        cards + splitBar;
+        '<div id="kiosk-usage-note" style="font-size:12px;color:var(--k-muted);margin-bottom:10px"></div>' +
+        '<div class="stats-row" id="kiosk-usage-cards" style="padding:0;margin-bottom:14px"></div>' +
+        '<div class="home-usage-charts-grid">' +
+        '<div class="home-usage-chart-card"><div class="home-usage-chart-title">⏱️ ساعات التشغيل</div><div style="position:relative;height:230px"><canvas id="kiosk-chart-hours"></canvas></div></div>' +
+        '<div class="home-usage-chart-card"><div class="home-usage-chart-title">💰 تكلفة الإيجار</div><div style="position:relative;height:230px"><canvas id="kiosk-chart-cost"></canvas></div></div>' +
+        '<div class="home-usage-chart-card"><div class="home-usage-chart-title">🥯 ملك مقابل إيجار</div><div style="position:relative;height:230px"><canvas id="kiosk-chart-split"></canvas></div></div>' +
+        '</div>';
+}
+
+function renderKioskUsageCharts() {
+    var data = computeHomeUsageComparison(getVisibleEquipment());
+
+    var noteEl = document.getElementById('kiosk-usage-note');
+    if (noteEl) noteEl.textContent = '📅 دورة 21 → 20: من ' + data.curFrom + ' لحد ' + data.curTo + ' (' + data.days + ' يوم) مقابل نفس المدة من الدورة اللي فاتت (' + data.prevFrom + ' → ' + data.prevTo + ')';
+
+    var cardsEl = document.getElementById('kiosk-usage-cards');
+    if (cardsEl) {
+        cardsEl.innerHTML =
+            '<div class="stat-card"><div class="stat-number" style="color:var(--success)">' + formatNumber(Math.round(data.owned.cur)) + '</div><div class="stat-label">ساعات الملك 🔑</div>' + homeUsageDeltaHtml(data.owned.cur, data.owned.prev) + '</div>' +
+            '<div class="stat-card"><div class="stat-number" style="color:var(--info)">' + formatNumber(Math.round(data.rented.curHours)) + '</div><div class="stat-label">ساعات الإيجار 📋</div>' + homeUsageDeltaHtml(data.rented.curHours, data.rented.prevHours) + '</div>' +
+            '<div class="stat-card"><div class="stat-number" style="color:var(--warning);font-size:15px">' + formatNumber(Math.round(data.rented.curCost)) + '</div><div class="stat-label">تكلفة الإيجار ج.م 💰</div>' + homeUsageDeltaHtml(data.rented.curCost, data.rented.prevCost) + '</div>';
+    }
+
+    if (!window.Chart) return; // شاشة الإدارة بتتفتح بعد تحميل الصفحة الرئيسية أصلاً، فمكتبة الرسم غالبًا محمّلة من قبل
+
+    var hoursCanvas = document.getElementById('kiosk-chart-hours');
+    if (hoursCanvas) {
+        kioskUsageChartInstances.hours = new Chart(hoursCanvas, {
+            type: 'bar',
+            data: {
+                labels: ['معدات الملك 🔑', 'معدات الإيجار 📋'],
+                datasets: [
+                    { label: 'الفترة الحالية', data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: '#059669', borderRadius: 6 },
+                    { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.owned.prev), Math.round(data.rented.prevHours)], backgroundColor: '#94a3b8', borderRadius: 6 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 6 } } }, scales: { y: { beginAtZero: true, ticks: { font: { size: 11 } } }, x: { ticks: { font: { size: 11 } } } } }
+        });
+    }
+
+    var costCanvas = document.getElementById('kiosk-chart-cost');
+    if (costCanvas) {
+        kioskUsageChartInstances.cost = new Chart(costCanvas, {
+            type: 'bar',
+            data: {
+                labels: ['تكلفة معدات الإيجار'],
+                datasets: [
+                    { label: 'الفترة الحالية', data: [Math.round(data.rented.curCost)], backgroundColor: '#d97706', borderRadius: 6 },
+                    { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.rented.prevCost)], backgroundColor: '#94a3b8', borderRadius: 6 }
+                ]
+            },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 6 } } }, scales: { x: { beginAtZero: true, ticks: { font: { size: 11 } } }, y: { ticks: { font: { size: 11 } } } } }
+        });
+    }
+
+    var splitCanvas = document.getElementById('kiosk-chart-split');
+    if (splitCanvas) {
+        var kioskSplitCenterTotalPlugin = {
+            id: 'kioskSplitCenterTotal',
+            afterDraw: function(chart) {
+                var meta = chart.getDatasetMeta(0);
+                var arc = meta && meta.data && meta.data[0];
+                if (!arc) return;
+                var total = chart.data.datasets[0].data.reduce(function(s, v) { return s + (v || 0); }, 0);
+                var ctx = chart.ctx;
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = "700 20px Cairo, sans-serif";
+                ctx.fillStyle = '#0f172a';
+                ctx.fillText(formatNumber(Math.round(total)), arc.x, arc.y - 9);
+                ctx.font = "600 11px Cairo, sans-serif";
+                ctx.fillStyle = '#64748b';
+                ctx.fillText('إجمالي الساعات', arc.x, arc.y + 11);
+                ctx.restore();
+            }
+        };
+        kioskUsageChartInstances.split = new Chart(splitCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: ['ساعات الملك 🔑', 'ساعات الإيجار 📋'],
+                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 2, borderColor: '#fff' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 6 } }, tooltip: { callbacks: { label: function(ctx) {
+                var total = ctx.dataset.data.reduce(function(s, v) { return s + (v || 0); }, 0);
+                var pct = total > 0 ? Math.round((ctx.parsed / total) * 100) : 0;
+                return ctx.label + ': ' + formatNumber(ctx.parsed) + ' ساعة (' + pct + '%)';
+            } } } } },
+            plugins: [kioskSplitCenterTotalPlugin]
+        });
+    }
 }
 
 function renderKioskSitesSlide() {
