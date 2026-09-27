@@ -5401,17 +5401,14 @@ function secureLogin() {
         if (found.firebaseUid && typeof firebase !== 'undefined' && firebase.auth) {
             firebase.auth().signInWithEmailAndPassword(getAuthEmail(found), password).then(function() {
                 finalizeLogin();
-            }).catch(function(err) {
-                if (err && (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email')) {
-                    // احتياطي: الحساب متعلّم بـ firebaseUid بس الحساب الفعلي في Authentication مش متطابق لأي سبب — نرجع للتحقق القديم بدل ما نقفل عليه بالغلط
-                    verifyUserPassword(found, password).then(function(ok) {
-                        if (!ok) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
-                        finalizeLogin();
-                    });
-                } else {
-                    // auth/wrong-password أو أي خطأ تاني من Firebase Auth نفسه = كلمة السر غلط فعلاً
-                    showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة');
-                }
+            }).catch(function() {
+                // أي فشل في تسجيل الدخول عبر Firebase (إيميل مش متطابق، كلمة سر اتغيّرت بالنظام القديم بس ولسه
+                // متزامنتش مع Firebase، تحديد المعدل المؤقت...إلخ) — نرجع نتأكد بالطريقة القديمة المضمونة
+                // قبل ما نرفض الدخول نهائيًا، عشان محدش يتقفل بره حسابه بسبب اختلاف بين النظامين
+                verifyUserPassword(found, password).then(function(ok) {
+                    if (!ok) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
+                    finalizeLogin();
+                });
             });
             return;
         }
