@@ -1792,6 +1792,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-fleet" style="width:18px;height:18px">📈 أداء المعدات (الأسطول)</label>
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-warehouse" style="width:18px;height:18px">📦 نظرة عامة على المخزن</label>
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-maintenance" style="width:18px;height:18px">🔧 أقرب 10 معدات لموعد الصيانة</label>
+        <label class="k-opt"><input type="checkbox" id="kiosk-cfg-usage" style="width:18px;height:18px">📊 استخدام المعدات: ملك مقابل إيجار</label>
       </div>
 
       <div style="margin-bottom:22px">
@@ -5398,22 +5399,7 @@ function secureLogin() {
         function getAuthEmail(u) { return u.authEmail || usernameToAuthEmail(u.username); }
 
         // المستخدم له حساب حقيقي في Firebase Authentication (اتربط بـ firebaseUid) — بنسجّل دخوله بالطريقة الرسمية والآمنة
-        if (found.firebaseUid && typeof firebase !== 'undefined' && firebase.auth) {
-            firebase.auth().signInWithEmailAndPassword(getAuthEmail(found), password).then(function() {
-                finalizeLogin();
-            }).catch(function() {
-                // أي فشل في تسجيل الدخول عبر Firebase (إيميل مش متطابق، كلمة سر اتغيّرت بالنظام القديم بس ولسه
-                // متزامنتش مع Firebase، تحديد المعدل المؤقت...إلخ) — نرجع نتأكد بالطريقة القديمة المضمونة
-                // قبل ما نرفض الدخول نهائيًا، عشان محدش يتقفل بره حسابه بسبب اختلاف بين النظامين
-                verifyUserPassword(found, password).then(function(ok) {
-                    if (!ok) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
-                    finalizeLogin();
-                });
-            });
-            return;
-        }
-
-        // مستخدم لسه معملوش حساب في Firebase Authentication (مفيش firebaseUid) — التحقق بالطريقة القديمة زي ما هي
+        // تمت إزالة مسار Firebase Authentication من هنا بناءً على طلب صاحب النظام - التحقق دايمًا بالطريقة المباشرة تحت
         verifyUserPassword(found, password).then(function(passwordOk) {
             if (!passwordOk) { showLoginError('اسم المستخدم أو كلمة المرور غير صحيحة'); return; }
             finalizeLogin();
@@ -14376,7 +14362,7 @@ var kioskIntervalId = null;
 var kioskClockIntervalId = null;
 var kioskSlideIndex = 0;
 var KIOSK_DEFAULT_SECONDS = 15;
-var KIOSK_DEFAULT_SLIDES = ['sites', 'alerts', 'fleet', 'warehouse', 'maintenance'];
+var KIOSK_DEFAULT_SLIDES = ['sites', 'alerts', 'fleet', 'warehouse', 'maintenance', 'usage'];
 var KIOSK_DEFAULT_WORK_END = '17:30';
 var KIOSK_DEFAULT_OFF_DAYS = [5]; // الجمعة (getDay(): 0=أحد ... 5=جمعة ... 6=سبت)
 var KIOSK_DEFAULT_THEME = 'dark';   // dark | light | auto
@@ -14449,6 +14435,7 @@ function toggleKioskTheme() {
     kioskSettings.theme = kioskIsLight() ? 'dark' : 'light';
     persistKioskSettings();
     applyKioskAppearance();
+    if (kioskSlides[kioskSlideIndex] === 'usage') drawKioskUsageCharts();
 }
 
 function setKioskBgMsg(text, isError) {
@@ -14520,6 +14507,7 @@ function openKioskSettingsPanel() {
     document.getElementById('kiosk-cfg-fleet').checked = kioskSettings.slides.indexOf('fleet') !== -1;
     document.getElementById('kiosk-cfg-warehouse').checked = kioskSettings.slides.indexOf('warehouse') !== -1;
     document.getElementById('kiosk-cfg-maintenance').checked = kioskSettings.slides.indexOf('maintenance') !== -1;
+    document.getElementById('kiosk-cfg-usage').checked = kioskSettings.slides.indexOf('usage') !== -1;
     document.getElementById('kiosk-cfg-seconds').value = kioskSettings.seconds;
     document.getElementById('kiosk-cfg-endtime').value = kioskSettings.workEndTime;
     for (var d = 0; d <= 6; d++) {
@@ -14553,6 +14541,7 @@ function saveKioskSettings() {
     if (document.getElementById('kiosk-cfg-fleet').checked) slides.push('fleet');
     if (document.getElementById('kiosk-cfg-warehouse').checked) slides.push('warehouse');
     if (document.getElementById('kiosk-cfg-maintenance').checked) slides.push('maintenance');
+    if (document.getElementById('kiosk-cfg-usage').checked) slides.push('usage');
     if (!slides.length) { showToast('اختر شريحة واحدة على الأقل', true); return; }
     var seconds = parseInt(document.getElementById('kiosk-cfg-seconds').value, 10) || KIOSK_DEFAULT_SECONDS;
     var workEndTime = document.getElementById('kiosk-cfg-endtime').value || KIOSK_DEFAULT_WORK_END;
@@ -14701,6 +14690,7 @@ function renderKioskSlide() {
     else if (slide === 'alerts') body.innerHTML = renderKioskAlertsSlide();
     else if (slide === 'warehouse') body.innerHTML = renderKioskWarehouseSlide();
     else if (slide === 'maintenance') body.innerHTML = renderKioskMaintenanceSlide();
+    else if (slide === 'usage') { body.innerHTML = renderKioskUsageSlide(); drawKioskUsageCharts(); }
     else body.innerHTML = renderKioskFleetSlide();
 
     if (dots) {
@@ -14789,6 +14779,102 @@ function kioskRemainingStatus(eq) {
 }
 
 // شريحة: أقرب 10 معدات لموعد الصيانة، وتحت كل معدة نفس الشريط التفاعلي الموجود في صفحة المعدة (نسبة الاستهلاك من الدورة الحالية)
+// شريحة: نفس الرسم البياني الموجود في الصفحة الرئيسية (استخدام المعدات: ملك مقابل إيجار) بس بحجم مناسب لشاشة الإدارة الكبيرة
+function renderKioskUsageSlide() {
+    var data = computeHomeUsageComparison(getVisibleEquipment());
+    function deltaTxt(cur, prev) {
+        if (!prev) return cur > 0 ? '<span style="color:var(--k-green)">▲ جديد</span>' : '';
+        var pct = ((cur - prev) / prev) * 100;
+        var up = pct >= 0;
+        return '<span style="color:' + (up ? 'var(--k-green)' : 'var(--k-red)') + '">' + (up ? '▲' : '▼') + ' ' + Math.abs(pct).toFixed(0) + '%</span>';
+    }
+    var cardsHtml =
+        '<div style="background:var(--k-card);border-radius:14px;padding:14px 10px;text-align:center;flex:1">' +
+        '<div style="font-size:26px;font-weight:800;color:var(--k-green)">' + formatNumber(Math.round(data.owned.cur)) + '</div>' +
+        '<div style="font-size:13px;color:var(--k-muted);margin-top:2px">ساعات الملك 🔑</div>' +
+        '<div style="font-size:12px;margin-top:4px">' + deltaTxt(data.owned.cur, data.owned.prev) + '</div></div>' +
+        '<div style="background:var(--k-card);border-radius:14px;padding:14px 10px;text-align:center;flex:1">' +
+        '<div style="font-size:26px;font-weight:800;color:var(--k-accent)">' + formatNumber(Math.round(data.rented.curHours)) + '</div>' +
+        '<div style="font-size:13px;color:var(--k-muted);margin-top:2px">ساعات الإيجار 📋</div>' +
+        '<div style="font-size:12px;margin-top:4px">' + deltaTxt(data.rented.curHours, data.rented.prevHours) + '</div></div>' +
+        '<div style="background:var(--k-card);border-radius:14px;padding:14px 10px;text-align:center;flex:1">' +
+        '<div style="font-size:22px;font-weight:800;color:var(--k-yellow)">' + formatNumber(Math.round(data.rented.curCost)) + '</div>' +
+        '<div style="font-size:13px;color:var(--k-muted);margin-top:2px">تكلفة الإيجار ج.م 💰</div>' +
+        '<div style="font-size:12px;margin-top:4px">' + deltaTxt(data.rented.curCost, data.rented.prevCost) + '</div></div>';
+
+    return '<div style="font-size:22px;font-weight:800;margin-bottom:6px">📊 استخدام المعدات: ملك مقابل إيجار</div>' +
+        '<div style="font-size:12px;color:var(--k-muted);margin-bottom:14px">الدورة الحالية (' + data.curFrom + ' → ' + data.curTo + ') مقابل نفس عدد الأيام من الدورة اللي فاتت</div>' +
+        '<div style="display:flex;gap:14px;margin-bottom:16px">' + cardsHtml + '</div>' +
+        '<div style="display:flex;gap:14px">' +
+        '<div style="background:var(--k-card);border-radius:14px;padding:12px;flex:1;height:280px"><canvas id="kiosk-chart-hours"></canvas></div>' +
+        '<div style="background:var(--k-card);border-radius:14px;padding:12px;flex:1;height:280px"><canvas id="kiosk-chart-cost"></canvas></div>' +
+        '<div style="background:var(--k-card);border-radius:14px;padding:12px;flex:1;height:280px"><canvas id="kiosk-chart-split"></canvas></div>' +
+        '</div>';
+}
+
+var kioskUsageChartInstances = {};
+var kioskUsageChartsRetryCount = 0;
+function drawKioskUsageCharts() {
+    if (!window.Chart) {
+        kioskUsageChartsRetryCount++;
+        if (kioskUsageChartsRetryCount <= 30) setTimeout(drawKioskUsageCharts, 400);
+        return;
+    }
+    kioskUsageChartsRetryCount = 0;
+    Object.keys(kioskUsageChartInstances).forEach(function(k) {
+        if (kioskUsageChartInstances[k]) { kioskUsageChartInstances[k].destroy(); kioskUsageChartInstances[k] = null; }
+    });
+
+    var overlay = document.getElementById('kiosk-mode-overlay');
+    var light = overlay && overlay.classList.contains('kiosk-light');
+    var textColor = light ? '#0d1b2a' : '#ffffff';
+    var gridColor = light ? 'rgba(13,27,42,.08)' : 'rgba(255,255,255,.12)';
+    var fontCfg = { family: 'Cairo', size: 13 };
+    var data = computeHomeUsageComparison(getVisibleEquipment());
+
+    var hoursCanvas = document.getElementById('kiosk-chart-hours');
+    if (hoursCanvas) {
+        kioskUsageChartInstances.hours = new Chart(hoursCanvas, {
+            type: 'bar',
+            data: {
+                labels: ['ساعات الملك 🔑', 'ساعات الإيجار 📋'],
+                datasets: [
+                    { label: 'الفترة الحالية', data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: '#059669', borderRadius: 6 },
+                    { label: 'الدورة اللي فاتت', data: [Math.round(data.owned.prev), Math.round(data.rented.prevHours)], backgroundColor: '#94a3b8', borderRadius: 6 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: fontCfg, color: textColor } } }, scales: { y: { beginAtZero: true, ticks: { font: fontCfg, color: textColor }, grid: { color: gridColor } }, x: { ticks: { font: fontCfg, color: textColor }, grid: { display: false } } } }
+        });
+    }
+
+    var costCanvas = document.getElementById('kiosk-chart-cost');
+    if (costCanvas) {
+        kioskUsageChartInstances.cost = new Chart(costCanvas, {
+            type: 'bar',
+            data: {
+                labels: ['تكلفة الإيجار'],
+                datasets: [
+                    { label: 'الفترة الحالية', data: [Math.round(data.rented.curCost)], backgroundColor: '#d97706', borderRadius: 6 },
+                    { label: 'الدورة اللي فاتت', data: [Math.round(data.rented.prevCost)], backgroundColor: '#94a3b8', borderRadius: 6 }
+                ]
+            },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: fontCfg, color: textColor } } }, scales: { x: { beginAtZero: true, ticks: { font: fontCfg, color: textColor }, grid: { color: gridColor } }, y: { ticks: { font: fontCfg, color: textColor }, grid: { display: false } } } }
+        });
+    }
+
+    var splitCanvas = document.getElementById('kiosk-chart-split');
+    if (splitCanvas) {
+        kioskUsageChartInstances.split = new Chart(splitCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: ['ساعات الملك 🔑', 'ساعات الإيجار 📋'],
+                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#059669', '#e8a020'], borderWidth: 2, borderColor: light ? '#eef1f6' : '#0d1b2a' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: fontCfg, color: textColor } } } }
+        });
+    }
+}
+
 function renderKioskMaintenanceSlide() {
     var eqList = getVisibleEquipment().filter(function(e) { return !isToolEquipment(e) && e.status !== 'متوقف'; });
     var upcoming = eqList.slice().sort(function(a, b) { return hoursRemaining(a) - hoursRemaining(b); }).slice(0, 10);
