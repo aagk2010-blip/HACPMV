@@ -4921,7 +4921,12 @@ function attachFirebaseListeners() {
     
     function listen(path, callback) {
         var ref = fbDb.ref(path);
-        var handler = ref.on('value', callback);
+        var handler = ref.on('value', callback, function(err) {
+            // من غير كول باك للخطأ هنا، فايربيز كانت بتوقف المزامنة على المسار ده بصمت للأبد
+            // (زي ما حصل مع صفحة المخزن) من غير أي إشعار — دلوقتي هيظهر تنبيه واضح يوضح المسار والسبب
+            console.error('Firebase listener error on "' + path + '":', err);
+            showToast('⚠️ تعذرت مزامنة بيانات "' + path + '" (' + (err && err.message || err) + ') — راجع صلاحيات فايربيز', true);
+        });
         activeListeners.push({ ref: ref, handler: handler });
     }
 
@@ -14314,38 +14319,38 @@ function forceRefreshData() {
         if (!val) return [];
         return Object.entries(val).map(function(entry) { var obj = Object.assign({}, entry[1]); obj.id = entry[0]; return obj; });
     }
-    Promise.all([
-        fbDb.ref('equipment').once('value'),
-        fbDb.ref('inventoryItems').once('value'),
-        fbDb.ref('drivers').once('value'),
-        fbDb.ref('fuelRecords').once('value'),
-        fbDb.ref('maintenanceSchedules').once('value'),
-        fbDb.ref('equipmentFilterLinks').once('value'),
-        fbDb.ref('equipmentOilLinks').once('value'),
-        fbDb.ref('filterAlternatives').once('value'),
-        fbDb.ref('transferLogs').once('value'),
-        fbDb.ref('changeLogs').once('value'),
-        fbDb.ref('employees').once('value'),
-        fbDb.ref('equipmentChecks').once('value')
-    ]).then(function(results) {
-        equipmentData = toArr(results[0].val());
-        inventoryItems = toArr(results[1].val());
-        driversData = toArr(results[2].val());
-        fuelData = toArr(results[3].val());
-        maintenanceSchedules = toArr(results[4].val());
-        equipmentFilterLinks = toArr(results[5].val());
-        equipmentOilLinks = toArr(results[6].val());
-        filterAlternatives = toArr(results[7].val());
-        transferLogs = toArr(results[8].val());
-        changeLogs = toArr(results[9].val());
-        employeesData = toArr(results[10].val());
-        equipmentChecksData = toArr(results[11].val());
+    // كل مسار بيتحدّث لوحده وبمعزل عن الباقي — لو مسار واحد فشل (مثلاً بسبب صلاحيات فايربيز)
+    // ميوقفش تحديث باقي البيانات، وهيتحدد بالاسم في رسالة التنبيه بدل ما تفشل العملية كلها برسالة عامة
+    var refs = [
+        { path: 'equipment', apply: function(v) { equipmentData = toArr(v); }, label: 'المعدات' },
+        { path: 'inventoryItems', apply: function(v) { inventoryItems = toArr(v); }, label: 'المخزن' },
+        { path: 'drivers', apply: function(v) { driversData = toArr(v); }, label: 'السائقين' },
+        { path: 'fuelRecords', apply: function(v) { fuelData = toArr(v); }, label: 'الوقود' },
+        { path: 'maintenanceSchedules', apply: function(v) { maintenanceSchedules = toArr(v); }, label: 'الصيانة' },
+        { path: 'equipmentFilterLinks', apply: function(v) { equipmentFilterLinks = toArr(v); }, label: 'روابط الفلاتر' },
+        { path: 'equipmentOilLinks', apply: function(v) { equipmentOilLinks = toArr(v); }, label: 'روابط الزيوت' },
+        { path: 'filterAlternatives', apply: function(v) { filterAlternatives = toArr(v); }, label: 'بدائل الفلاتر' },
+        { path: 'transferLogs', apply: function(v) { transferLogs = toArr(v); }, label: 'سجل التحويلات' },
+        { path: 'changeLogs', apply: function(v) { changeLogs = toArr(v); }, label: 'سجل التعديلات' },
+        { path: 'employees', apply: function(v) { employeesData = toArr(v); }, label: 'الموظفين' },
+        { path: 'equipmentChecks', apply: function(v) { equipmentChecksData = toArr(v); }, label: 'فحوصات المعدات' }
+    ];
+    var failed = [];
+    Promise.all(refs.map(function(r) {
+        return fbDb.ref(r.path).once('value').then(function(snap) {
+            r.apply(snap.val());
+        }).catch(function(err) {
+            failed.push(r.label);
+            console.error('forceRefreshData failed for "' + r.path + '":', err);
+        });
+    })).then(function() {
         debouncedRefresh();
         updateBellCounter();
-        showToast('✅ تم التحديث: ' + equipmentData.length + ' معدة، ' + inventoryItems.length + ' صنف');
-    }).catch(function(err) {
-        console.error(err);
-        showToast('حدث خطأ أثناء التحديث', true);
+        if (failed.length) {
+            showToast('⚠️ تحديث جزئي — تعذر تحميل: ' + failed.join('، ') + ' (راجع صلاحيات فايربيز لهذه المسارات)', true);
+        } else {
+            showToast('✅ تم التحديث: ' + equipmentData.length + ' معدة، ' + inventoryItems.length + ' صنف');
+        }
     });
 }
 
