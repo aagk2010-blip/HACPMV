@@ -1210,9 +1210,11 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
           <input type="month" id="ownrent-report-to" style="width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;box-sizing:border-box">
         </div>
       </div>
-      <button onclick="printOwnedEquipmentReport()" class="big-btn" style="margin:0 0 8px;background:linear-gradient(135deg,#059669,#047857)">🔑 تقرير معدات الملك لوحدها</button>
-      <button onclick="printRentalEquipmentReport()" class="big-btn" style="margin:0 0 8px;background:linear-gradient(135deg,#0e7490,#155e75)">📋 تقرير معدات الإيجار لوحدها</button>
-      <button onclick="printOwnedVsRentalFullReport()" class="big-btn" style="margin:0;background:linear-gradient(135deg,#7c3aed,#4c1d95)">📊 تقرير مقارنة الملك بالإيجار (الاثنين معًا)</button>
+      <div class="home-quick-actions" style="padding:0">
+        <button onclick="printOwnedEquipmentReport()" class="home-quick-btn" style="background:linear-gradient(135deg,#059669,#047857)"><span class="qi">🔑</span>تقرير الملك</button>
+        <button onclick="printRentalEquipmentReport()" class="home-quick-btn" style="background:linear-gradient(135deg,#0e7490,#155e75)"><span class="qi">📋</span>تقرير الإيجار</button>
+        <button onclick="printOwnedVsRentalFullReport()" class="home-quick-btn" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)"><span class="qi">📊</span>مقارنة الاثنين</button>
+      </div>
     </div>
 
     <div id="analytics-body"></div>
@@ -1292,19 +1294,31 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
           <option value="">🚜 كل المعدات</option>
         </select>
       </div>
-      <div id="fuel-project-summary" style="margin-bottom:10px"></div>
-      <div class="grid-2" style="gap:10px; margin-bottom:16px">
-        <button id="add-fuel-btn" class="big-btn" style="margin:0">⛽ <span class="i18n-label" data-en="Log New Refill" data-ar="تسجيل تزود جديد"></span></button>
-        <button id="monthly-fuel-report-btn" class="big-btn" style="margin:0; background:linear-gradient(135deg,#10b981,#0e7490)">📊 <span class="i18n-label" data-en="Monthly Report" data-ar="تقرير شهري"></span></button>
+      <div id="fuel-project-summary" style="margin-bottom:8px"></div>
+      <div class="home-quick-actions" style="padding:0 0 10px">
+        <button id="add-fuel-btn" class="home-quick-btn" style="background:linear-gradient(135deg,var(--info),var(--primary))"><span class="qi">⛽</span><span class="i18n-label" data-en="Log New Refill" data-ar="تسجيل تزود جديد"></span></button>
+        <button id="monthly-fuel-report-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#10b981,#0e7490)"><span class="qi">📊</span><span class="i18n-label" data-en="Monthly Report" data-ar="تقرير شهري"></span></button>
+        <button id="custom-range-fuel-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#0d1b2a,#ec4899)"><span class="qi">📅</span><span class="i18n-label" data-en="Custom Period Report" data-ar="تقرير بمدة محددة"></span></button>
+        <button onclick="openFuelTheftView()" class="home-quick-btn" style="background:linear-gradient(135deg,#7f1d1d,#450a0a)"><span class="qi">🕵️</span><span class="i18n-label" data-en="Leak / Theft Detection" data-ar="كشف تسريب / سرقة"></span></button>
+        <button id="delete-all-fuel-btn" class="home-quick-btn" style="background:#dc2626"><span class="qi">🗑️</span><span class="i18n-label" data-en="Delete All Records" data-ar="حذف كل السجلات"></span></button>
       </div>
-      <button id="custom-range-fuel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0d1b2a,#ec4899)">📅 <span class="i18n-label" data-en="Export Report for a Custom Period" data-ar="تصدير تقرير بمدة محددة"></span></button>
-      <button onclick="openFuelTheftView()" class="big-btn" style="margin-bottom:16px;background:linear-gradient(135deg,#7f1d1d,#450a0a)">⛽ <span class="i18n-label" data-en="Fuel Leak / Theft Detection" data-ar="كشف تسريب / سرقة الوقود"></span> (Fuel Theft Detection)</button>
-      <button id="delete-all-fuel-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ <span class="i18n-label" data-en="Delete All Fuel Records" data-ar="حذف جميع سجلات الوقود"></span></button>
       <div id="fuel-list"></div>
     </div>
   </div>
   
-  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="toggleMaintenanceAdvancedTools()" id="maint-advanced-toggle-btn" style="width:100%;background:#f1f5f9;color:#475569;border:none;border-radius:12px;padding:11px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px">⚙️ أدوات متقدمة <span id="maint-advanced-chevron">▾</span></button><div id="maint-advanced-tools" style="display:none"><button onclick="openWorkOrdersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e3a5f,#0d1b2a)">📋 أوامر العمل</button><button onclick="openIssueVouchersView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95)">🧾 أذون الصرف من المخزن (SAP)</button><button id="whatsapp-maint-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,#25d366,#128c7e)">📱 إرسال تقرير الصيانة واتساب</button><button onclick="openAiReportModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#8b5cf6,#6366f1)">🤖 تقرير ذكي بالـ AI</button><button onclick="openPredictiveMaintenanceModal()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#0e7490,#0369a1)">🔮 الصيانة التنبؤية الذكية</button><button onclick="openDowntimeRcaView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#dc2626,#7f1d1d)">⏱️ توقف المعدات وتحليل الأسباب RCA</button><button onclick="openTireManagementView()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#1e293b,#0f172a)">🛞 إدارة الإطارات (Tire Management)</button><button onclick="printScheduledMaintenanceShortageOrder()" class="big-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#dc2626,#b45309)">📋 طلبية نواقص الصيانات المجدولة</button><button id="delete-all-maintenance-btn" class="big-btn" style="margin-bottom:0; background:#dc2626">🗑️ حذف جميع الصيانات المجدولة</button></div><div style="margin-top:16px"></div>
+  <div id="view-maintenance" style="display:none"><div style="padding:14px"><button id="add-maintenance-btn" class="big-btn" style="margin-bottom:10px">🔧 جدولة صيانة جديدة</button><button onclick="toggleMaintenanceAdvancedTools()" id="maint-advanced-toggle-btn" style="width:100%;background:#f1f5f9;color:#475569;border:none;border-radius:12px;padding:11px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px">⚙️ أدوات متقدمة <span id="maint-advanced-chevron">▾</span></button><div id="maint-advanced-tools" style="display:none">
+  <div class="home-quick-actions" style="padding:0">
+    <button onclick="openWorkOrdersView()" class="home-quick-btn" style="background:linear-gradient(135deg,#1e3a5f,#0d1b2a)"><span class="qi">📋</span>أوامر العمل</button>
+    <button onclick="openIssueVouchersView()" class="home-quick-btn" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)"><span class="qi">🧾</span>أذون الصرف (SAP)</button>
+    <button id="whatsapp-maint-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)"><span class="qi">📱</span>واتساب الصيانة</button>
+    <button onclick="openAiReportModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)"><span class="qi">🤖</span>تقرير AI</button>
+    <button onclick="openPredictiveMaintenanceModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#0e7490,#0369a1)"><span class="qi">🔮</span>صيانة تنبؤية</button>
+    <button onclick="openDowntimeRcaView()" class="home-quick-btn" style="background:linear-gradient(135deg,#dc2626,#7f1d1d)"><span class="qi">⏱️</span>توقف وRCA</button>
+    <button onclick="openTireManagementView()" class="home-quick-btn" style="background:linear-gradient(135deg,#1e293b,#0f172a)"><span class="qi">🛞</span>إدارة الإطارات</button>
+    <button onclick="printScheduledMaintenanceShortageOrder()" class="home-quick-btn" style="background:linear-gradient(135deg,#dc2626,#b45309)"><span class="qi">📋</span>طلبية نواقص</button>
+    <button id="delete-all-maintenance-btn" class="home-quick-btn" style="background:#dc2626"><span class="qi">🗑️</span>حذف الكل</button>
+  </div>
+</div><div style="margin-top:16px"></div>
     <div style="background:#f8fafc;border-radius:16px;padding:14px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div style="font-size:13px;font-weight:800;color:#0d1b2a">🧾 أذون الصرف المفتوحة</div>
@@ -1315,7 +1329,14 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     </div>
     <div id="maintenance-list"></div></div></div>
   
-  <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box" style="margin-bottom:8px"><span>🔍</span><input type="text" id="search-inventory" placeholder="بحث باسم أو رقم قطعة..."></div><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><button id="add-inventory-btn" class="big-btn" style="margin-bottom:10px; background:linear-gradient(135deg,var(--purple),var(--pink))">📦 إضافة صنف جديد</button><button id="export-inventory-excel-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#10b981,#0e7490)">📊 تصدير المخزون Excel</button><button id="order-report-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,var(--danger),var(--warning))">📋 إنشاء طلبية للنواقص (1000 ساعة)</button><button id="delete-all-inventory-btn" class="big-btn" style="margin-bottom:16px; background:#dc2626">🗑️ حذف جميع أصناف المخزون</button><button id="fix-filter-category-btn" class="big-btn" style="margin-bottom:16px; background:linear-gradient(135deg,#0891b2,#155e75)" onclick="fixMiscategorizedFilters()">🔍 فحص وتصحيح تصنيف الفلاتر المسجّلة كزيوت</button><div id="inv-list"></div></div></div>
+  <div id="view-inventory" style="display:none"><div style="padding:14px"><div class="search-box" style="margin-bottom:8px"><span>🔍</span><input type="text" id="search-inventory" placeholder="بحث باسم أو رقم قطعة..."></div><div class="search-box"><span>🏷️</span><select id="category-filter"><option value="all">جميع الأصناف</option><option value="filter">فلاتر</option><option value="oil">زيوت</option><option value="tire">إطارات</option><option value="spare">قطع غيار</option><option value="other">أخرى</option></select></div><div class="home-quick-actions" style="padding:0 0 10px">
+  <button id="add-inventory-btn" class="home-quick-btn" style="background:linear-gradient(135deg,var(--purple),var(--pink))"><span class="qi">📦</span>إضافة صنف</button>
+  <button id="export-inventory-excel-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#10b981,#0e7490)"><span class="qi">📊</span>تصدير Excel</button>
+  <button id="order-report-btn" class="home-quick-btn" style="background:linear-gradient(135deg,var(--danger),var(--warning))"><span class="qi">📋</span>طلبية نواقص</button>
+  <button id="fix-filter-category-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#0891b2,#155e75)" onclick="fixMiscategorizedFilters()"><span class="qi">🔍</span>تصحيح الفلاتر</button>
+  <button id="delete-all-inventory-btn" class="home-quick-btn" style="background:#dc2626"><span class="qi">🗑️</span>حذف الكل</button>
+</div>
+<div id="inv-list"></div></div></div>
   
   <div id="view-rental" style="display:none">
     <div style="padding:14px">
