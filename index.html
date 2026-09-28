@@ -1832,6 +1832,11 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       </div>
 
       <div style="margin-bottom:22px">
+        <label class="k-lbl">🕒 فتح شاشة الإدارة تلقائياً بعد خمول البرنامج (بالدقائق) — اكتب 0 للتعطيل</label>
+        <input id="kiosk-cfg-autoopen" type="number" min="0" max="480" dir="ltr" placeholder="0" style="width:100%;border:1.5px solid var(--k-input-line);background:var(--k-input-bg);color:var(--k-text);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;box-sizing:border-box;outline:none;font-family:inherit">
+        <div style="font-size:11px;color:var(--k-muted);margin-top:5px">تفتح الشاشة لو البرنامج مفتوح ومفيش أي حركة (ماوس/كيبورد/لمس) للمدة دي. أي حركة بعد ما تقفلها بتعيد العدّ من الأول.</div>
+      </div>
+      <div style="margin-bottom:22px">
         <label class="k-lbl">⏱️ مدة عرض كل شريحة (بالثواني)</label>
         <input id="kiosk-cfg-seconds" type="number" min="5" max="120" dir="ltr" style="width:100%;border:1.5px solid var(--k-input-line);background:var(--k-input-bg);color:var(--k-text);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;box-sizing:border-box;outline:none;font-family:inherit">
       </div>
@@ -14627,7 +14632,7 @@ var KIOSK_DEFAULT_BG_BLUR = 0;      // px تغبيش صورة الخلفية
 var KIOSK_AUTO_LIGHT_FROM = 6, KIOSK_AUTO_LIGHT_TO = 18; // الوضع التلقائي: نهاري من 6 ص لـ 6 م
 var kioskBgData = '';               // صورة الخلفية (Data URL مضغوطة) — محفوظة على الجهاز فقط
 var kioskBgPending;                 // undefined = بدون تغيير | '' = إزالة | نص = صورة جديدة (لحد ما يضغط حفظ)
-var kioskSettings = { slides: KIOSK_DEFAULT_SLIDES.slice(), seconds: KIOSK_DEFAULT_SECONDS, workEndTime: KIOSK_DEFAULT_WORK_END, offDays: KIOSK_DEFAULT_OFF_DAYS.slice(), theme: KIOSK_DEFAULT_THEME, bgDim: KIOSK_DEFAULT_BG_DIM, bgBlur: KIOSK_DEFAULT_BG_BLUR };
+var kioskSettings = { slides: KIOSK_DEFAULT_SLIDES.slice(), seconds: KIOSK_DEFAULT_SECONDS, workEndTime: KIOSK_DEFAULT_WORK_END, offDays: KIOSK_DEFAULT_OFF_DAYS.slice(), theme: KIOSK_DEFAULT_THEME, bgDim: KIOSK_DEFAULT_BG_DIM, bgBlur: KIOSK_DEFAULT_BG_BLUR, autoOpenMinutes: 0 };
 var kioskSlides = kioskSettings.slides; // القائمة الفعلية المستخدمة في العرض الحالي (بتتحدّث من kioskSettings)
 
 // الإعداد بيتحفظ على الجهاز نفسه فقط (localStorage) — عشان كل شاشة (مخزن/موقع/إدارة) تقدر تُضبط
@@ -14643,7 +14648,8 @@ function loadKioskSettings() {
                 offDays: Array.isArray(saved.offDays) ? saved.offDays : KIOSK_DEFAULT_OFF_DAYS.slice(),
                 theme: ['dark', 'light', 'auto'].indexOf(saved.theme) !== -1 ? saved.theme : KIOSK_DEFAULT_THEME,
                 bgDim: isNaN(parseInt(saved.bgDim, 10)) ? KIOSK_DEFAULT_BG_DIM : Math.min(90, Math.max(0, parseInt(saved.bgDim, 10))),
-                bgBlur: isNaN(parseInt(saved.bgBlur, 10)) ? KIOSK_DEFAULT_BG_BLUR : Math.min(20, Math.max(0, parseInt(saved.bgBlur, 10)))
+                bgBlur: isNaN(parseInt(saved.bgBlur, 10)) ? KIOSK_DEFAULT_BG_BLUR : Math.min(20, Math.max(0, parseInt(saved.bgBlur, 10))),
+                autoOpenMinutes: isNaN(parseInt(saved.autoOpenMinutes, 10)) ? 0 : Math.min(480, Math.max(0, parseInt(saved.autoOpenMinutes, 10)))
             };
         }
     } catch (e) {}
@@ -14755,6 +14761,26 @@ function removeKioskBg() {
 }
 loadKioskSettings();
 
+// ---------- فتح شاشة الإدارة تلقائياً بعد فترة خمول ----------
+var kioskLastActivity = Date.now();
+(function setupKioskAutoOpen() {
+    function markActive() { kioskLastActivity = Date.now(); }
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel', 'click'].forEach(function(ev) {
+        document.addEventListener(ev, markActive, { passive: true, capture: true });
+    });
+    window.addEventListener('scroll', markActive, { passive: true, capture: true });
+    setInterval(function() {
+        var mins = parseInt(kioskSettings && kioskSettings.autoOpenMinutes, 10) || 0;
+        if (mins <= 0) return;
+        var overlay = document.getElementById('kiosk-mode-overlay');
+        if (!overlay || overlay.style.display === 'block') return;      // الشاشة مفتوحة بالفعل
+        if (typeof currentUser === 'undefined' || !currentUser) return; // مفيش مستخدم مسجّل دخول
+        if (Date.now() - kioskLastActivity < mins * 60000) return;
+        kioskLastActivity = Date.now(); // عشان لو قفلها المستخدم العدّ يبدأ من جديد
+        enterKioskMode();
+    }, 5000);
+})();
+
 function openKioskSettingsPanel() {
     var panel = document.getElementById('kiosk-settings-panel');
     if (!panel) return;
@@ -14766,6 +14792,7 @@ function openKioskSettingsPanel() {
     document.getElementById('kiosk-cfg-maintenance').checked = kioskSettings.slides.indexOf('maintenance') !== -1;
     document.getElementById('kiosk-cfg-seconds').value = kioskSettings.seconds;
     document.getElementById('kiosk-cfg-endtime').value = kioskSettings.workEndTime;
+    document.getElementById('kiosk-cfg-autoopen').value = kioskSettings.autoOpenMinutes || 0;
     for (var d = 0; d <= 6; d++) {
         var cb = document.getElementById('kiosk-cfg-off-' + d);
         if (cb) cb.checked = kioskSettings.offDays.indexOf(d) !== -1;
@@ -14808,6 +14835,8 @@ function saveKioskSettings() {
     }
     var themeEl = document.querySelector('input[name="kiosk-cfg-theme"]:checked');
     var theme = themeEl ? themeEl.value : KIOSK_DEFAULT_THEME;
+    var autoOpenMinutes = parseInt(document.getElementById('kiosk-cfg-autoopen').value, 10);
+    autoOpenMinutes = isNaN(autoOpenMinutes) ? 0 : Math.min(480, Math.max(0, autoOpenMinutes));
     var bgDim = parseInt(document.getElementById('kiosk-cfg-dim').value, 10);
     var bgBlur = parseInt(document.getElementById('kiosk-cfg-blur').value, 10);
     // صورة الخلفية: بتتحفظ الأول — لو التخزين مليان بنوقف ونعرض رسالة داخل اللوحة
@@ -14823,7 +14852,8 @@ function saveKioskSettings() {
         kioskBgPending = undefined;
     }
     kioskSettings = { slides: slides, seconds: seconds, workEndTime: workEndTime, offDays: offDays, theme: theme,
-        bgDim: isNaN(bgDim) ? KIOSK_DEFAULT_BG_DIM : bgDim, bgBlur: isNaN(bgBlur) ? KIOSK_DEFAULT_BG_BLUR : bgBlur };
+        bgDim: isNaN(bgDim) ? KIOSK_DEFAULT_BG_DIM : bgDim, bgBlur: isNaN(bgBlur) ? KIOSK_DEFAULT_BG_BLUR : bgBlur,
+        autoOpenMinutes: autoOpenMinutes };
     kioskSlides = slides;
     persistKioskSettings();
     kioskSlideIndex = 0;
