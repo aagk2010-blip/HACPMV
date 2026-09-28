@@ -1752,6 +1752,20 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 #kiosk-mode-overlay input[type=range]{width:100%;accent-color:var(--k-accent)}
 #kiosk-mode-overlay input[type=checkbox]{accent-color:var(--k-accent)}
 </style>
+<style id="kiosk-maint-anim-css">
+/* حركة شريحة أقرب 10 معدات للصيانة: الصفوف تنزلق بالتتابع + الأشرطة تمتلئ + لمعة + نبض للحرج */
+@keyframes kMaintRowIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes kMaintBarGrow{from{width:0}to{width:var(--w)}}
+@keyframes kMaintShine{0%{transform:translateX(-120%)}60%,100%{transform:translateX(320%)}}
+@keyframes kMaintCrit{0%,100%{filter:brightness(1);box-shadow:0 0 0 0 rgba(239,68,68,0)}50%{filter:brightness(1.25);box-shadow:0 0 9px 1px rgba(239,68,68,.55)}}
+@keyframes kMaintStatusPop{0%{opacity:0;transform:scale(.85)}60%{transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+#kiosk-mode-overlay .k-mrow{animation:kMaintRowIn .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*90ms)}
+#kiosk-mode-overlay .k-mstatus{display:inline-block;animation:kMaintStatusPop .5s ease both;animation-delay:calc(var(--i)*90ms + 350ms)}
+#kiosk-mode-overlay .k-mfill{position:relative;overflow:hidden;width:var(--w);animation:kMaintBarGrow 1.2s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*90ms + 200ms)}
+#kiosk-mode-overlay .k-mfill::after{content:'';position:absolute;top:0;bottom:0;left:0;width:35%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:kMaintShine 2.6s ease-in-out infinite;animation-delay:calc(var(--i)*90ms + 1400ms)}
+#kiosk-mode-overlay .k-mfill.k-mcrit{animation:kMaintBarGrow 1.2s cubic-bezier(.2,.8,.2,1) both,kMaintCrit 1.6s ease-in-out infinite;animation-delay:calc(var(--i)*90ms + 200ms),calc(var(--i)*90ms + 1400ms)}
+@media (prefers-reduced-motion:reduce){#kiosk-mode-overlay .k-mrow,#kiosk-mode-overlay .k-mstatus,#kiosk-mode-overlay .k-mfill,#kiosk-mode-overlay .k-mfill::after{animation:none!important}}
+</style>
 <div id="kiosk-mode-overlay" style="display:none;position:fixed;inset:0;z-index:5000;overflow:hidden">
   <div id="kiosk-bg-layer" style="display:none;position:absolute;inset:-24px;background-size:cover;background-position:center;background-repeat:no-repeat;z-index:0"></div>
   <div id="kiosk-bg-tint" style="position:absolute;inset:0;background:var(--k-bg);opacity:0;z-index:0;pointer-events:none;transition:opacity .4s"></div>
@@ -15143,16 +15157,16 @@ function renderKioskMaintenanceSlide() {
     var eqList = getVisibleEquipment().filter(function(e) { return !isToolEquipment(e) && e.status !== 'متوقف'; });
     var upcoming = eqList.slice().sort(function(a, b) { return hoursRemaining(a) - hoursRemaining(b); }).slice(0, 10);
 
-    var rows = upcoming.map(function(eq) {
+    var rows = upcoming.map(function(eq, idx) {
         var remaining = hoursRemaining(eq);
         var percent = getRemainingPercent(eq);
         var status = kioskRemainingStatus(eq);
-        return '<div style="background:var(--k-card);border-radius:10px;padding:7px 16px;margin-bottom:6px">' +
+        return '<div class="k-mrow" style="--i:' + idx + ';background:var(--k-card);border-radius:10px;padding:7px 16px;margin-bottom:6px">' +
             '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px">' +
             '<div style="font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(eq.name) + ' <span style="font-size:11px;font-weight:400;color:var(--k-muted)">(' + escapeHtml(eq.code || '—') + ')</span></div>' +
-            '<div style="font-size:12.5px;font-weight:800;color:' + status.color + ';white-space:nowrap">' + status.text + '</div>' +
+            '<div class="k-mstatus" style="font-size:12.5px;font-weight:800;color:' + status.color + ';white-space:nowrap">' + status.text + '</div>' +
             '</div>' +
-            '<div style="background:var(--k-track);border-radius:6px;height:7px;overflow:hidden"><div style="width:' + percent + '%;height:100%;background:' + kioskBarColor(remaining) + ';border-radius:6px"></div></div>' +
+            '<div style="background:var(--k-track);border-radius:6px;height:7px;overflow:hidden"><div class="k-mfill' + (remaining <= 10 ? ' k-mcrit' : '') + '" style="--w:' + percent + '%;height:100%;background:' + kioskBarColor(remaining) + ';border-radius:6px"></div></div>' +
             '</div>';
     }).join('');
 
