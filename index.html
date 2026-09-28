@@ -1764,7 +1764,6 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 #kiosk-mode-overlay .k-mfill{position:relative;overflow:hidden;width:var(--w);animation:kMaintBarGrow 1.2s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*90ms + 200ms)}
 #kiosk-mode-overlay .k-mfill::after{content:'';position:absolute;top:0;bottom:0;left:0;width:35%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:kMaintShine 2.6s ease-in-out infinite;animation-delay:calc(var(--i)*90ms + 1400ms)}
 #kiosk-mode-overlay .k-mfill.k-mcrit{animation:kMaintBarGrow 1.2s cubic-bezier(.2,.8,.2,1) both,kMaintCrit 1.6s ease-in-out infinite;animation-delay:calc(var(--i)*90ms + 200ms),calc(var(--i)*90ms + 1400ms)}
-@media (prefers-reduced-motion:reduce){#kiosk-mode-overlay .k-mrow,#kiosk-mode-overlay .k-mstatus,#kiosk-mode-overlay .k-mfill,#kiosk-mode-overlay .k-mfill::after{animation:none!important}}
 </style>
 <div id="kiosk-mode-overlay" style="display:none;position:fixed;inset:0;z-index:5000;overflow:hidden">
   <div id="kiosk-bg-layer" style="display:none;position:absolute;inset:-24px;background-size:cover;background-position:center;background-repeat:no-repeat;z-index:0"></div>
