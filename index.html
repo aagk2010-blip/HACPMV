@@ -314,8 +314,8 @@ button:not(.tab-btn):not(.sidebar-btn):active{transform:scale(0.9)}
 .equipment-card:hover,.driver-card:hover,.fuel-card:hover,.maintenance-card:hover,.inventory-item-card:hover{
   transform:translateY(-2px);box-shadow:0 8px 22px rgba(13,27,42,0.10)}
 
-/* بانر رئيسي احترافي أعلى لوحة القيادة (سطح المكتب فقط) */
-.dash-hero{display:none}
+/* بانر رئيسي أعلى لوحة القيادة — تم إخفاؤه على سطح المكتب ليطابق شاشة الموبايل */
+.dash-hero,.dash-hero-deco{display:none!important}
 @media (min-width:1024px){
   .dash-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:28px 28px 0;padding:34px 38px;
     border-radius:24px;position:relative;overflow:hidden;color:#fff;
