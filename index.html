@@ -1223,6 +1223,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   </div></div>
   
   <div id="view-equipment" style="display:none"><div style="padding:14px">
+    <div id="eq-meter-requests-banner"></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
       <button id="eq-tab-owned-btn" onclick="switchEquipmentOwnershipTab('ملك')" style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#059669,#047857);color:white">🔑 <span class="i18n-label" data-en="Owned Equipment" data-ar="معدات الملك"></span></button>
       <button id="eq-tab-rental-btn" onclick="switchEquipmentOwnershipTab('إيجار')" style="flex:1;padding:11px;border:none;border-radius:12px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;background:#f1f5f9;color:#475569">📋 <span class="i18n-label" data-en="Rented Equipment" data-ar="معدات الإيجار"></span></button>
@@ -5254,6 +5255,7 @@ function attachFirebaseListeners() {
 
     listen('approvalRequests', function(snapshot) {
         approvalRequestsData = snapshotToArray(snapshot);
+        try { renderMeterUpdateRequestsBanner(); } catch (e) {}
         if (currentUser && currentUser.role === 'admin') runSmartAlertsRefresh();
     });
 
@@ -8427,6 +8429,7 @@ function renderEquipmentPublicAttendanceView(eq, rentalContract, days, driverNam
 }
 
 function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last5Fuel, fuelDenied) {
+    window._eqpvLastRenderArgs = Array.prototype.slice.call(arguments);
     var remaining = hoursRemaining(eq);
     var percent = getRemainingPercent(eq);
     var barColor = getBarColor(remaining);
@@ -8495,6 +8498,8 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last
         '<div style="font-size:11.5px;color:#64748b">' + getRemainingStatus(eq) + ' — الصيانة القادمة عند ' + formatNumber(eq.nextHours) + ' س</div>' +
         '</div>' +
 
+        eqpvMeterUpdateCardHtml(eq) +
+
         '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
         '<div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:4px">📋 بيانات المعدة</div>' +
         eqpvRow('النوع', escapeHtml(eq.type || '—')) +
@@ -8525,6 +8530,69 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last
     document.getElementById('eqpv-content').innerHTML = html;
 }
 
+
+// ==================== تحديث العداد من صفحة الـQR العامة (معدات الملك) ====================
+// يتطلب نفس صلاحية تعديل المعدات المستخدمة في رفع ملفات الفحص/المعايرة — تسجيل الدخول مرة واحدة في الجلسة
+function eqpvMeterUpdateCardHtml(eq) {
+    var inputStyle = 'width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px;margin-bottom:8px;box-sizing:border-box';
+    return '<div id="eqpv-meter-card" style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        '<div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:4px">✏️ تحديث العداد</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px">لن يتغيّر العداد مباشرة — يُرسل طلب لمسؤول المعدات للموافقة عليه.</div>' +
+        '<input type="number" inputmode="decimal" min="0" step="1" id="eqpv-meter-input" placeholder="العداد الجديد (الحالي: ' + escapeHtml(String(eq.hours || 0)) + ')" style="' + inputStyle + ';direction:ltr;text-align:center;font-weight:700">' +
+        '<input type="text" id="eqpv-meter-name" placeholder="اسمك (اختياري)" autocomplete="name" style="' + inputStyle + '">' +
+        '<button id="eqpv-meter-save-btn" onclick="eqpvSaveMeter()" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">📤 إرسال للاعتماد</button>' +
+        '<div id="eqpv-meter-status" style="font-size:11.5px;margin-top:8px;text-align:center"></div>' +
+        '</div>';
+}
+
+// إرسال طلب تحديث عداد من صفحة الـQR — بدون تسجيل دخول، ولا يتم أي تغيير على المعدة إلا بعد موافقة مسؤول المعدات
+function eqpvSaveMeter() {
+    var args = window._eqpvLastRenderArgs;
+    var eq = args && args[0];
+    var statusEl = document.getElementById('eqpv-meter-status');
+    var btn = document.getElementById('eqpv-meter-save-btn');
+    function fail(msg) { if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '⚠️ ' + msg; } if (btn) btn.disabled = false; }
+    if (!eq || !eq.id) return fail('تعذّر تحديد المعدة، أعد تحميل الصفحة');
+    if (!fbDb) return fail('لا يوجد اتصال بقاعدة البيانات');
+
+    var raw = (document.getElementById('eqpv-meter-input').value || '').trim();
+    var newHours = parseFloat(raw);
+    if (raw === '' || isNaN(newHours) || newHours < 0) return fail('أدخل رقم عداد صحيح');
+    var currentHours = parseFloat(eq.hours) || 0;
+    if (newHours === currentHours) return fail('العداد الجديد مطابق للعداد الحالي');
+    if (newHours < currentHours && !confirm('⚠️ العداد الجديد (' + newHours + ') أقل من الحالي (' + currentHours + ')\nهل أنت متأكد؟')) return;
+
+    var nameEl = document.getElementById('eqpv-meter-name');
+    var sender = ((nameEl && nameEl.value) || '').trim() || 'مسح QR (بدون اسم)';
+
+    if (btn) btn.disabled = true;
+    if (statusEl) { statusEl.style.color = '#64748b'; statusEl.textContent = '⏳ جاري إرسال الطلب...'; }
+
+    var req = {
+        type: 'meterUpdate',
+        data: {
+            equipmentId: eq.id,
+            equipmentCode: eq.code || '',
+            equipmentName: eq.name || '',
+            oldHours: currentHours,
+            newHours: newHours,
+            source: 'QR'
+        },
+        description: 'تحديث عداد ' + (eq.name || '') + (eq.code ? ' (' + eq.code + ')' : '') + ' من ' + currentHours + ' إلى ' + newHours,
+        requestedBy: sender,
+        requestedAt: new Date().toISOString(),
+        status: 'pending'
+    };
+    fbDb.ref('approvalRequests').push(req).then(function() {
+        var input = document.getElementById('eqpv-meter-input');
+        if (input) input.value = '';
+        if (statusEl) { statusEl.style.color = '#059669'; statusEl.textContent = '✅ تم إرسال طلب التحديث — بانتظار موافقة مسؤول المعدات'; }
+        if (btn) btn.disabled = false;
+        showTopNotification('🕐', 'تم إرسال طلب تحديث العداد للاعتماد');
+    }).catch(function(e) {
+        fail((e && e.message) || 'حدث خطأ أثناء إرسال الطلب');
+    });
+}
 
 function generateEquipmentQRUrl(eq) {
     return location.origin + location.pathname + '?eq=' + encodeURIComponent(eq.id);
@@ -13570,9 +13638,86 @@ function getPendingApprovalRequests() {
         .sort(function(a, b) { return new Date(b.requestedAt) - new Date(a.requestedAt); });
 }
 
+// تنفيذ طلب تحديث عداد جاء من صفحة الـQR (يتم فقط بعد موافقة مسؤول المعدات)
+function applyMeterUpdateRequest(req, approverName) {
+    var d = req.data || {};
+    var newHours = parseFloat(d.newHours);
+    if (!d.equipmentId || isNaN(newHours) || newHours < 0) return Promise.reject(new Error('بيانات الطلب غير صالحة'));
+    var ref = fbDb.ref('equipment/' + d.equipmentId);
+    return ref.once('value').then(function(snap) {
+        var cur = snap.val();
+        if (!cur) throw new Error('المعدة غير موجودة');
+        var oldHours = (cur.hours !== undefined && cur.hours !== null) ? cur.hours : 0;
+        var log = cur.hoursLog || [];
+        if (!Array.isArray(log)) log = Object.keys(log).map(function(k) { return log[k]; });
+        var reqDate = req.requestedAt ? new Date(req.requestedAt) : new Date();
+        var newLog = log.concat([{
+            date: localDateStr(reqDate), hours: newHours,
+            updatedBy: (req.requestedBy || 'QR') + ' (اعتماد: ' + (approverName || '') + ')', source: 'QR'
+        }]);
+        return ref.update({ hours: newHours, hoursLog: newLog }).then(function() {
+            try { cur.id = d.equipmentId; cur.hoursLog = log; checkHoursAnomalyAndNotify(cur, oldHours, newHours, req.requestedBy || 'QR'); } catch (e) {}
+        });
+    });
+}
+
+// ==================== إشعار طلبات تحديث العداد القادمة من الـQR (صفحة المعدات) ====================
+function getPendingMeterRequests() {
+    return approvalRequestsData.filter(function(r) { return r.type === 'meterUpdate' && r.status === 'pending'; })
+        .sort(function(a, b) { return new Date(b.requestedAt) - new Date(a.requestedAt); });
+}
+
+function renderMeterUpdateRequestsBanner() {
+    var el = document.getElementById('eq-meter-requests-banner');
+    if (!el) return;
+    if (!currentUser || !canEdit('equipment')) { el.innerHTML = ''; return; }
+    var list = getPendingMeterRequests();
+    if (!list.length) { el.innerHTML = ''; return; }
+    var cards = list.map(function(r) {
+        var d = r.data || {};
+        var liveEq = (typeof equipmentData !== 'undefined') ? equipmentData.find(function(e) { return e.id === d.equipmentId; }) : null;
+        var curHours = liveEq ? (parseFloat(liveEq.hours) || 0) : parseFloat(d.oldHours) || 0;
+        var newH = parseFloat(d.newHours) || 0;
+        var diff = newH - curHours;
+        var diffTxt = (diff >= 0 ? '+' : '') + diff;
+        var diffColor = diff < 0 ? '#dc2626' : '#059669';
+        var when = r.requestedAt ? new Date(r.requestedAt).toLocaleString('ar-EG') : '';
+        var changedNote = (liveEq && parseFloat(d.oldHours) !== curHours)
+            ? '<div style="font-size:10.5px;color:#b45309;margin-bottom:4px">⚠️ العداد الحالي تغيّر منذ إرسال الطلب (كان ' + escapeHtml(String(d.oldHours)) + ')</div>' : '';
+        return '<div style="background:white;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;margin-top:8px;font-size:12px">' +
+            '<div style="font-weight:800;margin-bottom:3px">' + escapeHtml(d.equipmentName || '') + (d.equipmentCode ? ' <span style="color:#64748b;font-weight:600">(' + escapeHtml(d.equipmentCode) + ')</span>' : '') + '</div>' +
+            '<div style="font-size:13px;margin-bottom:3px;direction:ltr;text-align:right"><strong>' + curHours + '</strong> → <strong style="color:' + diffColor + '">' + newH + '</strong> <span style="color:' + diffColor + ';font-size:11px">(' + diffTxt + ' س)</span></div>' +
+            changedNote +
+            '<div style="color:#64748b;font-size:10.5px;margin-bottom:8px">بواسطة: ' + escapeHtml(r.requestedBy || '') + ' — ' + when + '</div>' +
+            '<div style="display:flex;gap:6px">' +
+            '<button onclick="approveRequest(\'' + r.id + '\')" style="flex:1;background:#059669;color:white;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✅ موافقة</button>' +
+            '<button onclick="rejectRequest(\'' + r.id + '\')" style="flex:1;background:#dc2626;color:white;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🚫 رفض</button>' +
+            '</div></div>';
+    }).join('');
+    el.innerHTML = '<div style="background:#fffbeb;border:1.5px solid #fbbf24;border-radius:14px;padding:12px;margin-bottom:12px">' +
+        '<div style="font-weight:800;font-size:13px;color:#92400e">🔔 طلبات تحديث عداد من الـQR بانتظار موافقتك (' + list.length + ')</div>' +
+        cards + '</div>';
+}
+
 function approveRequest(id) {
     var req = approvalRequestsData.find(function(r) { return r.id === id; });
     if (!req) return;
+    if (req.type === 'meterUpdate') {
+        if (!canEdit('equipment')) { showToast('ليس لديك صلاحية اعتماد تحديث العدادات', true); return; }
+        if (req.status !== 'pending') return;
+        var approver = (currentUser && (currentUser.name || currentUser.username)) || '';
+        applyMeterUpdateRequest(req, approver).then(function() {
+            return fbDb.ref('approvalRequests/' + id).update({
+                status: 'approved', approvedBy: approver, approvedAt: new Date().toISOString()
+            });
+        }).then(function() {
+            showToast('✅ تمت الموافقة وتحديث العداد');
+            runSmartAlertsRefresh();
+        }).catch(function(e) {
+            showToast('❌ تعذّر تنفيذ التحديث: ' + ((e && e.message) || ''), true);
+        });
+        return;
+    }
     var ok = true;
     if (req.type === 'delete') {
         deleteFromFirebase(req.data.path, req.data.id);
@@ -13588,6 +13733,8 @@ function approveRequest(id) {
 }
 
 function rejectRequest(id) {
+    var _req = approvalRequestsData.find(function(r) { return r.id === id; });
+    if (_req && _req.type === 'meterUpdate' && !canEdit('equipment')) { showToast('ليس لديك صلاحية رفض تحديث العدادات', true); return; }
     fbDb.ref('approvalRequests/' + id).update({
         status: 'rejected', rejectedBy: (currentUser && currentUser.name) || '', rejectedAt: new Date().toISOString()
     }).then(function() {
@@ -13873,7 +14020,7 @@ function openNotifCenter() {
     if (a.pendingApprovals.length) {
         html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#0369a1;margin-bottom:6px">✅ طلبات بانتظار الموافقة (' + a.pendingApprovals.length + ')</div>' +
             a.pendingApprovals.map(function(r) {
-                var typeLabel = r.type === 'transfer' ? '🚚 نقل معدة' : (r.type === 'delete' ? '🗑️ حذف' : r.type);
+                var typeLabel = r.type === 'transfer' ? '🚚 نقل معدة' : (r.type === 'delete' ? '🗑️ حذف' : (r.type === 'meterUpdate' ? '⏱️ تحديث عداد (QR)' : r.type));
                 var when = r.requestedAt ? new Date(r.requestedAt).toLocaleString('ar-EG') : '';
                 return '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:9px 10px;margin-bottom:6px;font-size:12px">' +
                     '<div style="font-weight:700;margin-bottom:2px">' + typeLabel + '</div>' +
@@ -18162,6 +18309,7 @@ function switchView(view) {
     if (view === 'map') refreshMapView();
     else stopMapColorTimer();
     if (view === 'maintenance') listenIssueVouchers();
+    if (view === 'equipment') renderMeterUpdateRequestsBanner();
     if (view === 'accounts') { renderAccountsRentalList(); renderAccountsSummary(); }
     var titles = {
         home: '📊 ' + RL('Dashboard', 'لوحة القيادة'),
