@@ -6969,7 +6969,28 @@ function getEquipmentFuelRatePerHour(eq) {
     return { rate: totalLiters / hoursTracked, hoursTracked: hoursTracked, totalLiters: totalLiters };
 }
 
+// غلاف آمن: أي خطأ غير متوقع في بيانات معدة معينة (تالفة/ناقصة) ما يكسرش عرض قائمة المعدات كلها،
+// بيرجّع بدل كده حالة "غير معروف" لهذه المعدة بس، وباقي المعدات بتتحسب عادي.
 function computeEquipmentHealthScore(equipment) {
+    try {
+        return computeEquipmentHealthScoreInner(equipment);
+    } catch (e) {
+        if (window.console && console.error) console.error('computeEquipmentHealthScore error:', equipment && equipment.id, e);
+        var naFactor = function(label) { return { score: null, weight: 0, na: true, label: label }; };
+        return {
+            score: null, level: 'unknown', color: '#94a3b8',
+            breakdown: {
+                cyclePosition: naFactor(RL('Position in maintenance cycle', 'موقع دورة الصيانة')),
+                maintenanceLateness: naFactor(RL('Maintenance delay', 'تأخر الصيانة')),
+                downtimeFrequency: naFactor(RL('Downtime frequency (RCA)', 'تكرار التوقفات')),
+                fuelVsPeers: naFactor(RL('Fuel use vs. same-type peers', 'الوقود مقارنة بنفس النوع')),
+                tireCondition: naFactor(RL('Tire condition', 'حالة الإطارات'))
+            }
+        };
+    }
+}
+
+function computeEquipmentHealthScoreInner(equipment) {
     var W = 20; // كل عامل من الخمسة بياخد 20 نقطة
     var breakdown = {};
     var totalScore = 0, totalWeight = 0;
@@ -7273,7 +7294,7 @@ function openEquipmentDetail(id) {
             return '<div class="detail-section" style="border-right:4px solid ' + health.color + '">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
                 '<div style="font-weight:800;font-size:14px;color:#0f172a">🩺 ' + RL('Equipment Health Score', 'مؤشر صحة المعدة') + '</div>' +
-                '<div style="font-size:24px;font-weight:900;color:' + health.color + '">' + health.score + '</div>' +
+                '<div style="font-size:24px;font-weight:900;color:' + health.color + '">' + (typeof health.score === 'number' ? health.score : '—') + '</div>' +
                 '</div>' +
                 factorRow(b.cyclePosition) + factorRow(b.maintenanceLateness) + factorRow(b.downtimeFrequency) + factorRow(b.fuelVsPeers) + factorRow(b.tireCondition) +
                 customKeys.map(function(k) { return factorRow(b[k]); }).join('') +
@@ -17184,8 +17205,9 @@ function refreshUI() {
                   '<button class="eq-quick-btn eq-quick-fail" title="' + RLA('Has an issue', 'فيه مشكلة') + '" onclick="quickFailEquipment(\'' + eq.id + '\',event)">✘</button>'
                 : '';
             var eqHealth = isTool ? null : computeEquipmentHealthScore(eq);
-            var eqHealthBadge = eqHealth ? '<span title="' + RLA('Equipment Health Score', 'مؤشر صحة المعدة') + ' ' + eqHealth.score + '/100" style="background:' + eqHealth.color + '22;color:' + eqHealth.color + ';border:1px solid ' + eqHealth.color + ';border-radius:8px;padding:1px 6px;font-size:9px;font-weight:800;white-space:nowrap">🩺' + eqHealth.score + '</span>' : '';
-            var eqHealthBorder = eqHealth ? eqHealth.color : '#e2e8f0';
+            var eqHealthKnown = eqHealth && typeof eqHealth.score === 'number';
+            var eqHealthBadge = eqHealthKnown ? '<span title="' + RLA('Equipment Health Score', 'مؤشر صحة المعدة') + ' ' + eqHealth.score + '/100" style="background:' + eqHealth.color + '22;color:' + eqHealth.color + ';border:1px solid ' + eqHealth.color + ';border-radius:8px;padding:1px 6px;font-size:9px;font-weight:800;white-space:nowrap">🩺' + eqHealth.score + '</span>' : '';
+            var eqHealthBorder = eqHealthKnown ? eqHealth.color : '#e2e8f0';
 
             if (isTool) {
                 // للأدوات (زي المقطورات): عرض مبسط بدون شريط عداد الساعات (غير مهم لهم)
@@ -20408,13 +20430,15 @@ function renderExecutiveDashboard() {
         });
         if (!healthEqList.length) return '';
         var counts = { good: 0, warning: 0, critical: 0 };
-        var sum = 0;
+        var sum = 0, n = 0;
         healthEqList.forEach(function(e) {
             var h = computeEquipmentHealthScore(e);
+            if (typeof h.score !== 'number') return; // استبعاد أي معدة حصل خطأ في حساب مؤشرها بدل ما تُشوّه الإحصائية
             counts[h.level]++;
             sum += h.score;
+            n++;
         });
-        var n = healthEqList.length;
+        if (!n) return '';
         var avg = Math.round(sum / n);
         var avgColor = avg >= 75 ? '#10b981' : avg >= 50 ? '#f59e0b' : '#dc2626';
         var pctGood = Math.round(counts.good / n * 100);
