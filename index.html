@@ -6845,6 +6845,195 @@ function saveEquipmentFilterOilLinks(equipmentId) {
     setTimeout(function() { openEquipmentDetail(equipmentId); }, 300);
 }
 
+// ==================== أداة تكلفة الساعة الحقيقية (TCO) لكل معدة ====================
+// بتجمع تكلفة الوقود + الصيانة (المقدّرة) + الإطارات + التوقف لكل معدة، وتقسمها على الساعات
+// المسجّلة (العداد الحالي - عداد الوصول) عشان تطلع "تكلفة الساعة الحقيقية" لهذه المعدة.
+function computeEquipmentTCO(equipment) {
+    var eqId = equipment.id;
+    var fuelCost = (fuelData || []).filter(function(f) { return String(f.equipmentId) === String(eqId); }).reduce(function(s, f) { return s + (f.cost || 0); }, 0);
+    var maintCost = (maintenanceSchedules || []).filter(function(m) { return String(m.equipmentId) === String(eqId); }).reduce(function(s, m) { return s + (parseFloat(m.estimatedCost) || 0); }, 0);
+    var tireCost = (tireCostEvents || []).filter(function(e) { return String(e.equipmentId) === String(eqId); }).reduce(function(s, e) { return s + (e.cost || 0); }, 0);
+    var downtimeCost = (downtimeEvents || []).filter(function(ev) { return String(ev.equipmentId) === String(eqId); }).reduce(function(s, ev) { return s + (ev.cost || 0); }, 0);
+    var totalCost = fuelCost + maintCost + tireCost + downtimeCost;
+    var hoursTracked = Math.max(1, (equipment.hours || 0) - (equipment.arrivalHours || 0));
+    return {
+        fuelCost: fuelCost, maintCost: maintCost, tireCost: tireCost, downtimeCost: downtimeCost,
+        totalCost: totalCost, hoursTracked: hoursTracked, costPerHour: totalCost / hoursTracked
+    };
+}
+
+var equipmentTcoChartInstance = null;
+function renderEquipmentTcoChart(equipmentId) {
+    var equipment = equipmentData.find(function(e) { return String(e.id) === String(equipmentId); });
+    if (!equipment) return;
+    var tco = computeEquipmentTCO(equipment);
+    var canvas = document.getElementById('eq-tco-chart');
+    if (equipmentTcoChartInstance) { equipmentTcoChartInstance.destroy(); equipmentTcoChartInstance = null; }
+    if (canvas && window.Chart) {
+        var segs = [
+            { label: RL('Fuel', 'وقود'), value: tco.fuelCost, color: '#f59e0b' },
+            { label: RL('Maintenance', 'صيانة'), value: tco.maintCost, color: '#22d3ee' },
+            { label: RL('Tires', 'إطارات'), value: tco.tireCost, color: '#a78bfa' },
+            { label: RL('Downtime', 'توقف'), value: tco.downtimeCost, color: '#f87171' }
+        ].filter(function(s) { return s.value > 0; });
+        if (!segs.length) segs.push({ label: RL('No cost data yet', 'لا توجد بيانات تكلفة بعد'), value: 1, color: '#475569' });
+        var eqTcoCenterTotalPlugin = {
+            id: 'eqTcoCenterTotal',
+            afterDraw: function(chart) {
+                var meta = chart.getDatasetMeta(0);
+                var arc = meta && meta.data && meta.data[0];
+                if (!arc) return;
+                var ctx = chart.ctx;
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = "800 15px Cairo, sans-serif";
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(formatNumber(Math.round(tco.costPerHour)), arc.x, arc.y - 6);
+                ctx.font = "600 8px Cairo, sans-serif";
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillText(RL('EGP/h', 'ج.م/س'), arc.x, arc.y + 9);
+                ctx.restore();
+            }
+        };
+        equipmentTcoChartInstance = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: segs.map(function(s) { return s.label; }),
+                datasets: [{ data: segs.map(function(s) { return s.value; }), backgroundColor: segs.map(function(s) { return s.color; }), borderWidth: 2, borderColor: '#0d1b2a' }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(ctx) {
+                        var total = ctx.dataset.data.reduce(function(s, v) { return s + (v || 0); }, 0);
+                        var pct = total > 0 ? Math.round(ctx.parsed / total * 100) : 0;
+                        return ctx.label + ': ' + formatNumber(Math.round(ctx.parsed)) + ' ' + RL('EGP (', 'ج.م (') + pct + '%)';
+                    } } }
+                }
+            },
+            plugins: [eqTcoCenterTotalPlugin]
+        });
+    }
+    updateEquipmentTcoCompare(equipment, tco);
+}
+
+// المقارنة بسعر إيجار معدة بديلة (اختياري، بيتحفظ محليًا على الجهاز لكل معدة)
+function updateEquipmentTcoCompare(equipment, tco) {
+    var el = document.getElementById('eq-tco-compare');
+    if (!el) return;
+    var rate = 0;
+    try { rate = parseFloat(localStorage.getItem('tcoAltRentalRate_' + equipment.id)) || 0; } catch (e) {}
+    if (!rate) { el.innerHTML = ''; return; }
+    var diff = rate - tco.costPerHour;
+    var pct = rate > 0 ? Math.round(Math.abs(diff) / rate * 100) : 0;
+    if (diff >= 0) {
+        el.innerHTML = '<span style="color:#4ade80">✅ ' + RL('Owning is cheaper than the alternative rental by ', 'التملّك أرخص من الإيجار البديل بـ ') + formatNumber(Math.round(diff)) + ' ' + RL('EGP/h (', 'ج.م/س (') + pct + RL('%)', '%)') + '</span>';
+    } else {
+        el.innerHTML = '<span style="color:#f87171">⚠️ ' + RL('This equipment costs more than the alternative rental by ', 'هذه المعدة بتكلف أكتر من الإيجار البديل بـ ') + formatNumber(Math.round(-diff)) + ' ' + RL('EGP/h (', 'ج.م/س (') + pct + RL('%)', '%)') + '</span>';
+    }
+}
+
+function saveEquipmentTcoAltRate(equipmentId) {
+    var input = document.getElementById('eq-tco-alt-rate');
+    if (!input) return;
+    var rate = parseFloat(input.value) || 0;
+    try { localStorage.setItem('tcoAltRentalRate_' + equipmentId, rate); } catch (e) {}
+    var equipment = equipmentData.find(function(e) { return String(e.id) === String(equipmentId); });
+    if (equipment) updateEquipmentTcoCompare(equipment, computeEquipmentTCO(equipment));
+    showToast('✅ ' + RL('Saved', 'تم الحفظ'));
+}
+
+// ==================== Health Score لكل معدة (0-100) ====================
+// بيلخّص صحة المعدة في رقم واحد بناءً على 5 عوامل، كل عامل ياخد 20 نقطة من 100:
+// 1) موقع المعدة في دورة الصيانة الحالية   2) نسبة تأخر الصيانة (لو متجاوزة الموعد)
+// 3) تكرار التوقفات (RCA) في آخر 180 يوم    4) استهلاك الوقود مقارنة بمتوسط نفس نوع المعدة في الأسطول
+// 5) حالة الإطارات المُركَّبة حاليًا
+// أي عامل مفيش بيانات كافية له (مثلاً معدة من غير إطارات مسجّلة، أو وقود غير كافي للمقارنة) بيتم استبعاده
+// وإعادة توزيع النسبة على باقي العوامل المتاحة، عشان نقص البيانات ما يظلمش تقييم المعدة.
+function getEquipmentFuelRatePerHour(eq) {
+    var totalLiters = (fuelData || []).filter(function(f) { return String(f.equipmentId) === String(eq.id); }).reduce(function(s, f) { return s + (f.amount || 0); }, 0);
+    var hoursTracked = Math.max(1, (eq.hours || 0) - (eq.arrivalHours || 0));
+    return { rate: totalLiters / hoursTracked, hoursTracked: hoursTracked, totalLiters: totalLiters };
+}
+
+function computeEquipmentHealthScore(equipment) {
+    var W = 20; // كل عامل من الخمسة بياخد 20 نقطة
+    var breakdown = {};
+    var totalScore = 0, totalWeight = 0;
+
+    // 1) موقع المعدة في دورة الصيانة الحالية
+    var interval = equipment.interval || 250;
+    var remaining = hoursRemaining(equipment);
+    var cycleRatio = interval > 0 ? remaining / interval : 1;
+    var scoreCycle = remaining <= 0 ? 0 : Math.min(W, Math.max(0, cycleRatio * W));
+    breakdown.cyclePosition = { score: Math.round(scoreCycle), weight: W, label: RL('Position in maintenance cycle', 'موقع دورة الصيانة') };
+    totalScore += scoreCycle; totalWeight += W;
+
+    // 2) نسبة تأخر الصيانة (تحديدًا لو اتجاوزت الموعد)
+    var scoreLate;
+    if (remaining >= 0) {
+        scoreLate = W;
+    } else {
+        var overdueRatio = Math.min(1, Math.abs(remaining) / Math.max(1, interval));
+        scoreLate = W * (1 - overdueRatio);
+    }
+    breakdown.maintenanceLateness = { score: Math.round(scoreLate), weight: W, label: RL('Maintenance delay', 'تأخر الصيانة') };
+    totalScore += scoreLate; totalWeight += W;
+
+    // 3) تكرار التوقفات (RCA) خلال آخر 180 يوم
+    var cutoff = Date.now() - 180 * 86400000;
+    var downtimeCount = (downtimeEvents || []).filter(function(ev) {
+        return String(ev.equipmentId) === String(equipment.id) && ev.startAt && new Date(ev.startAt).getTime() >= cutoff;
+    }).length;
+    var scoreDowntime = downtimeCount <= 0 ? W : downtimeCount === 1 ? W * 0.75 : downtimeCount === 2 ? W * 0.5 : downtimeCount === 3 ? W * 0.25 : 0;
+    breakdown.downtimeFrequency = { score: Math.round(scoreDowntime), weight: W, count: downtimeCount, label: RL('Downtime frequency (RCA)', 'تكرار التوقفات') };
+    totalScore += scoreDowntime; totalWeight += W;
+
+    // 4) استهلاك الوقود مقارنة بمتوسط باقي معدات نفس النوع في الأسطول (بديل عملي عن جدول معايرة ثابت غير متوفر)
+    var own = getEquipmentFuelRatePerHour(equipment);
+    var peers = (equipmentData || []).filter(function(e) { return e.type === equipment.type && String(e.id) !== String(equipment.id) && !isToolEquipment(e); });
+    var peerRates = peers.map(getEquipmentFuelRatePerHour).filter(function(p) { return p.totalLiters > 0 && p.hoursTracked >= 20; });
+    if (own.totalLiters > 0 && own.hoursTracked >= 20 && peerRates.length >= 2) {
+        var peerAvg = peerRates.reduce(function(s, p) { return s + p.rate; }, 0) / peerRates.length;
+        var ratio = peerAvg > 0 ? own.rate / peerAvg : 1;
+        var scoreFuel = ratio <= 1.05 ? W : Math.max(0, W - (ratio - 1.05) * (W / 0.5));
+        breakdown.fuelVsPeers = { score: Math.round(scoreFuel), weight: W, ratioPct: Math.round(ratio * 100), label: RL('Fuel use vs. same-type peers', 'الوقود مقارنة بنفس النوع') };
+        totalScore += scoreFuel; totalWeight += W;
+    } else {
+        breakdown.fuelVsPeers = { score: null, weight: 0, na: true, label: RL('Fuel use vs. same-type peers', 'الوقود مقارنة بنفس النوع') };
+    }
+
+    // 5) حالة الإطارات المُركَّبة حاليًا على المعدة
+    var installedTires = (tiresData || []).filter(function(t) {
+        if (t.status !== 'installed') return false;
+        var cyc = getTireCurrentCycle(t);
+        return cyc && String(cyc.equipmentId) === String(equipment.id);
+    });
+    if (installedTires.length) {
+        var levels = installedTires.map(function(t) { return getTireTreadStatus(t).level; });
+        var scoreTires;
+        if (levels.indexOf('critical') !== -1) scoreTires = 0;
+        else if (levels.indexOf('warning') !== -1) scoreTires = W * 0.5;
+        else if (levels.every(function(l) { return l === 'good'; })) scoreTires = W;
+        else scoreTires = W * 0.75; // مفيش قياس مداس كافي لكل الإطارات عشان نحكم بثقة كاملة
+        breakdown.tireCondition = { score: Math.round(scoreTires), weight: W, label: RL('Tire condition', 'حالة الإطارات') };
+        totalScore += scoreTires; totalWeight += W;
+    } else {
+        breakdown.tireCondition = { score: null, weight: 0, na: true, label: RL('Tire condition', 'حالة الإطارات') };
+    }
+
+    var finalScore = totalWeight > 0 ? Math.round((totalScore / totalWeight) * 100) : 100;
+    finalScore = Math.max(0, Math.min(100, finalScore));
+    var level, color;
+    if (finalScore >= 75) { level = 'good'; color = '#10b981'; }
+    else if (finalScore >= 50) { level = 'warning'; color = '#f59e0b'; }
+    else { level = 'critical'; color = '#dc2626'; }
+
+    return { score: finalScore, level: level, color: color, breakdown: breakdown };
+}
+
 function openEquipmentDetail(id) {
     var targetId = String(id);
     var equipment = equipmentData.find(function(e) { return String(e.id) === targetId; });
@@ -6894,6 +7083,56 @@ function openEquipmentDetail(id) {
         '<div class="progress-bar"><div class="progress-fill" style="width:' + percent + '%;background:' + getBarColor(remaining) + '"></div></div>' +
         '<div style="margin-top:8px"><div class="detail-label">⏳ ' + RL('Remaining', 'المتبقي') + '</div><div class="detail-value" style="color:' + statusText.color + '">' + statusText.text + '</div></div>' +
         '</div>' +
+        (function() {
+            var tco = computeEquipmentTCO(equipment);
+            var altRate = 0;
+            try { altRate = parseFloat(localStorage.getItem('tcoAltRentalRate_' + equipment.id)) || 0; } catch (e) {}
+            return '<div class="detail-section" style="background:linear-gradient(135deg,#0d1b2a,#1e293b);border-radius:16px;color:white">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:4px">' +
+                '<div style="font-weight:800;font-size:14px">💰 ' + RL('True Hourly Cost (TCO)', 'تكلفة الساعة الحقيقية (TCO)') + '</div>' +
+                '<div style="font-size:10px;opacity:.7">' + RL('Based on ', 'محسوبة على ') + formatNumber(Math.round(tco.hoursTracked)) + ' ' + RL('tracked hours', 'ساعة مسجّلة') + '</div>' +
+                '</div>' +
+                '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">' +
+                '<canvas id="eq-tco-chart" style="width:110px;height:110px;max-width:110px;max-height:110px;flex-shrink:0"></canvas>' +
+                '<div style="flex:1;min-width:140px">' +
+                '<div style="font-size:28px;font-weight:900;line-height:1">' + formatNumber(Math.round(tco.costPerHour)) + ' <span style="font-size:13px;font-weight:700;opacity:.8">' + RL('EGP/h', 'ج.م/س') + '</span></div>' +
+                '<div style="font-size:11px;opacity:.75;margin-top:4px">' + RL('Total recorded cost: ', 'إجمالي التكلفة المسجلة: ') + formatNumber(Math.round(tco.totalCost)) + ' ' + RL('EGP', 'ج.م') + '</div>' +
+                '</div></div>' +
+                '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:12px;font-size:11px">' +
+                '<div>⛽ ' + RL('Fuel: ', 'وقود: ') + formatNumber(Math.round(tco.fuelCost)) + '</div>' +
+                '<div>🔧 ' + RL('Maintenance: ', 'صيانة: ') + formatNumber(Math.round(tco.maintCost)) + '</div>' +
+                '<div>🛞 ' + RL('Tires: ', 'إطارات: ') + formatNumber(Math.round(tco.tireCost)) + '</div>' +
+                '<div>⏸️ ' + RL('Downtime: ', 'توقف: ') + formatNumber(Math.round(tco.downtimeCost)) + '</div>' +
+                '</div>' +
+                '<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15)">' +
+                '<label style="font-size:11px;opacity:.85">📋 ' + RL('Alternative rental rate for comparison (EGP/h)', 'سعر إيجار معدة بديلة للمقارنة (ج.م/ساعة)') + '</label>' +
+                '<div style="display:flex;gap:6px;margin-top:5px">' +
+                '<input id="eq-tco-alt-rate" type="number" min="0" step="1" value="' + (altRate || '') + '" placeholder="0" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:white;font-family:inherit;font-size:13px" onchange="saveEquipmentTcoAltRate(\'' + equipment.id + '\')">' +
+                '<button onclick="saveEquipmentTcoAltRate(\'' + equipment.id + '\')" style="padding:8px 14px;border:none;border-radius:8px;background:#e8a020;color:#0d1b2a;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap">' + RL('Save', 'حفظ') + '</button>' +
+                '</div>' +
+                '<div id="eq-tco-compare" style="margin-top:8px;font-size:12.5px;font-weight:700"></div>' +
+                '</div></div>';
+        })() +
+        (isToolEquipment(equipment) ? '' : (function() {
+            var health = computeEquipmentHealthScore(equipment);
+            var factorRow = function(f) {
+                if (f.na) return '<div style="font-size:11px;color:#94a3b8;padding:4px 0">⚪ ' + f.label + ' — ' + RL('not enough data', 'بيانات غير كافية') + '</div>';
+                var barColor = f.score >= f.weight * 0.75 ? '#10b981' : f.score >= f.weight * 0.5 ? '#f59e0b' : '#dc2626';
+                var pct = f.weight > 0 ? Math.round(f.score / f.weight * 100) : 0;
+                return '<div style="margin:6px 0">' +
+                    '<div style="display:flex;justify-content:space-between;font-size:11px;color:#334155;margin-bottom:2px"><span>' + f.label + '</span><span style="font-weight:700">' + f.score + '/' + f.weight + '</span></div>' +
+                    '<div style="height:6px;background:#eef2f6;border-radius:4px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:' + barColor + '"></div></div>' +
+                    '</div>';
+            };
+            var b = health.breakdown;
+            return '<div class="detail-section" style="border-right:4px solid ' + health.color + '">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
+                '<div style="font-weight:800;font-size:14px">🩺 ' + RL('Equipment Health Score', 'مؤشر صحة المعدة') + '</div>' +
+                '<div style="font-size:24px;font-weight:900;color:' + health.color + '">' + health.score + '</div>' +
+                '</div>' +
+                factorRow(b.cyclePosition) + factorRow(b.maintenanceLateness) + factorRow(b.downtimeFrequency) + factorRow(b.fuelVsPeers) + factorRow(b.tireCondition) +
+                '</div>';
+        })()) +
         '<div class="detail-section"><div class="grid-2">' +
         '<div><div class="detail-label"><span class="i18n-label" data-en="Engine Model" data-ar="موديل المحرك"></span></div><div class="detail-value">' + escapeHtml(equipment.engineModel || '—') + '</div></div>' +
         '<div><div class="detail-label"><span class="i18n-label" data-en="Engine Serial No." data-ar="رقم المحرك"></span></div><div class="detail-value">' + escapeHtml(equipment.engineSN || '—') + '</div></div>' +
@@ -7002,6 +7241,7 @@ function openEquipmentDetail(id) {
     document.getElementById('detail-title').innerHTML = '🏗️ ' + escapeHtml(equipment.name);
     document.getElementById('detail-content').innerHTML = contentHtml;
     document.getElementById('detail-modal').classList.add('active');
+    renderEquipmentTcoChart(equipment.id);
 }
 
 // ===== استيراد سجل الصيانات PM =====
@@ -16791,6 +17031,9 @@ function refreshUI() {
                 ? '<button class="eq-quick-btn eq-quick-pass" title="' + RLA('OK', 'تمام') + '" onclick="quickPassEquipment(\'' + eq.id + '\',event)">✔</button>' +
                   '<button class="eq-quick-btn eq-quick-fail" title="' + RLA('Has an issue', 'فيه مشكلة') + '" onclick="quickFailEquipment(\'' + eq.id + '\',event)">✘</button>'
                 : '';
+            var eqHealth = isTool ? null : computeEquipmentHealthScore(eq);
+            var eqHealthBadge = eqHealth ? '<span title="' + RLA('Equipment Health Score', 'مؤشر صحة المعدة') + ' ' + eqHealth.score + '/100" style="background:' + eqHealth.color + '22;color:' + eqHealth.color + ';border:1px solid ' + eqHealth.color + ';border-radius:8px;padding:1px 6px;font-size:9px;font-weight:800;white-space:nowrap">🩺' + eqHealth.score + '</span>' : '';
+            var eqHealthBorder = eqHealth ? eqHealth.color : '#e2e8f0';
 
             if (isTool) {
                 // للأدوات (زي المقطورات): عرض مبسط بدون شريط عداد الساعات (غير مهم لهم)
@@ -16825,13 +17068,14 @@ function refreshUI() {
                 var rDaysLabel = '<span class="c-ico">📅</span> ' + rDaysCount + '/' + eqRentalCycleDayCount + ' ' + RL('days', 'يوم');
                 var rHoursLabel = '<span class="c-ico">⏱️</span> ' + formatNumber(Math.round(rTotalHours * 10) / 10) + ' ' + hUnit;
 
-                equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px">' +
+                equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px;border-right:4px solid ' + eqHealthBorder + '">' +
                 '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap">' +
                 '<div style="flex:1;min-width:0">' +
                 '<span style="font-size:12px;font-weight:800;color:var(--primary)">' + escapeHtml(eq.name) + '</span>' + pendingCheckDot +
                 ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.code) + '</span>' +
                 '</div>' +
                 ownershipBadge +
+                eqHealthBadge +
                 '<span style="color:' + rGaugeColor + ';font-weight:800;font-size:9px;white-space:nowrap">' + rDaysLabel + '</span>' +
                 '<span style="color:#6b7a8d;font-weight:800;font-size:9px;white-space:nowrap">' + rHoursLabel + '</span>' +
                 statusBadge +
@@ -16847,13 +17091,14 @@ function refreshUI() {
                 '</div>' +
                 '</div>';
             } else {
-                equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px">' +
+                equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px;border-right:4px solid ' + eqHealthBorder + '">' +
                 '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap">' +
                 '<div style="flex:1;min-width:0">' +
                 '<span style="font-size:12px;font-weight:800;color:var(--primary)">' + escapeHtml(eq.name) + '</span>' + pendingCheckDot +
                 ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.code) + '</span>' +
                 '</div>' +
                 ownershipBadge +
+                eqHealthBadge +
                 '<span style="font-size:9px;color:#6b7a8d;white-space:nowrap">⏱️<b>' + formatNumber(eq.hours) + '</b> | 🔧<b>' + formatNumber(eq.nextHours) + '</b></span>' +
                 '<span style="color:' + gaugeColor + ';font-weight:800;font-size:9px;white-space:nowrap">' + remainingLabel + '</span>' +
                 statusBadge +
@@ -20002,6 +20247,43 @@ function renderExecutiveDashboard() {
         '</div>';
 
     html += executiveKpiCardHtml('🛠️', 'عدد الأعطال (فترات التوقف) خلال الفترة المحددة', k.failureCount, k.range.from + ' → ' + k.range.to, '#dc2626');
+
+    html += (function() {
+        var healthEqList = (equipmentData || []).filter(function(e) {
+            if (isToolEquipment(e)) return false;
+            if (ownershipFilter && (e.ownership || 'ملك') !== ownershipFilter) return false;
+            return true;
+        });
+        if (!healthEqList.length) return '';
+        var counts = { good: 0, warning: 0, critical: 0 };
+        var sum = 0;
+        healthEqList.forEach(function(e) {
+            var h = computeEquipmentHealthScore(e);
+            counts[h.level]++;
+            sum += h.score;
+        });
+        var n = healthEqList.length;
+        var avg = Math.round(sum / n);
+        var avgColor = avg >= 75 ? '#10b981' : avg >= 50 ? '#f59e0b' : '#dc2626';
+        var pctGood = Math.round(counts.good / n * 100);
+        var pctWarn = Math.round(counts.warning / n * 100);
+        var pctCrit = Math.max(0, 100 - pctGood - pctWarn);
+        return '<div style="background:white;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+            '<div style="font-weight:800;font-size:13px;color:#0f172a">🩺 توزيع مؤشر صحة المعدات (Health Score)</div>' +
+            '<div style="font-weight:800;font-size:16px;color:' + avgColor + '">' + avg + '/100</div>' +
+            '</div>' +
+            '<div style="display:flex;height:14px;border-radius:8px;overflow:hidden;margin-bottom:8px">' +
+            (pctGood > 0 ? '<div style="width:' + pctGood + '%;background:#10b981"></div>' : '') +
+            (pctWarn > 0 ? '<div style="width:' + pctWarn + '%;background:#f59e0b"></div>' : '') +
+            (pctCrit > 0 ? '<div style="width:' + pctCrit + '%;background:#dc2626"></div>' : '') +
+            '</div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700">' +
+            '<span style="color:#10b981">🟢 سليمة: ' + counts.good + ' (' + pctGood + '%)</span>' +
+            '<span style="color:#f59e0b">🟡 تحتاج متابعة: ' + counts.warning + ' (' + pctWarn + '%)</span>' +
+            '<span style="color:#dc2626">🔴 حرجة: ' + counts.critical + ' (' + pctCrit + '%)</span>' +
+            '</div></div>';
+    })();
 
     html += '<div style="font-size:10.5px;color:var(--gray);text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #eee">' +
         'ℹ️ إجمالي ساعات التشغيل: ' + formatNumber(k.totalHours) + ' س — إجمالي الوقود: ' + formatNumber(k.totalFuelLiters) + ' لتر — إجمالي تكلفة التشغيل: ' + formatNumber(k.totalOperatingCost) + ' ج.م' +
