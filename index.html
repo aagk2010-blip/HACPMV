@@ -3935,6 +3935,8 @@ let transferLogs = []; // سجل نقل المعدات بين المواقع
 let changeLogs = []; // سجل حركة/تعديل المعدات (من عدّل وامتى)
 let tiresData = []; // إدارة الإطارات (Tire Management)
 let tireCostEvents = []; // أحداث تكلفة الإطارات (شراء/إعادة تغطية) مربوطة بالمشروع/المقاول
+var healthScoreFactors = []; // عوامل إضافية مخصّصة لمؤشر صحة المعدة (زي العادم/حرارة المحرك) - تُدار من الإعدادات (أدمن فقط)
+var equipmentHealthFactorScores = []; // القيم المُدخلة يدويًا لكل معدة ولكل عامل إضافي
 let authorizedFuelSitesData = []; // المواقع المصرح بالتزود منها (لفحص كشف سرقة الوقود)
 // ==================== نظام المستخدمين - Firebase ====================
 var APP_USERS = [
@@ -5302,6 +5304,15 @@ function attachFirebaseListeners() {
 
     listen('changeLogs', function(snapshot) {
         changeLogs = snapshotToArray(snapshot);
+    });
+
+    listen('healthScoreFactors', function(snapshot) {
+        healthScoreFactors = snapshotToArray(snapshot);
+        if (document.getElementById('hf-list')) renderHealthFactorsList();
+    });
+
+    listen('equipmentHealthFactorScores', function(snapshot) {
+        equipmentHealthFactorScores = snapshotToArray(snapshot);
     });
 
     listen('tires', function(snapshot) {
@@ -7024,6 +7035,28 @@ function computeEquipmentHealthScore(equipment) {
         breakdown.tireCondition = { score: null, weight: 0, na: true, label: RL('Tire condition', 'حالة الإطارات') };
     }
 
+    // 6) عوامل إضافية مخصّصة (تُدار من الإعدادات، وقيمتها تُدخل يدويًا لكل معدة - مثل العادم أو حرارة المحرك)
+    // كل عامل بياخد الوزن (%) اللي الأدمن حدده، وبيتضاف فوق الـ100% الأساسية، والنتيجة النهائية بتترجّع
+    // تلقائيًا لمقياس من 100 (نفس آلية استبعاد/إعادة توزيع العوامل الناقصة البيانات بالظبط).
+    (healthScoreFactors || []).filter(function(f) { return f.active !== false; }).forEach(function(factor) {
+        var w = parseFloat(factor.weight) || 0;
+        if (w <= 0) return;
+        var records = (equipmentHealthFactorScores || []).filter(function(r) {
+            return String(r.equipmentId) === String(equipment.id) && String(r.factorId) === String(factor.id);
+        });
+        var key = 'custom_' + factor.id;
+        if (!records.length) {
+            breakdown[key] = { score: null, weight: 0, na: true, label: (factor.icon || '⭐') + ' ' + factor.name, custom: true, factorId: factor.id };
+            return;
+        }
+        records.sort(function(a, b) { return (a.updatedAt || '').localeCompare(b.updatedAt || ''); });
+        var latest = records[records.length - 1];
+        var rawScore = Math.max(0, Math.min(100, parseFloat(latest.score) || 0));
+        var contributed = (rawScore / 100) * w;
+        breakdown[key] = { score: Math.round(contributed), weight: w, label: (factor.icon || '⭐') + ' ' + factor.name, custom: true, factorId: factor.id, rawScore: rawScore };
+        totalScore += contributed; totalWeight += w;
+    });
+
     var finalScore = totalWeight > 0 ? Math.round((totalScore / totalWeight) * 100) : 100;
     finalScore = Math.max(0, Math.min(100, finalScore));
     var level, color;
@@ -7032,6 +7065,104 @@ function computeEquipmentHealthScore(equipment) {
     else { level = 'critical'; color = '#dc2626'; }
 
     return { score: finalScore, level: level, color: color, breakdown: breakdown };
+}
+
+// ---------- إدخال/تحديث قيمة عامل إضافي (يدوي) لمعدة معيّنة ----------
+function saveEquipmentHealthFactorScore(equipmentId, factorId) {
+    var input = document.getElementById('hf-input-' + factorId);
+    if (!input) return;
+    var val = parseFloat(input.value);
+    if (isNaN(val) || val < 0 || val > 100) {
+        showToast('❌ ' + RL('Enter a value from 0 to 100', 'أدخل قيمة من 0 إلى 100'), true);
+        return;
+    }
+    var existing = (equipmentHealthFactorScores || []).filter(function(r) {
+        return String(r.equipmentId) === String(equipmentId) && String(r.factorId) === String(factorId);
+    });
+    var record = { equipmentId: equipmentId, factorId: factorId, score: val, updatedAt: new Date().toISOString(), updatedByName: (currentUser && currentUser.name) || '' };
+    var savePromise;
+    if (existing.length) {
+        existing.sort(function(a, b) { return (a.updatedAt || '').localeCompare(b.updatedAt || ''); });
+        savePromise = fbDb.ref('equipmentHealthFactorScores/' + existing[existing.length - 1].id).set(record);
+    } else {
+        var ref = fbDb.ref('equipmentHealthFactorScores').push();
+        savePromise = ref.set(record);
+    }
+    savePromise.then(function() {
+        showToast('✅ ' + RL('Saved', 'تم الحفظ'));
+        setTimeout(function() { openEquipmentDetail(equipmentId); }, 200); // تحديث الكارت فورًا بالنتيجة الجديدة
+    }).catch(function(e) { showToast(RL('Error: ', 'خطأ: ') + e.message, true); });
+}
+
+// ---------- إدارة عوامل مؤشر الصحة الإضافية (أدمن فقط) ----------
+function openHealthFactorsSettings() {
+    var existingOverlay = document.getElementById('hf-settings-overlay');
+    if (existingOverlay) existingOverlay.remove();
+    var overlay = document.createElement('div');
+    overlay.id = 'hf-settings-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    overlay.innerHTML =
+        '<div style="background:#fff;width:100%;max-width:500px;border-radius:20px 20px 0 0;max-height:85vh;overflow-y:auto;padding:18px;color:#0f172a;box-shadow:0 -10px 40px rgba(0,0,0,.25)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+        '<div style="font-weight:800;font-size:15px;color:#0f172a">⚙️ ' + RL('Health Score Factors', 'عوامل مؤشر صحة المعدة') + '</div>' +
+        '<button onclick="document.getElementById(\'hf-settings-overlay\').remove()" style="background:#f1f5f9;border:none;width:30px;height:30px;border-radius:15px;font-size:16px;cursor:pointer;color:#0f172a">✕</button>' +
+        '</div>' +
+        '<div style="font-size:11px;color:#64748b;margin-bottom:12px;line-height:1.7">' +
+        RL('The 5 built-in factors are worth 20% each (100% total). Any factor you add here is added on top, and the final score is automatically rescaled back to a 0-100 range.', 'العوامل الخمسة الأساسية بتاخد 20% لكل واحد (إجمالي 100%). أي عامل تضيفه هنا بيتضاف فوق كده، والنتيجة النهائية بتترجّع تلقائيًا لمقياس من 0 إلى 100.') +
+        '</div>' +
+        '<div id="hf-list"></div>' +
+        '<div style="margin-top:14px;padding-top:12px;border-top:1px solid #eef2f6">' +
+        '<div style="font-weight:700;font-size:12px;margin-bottom:6px;color:#0f172a">' + RL('Add new factor', 'إضافة عامل جديد') + '</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+        '<input id="hf-new-icon" placeholder="🌡️" maxlength="4" style="width:48px;text-align:center;padding:8px;border:1px solid #dbe2ea;border-radius:8px;font-size:14px;color:#0f172a">' +
+        '<input id="hf-new-name" placeholder="' + RL('Factor name, e.g. Engine Temperature', 'اسم العامل، مثلاً حرارة المحرك') + '" style="flex:1;min-width:150px;padding:8px 10px;border:1px solid #dbe2ea;border-radius:8px;font-size:12px;color:#0f172a">' +
+        '<input id="hf-new-weight" type="number" min="1" max="100" placeholder="%" style="width:64px;padding:8px;border:1px solid #dbe2ea;border-radius:8px;font-size:12px;color:#0f172a">' +
+        '<button onclick="addHealthScoreFactor()" style="padding:8px 16px;border:none;border-radius:8px;background:#e8a020;color:#0d1b2a;font-weight:800;font-size:12px;cursor:pointer">' + RL('Add', 'إضافة') + '</button>' +
+        '</div></div></div>';
+    document.body.appendChild(overlay);
+    renderHealthFactorsList();
+}
+
+function renderHealthFactorsList() {
+    var el = document.getElementById('hf-list');
+    if (!el) return;
+    var factors = healthScoreFactors || [];
+    if (!factors.length) {
+        el.innerHTML = '<div style="font-size:11.5px;color:#94a3b8;text-align:center;padding:10px 0">' + RL('No custom factors yet', 'مفيش عوامل إضافية لسه') + '</div>';
+        return;
+    }
+    var totalCustomWeight = factors.reduce(function(s, f) { return s + (parseFloat(f.weight) || 0); }, 0);
+    el.innerHTML = '<div style="font-size:11px;color:#0e7490;font-weight:700;margin-bottom:8px">' + RL('Total custom weight: ', 'إجمالي وزن العوامل الإضافية: ') + totalCustomWeight + '%</div>' +
+        factors.map(function(f) {
+            return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f1f5f9">' +
+                '<span style="font-size:16px">' + (f.icon || '⭐') + '</span>' +
+                '<span style="flex:1;font-size:12.5px;font-weight:700;color:#0f172a">' + escapeHtml(f.name) + '</span>' +
+                '<span style="font-size:11px;font-weight:800;color:#e8a020">' + f.weight + '%</span>' +
+                '<button onclick="deleteHealthScoreFactor(\'' + f.id + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;width:28px;height:28px;font-size:12px;cursor:pointer">🗑️</button>' +
+                '</div>';
+        }).join('');
+}
+
+function addHealthScoreFactor() {
+    var iconEl = document.getElementById('hf-new-icon'), nameEl = document.getElementById('hf-new-name'), weightEl = document.getElementById('hf-new-weight');
+    var icon = (iconEl.value || '⭐').trim();
+    var name = (nameEl.value || '').trim();
+    var weight = parseFloat(weightEl.value);
+    if (!name) { showToast('❌ ' + RL('Enter a factor name', 'اكتب اسم العامل'), true); return; }
+    if (isNaN(weight) || weight <= 0 || weight > 100) { showToast('❌ ' + RL('Enter a weight from 1 to 100', 'اكتب نسبة من 1 إلى 100'), true); return; }
+    var ref = fbDb.ref('healthScoreFactors').push();
+    ref.set({ name: name, icon: icon, weight: weight, active: true, createdAt: new Date().toISOString(), createdByName: (currentUser && currentUser.name) || '' }).then(function() {
+        nameEl.value = ''; weightEl.value = ''; iconEl.value = '';
+        showToast('✅ ' + RL('Factor added', 'تمت إضافة العامل'));
+    }).catch(function(e) { showToast(RL('Error: ', 'خطأ: ') + e.message, true); });
+}
+
+function deleteHealthScoreFactor(id) {
+    if (!confirm(RL('Delete this factor? Its scores already entered on equipment will no longer count.', 'حذف هذا العامل؟ الدرجات المُدخلة له في المعدات لن تُحتسب بعد كده.'))) return;
+    fbDb.ref('healthScoreFactors/' + id).remove().then(function() {
+        showToast('🗑️ ' + RL('Deleted', 'تم الحذف'));
+    }).catch(function(e) { showToast(RL('Error: ', 'خطأ: ') + e.message, true); });
 }
 
 function openEquipmentDetail(id) {
@@ -7120,17 +7251,38 @@ function openEquipmentDetail(id) {
                 var barColor = f.score >= f.weight * 0.75 ? '#10b981' : f.score >= f.weight * 0.5 ? '#f59e0b' : '#dc2626';
                 var pct = f.weight > 0 ? Math.round(f.score / f.weight * 100) : 0;
                 return '<div style="margin:6px 0">' +
-                    '<div style="display:flex;justify-content:space-between;font-size:11px;color:#334155;margin-bottom:2px"><span>' + f.label + '</span><span style="font-weight:700">' + f.score + '/' + f.weight + '</span></div>' +
+                    '<div style="display:flex;justify-content:space-between;font-size:11px;color:#334155;margin-bottom:2px"><span>' + f.label + '</span><span style="font-weight:700;color:#334155">' + f.score + '/' + f.weight + '</span></div>' +
                     '<div style="height:6px;background:#eef2f6;border-radius:4px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:' + barColor + '"></div></div>' +
                     '</div>';
             };
+            var customFactorInputRow = function(factor) {
+                var existing = (equipmentHealthFactorScores || []).filter(function(r) {
+                    return String(r.equipmentId) === String(equipment.id) && String(r.factorId) === String(factor.id);
+                });
+                existing.sort(function(a, b2) { return (a.updatedAt || '').localeCompare(b2.updatedAt || ''); });
+                var current = existing.length ? existing[existing.length - 1].score : '';
+                return '<div style="display:flex;align-items:center;gap:6px;margin:5px 0;font-size:11px;color:#334155">' +
+                    '<span style="flex:1">' + (factor.icon || '⭐') + ' ' + escapeHtml(factor.name) + ' <span style="color:#94a3b8">(' + factor.weight + '%)</span></span>' +
+                    '<input type="number" min="0" max="100" value="' + current + '" placeholder="0-100" id="hf-input-' + factor.id + '" style="width:56px;padding:5px 6px;border:1px solid #dbe2ea;border-radius:6px;font-size:11px;color:#0f172a;background:#fff">' +
+                    '<button onclick="saveEquipmentHealthFactorScore(\'' + equipment.id + '\',\'' + factor.id + '\')" style="padding:5px 10px;border:none;border-radius:6px;background:#0d1b2a;color:#fff;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">' + RL('Save', 'حفظ') + '</button>' +
+                    '</div>';
+            };
             var b = health.breakdown;
+            var customKeys = Object.keys(b).filter(function(k) { return b[k].custom; });
+            var isAdmin = currentUser && currentUser.role === 'admin';
             return '<div class="detail-section" style="border-right:4px solid ' + health.color + '">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
-                '<div style="font-weight:800;font-size:14px">🩺 ' + RL('Equipment Health Score', 'مؤشر صحة المعدة') + '</div>' +
+                '<div style="font-weight:800;font-size:14px;color:#0f172a">🩺 ' + RL('Equipment Health Score', 'مؤشر صحة المعدة') + '</div>' +
                 '<div style="font-size:24px;font-weight:900;color:' + health.color + '">' + health.score + '</div>' +
                 '</div>' +
                 factorRow(b.cyclePosition) + factorRow(b.maintenanceLateness) + factorRow(b.downtimeFrequency) + factorRow(b.fuelVsPeers) + factorRow(b.tireCondition) +
+                customKeys.map(function(k) { return factorRow(b[k]); }).join('') +
+                ((healthScoreFactors || []).filter(function(f) { return f.active !== false; }).length ?
+                    '<div style="margin-top:10px;padding-top:8px;border-top:1px solid #eef2f6">' +
+                    '<div style="font-size:11px;font-weight:800;color:#0f172a;margin-bottom:4px">' + RL('Custom factors (manual entry)', 'عوامل إضافية (تُدخل يدويًا)') + '</div>' +
+                    (healthScoreFactors || []).filter(function(f) { return f.active !== false; }).map(customFactorInputRow).join('') +
+                    '</div>' : '') +
+                (isAdmin ? '<div style="margin-top:8px;text-align:left"><button onclick="openHealthFactorsSettings()" style="background:none;border:none;color:#0e7490;font-size:10.5px;font-weight:700;cursor:pointer;text-decoration:underline">⚙️ ' + RL('Manage factors & weights', 'إدارة العوامل والنسب') + '</button></div>' : '') +
                 '</div>';
         })()) +
         '<div class="detail-section"><div class="grid-2">' +
