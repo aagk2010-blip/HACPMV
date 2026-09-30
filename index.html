@@ -5256,6 +5256,7 @@ function attachFirebaseListeners() {
     listen('approvalRequests', function(snapshot) {
         approvalRequestsData = snapshotToArray(snapshot);
         try { renderMeterUpdateRequestsBanner(); } catch (e) {}
+        try { notifyNewMeterRequests(); } catch (e) {}
         if (currentUser && currentUser.role === 'admin') runSmartAlertsRefresh();
     });
 
@@ -8590,7 +8591,12 @@ function eqpvSaveMeter() {
         if (btn) btn.disabled = false;
         showTopNotification('🕐', 'تم إرسال طلب تحديث العداد للاعتماد');
     }).catch(function(e) {
-        fail((e && e.message) || 'حدث خطأ أثناء إرسال الطلب');
+        var code = e && e.code ? String(e.code) : '';
+        var msg = (code.toUpperCase().indexOf('PERMISSION') !== -1)
+            ? 'ممنوع الإرسال (PERMISSION_DENIED) — قواعد Firebase لا تسمح بالكتابة في approvalRequests'
+            : ((e && e.message) || 'حدث خطأ أثناء إرسال الطلب');
+        console.error('eqpvSaveMeter error:', e);
+        fail(msg);
     });
 }
 
@@ -13662,6 +13668,31 @@ function applyMeterUpdateRequest(req, approverName) {
 }
 
 // ==================== إشعار طلبات تحديث العداد القادمة من الـQR (صفحة المعدات) ====================
+var _knownMeterReqIds = null; // null = أول تحميل (لا ننبّه على الطلبات القديمة)
+function notifyNewMeterRequests() {
+    var pending = getPendingMeterRequests();
+    var ids = pending.map(function(r) { return r.id; });
+    var prev = _knownMeterReqIds;
+    _knownMeterReqIds = ids;
+    if (prev === null || !currentUser || !canEdit('equipment')) return;
+    var fresh = pending.filter(function(r) { return prev.indexOf(r.id) === -1; });
+    if (!fresh.length) return;
+    var text = fresh.map(function(r) {
+        var d = r.data || {};
+        return (d.equipmentName || d.equipmentCode || 'معدة') + ': ' + (d.oldHours) + ' ← ' + (d.newHours);
+    }).join(' | ');
+    showToast('⏱️ طلب تحديث عداد جديد من QR — ' + text);
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        try {
+            new Notification('⏱️ طلب تحديث عداد بانتظار موافقتك', {
+                body: text + ' — بواسطة ' + fresh.map(function(r) { return r.requestedBy || ''; }).join('، '),
+                icon: (typeof COMPANY_ICON_SQUARE_URI !== 'undefined' && COMPANY_ICON_SQUARE_URI) || undefined
+            });
+        } catch (e) {}
+    }
+    try { runSmartAlertsRefresh(); } catch (e) {}
+}
+
 function getPendingMeterRequests() {
     return approvalRequestsData.filter(function(r) { return r.type === 'meterUpdate' && r.status === 'pending'; })
         .sort(function(a, b) { return new Date(b.requestedAt) - new Date(a.requestedAt); });
@@ -13845,7 +13876,8 @@ function getAllSmartAlerts() {
     var totalCount = maintOverdue.length + maintSoon.length + licExpired.length + licSoon.length + lowStock.length + rentExpired.length + rentSoon.length + rentAbsence.length;
     var pendingReports = getPendingScheduledReports();
     totalCount += pendingReports.length;
-    var pendingApprovals = (currentUser && currentUser.role === 'admin') ? getPendingApprovalRequests() : [];
+    var pendingApprovals = (currentUser && currentUser.role === 'admin') ? getPendingApprovalRequests()
+        : ((currentUser && canEdit('equipment')) ? getPendingMeterRequests() : []);
     totalCount += pendingApprovals.length;
     var pendingFaults = (currentUser && currentUser.role === 'admin') ? getPendingFaultReports() : [];
     totalCount += pendingFaults.length;
