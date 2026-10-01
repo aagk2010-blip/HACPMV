@@ -8641,7 +8641,6 @@ function eqpvSaveMeter() {
     var newHours = parseFloat(raw);
     if (raw === '' || isNaN(newHours) || newHours < 0) return fail('أدخل رقم عداد صحيح');
     var currentHours = parseFloat(eq.hours) || 0;
-    if (newHours === currentHours) return fail('العداد الجديد مطابق للعداد الحالي');
     if (newHours < currentHours && !confirm('⚠️ العداد الجديد (' + newHours + ') أقل من الحالي (' + currentHours + ')\nهل أنت متأكد؟')) return;
 
     var nameEl = document.getElementById('eqpv-meter-name');
@@ -13810,7 +13809,7 @@ function renderMeterUpdateRequestsBanner() {
         var curHours = liveEq ? (parseFloat(liveEq.hours) || 0) : parseFloat(d.oldHours) || 0;
         var newH = parseFloat(d.newHours) || 0;
         var diff = newH - curHours;
-        var diffTxt = (diff >= 0 ? '+' : '') + diff;
+        var diffTxt = diff === 0 ? 'بدون تغيير' : ((diff > 0 ? '+' : '') + diff + ' س');
         var diffColor = diff < 0 ? '#dc2626' : '#059669';
         var when = r.requestedAt ? new Date(r.requestedAt).toLocaleString('ar-EG') : '';
         var methodLabels = { 'manual': '✍️ إدخال يدوي', 'photo-manual': '📸 صورة + إدخال يدوي', 'ocr': '🤖 قراءة تلقائية من الصورة', 'ocr-edited': '🤖✍️ قراءة تلقائية مع تعديل يدوي' };
@@ -13823,7 +13822,7 @@ function renderMeterUpdateRequestsBanner() {
             ? '<div style="font-size:10.5px;color:#b45309;margin-bottom:4px">⚠️ العداد الحالي تغيّر منذ إرسال الطلب (كان ' + escapeHtml(String(d.oldHours)) + ')</div>' : '';
         return '<div style="background:white;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;margin-top:8px;font-size:12px">' +
             '<div style="font-weight:800;margin-bottom:3px">' + escapeHtml(d.equipmentName || '') + (d.equipmentCode ? ' <span style="color:#64748b;font-weight:600">(' + escapeHtml(d.equipmentCode) + ')</span>' : '') + '</div>' +
-            '<div style="font-size:13px;margin-bottom:3px;direction:ltr;text-align:right"><strong>' + curHours + '</strong> → <strong style="color:' + diffColor + '">' + newH + '</strong> <span style="color:' + diffColor + ';font-size:11px">(' + diffTxt + ' س)</span></div>' +
+            '<div style="font-size:13px;margin-bottom:3px;direction:ltr;text-align:right"><strong>' + curHours + '</strong> → <strong style="color:' + diffColor + '">' + newH + '</strong> <span style="color:' + diffColor + ';font-size:11px">(' + diffTxt + ')</span></div>' +
             changedNote + photoHtml +
             (methodTxt ? '<div style="font-size:10.5px;color:#475569;margin-bottom:3px">' + methodTxt + '</div>' : '') +
             '<div style="color:#64748b;font-size:10.5px;margin-bottom:8px">بواسطة: ' + escapeHtml(r.requestedBy || '') + ' — ' + when + '</div>' +
