@@ -283,15 +283,10 @@ html[data-theme="dark"] .page-topbar-title{color:#f1f5f9}
 #view-home #home-usage-cards .stat-number{font-size:20px}
 #view-home #home-usage-cards .home-usage-delta{display:block;font-size:9.5px;line-height:1.35}
 
-/* رسومات الاستخدام: ساعات + ملك/إيجار جنب بعض، والتكلفة بعرض كامل تحتهم */
-#view-home .home-usage-charts-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-#view-home .home-usage-chart-card:nth-child(2){grid-column:1/-1;order:3}
-#view-home .home-usage-chart-card:nth-child(3){order:2}
-@media (min-width:640px){
-  #view-home .home-usage-charts-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-  #view-home .home-usage-chart-card:nth-child(2){grid-column:auto;order:0}
-  #view-home .home-usage-chart-card:nth-child(3){order:0}
-}
+/* شبكة الرسومات الموحدة (7 كروت): صف لكل من ساعات التشغيل وتكلفة الإيجار (في المنتصف)، ثم أزواج، ثم الوقود بعرض كامل */
+#view-home .hdash-card.solo{grid-column:1/-1;justify-self:center;width:100%}
+#view-home .hdash-body canvas{display:block;margin:0 auto}
+#view-home #home-chart-top-wrap,#view-home .hdash-card.c-maint .hdash-body{height:250px!important}
 
 /* أزرار الإجراءات السريعة */
 #view-home .home-quick-actions{display:flex;flex-wrap:wrap;gap:8px;padding:0}
@@ -313,22 +308,16 @@ html[data-theme="dark"] .page-topbar-title{color:#f1f5f9}
   #view-home .app-grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:18px 12px}
   #view-home .app-tile-label{font-size:12px}
   /* رسومات لوحة التحكم: شبكة 2×2 — عمود ضيق + عمود عريض، بنفس ترتيب شاشة الإدارة */
-  #view-home .hdash-grid{grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px}
-  #view-home .hdash-card.wide{grid-column:auto}
-  #view-home .hdash-card.c-fleet{order:1}
-  #view-home .hdash-card.c-fuel{order:2}
-  #view-home .hdash-card.c-maint{order:3}
-  #view-home .hdash-card.c-top{order:4}
+  #view-home .hdash-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  #view-home .hdash-card.solo{max-width:640px}
   #view-home .hdash-card,#view-home .hdash-card.wide{padding:14px 16px 12px}
   #view-home .hdash-title{font-size:13px}
   #view-home .hdash-kpi{font-size:11.5px}
-  #view-home .hdash-body,#view-home .hdash-card.wide .hdash-body,#view-home #home-chart-top-wrap{height:240px!important}
+  #view-home .hdash-body,#view-home .hdash-card.wide .hdash-body,#view-home #home-chart-top-wrap,#view-home .hdash-card.c-maint .hdash-body{height:240px!important}
   #view-home .hdash-card:not(.wide) .hdash-title{flex:1 1 0}
   #view-home .hdash-card:not(.wide) .hdash-card-head{flex-wrap:nowrap}
   #view-home .hdash-more{font-size:11px}
   #view-home .hdash-period{font-size:11px}
-  #view-home .home-usage-charts-grid{gap:14px}
-  #view-home .home-usage-chart-card .hdash-body{height:210px!important}
 }
 /* شاشات واسعة: عمودين — الرسومات والاستخدام يمين، الإجراءات والأقسام شمال */
 @media (min-width:1280px){
@@ -1284,7 +1273,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   <div class="page-topbar"><div class="page-topbar-title"><span id="header-title">📊 لوحة القيادة</span><span id="sync-status-placeholder" style="display:none"></span></div><div class="page-topbar-actions"><span id="conn-indicator" title="حالة الاتصال">🔴</span><button id="global-search-toggle" title="بحث عالمي">🔍</button><button id="kiosk-mode-btn" title="شاشة الإدارة">🖥️</button><button id="export-pdf-btn" title="تصدير PDF">📄</button><button id="notif-settings-btn" title="الإشعارات">🔔</button></div></div><div class="page-topbar-sync" id="sync-status">جاري الاتصال...</div>
   <div id="alert-bar" style="display:none"></div>
   
-  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title"><span class="i18n-label" data-en="Dashboard" data-ar="لوحة القيادة"></span></div><div class="dash-hero-sub"><span class="i18n-label" data-en="Real-time tracking of equipment, maintenance, and fuel status across all sites." data-ar="متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع."></span></div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><div class="home-layout"><div class="home-main"><div id="home-usage-section"><div class="hdash-head"><div class="section-title">📊 <span class="i18n-label" data-en="Equipment Usage: Owned vs Rented" data-ar="استخدام المعدات: الملك والإيجار"></span></div></div><div id="home-usage-note"></div><div class="stats-row" id="home-usage-cards"></div><div class="home-usage-charts-grid"><div class="home-usage-chart-card hdash-card c-hours"><div class="hdash-card-head"><span class="hdash-ico">⏱️</span><span class="hdash-title">ساعات التشغيل</span></div><div class="hdash-body"><canvas id="chart-home-hours"></canvas></div></div><div class="home-usage-chart-card hdash-card c-cost"><div class="hdash-card-head"><span class="hdash-ico">💰</span><span class="hdash-title">تكلفة الإيجار</span></div><div class="hdash-body"><canvas id="chart-home-cost"></canvas></div></div><div class="home-usage-chart-card hdash-card c-split"><div class="hdash-card-head"><span class="hdash-ico">🥯</span><span class="hdash-title">ملك مقابل إيجار</span></div><div class="hdash-body"><canvas id="chart-home-split"></canvas></div></div></div></div><div class="hdash-section" id="home-dash-section"><div class="hdash-head"><div class="section-title">📊 <span class="i18n-label" data-en="Interactive Dashboard" data-ar="لوحة التحكم التفاعلية"></span></div><span class="hdash-period" id="home-dash-period"></span></div><div class="hdash-grid"><div class="hdash-card c-fleet"><div class="hdash-card-head"><span class="hdash-ico">🥯</span><span class="hdash-title">حالة المعدات</span><span class="hdash-kpi" id="hdash-kpi-fleet"></span></div><div class="hdash-body"><canvas id="home-chart-fleet"></canvas></div></div><div class="hdash-card c-maint"><div class="hdash-card-head"><span class="hdash-ico">🔧</span><span class="hdash-title">الصيانات المكتملة</span><span class="hdash-kpi" id="hdash-kpi-maint"></span></div><div class="hdash-body"><canvas id="home-chart-maint"></canvas></div><button class="hdash-more" onclick="switchView('maintenance')">التفاصيل ‹</button></div><div class="hdash-card wide c-fuel"><div class="hdash-card-head"><span class="hdash-ico">⛽</span><span class="hdash-title">اتجاه استهلاك الوقود — آخر 6 فترات</span><span class="hdash-kpi" id="hdash-kpi-fuel"></span></div><div class="hdash-body"><canvas id="home-chart-fuel"></canvas></div><button class="hdash-more" onclick="switchView('fuel')">التفاصيل ‹</button></div><div class="hdash-card wide c-top"><div class="hdash-card-head"><span class="hdash-ico">🏆</span><span class="hdash-title">أعلى 10 معدات استخدامًا (ساعات)</span><span class="hdash-kpi" id="hdash-kpi-top"></span></div><div class="hdash-body" id="home-chart-top-wrap"><canvas id="home-chart-top"></canvas></div><button class="hdash-more" onclick="switchView('analytics')">كل التحليلات ‹</button></div></div></div></div><div class="home-side"><div class="home-panel home-quick"><div class="hdash-head"><div class="section-title">⚡ <span class="i18n-label" data-en="Quick Actions" data-ar="إجراءات سريعة"></span></div></div><div class="home-quick-actions"><button id="force-refresh-btn" class="home-quick-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))"><span class="qi">🔄</span><span class="i18n-label" data-en="Refresh" data-ar="تحديث البيانات"></span></button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)"><span class="qi">🤖</span><span class="i18n-label" data-en="AI Analysis" data-ar="تحليل ذكي AI"></span></button><button onclick="openAiReportModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)"><span class="qi">🤖</span><span class="i18n-label" data-en="AI Report" data-ar="تقرير AI"></span></button><button onclick="openExecutiveDashboard()" class="home-quick-btn" style="background:linear-gradient(135deg,#0f172a,#1e293b)"><span class="qi">📊</span><span class="i18n-label" data-en="Executive" data-ar="لوحة تنفيذية"></span></button><button id="data-manager-btn" onclick="openDataManagerModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#0891b2,#155e75)"><span class="qi">🗑️</span><span class="i18n-label" data-en="Data & Storage" data-ar="البيانات والمساحة"></span></button></div></div><div class="section home-sections"><div class="section-title">📂 <span class="i18n-label" data-en="Sections" data-ar="الأقسام"></span></div><div id="home-app-grid" class="app-grid"></div></div></div></div></div>
+  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title"><span class="i18n-label" data-en="Dashboard" data-ar="لوحة القيادة"></span></div><div class="dash-hero-sub"><span class="i18n-label" data-en="Real-time tracking of equipment, maintenance, and fuel status across all sites." data-ar="متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع."></span></div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><div class="home-layout"><div class="home-main"><div id="home-usage-section"><div class="hdash-head"><div class="section-title">📊 <span class="i18n-label" data-en="Equipment Usage: Owned vs Rented" data-ar="استخدام المعدات: الملك والإيجار"></span></div></div><div id="home-usage-note"></div><div class="stats-row" id="home-usage-cards"></div></div><div class="hdash-section" id="home-dash-section"><div class="hdash-head"><div class="section-title">📈 <span class="i18n-label" data-en="Interactive Dashboard" data-ar="لوحة التحكم التفاعلية"></span></div><span class="hdash-period" id="home-dash-period"></span></div><div class="hdash-grid"><div class="hdash-card solo c-hours"><div class="hdash-card-head"><span class="hdash-ico">⏱️</span><span class="hdash-title">ساعات التشغيل</span></div><div class="hdash-body"><canvas id="chart-home-hours"></canvas></div></div><div class="hdash-card solo c-cost"><div class="hdash-card-head"><span class="hdash-ico">💰</span><span class="hdash-title">تكلفة الإيجار</span></div><div class="hdash-body"><canvas id="chart-home-cost"></canvas></div></div><div class="hdash-card c-split"><div class="hdash-card-head"><span class="hdash-ico">🥯</span><span class="hdash-title">ملك مقابل إيجار</span></div><div class="hdash-body"><canvas id="chart-home-split"></canvas></div></div><div class="hdash-card c-fleet"><div class="hdash-card-head"><span class="hdash-ico">🥯</span><span class="hdash-title">حالة المعدات</span><span class="hdash-kpi" id="hdash-kpi-fleet"></span></div><div class="hdash-body"><canvas id="home-chart-fleet"></canvas></div></div><div class="hdash-card wide c-fuel"><div class="hdash-card-head"><span class="hdash-ico">⛽</span><span class="hdash-title">اتجاه استهلاك الوقود — آخر 6 فترات</span><span class="hdash-kpi" id="hdash-kpi-fuel"></span></div><div class="hdash-body"><canvas id="home-chart-fuel"></canvas></div><button class="hdash-more" onclick="switchView('fuel')">التفاصيل ‹</button></div><div class="hdash-card c-top"><div class="hdash-card-head"><span class="hdash-ico">🏆</span><span class="hdash-title">أعلى 10 معدات استخدامًا</span><span class="hdash-kpi" id="hdash-kpi-top"></span></div><div class="hdash-body" id="home-chart-top-wrap"><canvas id="home-chart-top"></canvas></div><button class="hdash-more" onclick="switchView('analytics')">كل التحليلات ‹</button></div><div class="hdash-card c-maint"><div class="hdash-card-head"><span class="hdash-ico">🔧</span><span class="hdash-title">الصيانات المكتملة</span><span class="hdash-kpi" id="hdash-kpi-maint"></span></div><div class="hdash-body"><canvas id="home-chart-maint"></canvas></div><button class="hdash-more" onclick="switchView('maintenance')">التفاصيل ‹</button></div></div></div></div><div class="home-side"><div class="home-panel home-quick"><div class="hdash-head"><div class="section-title">⚡ <span class="i18n-label" data-en="Quick Actions" data-ar="إجراءات سريعة"></span></div></div><div class="home-quick-actions"><button id="force-refresh-btn" class="home-quick-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))"><span class="qi">🔄</span><span class="i18n-label" data-en="Refresh" data-ar="تحديث البيانات"></span></button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)"><span class="qi">🤖</span><span class="i18n-label" data-en="AI Analysis" data-ar="تحليل ذكي AI"></span></button><button onclick="openAiReportModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)"><span class="qi">🤖</span><span class="i18n-label" data-en="AI Report" data-ar="تقرير AI"></span></button><button onclick="openExecutiveDashboard()" class="home-quick-btn" style="background:linear-gradient(135deg,#0f172a,#1e293b)"><span class="qi">📊</span><span class="i18n-label" data-en="Executive" data-ar="لوحة تنفيذية"></span></button><button id="data-manager-btn" onclick="openDataManagerModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#0891b2,#155e75)"><span class="qi">🗑️</span><span class="i18n-label" data-en="Data & Storage" data-ar="البيانات والمساحة"></span></button></div></div><div class="section home-sections"><div class="section-title">📂 <span class="i18n-label" data-en="Sections" data-ar="الأقسام"></span></div><div id="home-app-grid" class="app-grid"></div></div></div></div></div>
   <div id="view-sites" style="display:none"><div style="padding:14px">
     <div class="search-box"><span>🔍</span><input type="text" id="search-site" placeholder="بحث باسم الموقع..."></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -18751,14 +18740,14 @@ function renderHomeDashboardChartsInner(eqList) {
     var topWrap = document.getElementById('home-chart-top-wrap');
     if (topCv) {
         if (!data.top10.length) {
-            if (topWrap) topWrap.style.height = '90px';
+            
             showEmpty('home-chart-top', 'لا توجد ساعات تشغيل مسجّلة في هذه الفترة');
         } else {
-            if (topWrap) topWrap.style.height = Math.max(150, data.top10.length * 26 + 20) + 'px';
+            
             homeDashChartInstances.top = new Chart(topCv, {
                 type: 'bar',
                 data: {
-                    labels: data.top10.map(function(u) { var n = u.eq.name || ''; return n.length > 20 ? n.slice(0, 19) + '…' : n; }),
+                    labels: data.top10.map(function(u) { var n = u.eq.name || ''; var mx = window.innerWidth < 700 ? 11 : 22; return n.length > mx ? n.slice(0, mx - 1) + '…' : n; }),
                     datasets: [{ label: 'ساعات العمل', data: data.top10.map(function(u) { return u.hours; }), backgroundColor: '#7c3aed', borderRadius: 6, maxBarThickness: 18 }]
                 },
                 options: {
@@ -18766,7 +18755,7 @@ function renderHomeDashboardChartsInner(eqList) {
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { beginAtZero: true, ticks: { color: txt, font: font }, grid: { color: grid } },
-                        y: { ticks: { color: txt, font: { family: 'Cairo', size: 9 } }, grid: { display: false } }
+                        y: { ticks: { color: txt, font: { family: 'Cairo', size: window.innerWidth < 700 ? 8.5 : 10 } }, grid: { display: false } }
                     }
                 }
             });
