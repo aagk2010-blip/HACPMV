@@ -7822,13 +7822,15 @@ function generateEquipmentMaintenanceOrder(eqId) {
 function initEquipmentPublicViewPage(eqId) {
     document.title = 'تفاصيل المعدة';
     document.body.innerHTML =
-        '<div style="min-height:100vh;background:#f1f5f9;padding:16px;font-family:Cairo,Tahoma,sans-serif;direction:rtl">' +
+        '<div style="min-height:100vh;background:#f1f5f9;padding:12px;font-family:Cairo,Tahoma,sans-serif;direction:rtl">' +
         '<div style="max-width:480px;margin:0 auto">' +
-        '<div style="display:flex;gap:8px;margin-bottom:10px">' +
-        '<button onclick="openEquipmentFileModal(\'' + eqId + '\',\'inspectionFile\',\'فحص المعدة\',\'📋\')" style="flex:1;padding:12px 8px;border:none;border-radius:14px;background:linear-gradient(135deg,#0f766e,#134e4a);color:white;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">📋<br>فحص المعدة</button>' +
-        '<button onclick="openEquipmentFileModal(\'' + eqId + '\',\'calibrationFile\',\'شهادة المعايرة\',\'📜\')" style="flex:1;padding:12px 8px;border:none;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">📜<br>شهادة المعايرة</button>' +
+        '<div id="eqpv-head"></div>' +
+        '<div style="display:flex;gap:8px;margin-bottom:8px">' +
+        '<button onclick="openEquipmentFileModal(\'' + eqId + '\',\'inspectionFile\',\'فحص المعدة\',\'📋\')" style="flex:1;padding:9px 6px;border:none;border-radius:10px;background:linear-gradient(135deg,#0f766e,#134e4a);color:white;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">📋 فحص المعدة</button>' +
+        '<button onclick="openEquipmentFileModal(\'' + eqId + '\',\'calibrationFile\',\'شهادة المعايرة\',\'📜\')" style="flex:1;padding:9px 6px;border:none;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">📜 شهادة المعايرة</button>' +
         '</div>' +
-        '<button onclick="eqpvOpenFaultReportModal(\'' + eqId + '\')" style="width:100%;margin-bottom:10px;padding:12px 8px;border:none;border-radius:14px;background:linear-gradient(135deg,#dc2626,#991b1b);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">🚨 إبلاغ عن عطل</button>' +
+        '<div id="eqpv-actions"></div>' +
+        '<button onclick="eqpvOpenFaultReportModal(\'' + eqId + '\')" style="width:100%;margin-bottom:10px;padding:8px;border:none;border-radius:10px;background:linear-gradient(135deg,#dc2626,#991b1b);color:white;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.1)">🚨 إبلاغ عن عطل</button>' +
         '<div id="eqpv-work-cards"></div>' +
         '<div id="eqpv-content">' +
         '<div style="background:white;border-radius:18px;padding:40px 20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:36px;margin-bottom:10px">⏳</div><div style="color:#64748b;font-size:14px">جاري تحميل بيانات المعدة...</div></div>' +
@@ -7927,15 +7929,7 @@ function initEquipmentPublicViewPage(eqId) {
             return;
         }
 
-        // معدات الملك اللي عليها سائق مسجل: كارت مصغّر أعلى الصفحة لمشاركة الموقع وتسجيل بدء/انتهاء العمل
-        // (بدون التأثير على باقي بيانات المعدة والصيانة المعروضة تحته)
-        if (eq.assignedDriver) {
-            var workCardsEl = document.getElementById('eqpv-work-cards');
-            if (workCardsEl) {
-                workCardsEl.innerHTML = buildOwnedEquipmentWorkCardHtml();
-                wireOwnedEquipmentWorkCard(eq.assignedDriver, eq.type);
-            }
-        }
+        // معدات الملك: كروت "بدء العمل" و"تحديث العداد" بتتعرض مصغّرة جنب بعض داخل renderEquipmentPublicView (eqpv-actions)
 
         // معدات الملك: التفاصيل الكاملة + آخر 4 صيانات (من pmHistory بنفس منطق شاشة "سجل الصيانات")
         var pmHistoryVal = results[1].value || {};
@@ -8485,15 +8479,27 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last
         fuelHtml = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12.5px">لا يوجد سجل تزوّد بالوقود لهذه المعدة</div>';
     }
 
-    var html =
-        '<div style="background:linear-gradient(135deg,#0d1b2a,#1b2838);border-radius:18px;padding:22px 18px;text-align:center;color:white;margin-bottom:14px">' +
-        '<div style="font-size:34px;margin-bottom:6px">🏗️</div>' +
-        '<div style="font-size:18px;font-weight:800;margin-bottom:3px">' + escapeHtml(eq.name || '') + '</div>' +
-        '<div style="font-size:12.5px;opacity:.75;direction:ltr;margin-bottom:10px">' + escapeHtml(eq.code || '') + '</div>' +
-        eqpvStatusBadge(eq.status) +
-        '</div>' +
+    var cardSt = 'background:white;border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)';
+    var titleSt = 'font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:8px';
 
-        '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+    // الاسم أول حاجة فوق — بشكل مضغوط
+    var headHtml =
+        '<div style="background:linear-gradient(135deg,#0d1b2a,#1b2838);border-radius:14px;padding:12px 14px;text-align:center;color:white;margin-bottom:8px">' +
+        '<div style="font-size:18px;font-weight:800;line-height:1.3;word-break:break-word">🏗️ ' + escapeHtml(eq.name || '') + '</div>' +
+        '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:5px;flex-wrap:wrap">' +
+        '<span style="font-size:12px;opacity:.8;direction:ltr">' + escapeHtml(eq.code || '') + '</span>' +
+        eqpvStatusBadge(eq.status) +
+        '</div></div>';
+
+    function cell(label, value) {
+        if (value === undefined || value === null || value === '') return '';
+        return '<div style="background:#f8fafc;border-radius:10px;padding:7px 9px;min-width:0">' +
+            '<div style="font-size:10.5px;color:#64748b;margin-bottom:1px">' + label + '</div>' +
+            '<div style="font-size:12.5px;font-weight:700;color:#0d1b2a;word-break:break-word">' + value + '</div></div>';
+    }
+
+    var html =
+        '<div style="' + cardSt + '">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
         '<span style="font-size:13px;font-weight:700;color:#0d1b2a">⏱️ العداد الحالي</span>' +
         '<span style="font-size:15px;font-weight:800;color:#0d1b2a">' + formatNumber(eq.hours) + ' س</span>' +
@@ -8502,61 +8508,101 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last
         '<div style="font-size:11.5px;color:#64748b">' + escapeHtml(getRemainingStatus(eq).text) + ' — الصيانة القادمة عند ' + formatNumber(eq.nextHours) + ' س</div>' +
         '</div>' +
 
-        eqpvMeterUpdateCardHtml(eq) +
+        '<div style="' + cardSt + '">' +
+        '<div style="' + titleSt + '">📋 بيانات المعدة</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
+        cell('النوع', escapeHtml(eq.type || '—')) +
+        cell('رقم الشاسيه', escapeHtml(eq.chassis || '—')) +
+        cell('الموقع', escapeHtml(eq.location || '—')) +
+        cell('المشروع', escapeHtml(eq.projectSite || '—')) +
+        cell('السائق المسند', escapeHtml(driverName || '—')) +
+        cell('نوع الملكية', escapeHtml(eq.ownership || '—')) +
+        cell('موديل المحرك', escapeHtml(eq.engineModel || '—')) +
+        cell('رقم المحرك', escapeHtml(eq.engineSN || '—')) +
+        cell('دورة الصيانة', eq.interval ? ('كل ' + eq.interval + ' ساعة') : '') +
+        '</div></div>' +
 
-        '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
-        '<div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:4px">📋 بيانات المعدة</div>' +
-        eqpvRow('النوع', escapeHtml(eq.type || '—')) +
-        eqpvRow('رقم الشاسيه', escapeHtml(eq.chassis || '—')) +
-        eqpvRow('الموقع', escapeHtml(eq.location || '—')) +
-        eqpvRow('المشروع', escapeHtml(eq.projectSite || '—')) +
-        eqpvRow('السائق المسند', escapeHtml(driverName || '—')) +
-        eqpvRow('نوع الملكية', escapeHtml(eq.ownership || '—')) +
-        eqpvRow('موديل المحرك', escapeHtml(eq.engineModel || '—')) +
-        eqpvRow('رقم المحرك', escapeHtml(eq.engineSN || '—')) +
-        eqpvRow('دورة الصيانة', eq.interval ? ('كل ' + eq.interval + ' ساعة') : '') +
-        '</div>' +
-
-        '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
-        '<div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:8px">🔧 آخر 4 صيانات</div>' +
+        '<div style="' + cardSt + '">' +
+        '<div style="' + titleSt + '">🔧 آخر 4 صيانات</div>' +
         maintHtml +
         '</div>' +
 
-        '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
-        '<div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:8px">⛽ آخر 5 تزويدات وقود</div>' +
+        '<div style="' + cardSt + '">' +
+        '<div style="' + titleSt + '">⛽ آخر 5 تزويدات وقود</div>' +
         fuelHtml +
         '</div>' +
 
-        (eq.notes ? '<div style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:4px">📝 ملاحظات</div><div style="font-size:13px;color:#334155">' + escapeHtml(eq.notes) + '</div></div>' : '') +
+        (eq.notes ? '<div style="' + cardSt + '"><div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:4px">📝 ملاحظات</div><div style="font-size:13px;color:#334155">' + escapeHtml(eq.notes) + '</div></div>' : '') +
 
         '<div style="text-align:center;font-size:10.5px;color:#94a3b8;margin-top:10px">📄 عرض للقراءة فقط عبر رمز QR</div>';
 
+    var headEl = document.getElementById('eqpv-head');
+    if (headEl) headEl.innerHTML = headHtml;
     document.getElementById('eqpv-content').innerHTML = html;
+
+    // كروت "بدء العمل" و"تحديث العداد" مصغّرة جنب بعض تحت أزرار الفحص والمعايرة
+    var actionsEl = document.getElementById('eqpv-actions');
+    if (actionsEl) {
+        actionsEl.innerHTML = eqpvOwnedActionsHtml(eq, driverName);
+        if (eq.assignedDriver) {
+            try { wireOwnedEquipmentWorkCard(eq.assignedDriver, eq.type); } catch (e) { console.error('work card wiring error:', e); }
+        }
+    }
 }
 
 
 // ==================== تحديث العداد من صفحة الـQR العامة (معدات الملك) ====================
 // يتطلب نفس صلاحية تعديل المعدات المستخدمة في رفع ملفات الفحص/المعايرة — تسجيل الدخول مرة واحدة في الجلسة
-function eqpvMeterUpdateCardHtml(eq) {
-    var boxStyle = 'width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px;box-sizing:border-box';
+function eqpvMeterUpdateCardHtml(eq, defaultName) {
     window._eqpvMeterPhoto = null; window._eqpvMeterOcrValue = null;
-    return '<div id="eqpv-meter-card" style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
-        '<div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:4px">✏️ تحديث العداد</div>' +
-        '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px">صوّر العداد ليُقرأ تلقائيًا، أو اكتب الرقم يدويًا. لن يتغيّر العداد مباشرة — يُرسل طلب لمسؤول المعدات للموافقة عليه.</div>' +
-        '<div style="display:flex;gap:6px;margin-bottom:6px">' +
-            '<input type="number" inputmode="decimal" min="0" step="any" id="eqpv-meter-input" placeholder="العداد الجديد (الحالي: ' + escapeHtml(String(eq.hours || 0)) + ')" style="' + boxStyle + ';flex:1;min-width:0;direction:ltr;text-align:center;font-weight:700">' +
-            '<button type="button" id="eqpv-meter-cam-btn" title="تصوير العداد" onclick="document.getElementById(\'eqpv-meter-file\').click()" style="flex-shrink:0;width:50px;border:1px solid #e2e8f0;border-radius:10px;background:#f0fdf4;font-size:20px;cursor:pointer">📸</button>' +
+    var inSt = 'flex:1;min-width:0;width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:7px 6px;font-size:13px;font-family:inherit;box-sizing:border-box;direction:ltr;text-align:center;font-weight:700';
+    var camSt = 'flex-shrink:0;width:34px;border:1px solid #e2e8f0;border-radius:8px;background:#f0fdf4;font-size:16px;cursor:pointer;padding:0';
+    return '<div id="eqpv-meter-card" style="background:white;border-radius:12px;padding:9px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px;min-width:0">' +
+        '<div style="font-size:12px;font-weight:800;color:#0d1b2a">✏️ تحديث العداد</div>' +
+        '<div style="display:flex;gap:4px">' +
+            '<input type="number" inputmode="decimal" min="0" step="any" id="eqpv-meter-input" placeholder="الحالي ' + escapeHtml(String(eq.hours || 0)) + '" style="' + inSt + '">' +
+            '<button type="button" id="eqpv-meter-cam-btn" title="تصوير العداد" onclick="document.getElementById(\'eqpv-meter-file\').click()" style="' + camSt + '">📸</button>' +
             '<input type="file" id="eqpv-meter-file" accept="image/*" capture="environment" style="display:none" onchange="eqpvMeterPhotoChosen(this)">' +
         '</div>' +
-        '<div id="eqpv-meter-ocr-status" style="font-size:11px;margin-bottom:6px;display:none"></div>' +
-        '<div id="eqpv-meter-photo-prev" style="display:none;position:relative;margin-bottom:8px">' +
-            '<img id="eqpv-meter-photo-img" alt="صورة العداد" style="width:100%;max-height:170px;object-fit:cover;border-radius:10px;display:block">' +
-            '<button type="button" onclick="eqpvMeterPhotoClear()" style="position:absolute;top:6px;left:6px;width:26px;height:26px;border:none;border-radius:50%;background:rgba(0,0,0,.6);color:white;font-size:13px;cursor:pointer">✕</button>' +
-        '</div>' +
-        '<input type="text" id="eqpv-meter-name" placeholder="اسمك (اختياري)" autocomplete="name" style="' + boxStyle + ';margin-bottom:8px">' +
-        '<button id="eqpv-meter-save-btn" onclick="eqpvSaveMeter()" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">📤 إرسال للاعتماد</button>' +
-        '<div id="eqpv-meter-status" style="font-size:11.5px;margin-top:8px;text-align:center"></div>' +
+        '<input type="text" id="eqpv-meter-name" value="' + String(defaultName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '" placeholder="اسمك (اختياري)" autocomplete="name" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:6px 8px;font-size:11.5px;font-family:inherit;box-sizing:border-box">' +
+        '<button id="eqpv-meter-save-btn" onclick="eqpvSaveMeter()" style="margin-top:auto;width:100%;padding:9px 6px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer">📤 إرسال للاعتماد</button>' +
         '</div>';
+}
+
+// كارت "بدء العمل" المصغّر (نفس العناصر والـIDs اللي بيستخدمها wireOwnedEquipmentWorkCard بالضبط — المنطق ما اتغيّرش)
+function eqpvStartWorkCardHtml() {
+    var inSt = 'flex:1;min-width:0;width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:7px 6px;font-size:13px;font-family:inherit;box-sizing:border-box;direction:ltr;text-align:center;font-weight:700';
+    var camSt = 'flex-shrink:0;width:34px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;font-size:16px;cursor:pointer;padding:0';
+    return '<div style="background:white;border-radius:12px;padding:9px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px;min-width:0">' +
+        '<div style="font-size:12px;font-weight:800;color:#0d1b2a">📅 حالة العمل</div>' +
+        '<div style="display:flex;gap:4px">' +
+            '<input type="number" id="eqpv-share-meter-input" placeholder="عداد البدء" style="' + inSt + '">' +
+            '<button type="button" id="eqpv-share-ocr-btn" title="قراءة العداد من صورة" style="' + camSt + '">📸</button>' +
+            '<input type="file" accept="image/*" capture="environment" id="eqpv-share-ocr-file" style="display:none">' +
+        '</div>' +
+        '<div id="eqpv-share-status" style="font-size:10.5px;font-weight:700;color:#f59e0b;background:#fef3c7;border-radius:8px;padding:6px 7px;line-height:1.35">⏳ لم يبدأ العمل بعد</div>' +
+        '<button id="eqpv-share-toggle-btn" style="margin-top:auto;width:100%;padding:9px 6px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
+        '</div>';
+}
+
+// الترتيب: "بدء العمل" ثم "تحديث العداد" جنب بعض (أول عمود من اليمين = بدء العمل)، والرسائل والتفاصيل تحتهم
+function eqpvOwnedActionsHtml(eq, driverName) {
+    var hasDriver = !!eq.assignedDriver;
+    return '<div style="display:grid;grid-template-columns:' + (hasDriver ? '1fr 1fr' : '1fr') + ';gap:8px;margin-bottom:6px">' +
+        (hasDriver ? eqpvStartWorkCardHtml() : '') +
+        eqpvMeterUpdateCardHtml(eq, driverName) +
+        '</div>' +
+        '<div id="eqpv-share-queue-info" style="font-size:10px;color:#9ca3af;margin-bottom:4px;display:none"></div>' +
+        '<div id="eqpv-share-ocr-status" style="font-size:10.5px;margin-bottom:4px;display:none"></div>' +
+        (hasDriver ? '<div style="background:white;border-radius:10px;padding:8px 10px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.06)" id="eqpv-hours-wrapbox">' + buildTodayHoursBarHtml('eqpv-hours-bar') + '</div>' : '') +
+        '<div id="eqpv-meter-ocr-status" style="font-size:11px;margin-bottom:4px;display:none"></div>' +
+        '<div id="eqpv-meter-photo-prev" style="display:none;align-items:center;gap:8px;background:white;border-radius:10px;padding:6px 8px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+            '<img id="eqpv-meter-photo-img" alt="صورة العداد" style="width:46px;height:46px;object-fit:cover;border-radius:8px;flex-shrink:0">' +
+            '<span style="flex:1;font-size:11px;color:#475569">📸 صورة العداد مرفقة مع الطلب</span>' +
+            '<button type="button" onclick="eqpvMeterPhotoClear()" style="width:26px;height:26px;border:none;border-radius:50%;background:#e2e8f0;color:#334155;font-size:12px;cursor:pointer;flex-shrink:0">✕</button>' +
+        '</div>' +
+        '<div id="eqpv-meter-status" style="font-size:11px;margin-bottom:8px;text-align:center"></div>' +
+        '<div style="font-size:9.5px;color:#94a3b8;text-align:center;margin-bottom:8px">تحديث العداد لا يتم مباشرة — يُرسل كطلب لمسؤول المعدات للموافقة عليه</div>';
 }
 
 function eqpvMeterOcrSay(msg, color) {
@@ -8598,7 +8644,7 @@ function eqpvMeterPhotoChosen(fileInput) {
         var img = document.getElementById('eqpv-meter-photo-img');
         var prev = document.getElementById('eqpv-meter-photo-prev');
         if (img) img.src = dataUrl;
-        if (prev) prev.style.display = 'block';
+        if (prev) prev.style.display = 'flex';
         fileInput.value = '';
         eqpvMeterOcrSay('⏳ جاري تحميل أداة القراءة...', '#64748b');
         loadTesseractIfNeeded(function(err) {
