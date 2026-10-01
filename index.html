@@ -8535,15 +8535,96 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last
 // ==================== تحديث العداد من صفحة الـQR العامة (معدات الملك) ====================
 // يتطلب نفس صلاحية تعديل المعدات المستخدمة في رفع ملفات الفحص/المعايرة — تسجيل الدخول مرة واحدة في الجلسة
 function eqpvMeterUpdateCardHtml(eq) {
-    var inputStyle = 'width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px;margin-bottom:8px;box-sizing:border-box';
+    var boxStyle = 'width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px;box-sizing:border-box';
+    window._eqpvMeterPhoto = null; window._eqpvMeterOcrValue = null;
     return '<div id="eqpv-meter-card" style="background:white;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
         '<div style="font-size:13px;font-weight:700;color:#0d1b2a;margin-bottom:4px">✏️ تحديث العداد</div>' +
-        '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px">لن يتغيّر العداد مباشرة — يُرسل طلب لمسؤول المعدات للموافقة عليه.</div>' +
-        '<input type="number" inputmode="decimal" min="0" step="1" id="eqpv-meter-input" placeholder="العداد الجديد (الحالي: ' + escapeHtml(String(eq.hours || 0)) + ')" style="' + inputStyle + ';direction:ltr;text-align:center;font-weight:700">' +
-        '<input type="text" id="eqpv-meter-name" placeholder="اسمك (اختياري)" autocomplete="name" style="' + inputStyle + '">' +
+        '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px">صوّر العداد ليُقرأ تلقائيًا، أو اكتب الرقم يدويًا. لن يتغيّر العداد مباشرة — يُرسل طلب لمسؤول المعدات للموافقة عليه.</div>' +
+        '<div style="display:flex;gap:6px;margin-bottom:6px">' +
+            '<input type="number" inputmode="decimal" min="0" step="any" id="eqpv-meter-input" placeholder="العداد الجديد (الحالي: ' + escapeHtml(String(eq.hours || 0)) + ')" style="' + boxStyle + ';flex:1;min-width:0;direction:ltr;text-align:center;font-weight:700">' +
+            '<button type="button" id="eqpv-meter-cam-btn" title="تصوير العداد" onclick="document.getElementById(\'eqpv-meter-file\').click()" style="flex-shrink:0;width:50px;border:1px solid #e2e8f0;border-radius:10px;background:#f0fdf4;font-size:20px;cursor:pointer">📸</button>' +
+            '<input type="file" id="eqpv-meter-file" accept="image/*" capture="environment" style="display:none" onchange="eqpvMeterPhotoChosen(this)">' +
+        '</div>' +
+        '<div id="eqpv-meter-ocr-status" style="font-size:11px;margin-bottom:6px;display:none"></div>' +
+        '<div id="eqpv-meter-photo-prev" style="display:none;position:relative;margin-bottom:8px">' +
+            '<img id="eqpv-meter-photo-img" alt="صورة العداد" style="width:100%;max-height:170px;object-fit:cover;border-radius:10px;display:block">' +
+            '<button type="button" onclick="eqpvMeterPhotoClear()" style="position:absolute;top:6px;left:6px;width:26px;height:26px;border:none;border-radius:50%;background:rgba(0,0,0,.6);color:white;font-size:13px;cursor:pointer">✕</button>' +
+        '</div>' +
+        '<input type="text" id="eqpv-meter-name" placeholder="اسمك (اختياري)" autocomplete="name" style="' + boxStyle + ';margin-bottom:8px">' +
         '<button id="eqpv-meter-save-btn" onclick="eqpvSaveMeter()" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">📤 إرسال للاعتماد</button>' +
         '<div id="eqpv-meter-status" style="font-size:11.5px;margin-top:8px;text-align:center"></div>' +
         '</div>';
+}
+
+function eqpvMeterOcrSay(msg, color) {
+    var el = document.getElementById('eqpv-meter-ocr-status');
+    if (!el) return;
+    el.style.display = msg ? 'block' : 'none';
+    el.style.color = color || '#64748b';
+    el.textContent = msg || '';
+}
+
+// اختيار أنسب رقم من نص الـOCR: الأقرب للعداد الحالي (وبيجرّب كمان إن آخر رقم يكون خانة عشرية)
+function eqpvPickMeterReading(text, cur) {
+    var cands = {};
+    function add(str) { (str.match(/\d{3,8}/g) || []).forEach(function(m) { cands[m] = true; }); }
+    String(text || '').split(/\n/).forEach(function(line) {
+        add(line);
+        add(line.replace(/(\d)[ .,](?=\d)/g, '$1'));   // أرقام مفصولة بمسافات/فواصل
+    });
+    var best = null, bestDiff = Infinity;
+    Object.keys(cands).forEach(function(c) {
+        var opts = [parseInt(c, 10)];
+        if (c.length >= 5) opts.push(parseInt(c, 10) / 10);
+        opts.forEach(function(v) {
+            var diff = cur > 0 ? Math.abs(v - cur) : -c.length;
+            if (diff < bestDiff) { bestDiff = diff; best = v; }
+        });
+    });
+    return best;
+}
+
+function eqpvMeterPhotoChosen(fileInput) {
+    var file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    eqpvMeterOcrSay('⏳ جاري تجهيز الصورة...', '#64748b');
+    compressImageForUpload(file, 800, 0.6, function(dataUrl) {
+        if (!dataUrl) { eqpvMeterOcrSay('❌ تعذّر فتح الصورة — اكتب القراءة يدويًا', '#dc2626'); return; }
+        window._eqpvMeterPhoto = dataUrl;
+        window._eqpvMeterOcrValue = null;
+        var img = document.getElementById('eqpv-meter-photo-img');
+        var prev = document.getElementById('eqpv-meter-photo-prev');
+        if (img) img.src = dataUrl;
+        if (prev) prev.style.display = 'block';
+        fileInput.value = '';
+        eqpvMeterOcrSay('⏳ جاري تحميل أداة القراءة...', '#64748b');
+        loadTesseractIfNeeded(function(err) {
+            if (err || !window.Tesseract) { eqpvMeterOcrSay('⚠️ تعذّرت القراءة التلقائية — اكتب الرقم يدويًا (الصورة ستُرسل مع الطلب)', '#b45309'); return; }
+            eqpvMeterOcrSay('🔍 جاري قراءة الرقم من الصورة...', '#64748b');
+            window.Tesseract.recognize(dataUrl, 'eng').then(function(res) {
+                var args = window._eqpvLastRenderArgs;
+                var cur = (args && args[0] && parseFloat(args[0].hours)) || 0;
+                var val = eqpvPickMeterReading(res && res.data && res.data.text, cur);
+                var input = document.getElementById('eqpv-meter-input');
+                if (val === null || !input) { eqpvMeterOcrSay('⚠️ لم أستطع قراءة رقم واضح — اكتب الرقم يدويًا (الصورة ستُرسل مع الطلب)', '#b45309'); return; }
+                val = Math.round(val * 10) / 10;
+                input.value = val;
+                window._eqpvMeterOcrValue = val;
+                var far = cur > 0 && Math.abs(val - cur) > 1000;
+                eqpvMeterOcrSay('✅ القراءة التلقائية: ' + val + (far ? ' — ⚠️ بعيدة عن العداد الحالي' : '') + ' — راجعها وصحّحها إن لزم قبل الإرسال', far ? '#b45309' : '#059669');
+            }).catch(function() {
+                eqpvMeterOcrSay('⚠️ حدث خطأ في القراءة — اكتب الرقم يدويًا (الصورة ستُرسل مع الطلب)', '#b45309');
+            });
+        });
+    });
+}
+
+function eqpvMeterPhotoClear(silent) {
+    window._eqpvMeterPhoto = null; window._eqpvMeterOcrValue = null;
+    var prev = document.getElementById('eqpv-meter-photo-prev'); if (prev) prev.style.display = 'none';
+    var img = document.getElementById('eqpv-meter-photo-img'); if (img) img.removeAttribute('src');
+    if (silent) eqpvMeterOcrSay('');
+    else eqpvMeterOcrSay('تم حذف الصورة', '#64748b');
 }
 
 // إرسال طلب تحديث عداد من صفحة الـQR — بدون تسجيل دخول، ولا يتم أي تغيير على المعدة إلا بعد موافقة مسؤول المعدات
@@ -8569,6 +8650,9 @@ function eqpvSaveMeter() {
     if (btn) btn.disabled = true;
     if (statusEl) { statusEl.style.color = '#64748b'; statusEl.textContent = '⏳ جاري إرسال الطلب...'; }
 
+    var photo = window._eqpvMeterPhoto || null;
+    var ocrVal = window._eqpvMeterOcrValue;
+    var readMethod = !photo ? 'manual' : (ocrVal === null || ocrVal === undefined ? 'photo-manual' : (ocrVal === newHours ? 'ocr' : 'ocr-edited'));
     var req = {
         type: 'meterUpdate',
         data: {
@@ -8577,16 +8661,19 @@ function eqpvSaveMeter() {
             equipmentName: eq.name || '',
             oldHours: currentHours,
             newHours: newHours,
-            source: 'QR'
+            source: 'QR',
+            readMethod: readMethod
         },
         description: 'تحديث عداد ' + (eq.name || '') + (eq.code ? ' (' + eq.code + ')' : '') + ' من ' + currentHours + ' إلى ' + newHours,
         requestedBy: sender,
         requestedAt: new Date().toISOString(),
         status: 'pending'
     };
+    if (photo) req.photo = photo;
     fbDb.ref('approvalRequests').push(req).then(function() {
         var input = document.getElementById('eqpv-meter-input');
         if (input) input.value = '';
+        eqpvMeterPhotoClear(true);
         if (statusEl) { statusEl.style.color = '#059669'; statusEl.textContent = '✅ تم إرسال طلب التحديث — بانتظار موافقة مسؤول المعدات'; }
         if (btn) btn.disabled = false;
         showTopNotification('🕐', 'تم إرسال طلب تحديث العداد للاعتماد');
@@ -13698,6 +13785,19 @@ function getPendingMeterRequests() {
         .sort(function(a, b) { return new Date(b.requestedAt) - new Date(a.requestedAt); });
 }
 
+function openMeterRequestPhoto(id) {
+    var r = approvalRequestsData.find(function(x) { return x.id === id; });
+    if (!r || !r.photo || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(r.photo)) return;
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999;display:flex;align-items:center;justify-content:center;padding:12px';
+    ov.onclick = function() { ov.remove(); };
+    var im = document.createElement('img');
+    im.src = r.photo;
+    im.style.cssText = 'max-width:100%;max-height:100%;border-radius:10px';
+    ov.appendChild(im);
+    document.body.appendChild(ov);
+}
+
 function renderMeterUpdateRequestsBanner() {
     var el = document.getElementById('eq-meter-requests-banner');
     if (!el) return;
@@ -13713,12 +13813,19 @@ function renderMeterUpdateRequestsBanner() {
         var diffTxt = (diff >= 0 ? '+' : '') + diff;
         var diffColor = diff < 0 ? '#dc2626' : '#059669';
         var when = r.requestedAt ? new Date(r.requestedAt).toLocaleString('ar-EG') : '';
+        var methodLabels = { 'manual': '✍️ إدخال يدوي', 'photo-manual': '📸 صورة + إدخال يدوي', 'ocr': '🤖 قراءة تلقائية من الصورة', 'ocr-edited': '🤖✍️ قراءة تلقائية مع تعديل يدوي' };
+        var methodTxt = methodLabels[d.readMethod] || '';
+        var photoHtml = '';
+        if (r.photo && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(r.photo)) {
+            photoHtml = '<img src="' + r.photo + '" alt="صورة العداد" onclick="openMeterRequestPhoto(\'' + r.id + '\')" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-bottom:6px;cursor:zoom-in;display:block">';
+        }
         var changedNote = (liveEq && parseFloat(d.oldHours) !== curHours)
             ? '<div style="font-size:10.5px;color:#b45309;margin-bottom:4px">⚠️ العداد الحالي تغيّر منذ إرسال الطلب (كان ' + escapeHtml(String(d.oldHours)) + ')</div>' : '';
         return '<div style="background:white;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;margin-top:8px;font-size:12px">' +
             '<div style="font-weight:800;margin-bottom:3px">' + escapeHtml(d.equipmentName || '') + (d.equipmentCode ? ' <span style="color:#64748b;font-weight:600">(' + escapeHtml(d.equipmentCode) + ')</span>' : '') + '</div>' +
             '<div style="font-size:13px;margin-bottom:3px;direction:ltr;text-align:right"><strong>' + curHours + '</strong> → <strong style="color:' + diffColor + '">' + newH + '</strong> <span style="color:' + diffColor + ';font-size:11px">(' + diffTxt + ' س)</span></div>' +
-            changedNote +
+            changedNote + photoHtml +
+            (methodTxt ? '<div style="font-size:10.5px;color:#475569;margin-bottom:3px">' + methodTxt + '</div>' : '') +
             '<div style="color:#64748b;font-size:10.5px;margin-bottom:8px">بواسطة: ' + escapeHtml(r.requestedBy || '') + ' — ' + when + '</div>' +
             '<div style="display:flex;gap:6px">' +
             '<button onclick="approveRequest(\'' + r.id + '\')" style="flex:1;background:#059669;color:white;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✅ موافقة</button>' +
@@ -13739,7 +13846,7 @@ function approveRequest(id) {
         var approver = (currentUser && (currentUser.name || currentUser.username)) || '';
         applyMeterUpdateRequest(req, approver).then(function() {
             return fbDb.ref('approvalRequests/' + id).update({
-                status: 'approved', approvedBy: approver, approvedAt: new Date().toISOString()
+                status: 'approved', approvedBy: approver, approvedAt: new Date().toISOString(), photo: null
             });
         }).then(function() {
             showToast('✅ تمت الموافقة وتحديث العداد');
@@ -13767,7 +13874,8 @@ function rejectRequest(id) {
     var _req = approvalRequestsData.find(function(r) { return r.id === id; });
     if (_req && _req.type === 'meterUpdate' && !canEdit('equipment')) { showToast('ليس لديك صلاحية رفض تحديث العدادات', true); return; }
     fbDb.ref('approvalRequests/' + id).update({
-        status: 'rejected', rejectedBy: (currentUser && currentUser.name) || '', rejectedAt: new Date().toISOString()
+        status: 'rejected', rejectedBy: (currentUser && currentUser.name) || '', rejectedAt: new Date().toISOString(),
+        photo: null
     }).then(function() {
         showToast('🚫 تم رفض الطلب');
         runSmartAlertsRefresh();
