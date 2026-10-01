@@ -8496,7 +8496,7 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last
         '<span style="font-size:15px;font-weight:800;color:#0d1b2a">' + formatNumber(eq.hours) + ' س</span>' +
         '</div>' +
         '<div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-bottom:6px"><div style="height:100%;width:' + percent + '%;background:' + barColor + '"></div></div>' +
-        '<div style="font-size:11.5px;color:#64748b">' + getRemainingStatus(eq) + ' — الصيانة القادمة عند ' + formatNumber(eq.nextHours) + ' س</div>' +
+        '<div style="font-size:11.5px;color:#64748b">' + escapeHtml(getRemainingStatus(eq).text) + ' — الصيانة القادمة عند ' + formatNumber(eq.nextHours) + ' س</div>' +
         '</div>' +
 
         eqpvMeterUpdateCardHtml(eq) +
