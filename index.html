@@ -8553,56 +8553,42 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last
 
 // ==================== تحديث العداد من صفحة الـQR العامة (معدات الملك) ====================
 // يتطلب نفس صلاحية تعديل المعدات المستخدمة في رفع ملفات الفحص/المعايرة — تسجيل الدخول مرة واحدة في الجلسة
-function eqpvMeterUpdateCardHtml(eq, defaultName) {
+// كارت واحد: خانة عداد واحدة تخدم "بدء العمل" و"تحديث العداد" — "بدء العمل" بيبدأ الشغل ويرسل طلب تحديث العداد للاعتماد في نفس الضغطة
+function eqpvOwnedActionsHtml(eq, driverName) {
     window._eqpvMeterPhoto = null; window._eqpvMeterOcrValue = null;
-    var inSt = 'flex:1;min-width:0;width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:7px 6px;font-size:13px;font-family:inherit;box-sizing:border-box;direction:ltr;text-align:center;font-weight:700';
-    var camSt = 'flex-shrink:0;width:34px;border:1px solid #e2e8f0;border-radius:8px;background:#f0fdf4;font-size:16px;cursor:pointer;padding:0';
-    return '<div id="eqpv-meter-card" style="background:white;border-radius:12px;padding:9px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px;min-width:0">' +
-        '<div style="font-size:12px;font-weight:800;color:#0d1b2a">✏️ تحديث العداد</div>' +
-        '<div style="display:flex;gap:4px">' +
-            '<input type="number" inputmode="decimal" min="0" step="any" id="eqpv-meter-input" placeholder="الحالي ' + escapeHtml(String(eq.hours || 0)) + '" style="' + inSt + '">' +
-            '<button type="button" id="eqpv-meter-cam-btn" title="تصوير العداد" onclick="document.getElementById(\'eqpv-meter-file\').click()" style="' + camSt + '">📸</button>' +
+    window._eqpvDriverId = eq.assignedDriver || null;
+    var hasDriver = !!eq.assignedDriver;
+    var nm = String(driverName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    var inSt = 'flex:1;min-width:0;width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 8px;font-size:14px;font-family:inherit;box-sizing:border-box;direction:ltr;text-align:center;font-weight:700';
+    var camSt = 'flex-shrink:0;width:40px;border:1px solid #e2e8f0;border-radius:8px;background:#f0fdf4;font-size:18px;cursor:pointer;padding:0';
+    var buttons = hasDriver
+        ? '<button id="eqpv-share-toggle-btn" style="flex:1.5;padding:10px 6px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
+          '<button id="eqpv-meter-save-btn" data-with-work="1" onclick="eqpvSaveMeter()" style="flex:1;padding:10px 6px;border:1px solid #a7f3d0;border-radius:8px;background:#ecfdf5;color:#047857;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">📤 العداد فقط</button>'
+        : '<button id="eqpv-meter-save-btn" onclick="eqpvSaveMeter()" style="flex:1;padding:10px 6px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit">📤 إرسال للاعتماد</button>';
+    var hint = hasDriver
+        ? '«بدء العمل» يسجّل العداد ويرسله تلقائيًا لمسؤول المعدات للموافقة — «العداد فقط» لتحديث العداد دون بدء العمل'
+        : 'لا يتم تحديث العداد مباشرة — يُرسل كطلب لمسؤول المعدات للموافقة عليه';
+    return '<div id="eqpv-meter-card" style="background:white;border-radius:12px;padding:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:7px;margin-bottom:6px">' +
+        '<div style="font-size:12.5px;font-weight:800;color:#0d1b2a">' + (hasDriver ? '⏱️ بدء العمل وتحديث العداد' : '✏️ تحديث العداد') + '</div>' +
+        '<div style="display:flex;gap:6px">' +
+            '<input type="number" inputmode="decimal" min="0" step="any" id="eqpv-share-meter-input" placeholder="العداد الحالي (الأخير: ' + escapeHtml(String(eq.hours || 0)) + ')" style="' + inSt + '">' +
+            '<button type="button" id="eqpv-meter-cam-btn" title="تصوير العداد لقراءته تلقائيًا" onclick="document.getElementById(\'eqpv-meter-file\').click()" style="' + camSt + '">📸</button>' +
             '<input type="file" id="eqpv-meter-file" accept="image/*" capture="environment" style="display:none" onchange="eqpvMeterPhotoChosen(this)">' +
         '</div>' +
-        '<input type="text" id="eqpv-meter-name" value="' + String(defaultName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '" placeholder="اسمك (اختياري)" autocomplete="name" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:6px 8px;font-size:11.5px;font-family:inherit;box-sizing:border-box">' +
-        '<button id="eqpv-meter-save-btn" onclick="eqpvSaveMeter()" style="margin-top:auto;width:100%;padding:9px 6px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer">📤 إرسال للاعتماد</button>' +
-        '</div>';
-}
-
-// كارت "بدء العمل" المصغّر (نفس العناصر والـIDs اللي بيستخدمها wireOwnedEquipmentWorkCard بالضبط — المنطق ما اتغيّرش)
-function eqpvStartWorkCardHtml() {
-    var inSt = 'flex:1;min-width:0;width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:7px 6px;font-size:13px;font-family:inherit;box-sizing:border-box;direction:ltr;text-align:center;font-weight:700';
-    var camSt = 'flex-shrink:0;width:34px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;font-size:16px;cursor:pointer;padding:0';
-    return '<div style="background:white;border-radius:12px;padding:9px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px;min-width:0">' +
-        '<div style="font-size:12px;font-weight:800;color:#0d1b2a">📅 حالة العمل</div>' +
-        '<div style="display:flex;gap:4px">' +
-            '<input type="number" id="eqpv-share-meter-input" placeholder="عداد البدء" style="' + inSt + '">' +
-            '<button type="button" id="eqpv-share-ocr-btn" title="قراءة العداد من صورة" style="' + camSt + '">📸</button>' +
-            '<input type="file" accept="image/*" capture="environment" id="eqpv-share-ocr-file" style="display:none">' +
+        '<input type="text" id="eqpv-meter-name" value="' + nm + '" placeholder="اسمك (اختياري)" autocomplete="name" style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:6px 8px;font-size:12px;font-family:inherit;box-sizing:border-box">' +
+        (hasDriver ? '<div id="eqpv-share-status" style="font-size:11px;font-weight:700;color:#f59e0b;background:#fef3c7;border-radius:8px;padding:6px 8px;line-height:1.4">⏳ لم يبدأ العمل بعد</div>' : '') +
+        '<div style="display:flex;gap:6px">' + buttons + '</div>' +
         '</div>' +
-        '<div id="eqpv-share-status" style="font-size:10.5px;font-weight:700;color:#f59e0b;background:#fef3c7;border-radius:8px;padding:6px 7px;line-height:1.35">⏳ لم يبدأ العمل بعد</div>' +
-        '<button id="eqpv-share-toggle-btn" style="margin-top:auto;width:100%;padding:9px 6px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">▶️ بدء العمل</button>' +
-        '</div>';
-}
-
-// الترتيب: "بدء العمل" ثم "تحديث العداد" جنب بعض (أول عمود من اليمين = بدء العمل)، والرسائل والتفاصيل تحتهم
-function eqpvOwnedActionsHtml(eq, driverName) {
-    var hasDriver = !!eq.assignedDriver;
-    return '<div style="display:grid;grid-template-columns:' + (hasDriver ? '1fr 1fr' : '1fr') + ';gap:8px;margin-bottom:6px">' +
-        (hasDriver ? eqpvStartWorkCardHtml() : '') +
-        eqpvMeterUpdateCardHtml(eq, driverName) +
-        '</div>' +
-        '<div id="eqpv-share-queue-info" style="font-size:10px;color:#9ca3af;margin-bottom:4px;display:none"></div>' +
-        '<div id="eqpv-share-ocr-status" style="font-size:10.5px;margin-bottom:4px;display:none"></div>' +
-        (hasDriver ? '<div style="background:white;border-radius:10px;padding:8px 10px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.06)" id="eqpv-hours-wrapbox">' + buildTodayHoursBarHtml('eqpv-hours-bar') + '</div>' : '') +
+        (hasDriver ? '<div id="eqpv-share-queue-info" style="font-size:10px;color:#9ca3af;margin-bottom:4px;display:none"></div>' : '') +
+        (hasDriver ? '<div style="background:white;border-radius:10px;padding:8px 10px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' + buildTodayHoursBarHtml('eqpv-hours-bar') + '</div>' : '') +
         '<div id="eqpv-meter-ocr-status" style="font-size:11px;margin-bottom:4px;display:none"></div>' +
         '<div id="eqpv-meter-photo-prev" style="display:none;align-items:center;gap:8px;background:white;border-radius:10px;padding:6px 8px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
             '<img id="eqpv-meter-photo-img" alt="صورة العداد" style="width:46px;height:46px;object-fit:cover;border-radius:8px;flex-shrink:0">' +
             '<span style="flex:1;font-size:11px;color:#475569">📸 صورة العداد مرفقة مع الطلب</span>' +
             '<button type="button" onclick="eqpvMeterPhotoClear()" style="width:26px;height:26px;border:none;border-radius:50%;background:#e2e8f0;color:#334155;font-size:12px;cursor:pointer;flex-shrink:0">✕</button>' +
         '</div>' +
-        '<div id="eqpv-meter-status" style="font-size:11px;margin-bottom:8px;text-align:center"></div>' +
-        '<div style="font-size:9.5px;color:#94a3b8;text-align:center;margin-bottom:8px">تحديث العداد لا يتم مباشرة — يُرسل كطلب لمسؤول المعدات للموافقة عليه</div>';
+        '<div id="eqpv-meter-status" style="font-size:11px;margin-bottom:6px;text-align:center"></div>' +
+        '<div style="font-size:9.5px;color:#94a3b8;text-align:center;margin-bottom:8px;line-height:1.4">' + hint + '</div>';
 }
 
 function eqpvMeterOcrSay(msg, color) {
@@ -8641,6 +8627,7 @@ function eqpvMeterPhotoChosen(fileInput) {
         if (!dataUrl) { eqpvMeterOcrSay('❌ تعذّر فتح الصورة — اكتب القراءة يدويًا', '#dc2626'); return; }
         window._eqpvMeterPhoto = dataUrl;
         window._eqpvMeterOcrValue = null;
+        eqpvUploadDriverMeterPhoto(dataUrl);
         var img = document.getElementById('eqpv-meter-photo-img');
         var prev = document.getElementById('eqpv-meter-photo-prev');
         if (img) img.src = dataUrl;
@@ -8654,7 +8641,7 @@ function eqpvMeterPhotoChosen(fileInput) {
                 var args = window._eqpvLastRenderArgs;
                 var cur = (args && args[0] && parseFloat(args[0].hours)) || 0;
                 var val = eqpvPickMeterReading(res && res.data && res.data.text, cur);
-                var input = document.getElementById('eqpv-meter-input');
+                var input = eqpvMeterInputEl();
                 if (val === null || !input) { eqpvMeterOcrSay('⚠️ لم أستطع قراءة رقم واضح — اكتب الرقم يدويًا (الصورة ستُرسل مع الطلب)', '#b45309'); return; }
                 val = Math.round(val * 10) / 10;
                 input.value = val;
@@ -8676,28 +8663,55 @@ function eqpvMeterPhotoClear(silent) {
     else eqpvMeterOcrSay('تم حذف الصورة', '#64748b');
 }
 
-// إرسال طلب تحديث عداد من صفحة الـQR — بدون تسجيل دخول، ولا يتم أي تغيير على المعدة إلا بعد موافقة مسؤول المعدات
-function eqpvSaveMeter() {
+// ==================== إرسال طلب تحديث العداد من صفحة الـQR (بدون تسجيل دخول — ولا يتغيّر العداد إلا بعد موافقة مسؤول المعدات) ====================
+function eqpvMeterInputEl() { return document.getElementById('eqpv-share-meter-input'); }
+
+function eqpvMeterStatusSay(msg, color) {
+    var el = document.getElementById('eqpv-meter-status');
+    if (!el) return;
+    el.style.color = color || '#64748b';
+    el.textContent = msg || '';
+}
+
+function eqpvMeterErrMsg(e) {
+    var code = e && e.code ? String(e.code) : '';
+    if (code.toUpperCase().indexOf('PERMISSION') !== -1) return 'ممنوع الإرسال (PERMISSION_DENIED) — قواعد Firebase لا تسمح بالكتابة في approvalRequests';
+    return (e && e.message) || 'حدث خطأ أثناء إرسال الطلب';
+}
+
+// صورة العداد بتتحفظ كمان مع موقع السائق (زي الأول) — لو المعدة عليها سائق مسند
+function eqpvUploadDriverMeterPhoto(dataUrl) {
+    var id = window._eqpvDriverId;
+    if (!id || !dataUrl || typeof fbDb === 'undefined' || !fbDb) return;
+    var now = new Date();
+    var dateKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    fbDb.ref('driverLocations/' + id + '/meterPhoto').set({ data: dataUrl, dateKey: dateKey, updatedAt: now.toISOString() }).catch(function() {});
+}
+
+// يتحقق من الرقم المكتوب (بيرجّع {value} أو {error} أو {cancelled})
+function eqpvValidateMeter() {
     var args = window._eqpvLastRenderArgs;
     var eq = args && args[0];
-    var statusEl = document.getElementById('eqpv-meter-status');
-    var btn = document.getElementById('eqpv-meter-save-btn');
-    function fail(msg) { if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = '⚠️ ' + msg; } if (btn) btn.disabled = false; }
-    if (!eq || !eq.id) return fail('تعذّر تحديد المعدة، أعد تحميل الصفحة');
-    if (!fbDb) return fail('لا يوجد اتصال بقاعدة البيانات');
+    if (!eq || !eq.id) return { error: 'تعذّر تحديد المعدة، أعد تحميل الصفحة' };
+    if (typeof fbDb === 'undefined' || !fbDb) return { error: 'لا يوجد اتصال بقاعدة البيانات' };
+    var input = eqpvMeterInputEl();
+    var raw = ((input && input.value) || '').trim();
+    var v = parseFloat(raw);
+    if (raw === '' || isNaN(v) || v < 0) return { error: 'أدخل رقم عداد صحيح' };
+    var cur = parseFloat(eq.hours) || 0;
+    if (v < cur && !confirm('⚠️ العداد الجديد (' + v + ') أقل من الحالي (' + cur + ')\nهل أنت متأكد؟')) return { cancelled: true };
+    return { value: v };
+}
 
-    var raw = (document.getElementById('eqpv-meter-input').value || '').trim();
-    var newHours = parseFloat(raw);
-    if (raw === '' || isNaN(newHours) || newHours < 0) return fail('أدخل رقم عداد صحيح');
+// بيبعت طلب الاعتماد فعليًا (context: 'meterOnly' | 'startWork')
+function eqpvSubmitMeterRequest(newHours, context) {
+    var args = window._eqpvLastRenderArgs;
+    var eq = args && args[0];
+    if (!eq || !eq.id) return Promise.reject(new Error('تعذّر تحديد المعدة، أعد تحميل الصفحة'));
+    if (typeof fbDb === 'undefined' || !fbDb) return Promise.reject(new Error('لا يوجد اتصال بقاعدة البيانات'));
     var currentHours = parseFloat(eq.hours) || 0;
-    if (newHours < currentHours && !confirm('⚠️ العداد الجديد (' + newHours + ') أقل من الحالي (' + currentHours + ')\nهل أنت متأكد؟')) return;
-
     var nameEl = document.getElementById('eqpv-meter-name');
     var sender = ((nameEl && nameEl.value) || '').trim() || 'مسح QR (بدون اسم)';
-
-    if (btn) btn.disabled = true;
-    if (statusEl) { statusEl.style.color = '#64748b'; statusEl.textContent = '⏳ جاري إرسال الطلب...'; }
-
     var photo = window._eqpvMeterPhoto || null;
     var ocrVal = window._eqpvMeterOcrValue;
     var readMethod = !photo ? 'manual' : (ocrVal === null || ocrVal === undefined ? 'photo-manual' : (ocrVal === newHours ? 'ocr' : 'ocr-edited'));
@@ -8710,29 +8724,59 @@ function eqpvSaveMeter() {
             oldHours: currentHours,
             newHours: newHours,
             source: 'QR',
+            context: context || 'meterOnly',
             readMethod: readMethod
         },
-        description: 'تحديث عداد ' + (eq.name || '') + (eq.code ? ' (' + eq.code + ')' : '') + ' من ' + currentHours + ' إلى ' + newHours,
+        description: 'تحديث عداد ' + (eq.name || '') + (eq.code ? ' (' + eq.code + ')' : '') + ' من ' + currentHours + ' إلى ' + newHours + (context === 'startWork' ? ' (مع بدء العمل)' : ''),
         requestedBy: sender,
         requestedAt: new Date().toISOString(),
         status: 'pending'
     };
     if (photo) req.photo = photo;
-    fbDb.ref('approvalRequests').push(req).then(function() {
-        var input = document.getElementById('eqpv-meter-input');
-        if (input) input.value = '';
+    return fbDb.ref('approvalRequests').push(req).then(function() {
         eqpvMeterPhotoClear(true);
-        if (statusEl) { statusEl.style.color = '#059669'; statusEl.textContent = '✅ تم إرسال طلب التحديث — بانتظار موافقة مسؤول المعدات'; }
+    });
+}
+
+// زر "العداد فقط" (أو "إرسال للاعتماد" لو مفيش سائق): يبعت الطلب من غير بدء العمل
+function eqpvSaveMeter() {
+    var btn = document.getElementById('eqpv-meter-save-btn');
+    var chk = eqpvValidateMeter();
+    if (chk.cancelled) return;
+    if (chk.error) { eqpvMeterStatusSay('⚠️ ' + chk.error, '#dc2626'); return; }
+    if (btn) btn.disabled = true;
+    eqpvMeterStatusSay('⏳ جاري إرسال الطلب...', '#64748b');
+    eqpvSubmitMeterRequest(chk.value, 'meterOnly').then(function() {
+        var input = eqpvMeterInputEl();
+        if (input && !input.disabled) input.value = '';
+        else if (btn && btn.getAttribute('data-with-work') === '1') btn.style.display = 'none'; // العمل شغّال: الطلب اتبعت خلاص
+        eqpvMeterStatusSay('✅ تم إرسال طلب التحديث — بانتظار موافقة مسؤول المعدات', '#059669');
         if (btn) btn.disabled = false;
         showTopNotification('🕐', 'تم إرسال طلب تحديث العداد للاعتماد');
     }).catch(function(e) {
-        var code = e && e.code ? String(e.code) : '';
-        var msg = (code.toUpperCase().indexOf('PERMISSION') !== -1)
-            ? 'ممنوع الإرسال (PERMISSION_DENIED) — قواعد Firebase لا تسمح بالكتابة في approvalRequests'
-            : ((e && e.message) || 'حدث خطأ أثناء إرسال الطلب');
         console.error('eqpvSaveMeter error:', e);
-        fail(msg);
+        eqpvMeterStatusSay('⚠️ ' + eqpvMeterErrMsg(e), '#dc2626');
+        if (btn) btn.disabled = false;
     });
+}
+
+// بيتنادى من زر "بدء العمل": بعد ما العمل يبدأ بنفس الرقم، بنرسل طلب تحديث العداد للاعتماد تلقائيًا (السائق مش بيكتب مرتين)
+function eqpvSendMeterWithWorkStart(meterVal) {
+    eqpvMeterStatusSay(navigator.onLine === false ? '📴 لا يوجد اتصال — سيُرسل طلب العداد تلقائيًا عند عودة الإنترنت (أبقِ الصفحة مفتوحة)' : '⏳ جاري إرسال طلب تحديث العداد...', '#64748b');
+    eqpvSubmitMeterRequest(meterVal, 'startWork').then(function() {
+        eqpvMeterStatusSay('✅ بدأ العمل وتم إرسال طلب تحديث العداد للاعتماد', '#059669');
+        showTopNotification('🕐', 'تم إرسال طلب تحديث العداد للاعتماد');
+    }).catch(function(e) {
+        console.error('meter request (start work) error:', e);
+        eqpvMeterStatusSay('⚠️ بدأ العمل لكن تعذّر إرسال طلب العداد: ' + eqpvMeterErrMsg(e) + ' — اضغط «العداد فقط» لإعادة المحاولة', '#dc2626');
+        var b = document.getElementById('eqpv-meter-save-btn');
+        if (b) { b.style.display = ''; b.disabled = false; }
+    });
+}
+
+function eqpvToggleMeterOnlyBtn(show) {
+    var b = document.getElementById('eqpv-meter-save-btn');
+    if (b && b.getAttribute('data-with-work') === '1') b.style.display = show ? '' : 'none';
 }
 
 function generateEquipmentQRUrl(eq) {
@@ -12573,6 +12617,7 @@ function wireOwnedEquipmentWorkCard(driverId, eqType) {
         sharing = true;
         meterInput.value = startMeter;
         meterInput.disabled = true;
+        if (typeof eqpvToggleMeterOnlyBtn === 'function') eqpvToggleMeterOnlyBtn(false);
         // نحافظ على وقت بداية العمل لو السائق فتح الصفحة تاني في نفس اليوم (بدل ما العداد يرجع صفر)
         var existingState = getSavedWorkState();
         var todayKeyNow = getLocalDateKey(new Date());
@@ -12596,6 +12641,7 @@ function wireOwnedEquipmentWorkCard(driverId, eqType) {
         disarmCloseWarning();
         tryFlushQueue();
         meterInput.disabled = false;
+        if (typeof eqpvToggleMeterOnlyBtn === 'function') eqpvToggleMeterOnlyBtn(true);
         saveWorkState({ sharing: false, startMeter: null });
         stopHoursBarTimer();
         statusEl.style.color = '#f59e0b'; statusEl.style.background = '#fef3c7';
@@ -12612,8 +12658,15 @@ function wireOwnedEquipmentWorkCard(driverId, eqType) {
                 statusEl.innerHTML = '⚠️ من فضلك اكتب قراءة العداد الحالية';
                 meterInput.focus(); return;
             }
+            // لو الرقم أقل من العداد المسجّل بنسأل السائق قبل ما نبدأ (نفس تحقق تحديث العداد)
+            var meterChk = (typeof eqpvValidateMeter === 'function') ? eqpvValidateMeter() : { value: meterVal };
+            if (meterChk.cancelled) return;
             // ميبدأش العمل غير لو صلاحية الموقع مفعّلة فعليًا على الجهاز
-            gateLocationPermissionThenRun(statusEl, function() { startSharing(meterVal); });
+            gateLocationPermissionThenRun(statusEl, function() {
+                startSharing(meterVal);
+                // نفس الرقم بيترسل تلقائيًا كطلب تحديث عداد للاعتماد (مش بيتكرر عند استكمال الجلسة تلقائيًا)
+                if (typeof eqpvSendMeterWithWorkStart === 'function') eqpvSendMeterWithWorkStart(meterVal);
+            });
         } else {
             stopSharing();
         }
@@ -13863,6 +13916,7 @@ function renderMeterUpdateRequestsBanner() {
         var when = r.requestedAt ? new Date(r.requestedAt).toLocaleString('ar-EG') : '';
         var methodLabels = { 'manual': '✍️ إدخال يدوي', 'photo-manual': '📸 صورة + إدخال يدوي', 'ocr': '🤖 قراءة تلقائية من الصورة', 'ocr-edited': '🤖✍️ قراءة تلقائية مع تعديل يدوي' };
         var methodTxt = methodLabels[d.readMethod] || '';
+        if (d.context === 'startWork') methodTxt = '▶️ مع بدء العمل' + (methodTxt ? ' • ' + methodTxt : '');
         var photoHtml = '';
         if (r.photo && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(r.photo)) {
             photoHtml = '<img src="' + r.photo + '" alt="صورة العداد" onclick="openMeterRequestPhoto(\'' + r.id + '\')" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-bottom:6px;cursor:zoom-in;display:block">';
