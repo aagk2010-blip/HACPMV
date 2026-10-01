@@ -233,6 +233,27 @@ html[data-theme="dark"] .page-topbar-title{color:#f1f5f9}
 @media (min-width:640px){.home-usage-charts-grid{grid-template-columns:repeat(3,1fr);gap:8px}}
 .home-usage-chart-card{background:var(--white);border-radius:14px;padding:8px;margin-bottom:0;box-shadow:var(--shadow-sm);position:relative;min-width:0}
 .home-usage-chart-title{font-weight:800;font-size:10.5px;color:var(--primary);margin-bottom:4px;text-align:center;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ===== لوحة التحكم التفاعلية في الصفحة الرئيسية ===== */
+.hdash-section{padding:0 14px;margin:6px 0 14px}
+.hdash-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.hdash-head .section-title{margin:0}
+.hdash-period{font-size:10px;font-weight:700;color:var(--primary);background:var(--light);border-radius:20px;padding:4px 10px;white-space:nowrap}
+.hdash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.hdash-card{position:relative;background:var(--white);border-radius:16px;padding:12px 10px 10px;box-shadow:var(--shadow-sm);min-width:0;overflow:hidden}
+.hdash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--hd-accent,#7c3aed)}
+.hdash-card.wide{grid-column:1/-1;padding:12px 12px 10px}
+.hdash-card-head{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.hdash-ico{width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--hd-soft,rgba(124,58,237,.12))}
+.hdash-title{font-weight:800;font-size:11.5px;color:var(--primary);line-height:1.25;flex:1;min-width:0}
+.hdash-kpi{font-size:10.5px;font-weight:800;color:var(--hd-accent,#7c3aed);background:var(--hd-soft,rgba(124,58,237,.12));border-radius:10px;padding:2px 8px;white-space:nowrap}
+.hdash-body{position:relative;height:150px}
+.hdash-card.wide .hdash-body{height:190px}
+.hdash-more{display:block;width:100%;margin-top:6px;border:none;background:none;font-family:inherit;font-size:10px;font-weight:700;color:var(--hd-accent,#7c3aed);cursor:pointer;text-align:center;padding:2px 0}
+.hdash-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gray);text-align:center;padding:0 10px}
+.hdash-card.c-fleet{--hd-accent:#059669;--hd-soft:rgba(5,150,105,.12)}
+.hdash-card.c-maint{--hd-accent:#0e7490;--hd-soft:rgba(14,116,144,.12)}
+.hdash-card.c-fuel{--hd-accent:#d97706;--hd-soft:rgba(217,119,6,.13)}
+.hdash-card.c-top{--hd-accent:#7c3aed;--hd-soft:rgba(124,58,237,.12)}
 .home-quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px 16px}
 @media (max-width:340px){ .home-quick-actions{grid-template-columns:repeat(2,1fr)} }
 .home-quick-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:none;cursor:pointer;font-family:inherit;border-radius:14px;padding:9px 4px;color:white;font-weight:700;font-size:10px;text-align:center;line-height:1.25;box-shadow:0 4px 10px rgba(13,27,42,.14);transition:transform .15s ease,box-shadow .15s ease}
@@ -1178,7 +1199,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   <div class="page-topbar"><div class="page-topbar-title"><span id="header-title">📊 لوحة القيادة</span><span id="sync-status-placeholder" style="display:none"></span></div><div class="page-topbar-actions"><span id="conn-indicator" title="حالة الاتصال">🔴</span><button id="global-search-toggle" title="بحث عالمي">🔍</button><button id="kiosk-mode-btn" title="شاشة الإدارة">🖥️</button><button id="export-pdf-btn" title="تصدير PDF">📄</button><button id="notif-settings-btn" title="الإشعارات">🔔</button></div></div><div class="page-topbar-sync" id="sync-status">جاري الاتصال...</div>
   <div id="alert-bar" style="display:none"></div>
   
-  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title"><span class="i18n-label" data-en="Dashboard" data-ar="لوحة القيادة"></span></div><div class="dash-hero-sub"><span class="i18n-label" data-en="Real-time tracking of equipment, maintenance, and fuel status across all sites." data-ar="متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع."></span></div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><div id="home-usage-section" style="padding:0 14px;margin-bottom:6px"><div class="section-title">📊 <span class="i18n-label" data-en="Equipment Usage: Owned vs Rented" data-ar="استخدام المعدات: الملك والإيجار"></span></div><div id="home-usage-note" style="font-size:10.5px;color:var(--gray);margin:-6px 0 10px"></div><div class="stats-row" id="home-usage-cards" style="padding:0;margin-bottom:2px"></div><div class="home-usage-charts-grid"><div class="home-usage-chart-card"><div class="home-usage-chart-title">⏱️ ساعات التشغيل</div><div style="position:relative;height:115px"><canvas id="chart-home-hours"></canvas></div></div><div class="home-usage-chart-card"><div class="home-usage-chart-title">💰 تكلفة الإيجار</div><div style="position:relative;height:115px"><canvas id="chart-home-cost"></canvas></div></div><div class="home-usage-chart-card"><div class="home-usage-chart-title">🥯 ملك مقابل إيجار</div><div style="position:relative;height:115px"><canvas id="chart-home-split"></canvas></div></div></div></div><div class="home-quick-actions"><button id="force-refresh-btn" class="home-quick-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))"><span class="qi">🔄</span><span class="i18n-label" data-en="Refresh" data-ar="تحديث البيانات"></span></button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)"><span class="qi">🤖</span><span class="i18n-label" data-en="AI Analysis" data-ar="تحليل ذكي AI"></span></button><button onclick="openAiReportModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)"><span class="qi">🤖</span><span class="i18n-label" data-en="AI Report" data-ar="تقرير AI"></span></button><button onclick="openExecutiveDashboard()" class="home-quick-btn" style="background:linear-gradient(135deg,#0f172a,#1e293b)"><span class="qi">📊</span><span class="i18n-label" data-en="Executive" data-ar="لوحة تنفيذية"></span></button><button id="data-manager-btn" onclick="openDataManagerModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#0891b2,#155e75)"><span class="qi">🗑️</span><span class="i18n-label" data-en="Data & Storage" data-ar="البيانات والمساحة"></span></button></div><div class="section" style="margin-top:14px"><div class="section-title">📂 <span class="i18n-label" data-en="Sections" data-ar="الأقسام"></span></div><div id="home-app-grid" class="app-grid"></div></div></div>
+  <div id="view-home"><div class="dash-hero"><div class="dash-hero-deco"><svg viewBox="0 0 24 24"><use href="#ic-crane"/></svg></div><div class="dash-hero-text"><div class="dash-hero-eyebrow">Equipment Maintenance Service</div><div class="dash-hero-title"><span class="i18n-label" data-en="Dashboard" data-ar="لوحة القيادة"></span></div><div class="dash-hero-sub"><span class="i18n-label" data-en="Real-time tracking of equipment, maintenance, and fuel status across all sites." data-ar="متابعة حالة المعدات والصيانة والوقود لحظة بلحظة عبر جميع المواقع."></span></div></div><div class="dash-hero-art"><svg viewBox="0 0 24 24"><use href="#ic-gauge"/></svg></div></div><div id="report-reminder-banner"></div><div class="stats-row" id="stats-summary"></div><div id="home-usage-section" style="padding:0 14px;margin-bottom:6px"><div class="section-title">📊 <span class="i18n-label" data-en="Equipment Usage: Owned vs Rented" data-ar="استخدام المعدات: الملك والإيجار"></span></div><div id="home-usage-note" style="font-size:10.5px;color:var(--gray);margin:-6px 0 10px"></div><div class="stats-row" id="home-usage-cards" style="padding:0;margin-bottom:2px"></div><div class="home-usage-charts-grid"><div class="home-usage-chart-card"><div class="home-usage-chart-title">⏱️ ساعات التشغيل</div><div style="position:relative;height:115px"><canvas id="chart-home-hours"></canvas></div></div><div class="home-usage-chart-card"><div class="home-usage-chart-title">💰 تكلفة الإيجار</div><div style="position:relative;height:115px"><canvas id="chart-home-cost"></canvas></div></div><div class="home-usage-chart-card"><div class="home-usage-chart-title">🥯 ملك مقابل إيجار</div><div style="position:relative;height:115px"><canvas id="chart-home-split"></canvas></div></div></div></div><div class="hdash-section" id="home-dash-section"><div class="hdash-head"><div class="section-title">📊 <span class="i18n-label" data-en="Interactive Dashboard" data-ar="لوحة التحكم التفاعلية"></span></div><span class="hdash-period" id="home-dash-period"></span></div><div class="hdash-grid"><div class="hdash-card c-fleet"><div class="hdash-card-head"><span class="hdash-ico">🥯</span><span class="hdash-title">توزيع حالة المعدات</span><span class="hdash-kpi" id="hdash-kpi-fleet"></span></div><div class="hdash-body"><canvas id="home-chart-fleet"></canvas></div></div><div class="hdash-card c-maint"><div class="hdash-card-head"><span class="hdash-ico">🔧</span><span class="hdash-title">الصيانات المكتملة (6 فترات)</span><span class="hdash-kpi" id="hdash-kpi-maint"></span></div><div class="hdash-body"><canvas id="home-chart-maint"></canvas></div><button class="hdash-more" onclick="switchView('maintenance')">التفاصيل ‹</button></div><div class="hdash-card wide c-fuel"><div class="hdash-card-head"><span class="hdash-ico">⛽</span><span class="hdash-title">اتجاه استهلاك الوقود (6 فترات)</span><span class="hdash-kpi" id="hdash-kpi-fuel"></span></div><div class="hdash-body"><canvas id="home-chart-fuel"></canvas></div><button class="hdash-more" onclick="switchView('fuel')">التفاصيل ‹</button></div><div class="hdash-card wide c-top"><div class="hdash-card-head"><span class="hdash-ico">🏆</span><span class="hdash-title">أعلى 10 معدات استخدامًا (ساعات)</span><span class="hdash-kpi" id="hdash-kpi-top"></span></div><div class="hdash-body" id="home-chart-top-wrap"><canvas id="home-chart-top"></canvas></div><button class="hdash-more" onclick="switchView('analytics')">كل التحليلات ‹</button></div></div></div><div class="home-quick-actions"><button id="force-refresh-btn" class="home-quick-btn" style="background:linear-gradient(135deg,var(--purple),var(--info))"><span class="qi">🔄</span><span class="i18n-label" data-en="Refresh" data-ar="تحديث البيانات"></span></button><button id="ai-analysis-btn" onclick="openAiAnalysisModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)"><span class="qi">🤖</span><span class="i18n-label" data-en="AI Analysis" data-ar="تحليل ذكي AI"></span></button><button onclick="openAiReportModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)"><span class="qi">🤖</span><span class="i18n-label" data-en="AI Report" data-ar="تقرير AI"></span></button><button onclick="openExecutiveDashboard()" class="home-quick-btn" style="background:linear-gradient(135deg,#0f172a,#1e293b)"><span class="qi">📊</span><span class="i18n-label" data-en="Executive" data-ar="لوحة تنفيذية"></span></button><button id="data-manager-btn" onclick="openDataManagerModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#0891b2,#155e75)"><span class="qi">🗑️</span><span class="i18n-label" data-en="Data & Storage" data-ar="البيانات والمساحة"></span></button></div><div class="section" style="margin-top:14px"><div class="section-title">📂 <span class="i18n-label" data-en="Sections" data-ar="الأقسام"></span></div><div id="home-app-grid" class="app-grid"></div></div></div>
   <div id="view-sites" style="display:none"><div style="padding:14px">
     <div class="search-box"><span>🔍</span><input type="text" id="search-site" placeholder="بحث باسم الموقع..."></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -1802,6 +1823,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <div style="font-size:12px;color:var(--k-muted);margin-bottom:18px">اختر الشرائح المناسبة لهذا الجهاز — مثلًا شاشة المخزن تظهر لها "المخزن" بس، وشاشة الموقع تظهر لها "المواقع" و"الأسطول". الإعداد بيتحفظ على هذا الجهاز فقط.</div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-usage" style="width:18px;height:18px">📊 استخدام المعدات (ملك/إيجار) — نفس شارت الصفحة الرئيسية</label>
+        <label class="k-opt"><input type="checkbox" id="kiosk-cfg-dashboard" style="width:18px;height:18px">📊 لوحة التحكم التفاعلية — نفس رسومات الصفحة الرئيسية</label>
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-sites" style="width:18px;height:18px">🏢 نظرة عامة على المواقع</label>
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-alerts" style="width:18px;height:18px">🔔 التنبيهات الحرجة</label>
         <label class="k-opt"><input type="checkbox" id="kiosk-cfg-fleet" style="width:18px;height:18px">📈 أداء المعدات (الأسطول)</label>
@@ -15425,7 +15447,7 @@ var kioskIntervalId = null;
 var kioskClockIntervalId = null;
 var kioskSlideIndex = 0;
 var KIOSK_DEFAULT_SECONDS = 15;
-var KIOSK_DEFAULT_SLIDES = ['usage', 'sites', 'alerts', 'fleet', 'warehouse', 'maintenance'];
+var KIOSK_DEFAULT_SLIDES = ['usage', 'dashboard', 'sites', 'alerts', 'fleet', 'warehouse', 'maintenance'];
 var KIOSK_DEFAULT_WORK_END = '17:30';
 var KIOSK_DEFAULT_OFF_DAYS = [5]; // الجمعة (getDay(): 0=أحد ... 5=جمعة ... 6=سبت)
 var KIOSK_DEFAULT_THEME = 'dark';   // dark | light | auto
@@ -15451,8 +15473,18 @@ function loadKioskSettings() {
                 theme: ['dark', 'light', 'auto'].indexOf(saved.theme) !== -1 ? saved.theme : KIOSK_DEFAULT_THEME,
                 bgDim: isNaN(parseInt(saved.bgDim, 10)) ? KIOSK_DEFAULT_BG_DIM : Math.min(90, Math.max(0, parseInt(saved.bgDim, 10))),
                 bgBlur: isNaN(parseInt(saved.bgBlur, 10)) ? KIOSK_DEFAULT_BG_BLUR : Math.min(20, Math.max(0, parseInt(saved.bgBlur, 10))),
-                autoOpenMinutes: isNaN(parseInt(saved.autoOpenMinutes, 10)) ? 0 : Math.min(480, Math.max(0, parseInt(saved.autoOpenMinutes, 10)))
+                autoOpenMinutes: isNaN(parseInt(saved.autoOpenMinutes, 10)) ? 0 : Math.min(480, Math.max(0, parseInt(saved.autoOpenMinutes, 10))),
+                dashAdded: !!saved.dashAdded
             };
+            // مرة واحدة بس: أضف شريحة لوحة التحكم للأجهزة اللي كانت محفوظة إعداداتها قبل الميزة دي
+            if (!kioskSettings.dashAdded) {
+                if (kioskSettings.slides.indexOf('dashboard') === -1) {
+                    var uIdx = kioskSettings.slides.indexOf('usage');
+                    kioskSettings.slides.splice(uIdx + 1, 0, 'dashboard');
+                }
+                kioskSettings.dashAdded = true;
+                try { localStorage.setItem('kioskSettings', JSON.stringify(kioskSettings)); } catch (e2) {}
+            }
         }
     } catch (e) {}
     try { kioskBgData = localStorage.getItem('kioskBgImage') || ''; } catch (e) { kioskBgData = ''; }
@@ -15500,6 +15532,7 @@ function toggleKioskTheme() {
     persistKioskSettings();
     applyKioskAppearance();
     if (kioskSlides[kioskSlideIndex] === 'usage') renderKioskUsageCharts();
+    if (kioskSlides[kioskSlideIndex] === 'dashboard') renderKioskDashboardCharts();
 }
 
 function setKioskBgMsg(text, isError) {
@@ -15587,6 +15620,7 @@ function openKioskSettingsPanel() {
     var panel = document.getElementById('kiosk-settings-panel');
     if (!panel) return;
     document.getElementById('kiosk-cfg-usage').checked = kioskSettings.slides.indexOf('usage') !== -1;
+    document.getElementById('kiosk-cfg-dashboard').checked = kioskSettings.slides.indexOf('dashboard') !== -1;
     document.getElementById('kiosk-cfg-sites').checked = kioskSettings.slides.indexOf('sites') !== -1;
     document.getElementById('kiosk-cfg-alerts').checked = kioskSettings.slides.indexOf('alerts') !== -1;
     document.getElementById('kiosk-cfg-fleet').checked = kioskSettings.slides.indexOf('fleet') !== -1;
@@ -15622,6 +15656,7 @@ function closeKioskSettingsPanel() {
 function saveKioskSettings() {
     var slides = [];
     if (document.getElementById('kiosk-cfg-usage').checked) slides.push('usage');
+    if (document.getElementById('kiosk-cfg-dashboard').checked) slides.push('dashboard');
     if (document.getElementById('kiosk-cfg-sites').checked) slides.push('sites');
     if (document.getElementById('kiosk-cfg-alerts').checked) slides.push('alerts');
     if (document.getElementById('kiosk-cfg-fleet').checked) slides.push('fleet');
@@ -15655,7 +15690,7 @@ function saveKioskSettings() {
     }
     kioskSettings = { slides: slides, seconds: seconds, workEndTime: workEndTime, offDays: offDays, theme: theme,
         bgDim: isNaN(bgDim) ? KIOSK_DEFAULT_BG_DIM : bgDim, bgBlur: isNaN(bgBlur) ? KIOSK_DEFAULT_BG_BLUR : bgBlur,
-        autoOpenMinutes: autoOpenMinutes };
+        autoOpenMinutes: autoOpenMinutes, dashAdded: true };
     kioskSlides = slides;
     persistKioskSettings();
     kioskSlideIndex = 0;
@@ -15719,6 +15754,7 @@ function updateKioskClock() {
     if (kioskSettings.theme === 'auto' && ov && ov.classList.contains('kiosk-light') !== kioskIsLight()) {
         applyKioskAppearance();
         if (kioskSlides[kioskSlideIndex] === 'usage') renderKioskUsageCharts();
+        if (kioskSlides[kioskSlideIndex] === 'dashboard') renderKioskDashboardCharts();
     }
 }
 
@@ -15780,6 +15816,7 @@ function renderKioskSlide() {
     var slide = kioskSlides[kioskSlideIndex];
     destroyKioskUsageCharts();
     if (slide === 'usage') { body.innerHTML = renderKioskUsageSlideHtml(); renderKioskUsageCharts(); }
+    else if (slide === 'dashboard') { body.innerHTML = renderKioskDashboardSlideHtml(); renderKioskDashboardCharts(); }
     else if (slide === 'sites') body.innerHTML = renderKioskSitesSlide();
     else if (slide === 'alerts') body.innerHTML = renderKioskAlertsSlide();
     else if (slide === 'warehouse') body.innerHTML = renderKioskWarehouseSlide();
@@ -15903,6 +15940,127 @@ function renderKioskUsageCharts() {
             } } } } },
             plugins: [kioskSplitCenterTotalPlugin]
         });
+    }
+}
+
+// شريحة: لوحة التحكم التفاعلية (نفس 4 رسومات الصفحة الرئيسية) — شبكة 2×2 مرتبة بحيث تملأ الشاشة بدون سكرول
+function renderKioskDashboardSlideHtml() {
+    function card(accent, ico, title, kpiId, canvasId) {
+        return '<div style="position:relative;background:var(--k-card);border-radius:16px;padding:14px 16px 10px;box-shadow:var(--k-shadow);display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden">' +
+            '<div style="position:absolute;top:0;left:0;right:0;height:5px;background:' + accent + '"></div>' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+            '<span style="font-size:18px">' + ico + '</span>' +
+            '<span style="font-weight:800;font-size:15px;color:var(--k-text);flex:1">' + title + '</span>' +
+            '<span id="' + kpiId + '" style="font-weight:800;font-size:13px;color:' + accent + ';background:var(--k-btn);border-radius:12px;padding:3px 12px;white-space:nowrap"></span></div>' +
+            '<div style="position:relative;flex:1;min-height:0"><canvas id="' + canvasId + '"></canvas></div></div>';
+    }
+    return '<div style="display:flex;flex-direction:column;height:100%;min-height:440px">' +
+        '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px">' +
+        '<div style="font-size:22px;font-weight:800;color:var(--k-text)">📊 لوحة التحكم التفاعلية</div>' +
+        '<div id="kiosk-dash-period" style="font-size:12px;color:var(--k-muted)"></div></div>' +
+        '<div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:12px">' +
+        card('#059669', '🥯', 'توزيع حالة المعدات', 'kdash-kpi-fleet', 'kiosk-dash-fleet') +
+        card('#d97706', '⛽', 'اتجاه استهلاك الوقود (6 فترات)', 'kdash-kpi-fuel', 'kiosk-dash-fuel') +
+        card('#0e7490', '🔧', 'الصيانات المكتملة (6 فترات)', 'kdash-kpi-maint', 'kiosk-dash-maint') +
+        card('#7c3aed', '🏆', 'أعلى 10 معدات استخدامًا (ساعات)', 'kdash-kpi-top', 'kiosk-dash-top') +
+        '</div></div>';
+}
+
+function renderKioskDashboardCharts() {
+    Object.keys(kioskUsageChartInstances).forEach(function(k) {
+        if (k.indexOf('dash_') === 0 && kioskUsageChartInstances[k]) { try { kioskUsageChartInstances[k].destroy(); } catch (e) {} kioskUsageChartInstances[k] = null; }
+    });
+    var data = computeHomeDashboardData(getVisibleEquipment());
+    var light = kioskIsLight();
+    var textColor = light ? '#0d1b2a' : '#ffffff';
+    var mutedColor = light ? '#5b6675' : '#94a3b8';
+    var gridColor = light ? 'rgba(13,27,42,.08)' : 'rgba(255,255,255,.12)';
+    var set = function(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; };
+    set('kiosk-dash-period', '📅 دورة 21 → 20: ' + data.period.from + ' → ' + data.period.to);
+    set('kdash-kpi-fleet', data.total + ' معدة');
+    set('kdash-kpi-maint', data.maintByMonth.reduce(function(s, m) { return s + m.count; }, 0) + ' صيانة');
+    set('kdash-kpi-fuel', formatNumber(Math.round(data.fuelTrend[data.fuelTrend.length - 1].liters)) + ' لتر');
+    set('kdash-kpi-top', formatNumber(Math.round(data.top10.reduce(function(s, u) { return s + u.hours; }, 0))) + ' س');
+    if (!window.Chart) return;
+    var tick = { color: mutedColor, font: { family: 'Cairo', size: 11 } };
+    var lbl = function(m) { return m.month.slice(5) + '/' + m.month.slice(2, 4); };
+    var empty = function(id, msg) {
+        var c = document.getElementById(id);
+        if (!c || !c.parentElement) return;
+        var d = document.createElement('div');
+        d.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--k-muted)';
+        d.textContent = msg;
+        c.parentElement.appendChild(d);
+    };
+
+    var fleetCv = document.getElementById('kiosk-dash-fleet');
+    if (fleetCv) {
+        if (!data.total) { empty('kiosk-dash-fleet', 'لا توجد معدات'); }
+        else {
+            var centerPlugin = {
+                id: 'kdashCenter',
+                afterDraw: function(chart) {
+                    var a = chart.getDatasetMeta(0).data[0];
+                    if (!a) return;
+                    var ctx = chart.ctx;
+                    ctx.save();
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.font = '800 26px Cairo, sans-serif'; ctx.fillStyle = textColor;
+                    ctx.fillText(String(data.total), a.x, a.y - 8);
+                    ctx.font = '600 11px Cairo, sans-serif'; ctx.fillStyle = mutedColor;
+                    ctx.fillText('إجمالي المعدات', a.x, a.y + 14);
+                    ctx.restore();
+                }
+            };
+            kioskUsageChartInstances.dash_fleet = new Chart(fleetCv, {
+                type: 'doughnut',
+                data: { labels: ['سليمة', 'قريبة الصيانة', 'متأخرة', 'متوقفة'],
+                    datasets: [{ data: [data.fleet.healthy, data.fleet.soon, data.fleet.overdue, data.fleet.stopped],
+                        backgroundColor: ['#059669', '#d97706', '#dc2626', '#64748b'], borderWidth: 2, borderColor: light ? '#ffffff' : '#0d1b2a' }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '66%',
+                    plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 8, color: textColor } } } },
+                plugins: [centerPlugin]
+            });
+        }
+    }
+
+    var fuelCv = document.getElementById('kiosk-dash-fuel');
+    if (fuelCv) {
+        kioskUsageChartInstances.dash_fuel = new Chart(fuelCv, {
+            type: 'line',
+            data: { labels: data.fuelTrend.map(lbl), datasets: [
+                { label: 'لتر', data: data.fuelTrend.map(function(m) { return m.liters; }), borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,.16)', fill: true, tension: .35, pointRadius: 4, yAxisID: 'y' },
+                { label: 'تكلفة (ج.م)', data: data.fuelTrend.map(function(m) { return m.cost; }), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.12)', fill: true, tension: .35, pointRadius: 4, yAxisID: 'y1' } ] },
+            options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 }, boxWidth: 10, padding: 8, color: textColor } } },
+                scales: { x: { ticks: tick, grid: { display: false } },
+                    y: { type: 'linear', position: 'left', beginAtZero: true, ticks: tick, grid: { color: gridColor } },
+                    y1: { type: 'linear', position: 'right', beginAtZero: true, ticks: tick, grid: { drawOnChartArea: false } } } }
+        });
+    }
+
+    var maintCv = document.getElementById('kiosk-dash-maint');
+    if (maintCv) {
+        kioskUsageChartInstances.dash_maint = new Chart(maintCv, {
+            type: 'bar',
+            data: { labels: data.maintByMonth.map(lbl), datasets: [{ label: 'صيانات مكتملة', data: data.maintByMonth.map(function(m) { return m.count; }), backgroundColor: '#0e7490', borderRadius: 6, maxBarThickness: 34 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                scales: { x: { ticks: tick, grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0, color: mutedColor, font: tick.font }, grid: { color: gridColor } } } }
+        });
+    }
+
+    var topCv = document.getElementById('kiosk-dash-top');
+    if (topCv) {
+        if (!data.top10.length) { empty('kiosk-dash-top', 'لا توجد ساعات تشغيل مسجّلة في هذه الفترة'); }
+        else {
+            kioskUsageChartInstances.dash_top = new Chart(topCv, {
+                type: 'bar',
+                data: { labels: data.top10.map(function(u) { var n = u.eq.name || ''; return n.length > 26 ? n.slice(0, 25) + '…' : n; }),
+                    datasets: [{ label: 'ساعات العمل', data: data.top10.map(function(u) { return u.hours; }), backgroundColor: '#8b5cf6', borderRadius: 6, maxBarThickness: 20 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true, ticks: tick, grid: { color: gridColor } }, y: { ticks: { color: textColor, font: { family: 'Cairo', size: 11 } }, grid: { display: false } } } }
+            });
+        }
     }
 }
 
@@ -18316,6 +18474,221 @@ function renderHomeUsageChartsInner(equipmentList) {
     }
 }
 
+// ==================== لوحة التحكم التفاعلية في الصفحة الرئيسية (نفس رسومات صفحة التحليلات) ====================
+var homeDashChartInstances = {};
+var homeDashRetryTimer = null;
+var homeDashRetryCount = 0;
+function computeHomeDashboardData(eqList) {
+    var month = getCurrentCycleMonthStr();
+    var period = getPeriodRange(month);
+    // حالة المعدات
+    var stopped = eqList.filter(function(e) { return e.status === 'متوقف'; }).length;
+    var overdue = eqList.filter(function(e) { return e.status !== 'متوقف' && hoursRemaining(e) <= 0; }).length;
+    var soon = eqList.filter(function(e) { return e.status !== 'متوقف' && hoursRemaining(e) > 0 && hoursRemaining(e) <= 50; }).length;
+    var healthy = Math.max(0, eqList.length - stopped - overdue - soon);
+    // آخر 6 فترات (دورة 21 → 20)
+    var periodsBack = [];
+    for (var i = 5; i >= 0; i--) {
+        var refM = new Date(month + '-01T00:00:00');
+        periodsBack.push(localMonthStr(new Date(refM.getFullYear(), refM.getMonth() - i, 1)));
+    }
+    var maintByMonth = periodsBack.map(function(mo) {
+        var r = getPeriodRange(mo);
+        var count = maintenanceSchedules.filter(function(ms) {
+            return ms.status === 'مكتمل' && ms.completedAt && ms.completedAt.slice(0, 10) >= r.from && ms.completedAt.slice(0, 10) <= r.to;
+        }).length;
+        return { month: mo, count: count };
+    });
+    var fuelTrend = periodsBack.map(function(mo) {
+        var r = getPeriodRange(mo);
+        var recs = fuelData.filter(function(f) { return f.date >= r.from && f.date <= r.to; });
+        return {
+            month: mo,
+            liters: recs.reduce(function(s, f) { return s + (f.amount || 0); }, 0),
+            cost: recs.reduce(function(s, f) { return s + (f.cost || 0); }, 0)
+        };
+    });
+    var usage = eqList.map(function(eq) {
+        var m = (eq.ownership === 'إيجار') ? getMonthlyRentalHours(eq, month) : getMonthlyHoursForEquipment(eq, month);
+        return { eq: eq, hours: m ? m.hours : null };
+    });
+    var top10 = usage.filter(function(u) { return u.hours !== null && u.hours > 0; })
+        .sort(function(a, b) { return b.hours - a.hours; }).slice(0, 10);
+    return {
+        period: period, total: eqList.length,
+        fleet: { healthy: healthy, soon: soon, overdue: overdue, stopped: stopped },
+        maintByMonth: maintByMonth, fuelTrend: fuelTrend, top10: top10
+    };
+}
+function renderHomeDashboardCharts(eqList) {
+    try {
+        renderHomeDashboardChartsInner(eqList);
+    } catch (err) {
+        console.error('renderHomeDashboardCharts error:', err);
+    }
+}
+function renderHomeDashboardChartsInner(eqList) {
+    if (!document.getElementById('home-dash-section')) return;
+    var data = computeHomeDashboardData(eqList);
+
+    var periodEl = document.getElementById('home-dash-period');
+    if (periodEl) periodEl.textContent = '📅 ' + data.period.from + ' → ' + data.period.to;
+    var totalMaint = data.maintByMonth.reduce(function(s, m) { return s + m.count; }, 0);
+    var curFuel = data.fuelTrend[data.fuelTrend.length - 1];
+    var topHours = data.top10.reduce(function(s, u) { return s + u.hours; }, 0);
+    var setTxt = function(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; };
+    setTxt('hdash-kpi-fleet', data.total + ' معدة');
+    setTxt('hdash-kpi-maint', totalMaint + ' صيانة');
+    setTxt('hdash-kpi-fuel', formatNumber(Math.round(curFuel.liters)) + ' لتر');
+    setTxt('hdash-kpi-top', formatNumber(Math.round(topHours)) + ' س');
+
+    if (!window.Chart) {
+        homeDashRetryCount++;
+        if (!window.__chartLoadFailed && homeDashRetryCount <= 20 && !homeDashRetryTimer) {
+            homeDashRetryTimer = setTimeout(function() {
+                homeDashRetryTimer = null;
+                renderHomeDashboardChartsInner(eqList);
+            }, 500);
+        }
+        return;
+    }
+    homeDashRetryCount = 0;
+    Object.keys(homeDashChartInstances).forEach(function(k) {
+        if (homeDashChartInstances[k]) { homeDashChartInstances[k].destroy(); homeDashChartInstances[k] = null; }
+    });
+    document.querySelectorAll('#home-dash-section .hdash-empty').forEach(function(e) { e.remove(); });
+
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var txt = dark ? '#cbd5e1' : '#475569';
+    var grid = dark ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.06)';
+    var ringBorder = dark ? '#1e293b' : '#ffffff';
+    var font = { family: 'Cairo', size: 9.5 };
+    var lbl = function(m) { return m.month.slice(5) + '/' + m.month.slice(2, 4); };
+    var showEmpty = function(canvasId, msg) {
+        var c = document.getElementById(canvasId);
+        if (!c || !c.parentElement) return;
+        var d = document.createElement('div');
+        d.className = 'hdash-empty';
+        d.textContent = msg;
+        c.parentElement.appendChild(d);
+    };
+
+    // 1) توزيع حالة المعدات
+    var fleetCv = document.getElementById('home-chart-fleet');
+    if (fleetCv) {
+        if (!data.total) {
+            showEmpty('home-chart-fleet', 'لا توجد معدات');
+        } else {
+            var centerPlugin = {
+                id: 'hdashCenter',
+                afterDraw: function(chart) {
+                    var m = chart.getDatasetMeta(0).data[0];
+                    if (!m) return;
+                    var ctx = chart.ctx;
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = dark ? '#f1f5f9' : '#0d1b2a';
+                    ctx.font = '800 17px Cairo, sans-serif';
+                    ctx.fillText(String(data.total), m.x, m.y - 3);
+                    ctx.fillStyle = txt;
+                    ctx.font = '600 8.5px Cairo, sans-serif';
+                    ctx.fillText('معدة', m.x, m.y + 11);
+                    ctx.restore();
+                }
+            };
+            homeDashChartInstances.fleet = new Chart(fleetCv, {
+                type: 'doughnut',
+                data: {
+                    labels: ['سليمة', 'قريبة الصيانة', 'متأخرة', 'متوقفة'],
+                    datasets: [{
+                        data: [data.fleet.healthy, data.fleet.soon, data.fleet.overdue, data.fleet.stopped],
+                        backgroundColor: ['#059669', '#d97706', '#dc2626', '#64748b'],
+                        borderWidth: 2, borderColor: ringBorder
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '64%',
+                    plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, color: txt, boxWidth: 8, padding: 5 } } }
+                },
+                plugins: [centerPlugin]
+            });
+        }
+    }
+
+    // 2) الصيانات المكتملة
+    var maintCv = document.getElementById('home-chart-maint');
+    if (maintCv) {
+        homeDashChartInstances.maint = new Chart(maintCv, {
+            type: 'bar',
+            data: {
+                labels: data.maintByMonth.map(lbl),
+                datasets: [{ label: 'صيانات مكتملة', data: data.maintByMonth.map(function(m) { return m.count; }), backgroundColor: '#0e7490', borderRadius: 6, maxBarThickness: 22 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: txt, font: font }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { precision: 0, color: txt, font: font }, grid: { color: grid } }
+                }
+            }
+        });
+    }
+
+    // 3) اتجاه استهلاك الوقود (محورين)
+    var fuelCv = document.getElementById('home-chart-fuel');
+    if (fuelCv) {
+        homeDashChartInstances.fuel = new Chart(fuelCv, {
+            type: 'line',
+            data: {
+                labels: data.fuelTrend.map(lbl),
+                datasets: [
+                    { label: 'لتر', data: data.fuelTrend.map(function(m) { return m.liters; }), borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,.14)', fill: true, tension: .35, pointRadius: 3, yAxisID: 'y' },
+                    { label: 'تكلفة (ج.م)', data: data.fuelTrend.map(function(m) { return m.cost; }), borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,.12)', fill: true, tension: .35, pointRadius: 3, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 9.5 }, color: txt, boxWidth: 10, padding: 8 } } },
+                scales: {
+                    x: { ticks: { color: txt, font: font }, grid: { display: false } },
+                    y: { type: 'linear', position: 'left', beginAtZero: true, ticks: { color: txt, font: font }, grid: { color: grid } },
+                    y1: { type: 'linear', position: 'right', beginAtZero: true, ticks: { color: txt, font: font }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    // 4) أعلى 10 معدات استخدامًا
+    var topCv = document.getElementById('home-chart-top');
+    var topWrap = document.getElementById('home-chart-top-wrap');
+    if (topCv) {
+        if (!data.top10.length) {
+            if (topWrap) topWrap.style.height = '90px';
+            showEmpty('home-chart-top', 'لا توجد ساعات تشغيل مسجّلة في هذه الفترة');
+        } else {
+            if (topWrap) topWrap.style.height = Math.max(150, data.top10.length * 26 + 20) + 'px';
+            homeDashChartInstances.top = new Chart(topCv, {
+                type: 'bar',
+                data: {
+                    labels: data.top10.map(function(u) { var n = u.eq.name || ''; return n.length > 20 ? n.slice(0, 19) + '…' : n; }),
+                    datasets: [{ label: 'ساعات العمل', data: data.top10.map(function(u) { return u.hours; }), backgroundColor: '#7c3aed', borderRadius: 6, maxBarThickness: 18 }]
+                },
+                options: {
+                    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { color: txt, font: font }, grid: { color: grid } },
+                        y: { ticks: { color: txt, font: { family: 'Cairo', size: 9 } }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+    }
+}
+
 function updateHomeStatsAndList() {
     var equipmentData = getVisibleEquipment();
 
@@ -18323,6 +18696,7 @@ function updateHomeStatsAndList() {
     // بتتنفذ الأول وبمعزل (try/catch جواها أصلاً) عشان أي خطأ في أي جزء تاني من الصفحة
     // (زي شبكة الأقسام أو حساب النواقص) ميوقفش عرض المقارنة والرسومات
     renderHomeUsageCharts(equipmentData);
+    renderHomeDashboardCharts(equipmentData);
 
     // تذكير بإرسال التقرير الدوري (يظهر فقط لصاحب الصلاحية الكاملة، وبعد 7 أيام من آخر تقرير)
     var bannerEl = document.getElementById('report-reminder-banner');
