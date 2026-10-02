@@ -1697,7 +1697,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 <div class="eq-step-dot" data-step="3" style="display:flex;flex-direction:column;align-items:center;gap:4px"><div class="eq-step-circle" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#e2e8f0;color:var(--gray)">3</div><span style="font-size:10px;color:var(--gray)"><span class="i18n-label" data-en="Attachments" data-ar="المرفقات"></span></span></div>
 </div>
 
-<div id="eq-step-1" class="eq-wizard-step"><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment Code" data-ar="كود المعدة"></span> *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment Name" data-ar="اسم المعدة"></span> *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Type" data-ar="النوع"></span></label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>مقطورة سطحة</option><option>مقطورة تانك</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 <span class="i18n-label" data-en="Equipment type cannot be changed after creation" data-ar="لا يمكن تغيير نوع المعدة بعد الإنشاء"></span></div></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Chassis No." data-ar="رقم الشاسيه"></span></label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Location" data-ar="الموقع"></span></label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">🏗️ <span class="i18n-label" data-en="Project Name" data-ar="اسم المشروع"></span></label><input class="form-input" id="eq-project-site" placeholder="مثال: مشروع القاهرة الجديدة"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Assigned Driver" data-ar="السائق المسند"></span></label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">🏷️ <span class="i18n-label" data-en="Ownership Type" data-ar="نوع الملكية"></span></label><select class="form-select" id="eq-ownership"><option value="ملك">🔑 ملك</option><option value="إيجار">📋 إيجار</option></select></div><div class="form-field"><label class="form-label">⛽ <span class="i18n-label" data-en="Fuel Type" data-ar="نوع الوقود"></span></label><select class="form-select" id="eq-fuel-type"><option value="ديزل">⛽ ديزل</option><option value="بنزين">⛽ بنزين</option></select></div><div class="form-field"><label class="form-label">💰 <span class="i18n-label" data-en="Asset Book Value (EGP)" data-ar="القيمة الدفترية للأصل (ج.م)"></span> <span style="font-weight:400;color:var(--gray);font-size:11px">— <span class="i18n-label" data-en="Optional, used in the executive dashboard" data-ar="اختياري، تُستخدم في لوحة مؤشرات المديرين"></span></span></label><input class="form-input" type="number" id="eq-asset-value" placeholder="0"></div></div>
+<div id="eq-step-1" class="eq-wizard-step"><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment Code" data-ar="كود المعدة"></span> *</label><input class="form-input" id="eq-code" placeholder="EX-001"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment Name" data-ar="اسم المعدة"></span> *</label><input class="form-input" id="eq-name" placeholder="حفارة كاتربيلار"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Type" data-ar="النوع"></span></label><select class="form-select" id="eq-type"><option>حفارة</option><option>لودر</option><option>رافعة</option><option>بلدوزر</option><option>شاحنة</option><option>جرار</option><option>مولد كهربائي</option><option>برج إنارة</option><option>ماكينة لحام</option><option>دكاك</option><option>هزاز</option><option>رافعة شوكية 14</option><option>رافعة شوكية 17</option><option>مقطورة سطحة</option><option>مقطورة تانك</option><option>أخرى</option></select><div id="eq-type-lock-msg" style="display:none;margin-top:5px;font-size:11px;color:var(--warning);background:#fef3c7;padding:5px 10px;border-radius:8px">🔒 <span class="i18n-label" data-en="Equipment type cannot be changed after creation" data-ar="لا يمكن تغيير نوع المعدة بعد الإنشاء"></span></div></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Chassis No." data-ar="رقم الشاسيه"></span></label><input class="form-input" id="eq-chassis"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Location" data-ar="الموقع"></span></label><input class="form-input" id="eq-location"></div><div class="form-field"><label class="form-label">🏗️ <span class="i18n-label" data-en="Project Name" data-ar="اسم المشروع"></span></label><input class="form-input" id="eq-project-site" placeholder="مثال: مشروع القاهرة الجديدة"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Assigned Driver" data-ar="السائق المسند" id="eq-driver-label"></span></label><select class="form-select" id="eq-driver"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="eq-status"><option>يعمل</option><option>صيانة</option><option>متوقف</option></select></div><div class="form-field"><label class="form-label">🏷️ <span class="i18n-label" data-en="Ownership Type" data-ar="نوع الملكية"></span></label><select class="form-select" id="eq-ownership" onchange="updateDriverSelects()"><option value="ملك">🔑 ملك</option><option value="إيجار">📋 إيجار</option></select></div><div class="form-field"><label class="form-label">⛽ <span class="i18n-label" data-en="Fuel Type" data-ar="نوع الوقود"></span></label><select class="form-select" id="eq-fuel-type"><option value="ديزل">⛽ ديزل</option><option value="بنزين">⛽ بنزين</option></select></div><div class="form-field"><label class="form-label">💰 <span class="i18n-label" data-en="Asset Book Value (EGP)" data-ar="القيمة الدفترية للأصل (ج.م)"></span> <span style="font-weight:400;color:var(--gray);font-size:11px">— <span class="i18n-label" data-en="Optional, used in the executive dashboard" data-ar="اختياري، تُستخدم في لوحة مؤشرات المديرين"></span></span></label><input class="form-input" type="number" id="eq-asset-value" placeholder="0"></div></div>
 <button class="save-btn" style="margin:0" onclick="eqWizardNext(1)"><span class="i18n-label" data-en="Next: Meter ⬅️" data-ar="التالي: العداد ⬅️"></span></button>
 </div>
 
@@ -5277,6 +5277,7 @@ function attachFirebaseListeners() {
     listen('employees', function(snapshot) {
         employeesData = snapshotToArray(snapshot);
         debouncedRefresh();
+        updateDriverSelects();
     });
     
     listen('fuelRecords', function(snapshot) {
@@ -5482,17 +5483,71 @@ function debouncedRefresh() {
     refreshTimeout = setTimeout(function() { refreshUI(); }, 150);
 }
 
-function updateDriverSelects() {
-    var selectIds = ['eq-driver', 'fuel-driver'];
-    selectIds.forEach(function(id) {
-        var select = document.getElementById(id);
-        if (select) {
-            select.innerHTML = '<option value="">اختر سائق</option>' +
-                driversData.filter(function(d) { return d.status === 'نشط'; }).map(function(d) {
-                    return '<option value="' + escapeHtml(d.id) + '">' + escapeHtml(d.name) + '</option>';
-                }).join('');
+// المعدات الملك: يتم إسناد موظف (من صفحة الموظفين) — معدات الإيجار: يتم إسناد سائق (من صفحة السائقين)
+function eqAssigneeIsEmployee() {
+    var ow = document.getElementById('eq-ownership');
+    return !!ow && ow.value !== 'إيجار';
+}
+function findAssignedPerson(id) {
+    if (!id) return null;
+    var sid = String(id);
+    var d = (driversData || []).find(function(x) { return x && String(x.id) === sid; });
+    if (d) return { person: d, type: 'driver' };
+    var e = (employeesData || []).find(function(x) { return x && String(x.id) === sid; });
+    if (e) return { person: e, type: 'employee' };
+    return null;
+}
+function updateEqAssigneeLabel() {
+    var span = document.getElementById('eq-driver-label');
+    if (!span) return;
+    var emp = eqAssigneeIsEmployee();
+    span.setAttribute('data-en', emp ? 'Assigned Employee' : 'Assigned Driver');
+    span.setAttribute('data-ar', emp ? 'الموظف المسند' : 'السائق المسند');
+    applyLanguageToElement(span);
+}
+function updateDriverSelects(keepId) {
+    // قائمة السائق في فورم الوقود: سائقين نشطين دايمًا
+    var fuelSel = document.getElementById('fuel-driver');
+    if (fuelSel) {
+        var prevFuel = fuelSel.value;
+        fuelSel.innerHTML = '<option value="">اختر سائق</option>' +
+            driversData.filter(function(d) { return d.status === 'نشط'; }).map(function(d) {
+                return '<option value="' + escapeHtml(d.id) + '">' + escapeHtml(d.name) + '</option>';
+            }).join('');
+        if (prevFuel) fuelSel.value = prevFuel;
+    }
+    // قائمة الإسناد في فورم المعدة: حسب نوع الملكية
+    var select = document.getElementById('eq-driver');
+    if (select) {
+        var prev = keepId || select.value;
+        var asEmployee = eqAssigneeIsEmployee();
+        var opts = asEmployee
+            ? '<option value="">' + RL('Select employee', 'اختر موظف') + '</option>' +
+              (employeesData || []).filter(function(e) { return e.status === 'نشط'; }).map(function(e) {
+                  return '<option value="' + escapeHtml(e.id) + '">' + escapeHtml(e.name) + (e.title ? ' — ' + escapeHtml(e.title) : '') + '</option>';
+              }).join('')
+            : '<option value="">' + RL('Select driver', 'اختر سائق') + '</option>' +
+              driversData.filter(function(d) { return d.status === 'نشط'; }).map(function(d) {
+                  return '<option value="' + escapeHtml(d.id) + '">' + escapeHtml(d.name) + '</option>';
+              }).join('');
+        select.innerHTML = opts;
+        if (prev) {
+            var has = Array.prototype.some.call(select.options, function(o) { return o.value === String(prev); });
+            if (!has && keepId) {
+                // إسناد قديم من النوع التاني (مثلاً سائق على معدة ملك): نبقيه ظاهر عشان ما يتمسحش عند الحفظ
+                var found = findAssignedPerson(prev);
+                if (found) {
+                    var o = document.createElement('option');
+                    o.value = String(prev);
+                    o.textContent = found.person.name + (found.type === 'driver' ? RL(' (driver)', ' (سائق)') : RL(' (employee)', ' (موظف)'));
+                    select.appendChild(o);
+                    has = true;
+                }
+            }
+            if (has) select.value = String(prev);
         }
-    });
+        updateEqAssigneeLabel();
+    }
 }
 
 // ==================== دوال الدخول ====================
@@ -6662,6 +6717,8 @@ function saveEquipment() {
         location: document.getElementById('eq-location').value,
         projectSite: document.getElementById('eq-project-site').value.trim(),
         assignedDriver: document.getElementById('eq-driver').value || null,
+        assignedDriverType: (function() { var f = findAssignedPerson(document.getElementById('eq-driver').value); return f ? f.type : null; })(),
+        assignedDriverName: (function() { var f = findAssignedPerson(document.getElementById('eq-driver').value); return f ? (f.person.name || null) : null; })(),
         hours: parseInt(document.getElementById('eq-hours').value) || 0,
         nextHours: parseInt(document.getElementById('eq-next-hours').value) || 250,
         interval: parseInt(document.getElementById('eq-interval').value) || 250,
@@ -6751,7 +6808,7 @@ function editEquipment(id) {
     document.getElementById('eq-fuel-type').value = equipment.fuelType || 'ديزل';
     document.getElementById('eq-asset-value').value = equipment.assetValue || '';
     document.getElementById('eq-notes').value = equipment.notes || '';
-    updateDriverSelects();
+    updateDriverSelects(equipment.assignedDriver || '');
     if (equipment.assignedDriver) {
         document.getElementById('eq-driver').value = equipment.assignedDriver;
     }
@@ -7294,7 +7351,9 @@ function openEquipmentDetail(id) {
         return;
     }
     
-    var driver = driversData.find(function(d) { return d && String(d.id) === String(equipment.assignedDriver); });
+    var assignedFound = findAssignedPerson(equipment.assignedDriver);
+    var driver = assignedFound ? assignedFound.person : null;
+    var assignedIsEmployee = !!(assignedFound && assignedFound.type === 'employee');
     var remaining = hoursRemaining(equipment);
     var percent = getRemainingPercent(equipment);
     var statusText = getRemainingStatus(equipment);
@@ -7323,7 +7382,7 @@ function openEquipmentDetail(id) {
         '<div><div class="detail-label"><span class="i18n-label" data-en="Chassis" data-ar="الشاسيه"></span></div><div class="detail-value">' + escapeHtml(equipment.chassis || '—') + '</div></div>' +
         '<div><div class="detail-label"><span class="i18n-label" data-en="Location" data-ar="الموقع"></span></div><div class="detail-value">' + escapeHtml(equipment.location || '—') + '</div></div>' +
         '<div><div class="detail-label">🏗️ ' + RL('Project', 'المشروع') + '</div><div class="detail-value">' + escapeHtml(equipment.projectSite || '—') + '</div></div>' +
-        '<div><div class="detail-label"><span class="i18n-label" data-en="Driver" data-ar="السائق"></span></div><div class="detail-value">' + (driver ? escapeHtml(driver.name) : '—') + '</div></div>' +
+        '<div><div class="detail-label"><span class="i18n-label" data-en="' + (assignedIsEmployee ? 'Employee' : 'Driver') + '" data-ar="' + (assignedIsEmployee ? 'الموظف' : 'السائق') + '"></span></div><div class="detail-value">' + (driver ? escapeHtml(driver.name) : (equipment.assignedDriverName ? escapeHtml(equipment.assignedDriverName) : '—')) + '</div></div>' +
         '<div><div class="detail-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></div><div class="detail-value">' + escapeHtml(equipment.status) + '</div></div>' +
         '<div><div class="detail-label">🏷️ ' + RL('Ownership Type', 'نوع الملكية') + '</div><div class="detail-value">' + (equipment.ownership === 'إيجار' ? '📋 ' + RL('Rented', 'إيجار') : '🔑 ' + RL('Owned', 'ملك')) + '</div></div>' +
         '<div><div class="detail-label"><span class="i18n-label" data-en="Maintenance Cycle" data-ar="دورة الصيانة"></span></div><div class="detail-value">' + RL('Every ', 'كل ') + (equipment.interval || 250) + ' ' + RL('h', 'س') + '</div></div>' +
@@ -7970,6 +8029,7 @@ function initEquipmentPublicViewPage(eqId) {
         Object.keys(driversVal).forEach(function(k) {
             if (k === eq.assignedDriver && driversVal[k]) driverName = driversVal[k].name || '';
         });
+        if (!driverName && eq.assignedDriverName) driverName = eq.assignedDriverName;
 
         // معدات الإيجار: نعرض ملف الحضور والانصراف بس (مفيش أي تفاصيل تانية)
         if (eq.ownership === 'إيجار') {
@@ -8651,6 +8711,7 @@ function renderEquipmentPublicView(eq, last4Maint, driverName, maintDenied, last
 // يتطلب نفس صلاحية تعديل المعدات المستخدمة في رفع ملفات الفحص/المعايرة — تسجيل الدخول مرة واحدة في الجلسة
 // كارت واحد: خانة عداد واحدة تخدم "بدء العمل" و"تحديث العداد" — "بدء العمل" بيبدأ الشغل ويرسل طلب تحديث العداد للاعتماد في نفس الضغطة
 function eqpvOwnedActionsHtml(eq, driverName) {
+    window._eqpvAssignedName = (eq.assignedDriver && (driverName || eq.assignedDriverName)) || '';
     window._eqpvMeterPhoto = null; window._eqpvMeterOcrValue = null;
     window._eqpvDriverId = eq.assignedDriver || null;
     var hasDriver = !!eq.assignedDriver;
@@ -9352,6 +9413,32 @@ function openEmployeeDetail(id) {
 
     if (employee.notes) {
         contentHtml += '<div class="detail-section"><div class="detail-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></div><div class="detail-value">' + escapeHtml(employee.notes) + '</div></div>';
+    }
+    var empAssigned = equipmentData.filter(function(e) { return e.assignedDriver === employee.id; });
+    if (empAssigned.length) {
+        contentHtml += '<div class="detail-section"><div class="detail-label">🚜 '+RL('Equipment','المعدات')+'</div>' +
+            empAssigned.map(function(e) { return '<div>• ' + escapeHtml(e.name) + ' (' + escapeHtml(e.code) + ')</div>'; }).join('') + '</div>';
+        if (hasPermission('all')) {
+            var eLoc = driverLocations.find(function(l) { return l.driverId === employee.id; });
+            var eLocHtml;
+            if (eLoc && eLoc.updatedAt) {
+                var eMins = (new Date() - new Date(eLoc.updatedAt)) / 60000;
+                var eColor = eMins <= 15 ? 'var(--success)' : eMins <= 120 ? 'var(--warning)' : 'var(--gray)';
+                var eAgo = eMins < 1 ? RL('now','الآن') : eMins < 60 ? Math.round(eMins) + ' '+RL('min','دقيقة') : Math.round(eMins / 60) + ' '+RL('h','ساعة');
+                eLocHtml = '<span style="color:' + eColor + ';font-weight:700">📍 '+RL('Last update: ','آخر تحديث: ')+RL('','منذ ')+eAgo + '</span>';
+                if (eLoc.closedAt && new Date(eLoc.closedAt) > new Date(eLoc.updatedAt)) {
+                    var eClosed = Math.round((new Date() - new Date(eLoc.closedAt)) / 60000);
+                    eLocHtml += '<div style="margin-top:6px;color:var(--danger);font-weight:800">🔴 '+RL('Page closed ','قفل الصفحة منذ ')+(eClosed < 1 ? RL('moments ago','لحظات') : eClosed + ' '+RL('min ago','دقيقة'))+'</div>';
+                }
+            } else {
+                eLocHtml = '<span style="color:var(--gray)">⚪ '+RL('Has not shared their location yet','لسه ماشاركش موقعه')+'</span>';
+            }
+            contentHtml += '<div class="detail-section"><div class="detail-label">📍 '+RL('Location Tracking (GPS)','تتبّع الموقع (GPS)')+'</div><div class="detail-value">' + eLocHtml + '</div>' +
+                '<div class="grid-2" style="margin-top:8px">' +
+                '<button class="save-btn" style="margin:0;background:var(--info)" onclick="copyDriverShareLink(\'' + employee.id + '\')">📋 '+RL('Copy Share Link','نسخ رابط المشاركة')+'</button>' +
+                '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#25d366,#128c7e)" onclick="shareDriverLinkWhatsApp(\'' + employee.id + '\',\'' + escapeHtml(employee.name).replace(/'/g,"\\'") + '\')">📲 '+RL('Send WhatsApp','إرسال واتساب')+'</button>' +
+                '</div></div>';
+        }
     }
     contentHtml += '<div class="grid-2" style="margin:12px 14px">';
     if (hasPermission('all') || canEdit('employees')) {
@@ -11548,7 +11635,7 @@ function analyzeMapSnapshotWithAi() {
         if (!eq.assignedDriver) return;
         var loc = driverLocations.find(function(l) { return l.driverId === eq.assignedDriver; });
         if (!loc || !loc.lat || !loc.lng) return;
-        var drv = driversData.find(function(d) { return d.id === eq.assignedDriver; });
+        var _fp = findAssignedPerson(eq.assignedDriver); var drv = _fp ? _fp.person : null;
         lines.push('- ' + (eq.name || '') + ' (' + (eq.code || '') + ') — السائق: ' + (drv ? drv.name : 'غير معروف') + ' — الحالة: ' + gpsStatusLabel(loc.updatedAt, loc.closedAt));
     });
     if (!lines.length) {
@@ -11749,7 +11836,7 @@ function renderEquipmentMap() {
         if (!eq.assignedDriver) return;
         var loc = driverLocations.find(function(l) { return l.driverId === eq.assignedDriver; });
         if (!loc || !loc.lat || !loc.lng) return;
-        var drv = driversData.find(function(d) { return d.id === eq.assignedDriver; });
+        var _fp = findAssignedPerson(eq.assignedDriver); var drv = _fp ? _fp.person : null;
         points.push({ eq: eq, drv: drv, loc: loc });
     });
 
@@ -12132,10 +12219,34 @@ function buildGoogleMapsRouteUrl(startPt, endPt, stops) {
     return url;
 }
 
-// توليد رابط مشاركة الموقع لسائق معيّن (بدون تسجيل دخول)
+// جلب بيانات الشخص صاحب رابط/صفحة GPS: سائق أولاً، ثم موظف، ثم الاسم المرفق في الرابط/المعدة (لو القراءة العامة مش متاحة)
+function sharePersonUrlFallback() {
+    try {
+        if (window._eqpvAssignedName) return { name: window._eqpvAssignedName, isEmployee: true };
+        var q = new URLSearchParams(location.search);
+        if (q.get('t') === 'e' && q.get('n')) return { name: q.get('n'), isEmployee: true };
+    } catch (e) {}
+    return null;
+}
+function fetchSharePerson(id) {
+    var fb = sharePersonUrlFallback();
+    function tryEmployee() {
+        return fbDb.ref('employees/' + id).once('value')
+            .then(function(s2) { return s2.val() || fb; })
+            .catch(function() { return fb; });
+    }
+    return fbDb.ref('drivers/' + id).once('value')
+        .then(function(s1) { var v = s1.val(); return v ? v : tryEmployee(); })
+        .catch(function() { return tryEmployee(); });
+}
+
+// توليد رابط مشاركة الموقع لسائق أو موظف (بدون تسجيل دخول)
 function generateDriverShareLink(driverId) {
     var base = location.origin + location.pathname;
-    return base + '?share=' + driverId;
+    var link = base + '?share=' + driverId;
+    var f = findAssignedPerson(driverId);
+    if (f && f.type === 'employee') link += '&t=e&n=' + encodeURIComponent(f.person.name || '');
+    return link;
 }
 
 function copyDriverShareLink(driverId, driverName) {
@@ -12606,8 +12717,7 @@ function wireOwnedEquipmentWorkCard(driverId, eqType) {
     var meterInput = document.getElementById('eqpv-share-meter-input');
     if (!btn || !statusEl || !meterInput) return;
 
-    fbDb.ref('drivers/' + driverId).once('value').then(function(snap) {
-        var d = snap.val();
+    fetchSharePerson(driverId).then(function(d) {
         driverName = d ? d.name : '';
         if (!d) btn.style.display = 'none';
         tryFlushQueue();
@@ -12796,8 +12906,7 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
     var pendingId = null; // طلب معلّق بانتظار المراجعة (يُحدَّث عند التعديل بدل تكرار الطلبات)
     var latestRequest = null; // آخر طلب لهذا اليوم أيًا كانت حالته (لعرض حالته للسائق فقط)
 
-    fbDb.ref('drivers/' + driverId).once('value').then(function(snap) {
-        var d = snap.val();
+    fetchSharePerson(driverId).then(function(d) {
         document.getElementById('attend-driver-name').textContent = d ? '👨‍✈️ ' + d.name : 'رابط غير صحيح';
     });
 
@@ -12887,8 +12996,7 @@ function wireRentalAttendanceCards(driverId, rentalId, rentalContract) {
         var sharing = false;
         var driverNameForLoc = '';
 
-        fbDb.ref('drivers/' + driverId).once('value').then(function(snap) {
-            var d = snap.val();
+        fetchSharePerson(driverId).then(function(d) {
             driverNameForLoc = d ? d.name : '';
         });
 
@@ -13079,8 +13187,7 @@ function initEquipmentMeterSharePage(driverId) {
         return y + '-' + m + '-' + day;
     }
 
-    fbDb.ref('drivers/' + driverId).once('value').then(function(snap) {
-        var d = snap.val();
+    fetchSharePerson(driverId).then(function(d) {
         driverName = d ? d.name : '';
         document.getElementById('share-driver-name').textContent = d ? '👨‍✈️ ' + d.name : 'رابط غير صحيح';
         if (!d) document.getElementById('share-toggle-btn').style.display = 'none';
