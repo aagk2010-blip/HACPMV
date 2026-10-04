@@ -1411,6 +1411,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <button id="add-fuel-btn" class="home-quick-btn" style="background:linear-gradient(135deg,var(--info),var(--primary))"><span class="qi">⛽</span><span class="i18n-label" data-en="Log New Refill" data-ar="تسجيل تزود جديد"></span></button>
         <button id="monthly-fuel-report-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#10b981,#0e7490)"><span class="qi">📊</span><span class="i18n-label" data-en="Monthly Report" data-ar="تقرير شهري"></span></button>
         <button id="custom-range-fuel-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#0d1b2a,#ec4899)"><span class="qi">📅</span><span class="i18n-label" data-en="Custom Period Report" data-ar="تقرير بمدة محددة"></span></button>
+        <button id="update-fuel-prices-btn" onclick="recalculateFuelCosts(false)" class="home-quick-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5)"><span class="qi">💲</span><span class="i18n-label" data-en="Update Fuel Prices" data-ar="تحديث أسعار الوقود"></span></button>
         <button onclick="openFuelTheftView()" class="home-quick-btn" style="background:linear-gradient(135deg,#7f1d1d,#450a0a)"><span class="qi">🕵️</span><span class="i18n-label" data-en="Leak / Theft Detection" data-ar="كشف تسريب / سرقة"></span></button>
         <button id="delete-all-fuel-btn" class="home-quick-btn" style="background:#dc2626"><span class="qi">🗑️</span><span class="i18n-label" data-en="Delete All Records" data-ar="حذف كل السجلات"></span></button>
       </div>
@@ -3063,7 +3064,7 @@ function maybeAutoRunDataCleanup() {
 }
 
 function recalculateFuelCosts(overwriteAll) {
-    if (currentUserRole !== 'admin') { showToast('غير مصرح', true); return; }
+    if (currentUserRole !== 'admin' && !hasPermission('all')) { showToast('غير مصرح', true); return; }
     if (!currentFuelPrices.diesel && !currentFuelPrices.gasoline) {
         showToast('⚠️ من فضلك احفظ أسعار الوقود أولاً', true);
         return;
