@@ -1120,6 +1120,13 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   transition:background .35s ease,color .35s ease,border-color .35s ease,box-shadow .35s ease;
 }
 </style>
+<style id="map-person-label-css">
+.map-person-label{background:rgba(255,255,255,.95)!important;border:1px solid rgba(0,0,0,.15)!important;border-radius:8px!important;padding:2px 7px!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important;font-family:Cairo,sans-serif;font-size:11px;font-weight:800;color:#0f172a!important;text-align:center;line-height:1.35;white-space:nowrap;direction:rtl}
+.map-person-label::before{display:none!important}
+.map-person-label .mpl-eq{display:block;font-size:9.5px;font-weight:600;color:#64748b}
+.map-person-label.mpl-emp{border-color:#7c3aed!important}
+.map-person-label.mpl-drv{border-color:#0e7490!important}
+</style>
 </head>
 <body>
 <!-- ═══════════════════════════════════════════════════════════════════════
@@ -1613,7 +1620,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <div id="map-ai-snapshot-result"></div>
       </div>
       <div style="padding:0 14px 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <select id="route-driver-select" style="flex:1;min-width:140px;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;background:white"><option value="">🛣️ اختر سائق لعرض مساره</option></select>
+        <select id="route-driver-select" style="flex:1;min-width:140px;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;background:white"><option value="">🛣️ اختر سائق / موظف لعرض مساره</option></select>
         <input type="date" id="route-date-input" style="border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:12.5px;font-family:inherit;background:white">
         <button onclick="showDriverRoute()" style="background:linear-gradient(135deg,#0891b2,#155e75);color:white;border:none;border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">🛣️ عرض المسار</button>
         <button onclick="clearDriverRoute()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">✖️ مسح</button>
@@ -11837,7 +11844,7 @@ function renderEquipmentMap() {
         var loc = driverLocations.find(function(l) { return l.driverId === eq.assignedDriver; });
         if (!loc || !loc.lat || !loc.lng) return;
         var _fp = findAssignedPerson(eq.assignedDriver); var drv = _fp ? _fp.person : null;
-        points.push({ eq: eq, drv: drv, loc: loc });
+        points.push({ eq: eq, drv: drv, loc: loc, ptype: _fp ? _fp.type : 'driver' });
     });
 
     var center = points.length ? [points[0].loc.lat, points[0].loc.lng] : [30.0444, 31.2357]; // القاهرة كنقطة افتراضية
@@ -11994,6 +12001,14 @@ function renderEquipmentMap() {
         }).addTo(equipmentMapInstance);
         marker._locUpdatedAt = p.loc.updatedAt;
         marker._locClosedAt = p.loc.closedAt;
+        // اسم السائق/الموظف ظاهر دائمًا فوق النقطة (بدون الحاجة لفتح النافذة)
+        var _lblName = p.drv && p.drv.name ? p.drv.name : (p.eq.name || '');
+        marker.bindTooltip(
+            '<span>' + (p.ptype === 'employee' ? '👷 ' : '👨‍✈️ ') + escapeHtml(_lblName) + '</span>' +
+            (p.eq.name ? '<span class="mpl-eq">' + escapeHtml(p.eq.name) + (p.eq.code ? ' · ' + escapeHtml(p.eq.code) : '') + '</span>' : ''),
+            { permanent: true, direction: 'top', offset: [0, -10], interactive: true,
+              className: 'map-person-label ' + (p.ptype === 'employee' ? 'mpl-emp' : 'mpl-drv') }
+        );
         var timeAgoText = minsAgo < 1 ? 'الآن' : minsAgo < 60 ? Math.round(minsAgo) + ' دقيقة' : Math.round(minsAgo / 60) + ' ساعة';
         var meterPhotoHtml = '';
         if (p.loc.meterPhoto && p.loc.meterPhoto.data) {
@@ -12006,7 +12021,7 @@ function renderEquipmentMap() {
             '<div style="font-family:Cairo,sans-serif;text-align:right;min-width:180px">' +
                 '<div style="font-weight:800;font-size:13px;margin-bottom:3px">🏗️ ' + (p.eq.name || '') + '</div>' +
                 '<div style="font-size:11px;color:#888;direction:ltr;text-align:right;margin-bottom:3px">' + (p.eq.code || '') + '</div>' +
-                '<div style="font-size:11.5px;color:#555">👨‍✈️ ' + (p.drv ? p.drv.name : '—') + '</div>' +
+                '<div style="font-size:11.5px;color:#555">' + (p.ptype === 'employee' ? '👷 ' : '👨‍✈️ ') + (p.drv ? p.drv.name : '—') + '</div>' +
                 (p.eq.type ? '<div style="font-size:11.5px;color:#555">🔧 النوع: ' + p.eq.type + '</div>' : '') +
                 (p.eq.projectSite ? '<div style="font-size:11.5px;color:#555">📍 المشروع: ' + p.eq.projectSite + '</div>' : '') +
                 (p.loc.meter !== undefined && p.loc.meter !== null ? '<div style="font-size:11.5px;color:#555">⏱️ العداد: ' + p.loc.meter + ' س</div>' : '') +
@@ -12076,8 +12091,12 @@ function populateRouteDriverSelect() {
     var sel = document.getElementById('route-driver-select');
     if (!sel) return;
     var current = sel.value;
-    sel.innerHTML = '<option value="">🛣️ اختر سائق لعرض مساره</option>' +
-        driversData.map(function(d) { return '<option value="' + d.id + '">' + escapeHtml(d.name) + '</option>'; }).join('');
+    var _opt = function(x) { return '<option value="' + x.id + '">' + escapeHtml(x.name || '') + '</option>'; };
+    var _drvs = (driversData || []).filter(Boolean);
+    var _emps = (employeesData || []).filter(Boolean);
+    sel.innerHTML = '<option value="">🛣️ اختر سائق / موظف لعرض مساره</option>' +
+        (_drvs.length ? '<optgroup label="👨‍✈️ السائقين">' + _drvs.map(_opt).join('') + '</optgroup>' : '') +
+        (_emps.length ? '<optgroup label="👷 الموظفين">' + _emps.map(_opt).join('') + '</optgroup>' : '');
     sel.value = current;
     var dateInput = document.getElementById('route-date-input');
     if (dateInput && !dateInput.value) {
@@ -12116,7 +12135,7 @@ function showDriverRoute() {
     var driverId = document.getElementById('route-driver-select').value;
     var dateKey = document.getElementById('route-date-input').value;
     var infoEl = document.getElementById('route-info');
-    if (!driverId) { showToast('اختر سائق أولاً', true); return; }
+    if (!driverId) { showToast('اختر سائق أو موظف أولاً', true); return; }
     if (!dateKey) { showToast('اختر تاريخ أولاً', true); return; }
     if (!fbDb || !equipmentMapInstance) return;
     clearDriverRoute();
@@ -12126,7 +12145,7 @@ function showDriverRoute() {
         var pts = Object.keys(val).map(function(k) { return val[k]; }).filter(function(p) { return p.lat && p.lng; });
         pts.sort(function(a, b) { return new Date(a.updatedAt) - new Date(b.updatedAt); });
         if (!pts.length) {
-            if (infoEl) infoEl.textContent = '📭 لا يوجد مسار مسجّل لهذا السائق في هذا اليوم';
+            if (infoEl) infoEl.textContent = '📭 لا يوجد مسار مسجّل لهذا الشخص في هذا اليوم';
             return;
         }
         var latlngs = pts.map(function(p) { return [p.lat, p.lng]; });
@@ -12196,7 +12215,7 @@ function showDriverRoute() {
                 (stops.length ? ' — ⏸️ عدد التوقفات: ' + stops.length : '') +
                 '<br><a href="' + buildGoogleMapsRouteUrl(pts[0], pts[pts.length - 1], stops) + '" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:6px 12px;border-radius:8px;background:linear-gradient(135deg,#0891b2,#0e7490);color:white;font-size:11.5px;font-weight:700;text-decoration:none;font-family:inherit">🧭 فتح المسار في خرائط جوجل (بداية، نهاية، ومحطات التوقف)</a>';
         }
-        var routeDrv = driversData.find(function(d) { return d.id === driverId; });
+        var _rp = findAssignedPerson(driverId); var routeDrv = _rp ? _rp.person : null;
         renderRouteAiInsight(routeDrv ? routeDrv.name : '', totalKm, durationText, stops);
     }).catch(function(e) {
         if (infoEl) infoEl.textContent = '❌ تعذّر تحميل المسار';
