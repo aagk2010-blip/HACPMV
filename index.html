@@ -1738,10 +1738,15 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
           <option value="سركي">🧾 سركي</option>
         </select>
       </div>
+      <div id="emp-att-requests-banner"></div>
       <div id="employees-stats-bar" style="display:flex;gap:8px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#059669,#047857)" onclick="exportEmployeesExcel()">📊 <span class="i18n-label" data-en="Export Excel" data-ar="تصدير Excel"></span></button>
         <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#dc2626,#991b1b)" onclick="exportEmployeesPDF()">📄 <span class="i18n-label" data-en="Export PDF" data-ar="تصدير PDF"></span></button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="openEmployeeAttendanceModal()">📋 <span class="i18n-label" data-en="Today's Attendance" data-ar="حضور اليوم"></span></button>
+        <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="printAllEmployeeAttQRs()">🏷️ <span class="i18n-label" data-en="Attendance QR Labels" data-ar="طباعة QR الحضور"></span></button>
       </div>
       <div id="employees-list"></div>
     </div>
@@ -4525,6 +4530,7 @@ let pmHistory = {};
 let rentalData = [];
 let rentalDailyData = [];
 let contractorsData = [];
+let empAttRequests = []; // طلبات تسجيل ساعات الموظفين غير المسندين (بانتظار موافقة الموارد البشرية)
 let rentalDailyRequests = []; // طلبات تسجيل حضور/انصراف مرسلة من السائقين (بانتظار موافقة المشرف)
 let transferLogs = []; // سجل نقل المعدات بين المواقع
 let changeLogs = []; // سجل حركة/تعديل المعدات (من عدّل وامتى)
@@ -5896,6 +5902,11 @@ function attachFirebaseListeners() {
     listen('rentalDailyRequests', function(snapshot) {
         rentalDailyRequests = snapshotToArray(snapshot);
         renderRentalRequestsBadge();
+    });
+
+    listen('employeeAttendanceRequests', function(snapshot) {
+        empAttRequests = snapshotToArray(snapshot);
+        if (typeof renderEmpAttRequestsBadge === 'function') renderEmpAttRequestsBadge();
     });
 
     listen('transferLogs', function(snapshot) {
@@ -9420,6 +9431,349 @@ function openQRLabelsWindow(html) {
     }
 }
 
+// ==================== حضور الموارد البشرية اليومي (QR لكل موظف غير مسند لمعدة) ====================
+// المسار في Firebase: employeeAttendance/{YYYY-MM-DD}/{employeeId} = { empId, name, date, startAt, lat, lng, acc, noLocation, source }
+function employeeIsUnassigned(e) {
+    return !!e && e.status !== 'منتهي الخدمة' && !(equipmentData || []).some(function(q) { return q.assignedDriver === e.id; });
+}
+function generateEmployeeAttLink(e) {
+    return location.origin + location.pathname + '?emp=' + encodeURIComponent(e.id) + '&n=' + encodeURIComponent(e.name || '');
+}
+function copyEmployeeAttLink(id) {
+    var e = employeesData.find(function(x) { return x.id === id; });
+    if (!e) return;
+    var link = generateEmployeeAttLink(e);
+    if (navigator.clipboard) navigator.clipboard.writeText(link).then(function() { showToast('✅ تم نسخ رابط الحضور'); });
+    else showToast(link);
+}
+function buildEmployeeQRLabelsPage(list) {
+    var printedBy = (currentUser && (currentUser.name || currentUser.username)) || '';
+    var labels = list.map(function(e) { return { id: 'empqr_' + e.id, url: generateEmployeeAttLink(e), name: e.name || '', title: e.title || '' }; });
+    var cards = labels.map(function(l) {
+        return '<div class="qr-label"><div class="qr-name">' + escapeHtml(l.name) + '</div>' +
+            '<div class="qr-title">' + escapeHtml(l.title) + '</div>' +
+            '<div class="qr-box" id="' + l.id + '"></div>' +
+            '<div class="qr-hint">امسح الرمز كل يوم واضغط «بدء العمل»</div>' +
+            '<div class="qr-printedby">' + escapeHtml(COMPANY_NAME_AR) + (printedBy ? ' — ' + escapeHtml(printedBy) : '') + '</div></div>';
+    }).join('');
+    return '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>QR الحضور اليومي</title>' +
+        '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>' +
+        '<style>body{font-family:Arial,Tahoma,sans-serif;margin:0;padding:16px;background:#f1f5f9}' +
+        '.print-bar{text-align:center;margin-bottom:16px}.print-bar button{padding:10px 22px;border:none;border-radius:10px;background:#7c3aed;color:white;font-size:14px;font-weight:700;cursor:pointer}' +
+        '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}' +
+        '.qr-label{background:white;border:1px solid #cbd5e1;border-radius:12px;padding:12px;text-align:center;page-break-inside:avoid}' +
+        '.qr-name{font-size:15px;font-weight:800;color:#0d1b2a}.qr-title{font-size:11px;color:#64748b;margin-bottom:8px}' +
+        '.qr-box{display:flex;align-items:center;justify-content:center;margin-bottom:8px}.qr-hint{font-size:11px;color:#334155;font-weight:700}' +
+        '.qr-printedby{font-size:9.5px;color:#94a3b8;margin-top:6px;border-top:1px dashed #e2e8f0;padding-top:4px}' +
+        '@media print{.print-bar{display:none}body{background:white;padding:0}}</style></head><body>' +
+        '<div class="print-bar"><button onclick="window.print()">🖨️ طباعة</button></div><div class="grid">' + cards + '</div>' +
+        '<script>var LABELS=' + JSON.stringify(labels) + ';window.addEventListener("load",function(){LABELS.forEach(function(l){new QRCode(document.getElementById(l.id),{text:l.url,width:140,height:140,correctLevel:QRCode.CorrectLevel.M});});});<\/script></body></html>';
+}
+function printEmployeeAttQR(id) {
+    var e = employeesData.find(function(x) { return x.id === id; });
+    if (!e) return;
+    openQRLabelsWindow(buildEmployeeQRLabelsPage([e]));
+}
+function printAllEmployeeAttQRs() {
+    var list = employeesData.filter(employeeIsUnassigned).sort(function(a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
+    if (!list.length) { showToast('لا يوجد موظفون غير مسندين لمعدات', true); return; }
+    openQRLabelsWindow(buildEmployeeQRLabelsPage(list));
+}
+
+// شاشة المتابعة: من سجّل بدء العمل ومن لم يسجّل في يوم معيّن (للموظفين غير المسندين لمعدات)
+function openEmployeeAttendanceModal() {
+    var old = document.getElementById('emp-att-overlay'); if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'emp-att-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:10050;background:#f1f5f9;overflow:auto;direction:rtl;font-family:Cairo,Tahoma,sans-serif';
+    ov.innerHTML =
+        '<div style="position:sticky;top:0;z-index:2;background:#0d1b2a;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px">' +
+        '<div style="flex:1;font-weight:800;font-size:15px">📋 حضور الموارد البشرية اليومي</div>' +
+        '<button id="eam-close" style="border:none;background:rgba(255,255,255,.18);color:#fff;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer">✕</button></div>' +
+        '<div style="padding:14px;max-width:720px;margin:0 auto">' +
+        '<input type="date" id="eam-date" style="width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:10px 12px;font-size:14px;font-family:inherit;box-sizing:border-box;background:#fff">' +
+        '<div id="eam-sum" style="display:flex;gap:8px;margin:10px 0;flex-wrap:wrap"></div><div id="eam-list"></div></div>';
+    document.body.appendChild(ov);
+    document.getElementById('eam-close').onclick = function() { ov.remove(); };
+    var dateEl = document.getElementById('eam-date');
+    dateEl.value = businessDateStr(new Date());
+    dateEl.onchange = load;
+    load();
+
+    function fmtTime(iso) { try { return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return '—'; } }
+    function fmtDur(r) { var m = r.totalMinutes != null ? r.totalMinutes : Math.round((new Date(r.endAt) - new Date(r.startAt)) / 60000); return Math.floor(m / 60) + 'س ' + (m % 60) + 'د'; }
+    function load() {
+        var d = dateEl.value;
+        var listEl = document.getElementById('eam-list');
+        listEl.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b">⏳ جاري التحميل...</div>';
+        if (typeof fbDb === 'undefined' || !fbDb) { listEl.innerHTML = '<div style="text-align:center;padding:30px;color:#dc2626">غير متصل بقاعدة البيانات</div>'; return; }
+        fbDb.ref('employeeAttendance/' + d).once('value').then(function(snap) {
+            render(d, snap.val() || {});
+        }).catch(function(err) {
+            var denied = String((err && (err.code || err.message)) || '').toUpperCase().indexOf('PERMISSION') !== -1;
+            listEl.innerHTML = '<div style="text-align:center;padding:30px;color:#dc2626;line-height:1.9">' +
+                (denied ? 'قواعد Firebase لا تسمح بقراءة <b>employeeAttendance</b> — أضف القاعدة المطلوبة ثم أعد المحاولة.' : 'تعذّر تحميل السجل — تأكد من الاتصال بالإنترنت.') + '</div>';
+        });
+    }
+    function render(d, recs) {
+        var rows = {};
+        employeesData.filter(employeeIsUnassigned).forEach(function(e) { rows[e.id] = { e: e, rec: null }; });
+        Object.keys(recs).forEach(function(id) {
+            var r = recs[id]; if (!r) return;
+            if (!rows[id]) rows[id] = { e: employeesData.find(function(x) { return x.id === id; }) || { id: id, name: r.name || id }, rec: null };
+            rows[id].rec = r;
+        });
+        var arr = Object.keys(rows).map(function(k) { return rows[k]; });
+        var present = arr.filter(function(x) { return x.rec; }).length;
+        arr.sort(function(a, b) {
+            if (!!a.rec !== !!b.rec) return a.rec ? 1 : -1;     // اللي لم يسجّل أولًا للمتابعة
+            return String(a.e.name || '').localeCompare(String(b.e.name || ''), 'ar');
+        });
+        document.getElementById('eam-sum').innerHTML =
+            '<div style="background:#d1fae5;color:#065f46;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">✅ سجّل: ' + present + '</div>' +
+            '<div style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">❌ لم يسجّل: ' + (arr.length - present) + '</div>' +
+            '<div style="background:#e2e8f0;color:#334155;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">👥 الإجمالي: ' + arr.length + '</div>';
+        document.getElementById('eam-list').innerHTML = arr.length ? arr.map(function(x) {
+            var r = x.rec, e = x.e;
+            var right = r
+                ? '<div style="text-align:left"><div style="font-weight:800;color:#065f46;direction:ltr">🟢 ' + fmtTime(r.startAt) + (r.endAt ? ' → 🔴 ' + fmtTime(r.endAt) : '') + '</div>' +
+                  (r.endAt ? '<div style="font-size:11px;color:#334155;font-weight:700">⏱️ ' + fmtDur(r) + '</div>' : '<div style="font-size:11px;color:#b45309;font-weight:700">لم ينصرف بعد</div>') +
+                  (r.lat != null ? '<a href="https://www.google.com/maps?q=' + r.lat + ',' + r.lng + '" target="_blank" rel="noopener" style="font-size:11px;color:#0891b2;font-weight:700">📍 الموقع</a>'
+                                 : '<span style="font-size:11px;color:#b45309">بدون موقع</span>') + '</div>'
+                : '<div style="font-weight:800;color:#dc2626;font-size:12.5px">❌ لم يسجّل</div>';
+            return '<div style="background:#fff;border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-right:4px solid ' + (r ? '#10b981' : '#ef4444') + '">' +
+                '<div style="min-width:0"><div style="font-weight:800;font-size:13.5px;color:#0d1b2a">' + escapeHtml(e.name || '—') + (r && r.source === 'request' ? ' <span style="font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:8px;padding:1px 6px">✍️ بطلب معتمد</span>' : '') + '</div>' +
+                '<div style="font-size:11px;color:#64748b">' + escapeHtml(e.title || '') + (e.projectSite ? ' · ' + escapeHtml(e.projectSite) : '') + '</div></div>' + right + '</div>';
+        }).join('') : '<div style="text-align:center;padding:30px;color:#94a3b8">لا يوجد موظفون غير مسندين لمعدات</div>';
+    }
+}
+
+// الصفحة العامة التي يفتحها الموظف عند مسح QR الخاص به (بدون تسجيل دخول): بدء/انتهاء العمل + طلب تسجيل ساعات يدويًا
+function initEmployeeAttendancePage(empId) {
+    document.title = 'تسجيل الحضور والانصراف';
+    var q = new URLSearchParams(location.search);
+    var name = q.get('n') || '';
+    var today = businessDateStr(new Date());
+    var LS_KEY = 'empAtt_' + empId + '_' + today;
+    var rec = null;                // سجل اليوم (بدء/انتهاء)
+    var myReqs = {};               // طلبات هذا الموظف
+    var pendingId = null;          // طلب معلّق للتاريخ المختار (يُحدَّث بدل التكرار)
+    var CARD = 'background:#fff;border-radius:22px;padding:24px 20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);margin-bottom:14px';
+    var INP = 'width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;box-sizing:border-box';
+    var BTN = 'width:100%;padding:16px;border:none;border-radius:14px;color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit';
+    document.body.innerHTML =
+        '<div style="min-height:100vh;display:flex;align-items:flex-start;justify-content:center;background:linear-gradient(135deg,#0d1b2a,#1b2838);padding:20px;font-family:Cairo,Tahoma,sans-serif;direction:rtl"><div style="max-width:380px;width:100%">' +
+        '<div style="' + CARD + '">' +
+          '<div style="font-size:44px">👷</div>' +
+          '<div id="ea-name" style="font-size:18px;font-weight:800;color:#0d1b2a;margin-top:6px">' + escapeHtml(name || '...') + '</div>' +
+          '<div style="font-size:12.5px;color:#64748b;margin:4px 0 8px">📅 ' + today + '</div>' +
+          '<div id="ea-clock" style="font-size:30px;font-weight:800;color:#0d1b2a;margin-bottom:14px;direction:ltr"></div>' +
+          '<button id="ea-start" style="' + BTN + ';background:linear-gradient(135deg,#10b981,#059669)">▶️ بدء العمل</button>' +
+          '<button id="ea-end" style="' + BTN + ';background:linear-gradient(135deg,#dc2626,#991b1b);display:none">⏹️ انتهاء العمل</button>' +
+          '<div id="ea-status" style="display:none;margin-top:14px;font-size:13px;line-height:1.9;border-radius:10px;padding:10px"></div>' +
+        '</div>' +
+        '<div style="' + CARD + ';text-align:right">' +
+          '<div style="font-size:15px;font-weight:800;color:#0d1b2a;text-align:center">✍️ طلب تسجيل ساعات يدويًا</div>' +
+          '<div style="font-size:11.5px;color:#64748b;text-align:center;margin:4px 0 12px;line-height:1.7">نسيت تسجّل؟ اكتب ساعة الدخول والخروج وأرسلها للموافقة</div>' +
+          '<div id="mr-status" style="display:none;font-size:12.5px;font-weight:700;border-radius:10px;padding:9px;margin-bottom:12px;text-align:center"></div>' +
+          '<label style="font-size:12px;font-weight:700;color:#0d1b2a;display:block;margin-bottom:5px">📅 التاريخ</label>' +
+          '<input type="date" id="mr-date" value="' + today + '" max="' + today + '" style="' + INP + ';margin-bottom:10px">' +
+          '<label style="font-size:12px;font-weight:700;color:#0d1b2a;display:block;margin-bottom:5px">🟢 ساعة الدخول</label>' +
+          '<input type="time" id="mr-in" value="08:00" style="' + INP + ';margin-bottom:10px">' +
+          '<label style="font-size:12px;font-weight:700;color:#0d1b2a;display:block;margin-bottom:5px">🔴 ساعة الخروج</label>' +
+          '<input type="time" id="mr-out" value="17:00" style="' + INP + ';margin-bottom:8px">' +
+          '<div id="mr-total" style="font-size:12.5px;font-weight:800;color:#334155;text-align:center;margin-bottom:12px"></div>' +
+          '<button id="mr-send" style="' + BTN + ';font-size:15px;padding:14px;background:linear-gradient(135deg,#7c3aed,#4f46e5)">📤 إرسال للمراجعة</button>' +
+          '<div style="font-size:10.5px;color:#9ca3af;margin-top:12px;text-align:center">يُرسل الطلب للموارد البشرية للموافقة — تقدر تعدّل وترسل تاني قبل المراجعة</div>' +
+        '</div></div></div>';
+
+    var $ = function(id) { return document.getElementById(id); };
+    var startBtn = $('ea-start'), endBtn = $('ea-end'), st = $('ea-status'), nameEl = $('ea-name');
+    function hm(iso) { try { return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
+    function dur(mins) { return Math.floor(mins / 60) + ' س ' + (mins % 60) + ' د'; }
+    function paint(el, msg, kind) {
+        var c = { ok: ['#065f46', '#d1fae5'], warn: ['#92400e', '#fef3c7'], err: ['#991b1b', '#fee2e2'], info: ['#334155', '#f1f5f9'] }[kind] || ['#334155', '#f1f5f9'];
+        el.style.display = 'block'; el.style.color = c[0]; el.style.background = c[1]; el.innerHTML = msg;
+    }
+    function tick() { $('ea-clock').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
+    tick(); setInterval(tick, 15000);
+
+    // ---------- بدء / انتهاء العمل ----------
+    function applyState() {
+        startBtn.disabled = false; endBtn.disabled = false;
+        startBtn.textContent = '▶️ بدء العمل'; endBtn.textContent = '⏹️ انتهاء العمل';
+        if (!rec || !rec.startAt) { startBtn.style.display = ''; endBtn.style.display = 'none'; st.style.display = 'none'; return; }
+        startBtn.style.display = 'none';
+        if (!rec.endAt) {
+            endBtn.style.display = '';
+            var mins = Math.max(0, Math.round((Date.now() - new Date(rec.startAt)) / 60000));
+            paint(st, '🟢 بدأت العمل الساعة <b>' + hm(rec.startAt) + '</b><br>⏱️ مدة العمل حتى الآن: <b>' + dur(mins) + '</b>' + (rec.noLocation ? '<br>⚠️ بدون تحديد الموقع' : ''), 'ok');
+        } else {
+            endBtn.style.display = 'none';
+            var tot = rec.totalMinutes != null ? rec.totalMinutes : Math.round((new Date(rec.endAt) - new Date(rec.startAt)) / 60000);
+            paint(st, '✅ تم تسجيل انتهاء عملك<br>🟢 ' + hm(rec.startAt) + ' → 🔴 ' + hm(rec.endAt) + '<br>⏱️ الإجمالي: <b>' + dur(tot) + '</b><br>شكرًا لك 🌟', 'ok');
+        }
+    }
+    setInterval(function() { if (rec && rec.startAt && !rec.endAt) applyState(); }, 60000);
+    function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(rec)); } catch (e) {} }
+    try { var l0 = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); if (l0 && l0.startAt) { rec = l0; applyState(); } } catch (e) {}
+
+    if (typeof fbDb === 'undefined' || !fbDb) { paint(st, '❌ تعذّر الاتصال — حاول مرة أخرى', 'err'); return; }
+    var dayRef = fbDb.ref('employeeAttendance/' + today + '/' + empId);
+    fbDb.ref('employees/' + empId).once('value').then(function(s) {
+        var v = s.val();
+        if (v && v.name) { name = v.name; nameEl.textContent = name; }
+        if (v && v.status === 'منتهي الخدمة') { startBtn.disabled = true; endBtn.disabled = true; paint(st, 'هذا الرمز غير فعّال', 'err'); }
+    }).catch(function() {});
+    dayRef.once('value').then(function(s) { var v = s.val(); if (v && v.startAt) { rec = v; saveLocal(); applyState(); } }).catch(function() {});
+
+    function getPos(cb) {
+        if (!navigator.geolocation) return cb(null);
+        navigator.geolocation.getCurrentPosition(function(p) { cb(p); }, function() { cb(null); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+    }
+    function slowNote() { return setTimeout(function() { paint(st, '⏳ لا يوجد اتصال حاليًا — سيُسجَّل تلقائيًا فور عودة الإنترنت، لا تُغلق الصفحة.', 'warn'); }, 6000); }
+
+    startBtn.onclick = function() {
+        startBtn.disabled = true; startBtn.textContent = '⏳ جاري التسجيل...';
+        getPos(function(pos) {
+            var r = { empId: empId, name: name, date: today, startAt: new Date().toISOString(), source: 'qr' };
+            if (pos) { r.lat = pos.coords.latitude; r.lng = pos.coords.longitude; r.acc = Math.round(pos.coords.accuracy || 0); } else { r.noLocation = true; }
+            var slow = slowNote();
+            dayRef.set(r).then(function() { clearTimeout(slow); rec = r; saveLocal(); applyState(); })
+                .catch(function() { clearTimeout(slow); applyState(); paint(st, '❌ فشل التسجيل — تأكد من الاتصال وحاول مرة أخرى، أو أبلغ المسؤول.', 'err'); });
+        });
+    };
+    endBtn.onclick = function() {
+        if (!rec || !rec.startAt) return;
+        endBtn.disabled = true; endBtn.textContent = '⏳ جاري التسجيل...';
+        getPos(function(pos) {
+            var endAt = new Date().toISOString();
+            var upd = { endAt: endAt, totalMinutes: Math.max(0, Math.round((new Date(endAt) - new Date(rec.startAt)) / 60000)) };
+            if (pos) { upd.endLat = pos.coords.latitude; upd.endLng = pos.coords.longitude; upd.endAcc = Math.round(pos.coords.accuracy || 0); }
+            var slow = slowNote();
+            dayRef.update(upd).then(function() { clearTimeout(slow); rec = Object.assign({}, rec, upd); saveLocal(); applyState(); })
+                .catch(function() { clearTimeout(slow); applyState(); paint(st, '❌ فشل تسجيل الانتهاء — تأكد من الاتصال وحاول مرة أخرى.', 'err'); });
+        });
+    };
+
+    // ---------- طلب تسجيل ساعات يدويًا (للموافقة) ----------
+    var dEl = $('mr-date'), inEl = $('mr-in'), outEl = $('mr-out'), totEl = $('mr-total'), sendBtn = $('mr-send'), mrSt = $('mr-status');
+    function calcMins() {
+        if (!inEl.value || !outEl.value) return null;
+        var a = inEl.value.split(':'), b = outEl.value.split(':');
+        var m = (+b[0] * 60 + +b[1]) - (+a[0] * 60 + +a[1]);
+        return m <= 0 ? m + 1440 : m;   // وردية تعدّي منتصف الليل
+    }
+    function showTotal() { var m = calcMins(); totEl.textContent = m == null ? '' : '⏱️ الإجمالي: ' + dur(m); }
+    inEl.oninput = outEl.oninput = showTotal; showTotal();
+    function refreshReqStatus() {
+        pendingId = null;
+        var list = Object.keys(myReqs).map(function(k) { return Object.assign({ id: k }, myReqs[k]); })
+            .filter(function(r) { return r.date === dEl.value; }).sort(function(x, y) { return String(x.requestedAt || '').localeCompare(String(y.requestedAt || '')); });
+        if (!list.length) { mrSt.style.display = 'none'; return; }
+        var last = list[list.length - 1];
+        var pend = list.filter(function(r) { return r.status === 'pending'; });
+        if (pend.length) pendingId = pend[pend.length - 1].id;
+        if (last.inTime) inEl.value = last.inTime;
+        if (last.outTime) outEl.value = last.outTime;
+        showTotal();
+        if (last.status === 'approved') paint(mrSt, '✅ تم اعتماد تسجيلك لهذا اليوم', 'ok');
+        else if (last.status === 'rejected') paint(mrSt, '❌ تم رفض الطلب — تقدر تبعت طلب جديد', 'err');
+        else paint(mrSt, '📤 تم إرسال طلبك وبانتظار الموافقة', 'warn');
+    }
+    dEl.onchange = refreshReqStatus;
+    fbDb.ref('employeeAttendanceRequests').orderByChild('empId').equalTo(empId).once('value')
+        .then(function(s) { myReqs = s.val() || {}; refreshReqStatus(); }).catch(function() {});
+    sendBtn.onclick = function() {
+        var m = calcMins();
+        if (!dEl.value) { paint(mrSt, '⚠️ اختر التاريخ', 'err'); return; }
+        if (m == null) { paint(mrSt, '⚠️ من فضلك اكتب ساعة الدخول والخروج', 'err'); return; }
+        if (m > 20 * 60) { paint(mrSt, '⚠️ المدة أكبر من 20 ساعة — راجع الأوقات', 'err'); return; }
+        var r = { empId: empId, name: name, date: dEl.value, inTime: inEl.value, outTime: outEl.value, totalMinutes: m, status: 'pending', requestedAt: new Date().toISOString() };
+        sendBtn.disabled = true; sendBtn.textContent = '⏳ جاري الإرسال...';
+        var ref = pendingId ? fbDb.ref('employeeAttendanceRequests/' + pendingId) : fbDb.ref('employeeAttendanceRequests').push();
+        ref.set(r).then(function() {
+            myReqs[ref.key] = r; refreshReqStatus();
+            sendBtn.disabled = false; sendBtn.textContent = '📤 إرسال للمراجعة';
+        }).catch(function() {
+            paint(mrSt, '❌ فشل الإرسال — تأكد من الاتصال بالإنترنت وحاول تاني', 'err');
+            sendBtn.disabled = false; sendBtn.textContent = '📤 إرسال للمراجعة';
+        });
+    };
+}
+
+// ===== جهة الموارد البشرية: مراجعة طلبات الموظفين =====
+function renderEmpAttRequestsBadge() {
+    var el = document.getElementById('emp-att-requests-banner');
+    if (!el) return;
+    var allowed = currentUser && (currentUser.role === 'admin' || hasPermission('all') || canEdit('employees'));
+    var pending = (empAttRequests || []).filter(function(r) { return r.status === 'pending'; });
+    if (!allowed || !pending.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<button onclick="openEmpAttRequestsModal()" style="width:100%;padding:10px 12px;margin-bottom:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">' +
+        '📥 طلبات تسجيل ساعات الموظفين بانتظار المراجعة <span style="background:rgba(255,255,255,.25);border-radius:20px;padding:1px 8px">' + pending.length + '</span></button>';
+}
+function openEmpAttRequestsModal() {
+    var old = document.getElementById('emp-att-req-overlay'); if (old) old.remove();
+    var pending = (empAttRequests || []).filter(function(r) { return r.status === 'pending'; })
+        .sort(function(a, b) { return String(b.requestedAt || '').localeCompare(String(a.requestedAt || '')); });
+    var overlay = document.createElement('div');
+    overlay.id = 'emp-att-req-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:100%;background:rgba(0,0,0,0.5);z-index:10060;display:flex;align-items:flex-end;justify-content:center;direction:rtl;font-family:Cairo,Tahoma,sans-serif';
+    function dur(m) { m = m || 0; return Math.floor(m / 60) + 'س ' + (m % 60) + 'د'; }
+    function row(r) {
+        var emp = employeesData.find(function(e) { return e.id === r.empId; });
+        return '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:12px;margin-bottom:10px">' +
+            '<div style="font-weight:700;font-size:13.5px;color:#0d1b2a">👷 ' + escapeHtml((emp && emp.name) || r.name || '—') + '</div>' +
+            '<div style="font-size:12px;color:#6b7a8d;margin:2px 0 8px">' + escapeHtml((emp && emp.title) || '') + ' · 📅 ' + escapeHtml(r.date || '') + '</div>' +
+            '<div style="font-size:12.5px;color:#0d1b2a;background:white;border-radius:9px;padding:7px 9px;margin-bottom:9px">🟢 ' + escapeHtml(r.inTime || '—') + ' → 🔴 ' + escapeHtml(r.outTime || '—') + ' | ⏱️ ' + dur(r.totalMinutes) + '</div>' +
+            '<div style="display:flex;gap:6px">' +
+            '<button data-ea-action="approve" data-ea-id="' + r.id + '" style="flex:1;padding:8px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">✅ اعتماد</button>' +
+            '<button data-ea-action="reject" data-ea-id="' + r.id + '" style="flex:1;padding:8px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">❌ رفض</button>' +
+            '</div></div>';
+    }
+    overlay.innerHTML = '<div style="background:white;border-radius:20px 20px 0 0;padding:18px;width:100%;max-height:82vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,0.3)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:15.5px;font-weight:800;color:#0d1b2a">📥 طلبات تسجيل ساعات الموظفين</div>' +
+        '<button id="ea-req-close" style="background:#f1f5f9;border:none;border-radius:9px;padding:6px 10px;cursor:pointer;font-size:13px">✕</button></div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-bottom:12px">الاعتماد يستبدل أي تسجيل QR لنفس الموظف في نفس اليوم</div>' +
+        '<div id="ea-req-list">' + (pending.length ? pending.map(row).join('') : '<div style="text-align:center;padding:24px;color:#64748b">لا توجد طلبات معلّقة</div>') + '</div></div>';
+    document.body.appendChild(overlay);
+    document.getElementById('ea-req-close').onclick = function() { overlay.remove(); };
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    document.getElementById('ea-req-list').onclick = function(e) {
+        var b = e.target.closest('[data-ea-action]'); if (!b) return;
+        b.disabled = true; b.parentNode.parentNode.style.opacity = '.5';
+        if (b.getAttribute('data-ea-action') === 'approve') approveEmpAttRequest(b.getAttribute('data-ea-id'));
+        else rejectEmpAttRequest(b.getAttribute('data-ea-id'));
+    };
+}
+function approveEmpAttRequest(id) {
+    var req = (empAttRequests || []).find(function(r) { return r.id === id; });
+    if (!req) return;
+    var reviewer = (currentUser && (currentUser.name || currentUser.username)) || 'مشرف';
+    var inD = new Date(req.date + 'T' + req.inTime + ':00'), outD = new Date(req.date + 'T' + req.outTime + ':00');
+    if (outD <= inD) outD = new Date(outD.getTime() + 86400000);
+    var mins = Math.round((outD - inD) / 60000);
+    var ref = fbDb.ref('employeeAttendance/' + req.date + '/' + req.empId);
+    ref.once('value').then(function(s) {
+        var rec = Object.assign({}, s.val() || {}, {
+            empId: req.empId, name: req.name || '', date: req.date, startAt: inD.toISOString(), endAt: outD.toISOString(),
+            totalMinutes: mins, source: 'request', approvedBy: reviewer, approvedAt: new Date().toISOString()
+        });
+        return ref.set(rec);
+    }).then(function() {
+        return fbDb.ref('employeeAttendanceRequests/' + id).update({ status: 'approved', reviewedAt: new Date().toISOString(), reviewedByName: reviewer });
+    }).then(function() {
+        showToast('✅ تم اعتماد التسجيل');
+        openEmpAttRequestsModal();
+    }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+}
+function rejectEmpAttRequest(id) {
+    var reviewer = (currentUser && (currentUser.name || currentUser.username)) || 'مشرف';
+    fbDb.ref('employeeAttendanceRequests/' + id).update({ status: 'rejected', reviewedAt: new Date().toISOString(), reviewedByName: reviewer })
+        .then(function() { showToast('❌ تم رفض الطلب'); openEmpAttRequestsModal(); })
+        .catch(function(err) { showToast('خطأ: ' + err.message, true); });
+}
+
 function printSingleQRLabel(eqId) {
     var equipment = equipmentData.find(function(e) { return e.id === eqId; });
     if (!equipment) { showToast('لم يتم العثور على المعدة', true); return; }
@@ -9841,6 +10195,12 @@ function openEmployeeDetail(id) {
         contentHtml += '<div class="detail-section"><div class="detail-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></div><div class="detail-value">' + escapeHtml(employee.notes) + '</div></div>';
     }
     var empAssigned = equipmentData.filter(function(e) { return e.assignedDriver === employee.id; });
+    if (!empAssigned.length && employee.status !== 'منتهي الخدمة') {
+        contentHtml += '<div class="detail-section"><div class="detail-label">🏷️ QR تسجيل بدء العمل اليومي</div>' +
+            '<div style="font-size:11.5px;color:#64748b;margin:4px 0 8px">الموظف غير مسند لمعدة — يمسح هذا الرمز كل يوم ويضغط «بدء العمل».</div>' +
+            '<div style="display:flex;gap:8px"><button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="printEmployeeAttQR(\'' + employee.id + '\')">🖨️ طباعة QR</button>' +
+            '<button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="copyEmployeeAttLink(\'' + employee.id + '\')">🔗 نسخ الرابط</button></div></div>';
+    }
     if (empAssigned.length) {
         contentHtml += '<div class="detail-section"><div class="detail-label">🚜 '+RL('Equipment','المعدات')+'</div>' +
             empAssigned.map(function(e) { return '<div>• ' + escapeHtml(e.name) + ' (' + escapeHtml(e.code) + ')</div>'; }).join('') + '</div>';
@@ -19876,6 +20236,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var shareParams = new URLSearchParams(location.search);
     var shareDriverId = shareParams.get('share');
     if (shareDriverId) { setupPwaForCurrentUrl('متابعة موقع السائق', 'موقع السائق'); initShareLocationPage(shareDriverId); return; }
+
+    // رابط QR الحضور اليومي لموظف غير مسند لمعدة — صفحة عامة بدون تسجيل دخول
+    var empAttId = shareParams.get('emp');
+    if (empAttId) { setupPwaForCurrentUrl('تسجيل الحضور والانصراف', 'الحضور'); initEmployeeAttendancePage(empAttId); return; }
 
     // رابط ملصق QR لمعدة معيّنة — صفحة عامة للقراءة فقط بدون تسجيل دخول
     var eqDeepLinkId = shareParams.get('eq');
