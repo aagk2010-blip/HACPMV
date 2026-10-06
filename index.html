@@ -332,6 +332,7 @@ window.APP_DEPLOYMENT = {
       var end = parseEnd(p.e);
       if (end == null || end + (cfg.graceDays || 0) * DAY < trustedNow()) return { ok: false, msg: '❌ هذا الكود منتهي الصلاحية (' + p.e + ')' };
       try { localStorage.setItem('lic_active', JSON.stringify({ code: String(code).replace(/\s+/g, ''), c: p.c, e: p.e, i: p.i || 0 })); } catch (e) {}
+      try { apply(evaluate(), false); } catch (e) {}   // تحديث الحالة والتنبيهات فورًا (مهم لتاب الترخيص في الضبط)
       return { ok: true, msg: '✅ تم التفعيل حتى ' + p.e };
     });
   }
@@ -1474,6 +1475,45 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 .map-person-label.mpl-emp{border-color:#7c3aed!important}
 .map-person-label.mpl-drv{border-color:#0e7490!important}
 </style>
+<style id="theme-pro">
+/* ═══ الثيم الاحترافي (أزرق كحلي + بطاقات بيضاء) ═══ */
+:root{--primary:#12306b;--secondary:#1a428f;--accent:#2f6fd0;--accent-dark:#1f57b0;--info:#2f6fd0;--light:#eef2f8;--shadow:0 4px 14px rgba(15,42,94,.08);--shadow-sm:0 1px 4px rgba(15,42,94,.06)}
+html{background:#eef2f8}
+body{background:#eef2f8!important}
+.header{background:linear-gradient(135deg,#0f2a5e,#1a428f)!important;border-radius:0!important;box-shadow:0 4px 18px rgba(15,42,94,.18)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.header::before,.header::after{display:none!important}
+.header-title{background:none!important;-webkit-text-fill-color:#fff!important;color:#fff}
+.sidebar-nav{background:linear-gradient(180deg,#0f2a5e,#17387a)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-left:none!important}
+.sidebar-brand{border-bottom-color:rgba(255,255,255,.12)!important}
+.sidebar-brand-mark{background:#2f6fd0!important;color:#fff!important;box-shadow:none!important}
+.sidebar-btn{color:rgba(255,255,255,.78)!important;border-radius:12px!important;border-right-color:transparent!important}
+.sidebar-btn:hover{background:rgba(255,255,255,.10)!important;color:#fff!important}
+.sidebar-btn.active{background:#fff!important;color:#0f2a5e!important;font-weight:800;box-shadow:0 6px 16px rgba(0,0,0,.18)!important;border-right-color:transparent!important}
+.sidebar-btn.active .icon{filter:none!important}
+.fab{background:linear-gradient(135deg,#2f6fd0,#1f57b0)!important;box-shadow:0 8px 22px rgba(47,111,208,.4)!important;border:none!important}
+/* الصفحة الرئيسية */
+#view-home .dash-hero{background:none!important;box-shadow:none!important;border:none!important;padding:6px 4px 0!important;margin:18px 28px 0!important;color:#0f2a5e!important;min-height:0!important}
+#view-home .dash-hero::before,#view-home .dash-hero::after,#view-home .dash-hero-art,#view-home .dash-hero-deco,#view-home .dash-hero-eyebrow{display:none!important}
+#view-home .dash-hero-title{color:#0f2a5e!important;font-size:22px!important;font-weight:800;margin:0!important}
+#view-home .dash-hero-sub{color:#64748b!important;font-size:12.5px!important;margin-top:2px!important}
+#view-home .section-title{color:#0f2a5e}
+#view-home #stats-summary,#view-home #home-usage-cards{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:12px;overflow:visible!important;padding:12px 14px}
+#view-home .stat-card{display:flex;flex-direction:column-reverse;align-items:center;justify-content:center;gap:6px;background:#fff!important;border:1px solid #e6ecf5!important;border-radius:16px!important;padding:16px 10px!important;box-shadow:0 2px 10px rgba(15,42,94,.06)!important;min-width:0!important}
+#view-home .stat-card::before{display:none!important}
+#view-home .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(15,42,94,.12)!important}
+#view-home .stat-number{font-size:24px;font-weight:800;color:#0f2a5e;line-height:1.1}
+#view-home .stat-label{font-size:11.5px;font-weight:700;color:#64748b;margin:0}
+.hdash-card,.home-panel{background:#fff!important;border:1px solid #e6ecf5!important;border-radius:16px!important;box-shadow:0 2px 10px rgba(15,42,94,.06)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.hdash-card::before{display:none!important}
+.hdash-card{--hd-accent:#2f6fd0!important;--hd-soft:rgba(47,111,208,.10)!important}
+.hdash-title{font-size:13px!important;color:#0f2a5e!important}
+.hdash-ico{border-radius:10px!important}
+.hdash-kpi{background:rgba(47,111,208,.10)!important;color:#1f57b0!important}
+.hdash-period{background:#e8effb!important;color:#1f57b0!important}
+.hdash-body{height:190px}
+.hdash-card.wide .hdash-body{height:230px}
+.hdash-more{color:#2f6fd0!important}
+</style>
 </head>
 <body>
 <!-- ═══════════════════════════════════════════════════════════════════════
@@ -1612,7 +1652,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <button class="tab-btn sidebar-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span class="i18n-label" data-en="Rental" data-ar="الإيجار"></span></button>
       <button class="tab-btn sidebar-btn" data-view="accounts"><span class="tab-icon"><svg class="icon"><use href="#ic-accounts"/></svg></span><span class="i18n-label" data-en="Accounts" data-ar="الحسابات"></span></button>
       <button class="tab-btn sidebar-btn" data-view="map"><span class="tab-icon"><svg class="icon"><use href="#ic-map"/></svg></span><span class="i18n-label" data-en="Equipment Map" data-ar="خريطة المعدات"></span></button>
-      <button class="tab-btn sidebar-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span class="i18n-label" data-en="Employees" data-ar="الموظفين"></span></button>
+      <button class="tab-btn sidebar-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span class="i18n-label" data-en="Human Resources" data-ar="الموارد البشرية"></span></button>
       <button class="tab-btn sidebar-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span class="i18n-label" data-en="Fuel" data-ar="الوقود"></span></button>
       <button class="tab-btn sidebar-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span class="i18n-label" data-en="Maintenance" data-ar="الصيانة"></span></button>
       <button class="tab-btn sidebar-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span class="i18n-label" data-en="Analytics" data-ar="التحليلات"></span></button>
@@ -2033,7 +2073,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   </div>
   
   </div><!-- /.app-main -->
-  <div class="tab-bar"><div class="tab-bar-scroll"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span class="i18n-label" data-en="Home" data-ar="الرئيسية"></span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span class="i18n-label" data-en="Equipment" data-ar="المعدات"></span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span class="i18n-label" data-en="Rental" data-ar="الإيجار"></span></button><button class="tab-btn" data-view="accounts"><span class="tab-icon"><svg class="icon"><use href="#ic-accounts"/></svg></span><span class="i18n-label" data-en="Accounts" data-ar="الحسابات"></span></button><button class="tab-btn" data-view="map"><span class="tab-icon"><svg class="icon"><use href="#ic-map"/></svg></span><span class="i18n-label" data-en="Map" data-ar="الخريطة"></span></button><button class="tab-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span class="i18n-label" data-en="Employees" data-ar="الموظفين"></span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span class="i18n-label" data-en="Fuel" data-ar="الوقود"></span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span class="i18n-label" data-en="Maintenance" data-ar="الصيانة"></span></button><button class="tab-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span class="i18n-label" data-en="Analytics" data-ar="التحليلات"></span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span class="i18n-label" data-en="Sites" data-ar="المواقع"></span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span class="i18n-label" data-en="Inventory" data-ar="المخزن"></span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span class="i18n-label" data-en="Import" data-ar="استيراد"></span></button></div></div>
+  <div class="tab-bar"><div class="tab-bar-scroll"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span class="i18n-label" data-en="Home" data-ar="الرئيسية"></span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span class="i18n-label" data-en="Equipment" data-ar="المعدات"></span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span class="i18n-label" data-en="Rental" data-ar="الإيجار"></span></button><button class="tab-btn" data-view="accounts"><span class="tab-icon"><svg class="icon"><use href="#ic-accounts"/></svg></span><span class="i18n-label" data-en="Accounts" data-ar="الحسابات"></span></button><button class="tab-btn" data-view="map"><span class="tab-icon"><svg class="icon"><use href="#ic-map"/></svg></span><span class="i18n-label" data-en="Map" data-ar="الخريطة"></span></button><button class="tab-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span class="i18n-label" data-en="Human Resources" data-ar="الموارد البشرية"></span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span class="i18n-label" data-en="Fuel" data-ar="الوقود"></span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span class="i18n-label" data-en="Maintenance" data-ar="الصيانة"></span></button><button class="tab-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span class="i18n-label" data-en="Analytics" data-ar="التحليلات"></span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span class="i18n-label" data-en="Sites" data-ar="المواقع"></span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span class="i18n-label" data-en="Inventory" data-ar="المخزن"></span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span class="i18n-label" data-en="Import" data-ar="استيراد"></span></button></div></div>
   <button class="fab" id="fab-btn">+</button>
 </div>
 
@@ -18958,7 +18998,52 @@ function renderHomeUsageCharts(equipmentList) {
         });
     }
 }
+// ===== تنسيق احترافي موحّد للرسوم البيانية (Chart.js) =====
+function proGrad(rgb) {
+    return function(c) {
+        var a = c.chart.chartArea;
+        if (!a) return 'rgba(' + rgb + ',.15)';
+        var g = c.chart.ctx.createLinearGradient(0, a.top, 0, a.bottom);
+        g.addColorStop(0, 'rgba(' + rgb + ',.28)');
+        g.addColorStop(1, 'rgba(' + rgb + ',0)');
+        return g;
+    };
+}
+// خلفية رمادية خلف الأعمدة الأفقية (شكل شريط التقدم)
+var PRO_TRACK = {
+    id: 'proTrack', defaults: { enabled: false },
+    beforeDatasetsDraw: function(ch, args, o) {
+        if (!o || !o.enabled) return;
+        var m = ch.getDatasetMeta(0), a = ch.chartArea, ctx = ch.ctx;
+        ctx.save(); ctx.fillStyle = '#eef2f8';
+        m.data.forEach(function(b) {
+            var h = b.height, y = b.y - h / 2;
+            if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(a.left, y, a.right - a.left, h, h / 2); ctx.fill(); }
+            else ctx.fillRect(a.left, y, a.right - a.left, h);
+        });
+        ctx.restore();
+    }
+};
+function proApplyChartDefaults() {
+    if (!window.Chart || Chart.__proApplied) return;
+    Chart.__proApplied = true;
+    try {
+        var D = Chart.defaults;
+        D.font.family = 'Cairo, Tahoma, sans-serif'; D.color = '#64748b';
+        D.plugins.legend.labels.usePointStyle = true; D.plugins.legend.labels.pointStyle = 'circle';
+        var t = D.plugins.tooltip;
+        t.backgroundColor = '#0f2a5e'; t.cornerRadius = 10; t.padding = 10; t.boxPadding = 4;
+        t.titleFont = { family: 'Cairo', weight: '700' }; t.bodyFont = { family: 'Cairo' };
+        D.elements.bar.borderRadius = 8; D.elements.bar.borderSkipped = false;
+        D.elements.line.tension = 0.4; D.elements.line.borderWidth = 2.5;
+        D.elements.arc.borderRadius = 6;
+        if (D.scale && D.scale.border) { D.scale.border.display = false; D.scale.border.dash = [4, 4]; }
+        Chart.register(PRO_TRACK);
+    } catch (e) {}
+}
+
 function renderHomeUsageChartsInner(equipmentList) {
+    if (window.Chart) proApplyChartDefaults();
     var data = computeHomeUsageComparison(equipmentList);
     var noteEl = document.getElementById('home-usage-note');
     if (noteEl) {
@@ -19023,8 +19108,8 @@ function renderHomeUsageChartsInner(equipmentList) {
             data: {
                 labels: ['معدات الملك 🔑', 'معدات الإيجار 📋'],
                 datasets: [
-                    { label: 'الفترة الحالية', data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: '#059669', borderRadius: 6 },
-                    { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.owned.prev), Math.round(data.rented.prevHours)], backgroundColor: '#94a3b8', borderRadius: 6 }
+                    { label: 'الفترة الحالية', data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: '#2f6fd0', borderRadius: 6 },
+                    { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.owned.prev), Math.round(data.rented.prevHours)], backgroundColor: '#cbd5e1', borderRadius: 6 }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } } }, scales: { y: { beginAtZero: true, ticks: { font: { size: 8.5 } } }, x: { ticks: { font: { size: 8.5 } } } } }
@@ -19038,8 +19123,8 @@ function renderHomeUsageChartsInner(equipmentList) {
             data: {
                 labels: ['تكلفة معدات الإيجار'],
                 datasets: [
-                    { label: 'الفترة الحالية', data: [Math.round(data.rented.curCost)], backgroundColor: '#d97706', borderRadius: 6 },
-                    { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.rented.prevCost)], backgroundColor: '#94a3b8', borderRadius: 6 }
+                    { label: 'الفترة الحالية', data: [Math.round(data.rented.curCost)], backgroundColor: '#f59e0b', borderRadius: 6 },
+                    { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.rented.prevCost)], backgroundColor: '#cbd5e1', borderRadius: 6 }
                 ]
             },
             options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } } }, scales: { x: { beginAtZero: true, ticks: { font: { size: 8.5 } } }, y: { ticks: { font: { size: 8.5 } } } } }
@@ -19073,7 +19158,7 @@ function renderHomeUsageChartsInner(equipmentList) {
             type: 'doughnut',
             data: {
                 labels: ['ساعات الملك 🔑', 'ساعات الإيجار 📋'],
-                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 2, borderColor: '#fff' }]
+                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#2f6fd0', '#f59e0b'], borderWidth: 2, borderColor: '#fff' }]
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } }, tooltip: { callbacks: { label: function(ctx) {
                 var total = ctx.dataset.data.reduce(function(s, v) { return s + (v || 0); }, 0);
@@ -19139,6 +19224,7 @@ function renderHomeDashboardCharts(eqList) {
     }
 }
 function renderHomeDashboardChartsInner(eqList) {
+    if (window.Chart) proApplyChartDefaults();
     if (!document.getElementById('home-dash-section')) return;
     var data = computeHomeDashboardData(eqList);
 
@@ -19214,13 +19300,13 @@ function renderHomeDashboardChartsInner(eqList) {
                     labels: ['سليمة', 'قريبة الصيانة', 'متأخرة', 'متوقفة'],
                     datasets: [{
                         data: [data.fleet.healthy, data.fleet.soon, data.fleet.overdue, data.fleet.stopped],
-                        backgroundColor: ['#059669', '#d97706', '#dc2626', '#64748b'],
+                        backgroundColor: ['#22a06b', '#f59e0b', '#ef4444', '#94a3b8'],
                         borderWidth: 2, borderColor: ringBorder
                     }]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false, cutout: '64%',
-                    plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, color: txt, boxWidth: 8, padding: 5 } } }
+                    responsive: true, maintainAspectRatio: false, cutout: '72%',
+                    plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 9.5 }, color: txt, boxWidth: 8, boxHeight: 8, padding: 8, generateLabels: function(ch) { var base = Chart.overrides.doughnut.plugins.legend.labels.generateLabels(ch); var tot = ch.data.datasets[0].data.reduce(function(x, y) { return x + y; }, 0) || 1; base.forEach(function(it, i) { it.text = it.text + ' ' + Math.round((ch.data.datasets[0].data[i] || 0) * 100 / tot) + '%'; }); return base; } } } }
                 },
                 plugins: [centerPlugin]
             });
@@ -19234,7 +19320,7 @@ function renderHomeDashboardChartsInner(eqList) {
             type: 'bar',
             data: {
                 labels: data.maintByMonth.map(lbl),
-                datasets: [{ label: 'صيانات مكتملة', data: data.maintByMonth.map(function(m) { return m.count; }), backgroundColor: '#0e7490', borderRadius: 6, maxBarThickness: 22 }]
+                datasets: [{ label: 'صيانات مكتملة', data: data.maintByMonth.map(function(m) { return m.count; }), backgroundColor: '#2f6fd0', borderRadius: 8, maxBarThickness: 22 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
@@ -19255,8 +19341,8 @@ function renderHomeDashboardChartsInner(eqList) {
             data: {
                 labels: data.fuelTrend.map(lbl),
                 datasets: [
-                    { label: 'لتر', data: data.fuelTrend.map(function(m) { return m.liters; }), borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,.14)', fill: true, tension: .35, pointRadius: 3, yAxisID: 'y' },
-                    { label: 'تكلفة (ج.م)', data: data.fuelTrend.map(function(m) { return m.cost; }), borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,.12)', fill: true, tension: .35, pointRadius: 3, yAxisID: 'y1' }
+                    { label: 'لتر', data: data.fuelTrend.map(function(m) { return m.liters; }), borderColor: '#2f6fd0', backgroundColor: proGrad('47,111,208'), fill: true, pointBackgroundColor: '#fff', pointBorderColor: '#2f6fd0', pointBorderWidth: 2, pointRadius: 3, tension: .4, tension: .35, pointRadius: 3, yAxisID: 'y' },
+                    { label: 'تكلفة (ج.م)', data: data.fuelTrend.map(function(m) { return m.cost; }), borderColor: '#f59e0b', backgroundColor: proGrad('245,158,11'), pointBackgroundColor: '#fff', pointBorderColor: '#f59e0b', pointBorderWidth: 2, pointRadius: 3, tension: .4, fill: true, tension: .35, pointRadius: 3, yAxisID: 'y1' }
                 ]
             },
             options: {
@@ -19285,11 +19371,11 @@ function renderHomeDashboardChartsInner(eqList) {
                 type: 'bar',
                 data: {
                     labels: data.top10.map(function(u) { var n = u.eq.name || ''; var mx = window.innerWidth < 420 ? 18 : 26; return n.length > mx ? n.slice(0, mx - 1) + '…' : n; }),
-                    datasets: [{ label: 'ساعات العمل', data: data.top10.map(function(u) { return u.hours; }), backgroundColor: '#7c3aed', borderRadius: 6, maxBarThickness: 18 }]
+                    datasets: [{ label: 'ساعات العمل', data: data.top10.map(function(u) { return u.hours; }), backgroundColor: '#2f6fd0', borderRadius: 8, maxBarThickness: 18 }]
                 },
                 options: {
                     indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { legend: { display: false }, proTrack: { enabled: true } },
                     scales: {
                         x: { beginAtZero: true, ticks: { color: txt, font: font }, grid: { color: grid } },
                         y: { ticks: { color: txt, font: { family: 'Cairo', size: window.innerWidth < 700 ? 9.5 : 10.5 } }, grid: { display: false } }
@@ -19367,7 +19453,7 @@ function renderHomeAppGrid(stats) {
     var isAdmin = hasPermission('all');
     var apps = [
         { view: 'equipment',  icon: '🏗️', label: RL('Equipment', 'المعدات'),  color: 'linear-gradient(135deg,#f59e0b,#d97706)', section: 'equipment',  badge: stats.overdue > 0 ? stats.overdue : (stats.equipmentCount || null) },
-        { view: 'employees',  icon: '👥', label: RL('Employees & Drivers', 'الموظفين والسائقين'), color: 'linear-gradient(135deg,#0ea5e9,#0369a1)', sectionOr: ['employees','drivers'] },
+        { view: 'employees',  icon: '👥', label: RL('Human Resources', 'الموارد البشرية'), color: 'linear-gradient(135deg,#0ea5e9,#0369a1)', sectionOr: ['employees','drivers'] },
         { view: 'fuel',       icon: '⛽', label: RL('Fuel', 'الوقود'),   color: 'linear-gradient(135deg,#10b981,#047857)', section: 'fuel' },
         { view: 'maintenance',icon: '🔧', label: RL('Maintenance', 'الصيانة'),  color: 'linear-gradient(135deg,#ef4444,#b91c1c)', section: 'maintenance', badge: stats.scheduled > 0 ? stats.scheduled : null },
         { view: 'inventory',  icon: '📦', label: RL('Inventory', 'المخزن'),   color: 'linear-gradient(135deg,#0d1b2a,#6d28d9)', section: 'inventory', badge: stats.shortagesCount > 0 ? stats.shortagesCount : null },
@@ -19482,7 +19568,7 @@ function switchEmployeesSubTab(tab) {
     document.querySelectorAll('.emp-subtab-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.subtab === tab);
     });
-    document.getElementById('header-title').innerHTML = tab === 'drivers' ? '👨‍✈️ السائقين' : '👥 الموظفين';
+    document.getElementById('header-title').innerHTML = '👥 ' + RL('Human Resources', 'الموارد البشرية');
     updateEmployeesFab();
     debouncedRefresh();
 }
@@ -19543,7 +19629,7 @@ function switchView(view) {
         sites: '🏢 ' + RL('Sites Dashboard', 'لوحة المواقع'),
         analytics: '📈 ' + RL('Analytics & Reports', 'التحليلات والتقارير'),
         equipment: '🏗️ ' + RL('Equipment', 'المعدات'),
-        employees: '👥 ' + RL('Employees & Drivers', 'الموظفين والسائقين'),
+        employees: '👥 ' + RL('Human Resources', 'الموارد البشرية'),
         fuel: '⛽ ' + RL('Fuel', 'الوقود'),
         maintenance: '🔧 ' + RL('Maintenance', 'الصيانة'),
         inventory: '📦 ' + RL('Inventory', 'المخزن'),
