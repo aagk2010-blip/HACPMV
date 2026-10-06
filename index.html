@@ -603,7 +603,7 @@ html[data-theme="dark"] .page-topbar-title{color:#f1f5f9}
 .hdash-card.c-fleet{--hd-accent:#059669;--hd-soft:rgba(5,150,105,.12)}
 .hdash-card.c-maint{--hd-accent:#0e7490;--hd-soft:rgba(14,116,144,.12)}
 .hdash-card.c-fuel{--hd-accent:#d97706;--hd-soft:rgba(217,119,6,.13)}
-.hdash-card.c-top{--hd-accent:#7c3aed;--hd-soft:rgba(124,58,237,.12)}
+.hdash-card.c-top{--hd-accent:#1e3a8a;--hd-soft:rgba(30,58,138,.12)}
 .hdash-card.c-hours{--hd-accent:#059669;--hd-soft:rgba(5,150,105,.12)}
 .hdash-card.c-cost{--hd-accent:#d97706;--hd-soft:rgba(217,119,6,.13)}
 .hdash-card.c-split{--hd-accent:#8b5cf6;--hd-soft:rgba(139,92,246,.13)}
@@ -17050,7 +17050,7 @@ function renderKioskDashboardCharts() {
             kioskUsageChartInstances.dash_top = new Chart(topCv, {
                 type: 'bar',
                 data: { labels: data.top10.map(function(u) { var n = u.eq.name || ''; return n.length > 26 ? n.slice(0, 25) + '…' : n; }),
-                    datasets: [{ label: 'ساعات العمل', data: data.top10.map(function(u) { return u.hours; }), backgroundColor: '#8b5cf6', borderRadius: 6, maxBarThickness: 20 }] },
+                    datasets: [{ label: 'ساعات العمل', data: data.top10.map(function(u) { return u.hours; }), backgroundColor: '#1e3a8a', borderRadius: 6, maxBarThickness: 20 }] },
                 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
                     scales: { x: { beginAtZero: true, ticks: tick, grid: { color: gridColor } }, y: { ticks: { color: textColor, font: { family: 'Cairo', size: 11 } }, grid: { display: false } } } }
             });
@@ -18349,7 +18349,7 @@ function renderAnalyticsCharts(data) {
             type: 'bar',
             data: {
                 labels: data.top10Usage.map(function(u) { return u.eq.name; }),
-                datasets: [{ label: 'ساعات العمل', data: data.top10Usage.map(function(u) { return u.hours; }), backgroundColor: '#7c3aed', borderRadius: 6 }]
+                datasets: [{ label: 'ساعات العمل', data: data.top10Usage.map(function(u) { return u.hours; }), backgroundColor: '#1e3a8a', borderRadius: 6 }]
             },
             options: {
                 indexAxis: 'y',
@@ -19714,7 +19714,7 @@ function renderHomeDashboardChartsInner(eqList) {
                 type: 'bar',
                 data: {
                     labels: data.top10.map(function(u) { var n = u.eq.name || ''; var mx = window.innerWidth < 420 ? 18 : 26; return n.length > mx ? n.slice(0, mx - 1) + '…' : n; }),
-                    datasets: [{ label: 'ساعات العمل', data: data.top10.map(function(u) { return u.hours; }), backgroundColor: '#7c3aed', borderRadius: 8, maxBarThickness: 18 }]
+                    datasets: [{ label: 'ساعات العمل', data: data.top10.map(function(u) { return u.hours; }), backgroundColor: '#1e3a8a', borderRadius: 8, maxBarThickness: 18 }]
                 },
                 options: {
                     indexAxis: 'y', responsive: true, maintainAspectRatio: false,
