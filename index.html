@@ -1481,6 +1481,9 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 #view-home #home-dash-section .hdash-card.solo{grid-column:auto!important;max-width:none!important;width:auto!important}
 #view-home #home-dash-section .hdash-card.wide{grid-column:1/-1!important}
 #view-home #home-dash-section .hdash-card{padding:14px 14px 12px!important}
+/* الرسم يملأ عرض الكارت بالكامل (كان يظهر في المنتصف فقط) */
+#view-home #home-dash-section .hdash-body{width:100%!important}
+#view-home #home-dash-section .hdash-body canvas{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;margin:0!important}
 #view-home #home-dash-section .hdash-body{height:175px!important}
 #view-home #home-dash-section .hdash-card.wide .hdash-body{height:210px!important}
 #view-home #home-dash-section #home-chart-top-wrap{height:260px!important}
@@ -19364,6 +19367,14 @@ function renderHomeDashboardChartsInner(eqList) {
             });
         }
     }
+    // إعادة قياس الرسوم بعد الرسم لتملأ عرض الكروت بالكامل (مهم لما تكون الصفحة ظهرت بعد إنشاء الرسم)
+    var _proResize = function() {
+        [homeDashChartInstances, homeChartInstances].forEach(function(o) {
+            Object.keys(o || {}).forEach(function(n) { try { if (o[n] && o[n].resize) o[n].resize(); } catch (e) {} });
+        });
+    };
+    setTimeout(_proResize, 80);
+    setTimeout(_proResize, 600);
 }
 
 function updateHomeStatsAndList() {
