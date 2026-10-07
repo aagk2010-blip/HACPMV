@@ -1691,6 +1691,14 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       </div>
     </div>
 
+    <div style="background:white;border-radius:14px;padding:12px;margin-bottom:14px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12.5px;font-weight:800;color:#0d1b2a;margin-bottom:8px">📑 تقارير الحصر (PDF)</div>
+      <div class="home-quick-actions" style="padding:0">
+        <button onclick="printOwnedInventoryReport()" class="home-quick-btn" style="background:linear-gradient(135deg,#059669,#047857)"><span class="qi">🔑</span>حصر معدات الملك</button>
+        <button onclick="printRentalInventoryReport()" class="home-quick-btn" style="background:linear-gradient(135deg,#0e7490,#155e75)"><span class="qi">📋</span>حصر معدات الإيجار</button>
+      </div>
+    </div>
+
     <div id="analytics-body"></div>
   </div></div>
   
@@ -18082,6 +18090,112 @@ function printRentalEquipmentReport() {
     var range = readOwnRentReportRange();
     var eqList = getVisibleEquipment().filter(function(e) { return !isToolEquipment(e) && e.ownership === 'إيجار'; });
     printSingleOwnershipReport('تقرير معدات الإيجار', 'rented', '📋', eqList, range.fromMonth, range.toMonth);
+}
+
+// ==================== تقارير الحصر (PDF): حصر معدات الملك + حصر معدات الإيجار حسب المقاول ====================
+function _invReportCss() {
+    return 'body{font-family:Arial,Tahoma,sans-serif;padding:22px;direction:rtl;color:#0d1b2a}' +
+        'table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12.5px}' +
+        'th,td{border:1px solid #e2e8f0;padding:7px 8px;text-align:right;vertical-align:top}' +
+        'th{background:#0d1b2a;color:white;font-size:12px}' +
+        'thead{display:table-header-group}' +
+        'tr{page-break-inside:avoid}' +
+        'tr:nth-child(even) td{background:#f8fafc}' +
+        '.info{background:#f1f5f9;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:12.5px}' +
+        '.grp{page-break-inside:avoid}' +
+        '.ctr-title{font-size:15px;font-weight:800;margin:22px 0 8px;padding:9px 14px;border-radius:8px;background:#0e7490;color:white;page-break-after:avoid}' +
+        '.type-title{font-size:13.5px;font-weight:800;margin:14px 0 6px;padding:7px 12px;border-radius:8px;background:#dbeafe;color:#1e3a8a;page-break-after:avoid}' +
+        '.type-title.rent{background:#e0f2fe;color:#075985}' +
+        '.st{padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;display:inline-block}' +
+        '@media print{.no-print{display:none}}';
+}
+
+function _invSortByName(list) {
+    return list.slice().sort(function(a, b) { return (a.name || '').localeCompare(b.name || '', 'ar'); });
+}
+
+// تجميع المعدات حسب النوع (كل نوع تحت بعض)، الأنواع مرتبة أبجديًا
+function _invGroupByType(list) {
+    var map = {};
+    list.forEach(function(e) {
+        var t = ((e.type || '').trim()) || 'غير محدد';
+        if (!map[t]) map[t] = [];
+        map[t].push(e);
+    });
+    return Object.keys(map).sort(function(a, b) { return a.localeCompare(b, 'ar'); })
+        .map(function(t) { return { type: t, items: _invSortByName(map[t]) }; });
+}
+
+function _invStatusBadge(status) {
+    if (status === 'يعمل') return '<span class="st" style="background:#d1fae5;color:#065f46">✅ تعمل</span>';
+    return '<span class="st" style="background:#fee2e2;color:#7f1d1d">⛔ متوقفة</span>';
+}
+
+function _invOpenReport(title, subtitle, bodyHtml) {
+    var w = window.open('', '_blank');
+    if (!w) { alert('المتصفح منع فتح نافذة التقرير. اسمح بالنوافذ المنبثقة (Pop-ups) لهذا الموقع وجرّب تاني.'); return; }
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + escapeHtml(title) + '</title><style>' + _invReportCss() + '</style></head><body>' +
+        reportHeaderHtml(title, subtitle) + bodyHtml +
+        '<button class="no-print" onclick="window.print()" style="padding:10px 22px;border:none;border-radius:8px;background:#0d1b2a;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ طباعة / حفظ PDF</button>' +
+        '</body></html>');
+    w.document.close();
+    setTimeout(function() { w.print(); }, 500);
+}
+
+// حصر معدات الملك: (اسم المعدة، كود المعدة، نوع المعدة، ملاحظات) — كل نوع تحت بعض
+function printOwnedInventoryReport() {
+    var list = getVisibleEquipment().filter(function(e) { return (e.ownership || 'ملك') !== 'إيجار'; });
+    var groups = _invGroupByType(list);
+    var body = '';
+    if (!list.length) body += '<div class="info" style="text-align:center;color:#94a3b8">لا توجد معدات ملك</div>';
+    groups.forEach(function(g) {
+        body += '<div class="type-title">🔹 ' + escapeHtml(g.type) + ' (' + g.items.length + ')</div>' +
+            '<table><thead><tr><th style="width:36px">م</th><th>اسم المعدة</th><th>كود المعدة</th><th>نوع المعدة</th><th>ملاحظات</th></tr></thead><tbody>' +
+            g.items.map(function(eq, i) {
+                return '<tr><td>' + (i + 1) + '</td>' +
+                    '<td style="font-weight:700">' + escapeHtml(eq.name || '—') + '</td>' +
+                    '<td>' + escapeHtml(eq.code || '—') + '</td>' +
+                    '<td>' + escapeHtml(eq.type || '—') + '</td>' +
+                    '<td>' + escapeHtml(eq.notes || '') + '</td></tr>';
+            }).join('') + '</tbody></table>';
+    });
+    _invOpenReport('حصر معدات الملك', 'تاريخ التقرير: ' + new Date().toLocaleDateString('en-GB'), body);
+}
+
+// حصر معدات الإيجار: لكل مقاول معداته تحت بعض، وداخل المقاول كل نوع تحت بعض — (الاسم، النوع، المقاول، الحالة)
+function printRentalInventoryReport() {
+    var list = getVisibleEquipment().filter(function(e) { return e.ownership === 'إيجار'; });
+    var byContractor = {};
+    list.forEach(function(eq) {
+        var rental = rentalData.find(function(r) { return r.equipmentId === eq.id && r.contractorId; });
+        var ct = rental ? contractorsData.find(function(c) { return c.id === rental.contractorId; }) : null;
+        var name = ct ? ct.name : 'بدون مقاول';
+        if (!byContractor[name]) byContractor[name] = [];
+        byContractor[name].push(eq);
+    });
+    var names = Object.keys(byContractor).sort(function(a, b) {
+        if (a === 'بدون مقاول') return 1;
+        if (b === 'بدون مقاول') return -1;
+        return a.localeCompare(b, 'ar');
+    });
+    var body = '';
+    if (!list.length) body += '<div class="info" style="text-align:center;color:#94a3b8">لا توجد معدات إيجار</div>';
+    names.forEach(function(ctName) {
+        var items = byContractor[ctName];
+        body += '<div class="ctr-title">👷 ' + escapeHtml(ctName) + ' (' + items.length + ')</div>';
+        _invGroupByType(items).forEach(function(g) {
+            body += '<div class="type-title rent">🔹 ' + escapeHtml(g.type) + ' (' + g.items.length + ')</div>' +
+                '<table><thead><tr><th style="width:36px">م</th><th>اسم المعدة</th><th>نوع المعدة</th><th>اسم المقاول</th><th>الحالة</th></tr></thead><tbody>' +
+                g.items.map(function(eq, i) {
+                    return '<tr><td>' + (i + 1) + '</td>' +
+                        '<td style="font-weight:700">' + escapeHtml(eq.name || '—') + '</td>' +
+                        '<td>' + escapeHtml(eq.type || '—') + '</td>' +
+                        '<td>' + escapeHtml(ctName) + '</td>' +
+                        '<td>' + _invStatusBadge(eq.status) + '</td></tr>';
+                }).join('') + '</tbody></table>';
+        });
+    });
+    _invOpenReport('حصر معدات الإيجار', 'تاريخ التقرير: ' + new Date().toLocaleDateString('en-GB'), body);
 }
 
 // تقرير مقارنة يجمع القسمين معًا (الملك والإيجار) في مستند واحد — بمدة مفتوحة أيضًا
