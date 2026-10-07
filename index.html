@@ -18170,7 +18170,7 @@ function printOwnedInventoryReport() {
     var list = getVisibleEquipment().filter(function(e) { return (e.ownership || 'ملك') !== 'إيجار'; });
     var body = '';
     if (!list.length) body += '<div class="info" style="text-align:center;color:#94a3b8">لا توجد معدات ملك</div>';
-    else body += '<table><thead><tr><th style="width:36px">م</th><th>اسم المعدة</th><th>كود المعدة</th><th>ملاحظات</th></tr></thead><tbody>' +
+    else body += '<table><thead><tr><th style="width:36px">م</th><th style="width:28%">اسم المعدة</th><th style="width:16%">كود المعدة</th><th>ملاحظات</th></tr></thead><tbody>' +
         _invSortOwned(list).map(function(eq, i) {
             return '<tr><td>' + (i + 1) + '</td>' +
                 '<td style="font-weight:700">' + escapeHtml(eq.name || '—') + '</td>' +
