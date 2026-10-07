@@ -18170,12 +18170,11 @@ function printOwnedInventoryReport() {
     var list = getVisibleEquipment().filter(function(e) { return (e.ownership || 'ملك') !== 'إيجار'; });
     var body = '';
     if (!list.length) body += '<div class="info" style="text-align:center;color:#94a3b8">لا توجد معدات ملك</div>';
-    else body += '<table><thead><tr><th style="width:36px">م</th><th>اسم المعدة</th><th>كود المعدة</th><th>نوع المعدة</th><th>ملاحظات</th></tr></thead><tbody>' +
+    else body += '<table><thead><tr><th style="width:36px">م</th><th>اسم المعدة</th><th>كود المعدة</th><th>ملاحظات</th></tr></thead><tbody>' +
         _invSortOwned(list).map(function(eq, i) {
             return '<tr><td>' + (i + 1) + '</td>' +
                 '<td style="font-weight:700">' + escapeHtml(eq.name || '—') + '</td>' +
                 '<td>' + escapeHtml(eq.code || '—') + '</td>' +
-                '<td>' + escapeHtml(eq.type || '—') + '</td>' +
                 '<td>' + escapeHtml(eq.notes || '') + '</td></tr>';
         }).join('') + '</tbody></table>';
     _invOpenReport('حصر معدات الملك', 'تاريخ التقرير: ' + new Date().toLocaleDateString('en-GB'), body);
