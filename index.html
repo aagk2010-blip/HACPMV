@@ -18110,6 +18110,23 @@ function _invReportCss() {
         '@media print{.no-print{display:none}}';
 }
 
+// ترتيب تقرير الملك: مولدات، أبراج إنارة، لودر، أي نوع آخر، وآخر حاجة المقطورات
+function _invOwnedRank(eq) {
+    var t = String(eq.type || '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/\s+/g, ' ');
+    if (t.indexOf('مولد') !== -1) return 0;
+    if (t.indexOf('برج') !== -1) return 1;
+    if (t.indexOf('لودر') !== -1) return 2;
+    if (t.indexOf('مقطور') !== -1) return 4;
+    return 3;
+}
+function _invSortOwned(list) {
+    return list.slice().sort(function(a, b) {
+        return (_invOwnedRank(a) - _invOwnedRank(b)) ||
+            ((a.type || '').localeCompare(b.type || '', 'ar')) ||
+            ((a.name || '').localeCompare(b.name || '', 'ar'));
+    });
+}
+
 function _invSortByTypeName(list) {
     return list.slice().sort(function(a, b) {
         return ((a.type || '').localeCompare(b.type || '', 'ar')) || ((a.name || '').localeCompare(b.name || '', 'ar'));
@@ -18154,7 +18171,7 @@ function printOwnedInventoryReport() {
     var body = '';
     if (!list.length) body += '<div class="info" style="text-align:center;color:#94a3b8">لا توجد معدات ملك</div>';
     else body += '<table><thead><tr><th style="width:36px">م</th><th>اسم المعدة</th><th>كود المعدة</th><th>نوع المعدة</th><th>ملاحظات</th></tr></thead><tbody>' +
-        _invSortByTypeName(list).map(function(eq, i) {
+        _invSortOwned(list).map(function(eq, i) {
             return '<tr><td>' + (i + 1) + '</td>' +
                 '<td style="font-weight:700">' + escapeHtml(eq.name || '—') + '</td>' +
                 '<td>' + escapeHtml(eq.code || '—') + '</td>' +
@@ -18178,7 +18195,7 @@ function printRentalInventoryReport() {
     var names = Object.keys(byContractor).sort(function(a, b) {
         if (a === 'بدون مقاول') return 1;
         if (b === 'بدون مقاول') return -1;
-        return a.localeCompare(b, 'ar');
+        return (byContractor[b].length - byContractor[a].length) || a.localeCompare(b, 'ar');
     });
     var body = '';
     if (!list.length) body += '<div class="info" style="text-align:center;color:#94a3b8">لا توجد معدات إيجار</div>';
