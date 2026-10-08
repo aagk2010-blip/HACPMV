@@ -1498,6 +1498,11 @@ html[data-theme="dark"] #view-reports .rp-head .rp-n{background:#334155;color:#c
 html[data-theme="dark"] #view-reports .rp-period{background:#0f172a;color:#94a3b8}
 html[data-theme="dark"] #view-reports .rp-period input,html[data-theme="dark"] #view-reports .rp-period select{background:#1e293b;border-color:#334155;color:#e2e8f0}
 @media (max-width:480px){#view-reports .rp-chips{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}#view-reports .rp-chip{font-size:11px;padding:7px 8px;gap:6px;min-height:48px}#view-reports .rp-chip .rp-i{flex-basis:24px;width:24px;height:24px;font-size:13px}#view-reports .rp-chip .rp-tag{display:none}#view-reports .rp-period input,#view-reports .rp-period select{max-width:none;flex:1 1 120px}}
+/* ===== صفحة الوقود: تصغير أرقام المربعات العلوية ===== */
+#fuel-stats .stat-card{padding:10px 8px;min-width:0}
+#fuel-stats .stat-number{font-size:18px;line-height:1.25;white-space:nowrap}
+#fuel-stats .stat-label{font-size:10.5px;margin-top:2px}
+@media (min-width:768px){#fuel-stats .stat-number{font-size:21px}}
 /* ===== أرقام الصفحة الرئيسية بالأسود (الثيم الفاتح فقط) ===== */
 html:not([data-theme="dark"]) #view-home .stat-number{color:#000!important;-webkit-text-fill-color:#000!important;background:none!important}
 html[data-theme="dark"] #view-home .stat-number{color:#fff!important;-webkit-text-fill-color:#fff!important;background:none!important}
