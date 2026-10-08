@@ -1845,12 +1845,12 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     <div style="padding:14px">
       <div id="rental-requests-banner"></div>
       <div style="display:flex;gap:6px;margin-bottom:12px;background:#f1f5f9;border-radius:12px;padding:4px">
-        <button id="rental-tab-equipment" onclick="switchRentalTab('equipment')" style="flex:1;padding:8px;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white">🚧 المعدات</button>
+        <button id="rental-tab-equipment" onclick="switchRentalTab('equipment')" style="flex:1;padding:8px;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#0284c7,#075985);color:white">🚧 المعدات</button>
         <button id="rental-tab-daily" onclick="switchRentalTab('daily')" style="flex:1;padding:8px;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--gray)">📋 السجل اليومي</button>
       </div>
       <div id="rental-section-equipment">
         <div class="home-quick-actions" style="padding:0 0 10px">
-          <button id="add-rental-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><span class="qi">➕</span>إضافة عقد إيجار</button>
+          <button id="add-rental-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#0284c7,#075985)"><span class="qi">➕</span>إضافة عقد إيجار</button>
           <button onclick="openOvertimeAnomalyModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><span class="qi">⚠️</span>كشف الإضافي المشبوه</button>
           <button id="delete-all-rental-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" title="حذف جميع السجلات"><span class="qi">🗑️</span>حذف الكل</button>
         </div>
@@ -23522,8 +23522,8 @@ function switchRentalTab(tab) {
     document.getElementById('rental-section-equipment').style.display = isEq ? 'block' : 'none';
     document.getElementById('rental-section-daily').style.display     = isEq ? 'none'  : 'block';
     var s = 'flex:1;padding:8px;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;';
-    document.getElementById('rental-tab-equipment').style.cssText = s + (isEq ? 'background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white' : 'background:transparent;color:var(--gray)');
-    document.getElementById('rental-tab-daily').style.cssText     = s + (isEq ? 'background:transparent;color:var(--gray)' : 'background:linear-gradient(135deg,#0e7490,#0369a1);color:white');
+    document.getElementById('rental-tab-equipment').style.cssText = s + (isEq ? 'background:linear-gradient(135deg,#0284c7,#075985);color:white' : 'background:transparent;color:var(--gray)');
+    document.getElementById('rental-tab-daily').style.cssText     = s + (isEq ? 'background:transparent;color:var(--gray)' : 'background:linear-gradient(135deg,#0284c7,#075985);color:white');
     if (!isEq) renderRentalDailyView();
 }
 
@@ -23552,7 +23552,7 @@ function renderRentalEquipment() {
         var sumBreak  = monthDays.reduce(function(s,d){ return s+(d.breakHours||0); },0);
         var sumExtra  = monthDays.reduce(function(s,d){ return s+(d.extraHours||0); },0);
         var pct   = Math.min(daysCount/cycleDayCount,1);
-        var color = daysCount>=25?'#059669':daysCount>=15?'#0e7490':daysCount>=7?'#d97706':'#7c3aed';
+        var color = daysCount>=25?'#059669':daysCount>=15?'#0e7490':daysCount>=7?'#d97706':'#64748b';
         var angle = (pct*360-90)*Math.PI/180;
         var eqLabel  = eq ? (eq.type+' — '+(eq.name||eq.code)) : (r.equipmentCode||'—');
         var rid = r.id;
@@ -23562,7 +23562,7 @@ function renderRentalEquipment() {
         var arcPath = pct>=1 ? 'M 44 6 A 38 38 0 1 1 43.99 6' : 'M 44 6 A 38 38 0 '+(pct>0.5?1:0)+' 1 '+x2.toFixed(2)+' '+y2.toFixed(2);
         html +=
         '<div class="rental-card" style="background:white;border-radius:13px;border:1px solid #e2e8f0;margin-bottom:5px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)">'+
-        '<div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:7px 10px;color:white;display:flex;justify-content:space-between;align-items:center;gap:5px">'+
+        '<div style="background:linear-gradient(135deg,#0284c7,#075985);padding:7px 10px;color:white;display:flex;justify-content:space-between;align-items:center;gap:5px">'+
         '<div style="min-width:0;flex:1;overflow:hidden">'+
         '<div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(eqLabel)+'"><span class="c-ico">🚧</span> '+escapeHtml(eqLabel)+'</div>'+
         '<div style="font-size:11px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(r.company?'🏢 '+escapeHtml(r.company)+(drv?' · ':''):'' )+(drv?'👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>'+
@@ -23581,7 +23581,7 @@ function renderRentalEquipment() {
         '<div style="font-size:8px;color:var(--gray)">يوم/'+cycleDayCount+'</div></div></div>'+
         '<div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">'+
         '<div style="background:'+(todayRec?'#d1fae5':'#fef9c3')+';border-radius:8px;padding:6.5px;text-align:center;font-size:12px;font-weight:600;color:'+todayStatusColor+'">'+todayStatus+'</div>'+
-        '<input type="text" value="'+(todayRec?escapeHtml(todayRec.notes||'').replace(/"/g,'&quot;'):'')+'" placeholder="'+(todayRec?'📝 ملاحظة...':'📝 سجّل الحضور أولاً')+'"'+(todayRec?'':' disabled')+' onblur="saveRentalInlineNotes(\''+rid+'\',\''+todayStr+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" style="width:100%;box-sizing:border-box;background:'+(todayRec?'var(--light)':'#f1f5f9')+';border-radius:8px;padding:6.5px;text-align:center;font-size:12px;font-weight:600;color:var(--gray);border:1px solid transparent;font-family:inherit" onfocus="this.style.borderColor=\'#c4b5fd\'">'+
+        '<input type="text" value="'+(todayRec?escapeHtml(todayRec.notes||'').replace(/"/g,'&quot;'):'')+'" placeholder="'+(todayRec?'📝 ملاحظة...':'📝 سجّل الحضور أولاً')+'"'+(todayRec?'':' disabled')+' onblur="saveRentalInlineNotes(\''+rid+'\',\''+todayStr+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" style="width:100%;box-sizing:border-box;background:'+(todayRec?'var(--light)':'#f1f5f9')+';border-radius:8px;padding:6.5px;text-align:center;font-size:12px;font-weight:600;color:var(--gray);border:1px solid transparent;font-family:inherit" onfocus="this.style.borderColor=\'#bae6fd\'">'+
         '</div>'+
         '</div>'+
         '<div style="margin:0 9px 5px;background:'+(todayRec?'#f0fdf4':'#fef3c7')+';border:1px solid '+(todayRec?'#bbf7d0':'#fde68a')+';border-radius:8px;padding:5px">'+
@@ -23590,15 +23590,20 @@ function renderRentalEquipment() {
         '<input type="time" id="quick-in-'+rid+'" value="'+(todayRec?todayRec.inTime||'':'08:00')+'" style="flex:1;padding:3px;border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;font-size:11px;min-width:0">'+
         '<span style="color:var(--gray);font-size:9.5px">→</span>'+
         '<input type="time" id="quick-out-'+rid+'" value="'+(todayRec?todayRec.outTime||'':'17:00')+'" style="flex:1;padding:3px;border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;font-size:11px;min-width:0">'+
-        '<button data-action="quick-save" data-id="'+rid+'" data-today="'+todayStr+'" data-existing="'+(todayRec?todayRec.id:'')+'" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:6px;padding:3px 8px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer">✅</button>'+
+        '<button data-action="quick-save" data-id="'+rid+'" data-today="'+todayStr+'" data-existing="'+(todayRec?todayRec.id:'')+'" style="background:linear-gradient(135deg,#0284c7,#075985);color:white;border:none;border-radius:6px;padding:3px 8px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer">✅</button>'+
         '</div>'+
         '<div style="display:flex;align-items:center;gap:4px;margin-top:3px">'+
         '<input type="checkbox" id="quick-brk-'+rid+'" '+(todayRec&&todayRec.breakWorked?'checked':'')+' style="width:13px;height:13px">'+
         '<label for="quick-brk-'+rid+'" style="font-size:10px;color:'+todayStatusColor+'">☕ راحة (إضافي)</label>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:4px;margin-top:4px">'+
+        '<label for="quick-ded-'+rid+'" style="font-size:10px;color:#b91c1c;font-weight:700;white-space:nowrap">⛔ خصم أخطاء</label>'+
+        '<input type="number" id="quick-ded-'+rid+'" min="0" step="0.01" value="'+(todayRec&&todayRec.deduction?todayRec.deduction:'')+'" placeholder="0" style="width:62px;padding:3px;border:1px solid #fca5a5;border-radius:6px;font-family:inherit;font-size:11px;text-align:center">'+
+        '<input type="text" id="quick-dedr-'+rid+'" value="'+(todayRec&&todayRec.deductionReason?escapeHtml(todayRec.deductionReason).replace(/"/g,'&quot;'):'')+'" placeholder="السبب" style="flex:1;min-width:0;padding:3px;border:1px solid #fca5a5;border-radius:6px;font-family:inherit;font-size:11px">'+
         '</div></div>'+
         (isAdmin?
         '<div style="padding:0 9px 7px;display:flex;gap:4px">'+
-        '<button data-action="add-daily" data-id="'+rid+'" style="flex:1;padding:5px;background:linear-gradient(135deg,#0e7490,#0369a1);color:white;border:none;border-radius:7px;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer">➕ يوم</button>'+
+        '<button data-action="add-daily" data-id="'+rid+'" style="flex:1;padding:5px;background:linear-gradient(135deg,#0284c7,#075985);color:white;border:none;border-radius:7px;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer">➕ يوم</button>'+
         '<button data-action="show-report" data-id="'+rid+'" style="flex:1;padding:5px;background:linear-gradient(135deg,#059669,#0e7490);color:white;border:none;border-radius:7px;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer">📋 تقرير</button>'+
         '<button data-action="wa-driver" data-id="'+rid+'" style="padding:5px 9px;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:7px;font-family:inherit;font-size:14px;cursor:pointer">📲</button>'+
         '</div>':
@@ -23623,12 +23628,14 @@ function renderRentalEquipment() {
             var inT=(document.getElementById('quick-in-'+id)||{}).value||'';
             var outT=(document.getElementById('quick-out-'+id)||{}).value||'';
             var brk=!!(document.getElementById('quick-brk-'+id)||{}).checked;
-            quickSaveRentalDay(id,today,existing,inT,outT,brk);
+            var ded=parseFloat((document.getElementById('quick-ded-'+id)||{}).value)||0;
+            var dedR=((document.getElementById('quick-dedr-'+id)||{}).value||'').trim();
+            quickSaveRentalDay(id,today,existing,inT,outT,brk,ded,dedR);
         }
     };
 }
 
-function quickSaveRentalDay(rentalId,date,existingId,inTime,outTime,brk) {
+function quickSaveRentalDay(rentalId,date,existingId,inTime,outTime,brk,ded,dedReason) {
     if (!inTime||!outTime) { showToast('أدخل وقت الحضور والانصراف',true); return; }
     var rental=rentalData.find(function(r){ return r.id===rentalId; });
     if (!rental) return;
@@ -23640,6 +23647,7 @@ function quickSaveRentalDay(rentalId,date,existingId,inTime,outTime,brk) {
         driverId:rental.driverId||'', company:rental.company||'', date:date,
         inTime:inTime, outTime:outTime, totalHours:h.total, basicHours:h.basic, breakWorked:!!brk, breakHours:h.break, extraHours:h.extra,
         notes:(existingRecord?existingRecord.notes||'':''),
+        deduction:Math.max(0,parseFloat(ded)||0), deductionReason:(dedReason||''),
         updatedAt:new Date().toISOString() };
 
     // نفس منطق التتبع المستخدم في باقي شاشات التعديل: نحافظ على اسم أول شخص سجّل، ونسجّل مين عدّل لو مش نفس الشخص ومش المدير
@@ -23738,6 +23746,7 @@ function approveRentalRequest(requestId) {
         notes: (existing ? existing.notes||'' : ''),
         updatedAt: new Date().toISOString()
     };
+    if (existing && existing.deduction) { record.deduction = existing.deduction; record.deductionReason = existing.deductionReason || ''; }
     if (existing) {
         // فيه سجل موجود بالفعل لنفس المعدة ونفس اليوم — اعتماد الطلب هنا بيبقى تعديلاً على سجل موجود،
         // مش تسجيلاً جديدًا؛ فلازم نحافظ على اسم أول شخص سجّله، ونوضّح إن المشرف هو اللي اعتمد/عدّل عليه دلوقتي
@@ -23997,6 +24006,7 @@ function saveRentalDaily() {
 
     // نحافظ على اسم أول شخص سجّل البيانات، وننبّه لو حصل تعديل بعد كده من حساب مش هو نفسه ومش المدير
     var existingRecord = editingRentalDailyId ? rentalDailyData.find(function(d){ return d.id === editingRentalDailyId; }) : null;
+    if (existingRecord && existingRecord.deduction) { record.deduction = existingRecord.deduction; record.deductionReason = existingRecord.deductionReason || ''; }
     var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
     var isAdminActing = currentUser && currentUser.role === 'admin';
 
@@ -24154,6 +24164,7 @@ function renderRentalDailyView() {
                 '<div style="background:var(--light);padding:6px 8px;border-radius:8px;text-align:center">✅ '+RL('Basic','أساسي')+'<br><strong style="font-size:13px">'+(r.basicHours||0).toFixed(1)+RL('h','س')+'</strong></div>'+
                 (r.breakHours>0?'<div style="background:#fef3c7;color:#92400e;padding:6px 8px;border-radius:8px;text-align:center">☕ '+RL('Break','راحة')+'<br><strong style="font-size:13px">'+(r.breakHours||0).toFixed(1)+RL('h','س')+'</strong></div>':'')+
                 '<div style="background:'+(r.extraHours>0?'#fef3c7':'var(--light)')+';color:'+(r.extraHours>0?'#92400e':'inherit')+';padding:6px 8px;border-radius:8px;text-align:center">⚡ '+RL('Overtime','إضافي')+'<br><strong style="font-size:13px">'+(r.extraHours||0).toFixed(2)+RL('h','س')+'</strong></div></div>'+
+                (r.deduction>0?'<div style="margin-top:7px;font-size:11.5px;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;padding:5px 10px;border-radius:8px">⛔ '+RL('Mistake deduction','خصم أخطاء')+': <strong>'+(+r.deduction).toLocaleString(undefined,{maximumFractionDigits:2})+'</strong>'+(r.deductionReason?' — '+escapeHtml(r.deductionReason):'')+'</div>':'')+
                 '<div style="margin-top:7px;font-size:11.5px;color:'+(r.notes?'var(--gray)':'#c3cad4')+';background:var(--light);padding:5px 10px;border-radius:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 '+(r.notes?escapeHtml(r.notes):RL('No notes','لا توجد ملاحظات'))+'</div></div></div>';
         });
     });
@@ -24197,7 +24208,7 @@ function showRentalReport(rentalId, mode) {
         '<input type="date" id="rental-report-date-to" value="'+defTo+'" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:13px"></div>'+
         '</div>'+
         '<div style="display:flex;gap:8px;margin-bottom:8px">'+
-        '<button id="rental-report-apply-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">🔍 '+RL('View','عرض')+'</button>'+
+        '<button id="rental-report-apply-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#0284c7,#075985);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">🔍 '+RL('View','عرض')+'</button>'+
         '<button id="rental-report-excel-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">📊 Excel</button>'+
         '<button id="rental-report-pdf-btn" style="flex:1;padding:8px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer">📄 PDF</button>'+
         '</div>'+
@@ -24525,7 +24536,8 @@ function printRentalStatement(rentalId, dateFrom, dateTo) {
     var totalHours = sb + sk + se;
     var dayHrs = rentalBillingDayHours(rental);
     var equivalentDays = totalHours / dayHrs;
-    var statementValue = equivalentDays * dailyRate;
+    var deductionTotal = records.reduce(function(s,d){ return s+(parseFloat(d.deduction)||0); }, 0);
+    var statementValue = Math.max(0, equivalentDays * dailyRate - deductionTotal);
 
     var rowsHtml = days.map(function(dayEntry, idx) {
         var r = dayEntry.record;
@@ -24563,6 +24575,7 @@ function printRentalStatement(rentalId, dateFrom, dateTo) {
         '</tbody></table>' +
         '<div class="calc-box">' +
         '<div>إجمالي الساعات (' + totalHours.toFixed(2) + ') ÷ ' + dayHrs + ' = ' + equivalentDays.toFixed(2) + ' يوم مكافئ &nbsp;×&nbsp; ' + dailyRate.toLocaleString() + '</div>' +
+        (deductionTotal > 0 ? '<div style="color:#b91c1c;font-weight:700;margin-top:4px">− خصم أخطاء: ' + deductionTotal.toLocaleString(undefined,{maximumFractionDigits:2}) + '</div>' : '') +
         '<div class="value">' + statementValue.toLocaleString(undefined,{maximumFractionDigits:2}) + '</div>' +
         (absentCount ? '<div style="font-size:11px;margin-top:6px;opacity:.85">⚠️ ' + absentCount + ' يوم غياب خلال الفترة (غير محسوب)</div>' : '') +
         '</div>' +
@@ -24599,7 +24612,8 @@ function printFullAccountsStatement(includeCost) {
         // أيام العمل الفعلية المحاسب عليها = إجمالي الساعات ÷ ساعات اليوم (8، أو 12 للمولد الكهربائي)
         var dayHrs = rentalBillingDayHours(r);
         var daysWorked = hours / dayHrs;
-        var total = daysWorked * r.dailyRate;
+        var dedTotal = dayData.records.reduce(function(s, d) { return s + (parseFloat(d.deduction) || 0); }, 0);
+        var total = Math.max(0, daysWorked * r.dailyRate - dedTotal);
         var contractor = contractorsData.find(function(ct) { return ct.id === r.contractorId; });
         return { name: name, total: total, daysWorked: daysWorked, contractorName: contractor ? contractor.name : '', projectSite: eq ? (eq.projectSite || '') : '' };
     });
@@ -24845,7 +24859,8 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo, showFinancials) {
     var dailyRate = rental ? (rental.dailyRate || 0) : 0;
     var dayHrs = rentalBillingDayHours(rental);
     var equivalentDays = st / dayHrs;
-    var statementValue = equivalentDays * dailyRate;
+    var deductionTotal = records.reduce(function(s,d){ return s+(parseFloat(d.deduction)||0); }, 0);
+    var statementValue = Math.max(0, equivalentDays * dailyRate - deductionTotal);
     window._currentRentalReportEquivalentDays = equivalentDays;
     window._currentRentalReportValue = statementValue;
     var periodLabel = (dateFrom||'') + (dateTo?' \u2192 '+dateTo:'');
@@ -24868,7 +24883,7 @@ function renderRentalReportContent(rentalId, dateFrom, dateTo, showFinancials) {
             '<div style="font-weight:700;margin-bottom:8px">\u{1F4B0} '+RL('Settlement (Extract)','قيمة المستخلص')+'</div>'+
             '<div style="font-size:12px;opacity:.9;line-height:1.8">'+
             RL('Total hours','إجمالي الساعات')+' ('+st.toFixed(2)+') \u00f7 '+dayHrs+' = <strong>'+equivalentDays.toFixed(2)+'</strong> '+RL('equivalent days','يوم مكافئ')+'<br>'+
-            equivalentDays.toFixed(2)+' \u00d7 '+dailyRate.toLocaleString()+' = ' +
+            equivalentDays.toFixed(2)+' \u00d7 '+dailyRate.toLocaleString()+(deductionTotal>0?' \u2212 '+RL('mistake deductions','خصم أخطاء')+' '+deductionTotal.toLocaleString(undefined,{maximumFractionDigits:2}):'')+' = ' +
             '</div>'+
             '<div style="font-size:26px;font-weight:800;margin-top:6px">'+statementValue.toLocaleString(undefined,{maximumFractionDigits:2})+'</div>'+
             '</div>'
