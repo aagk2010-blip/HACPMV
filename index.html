@@ -5897,6 +5897,8 @@ function attachFirebaseListeners() {
     listen('rental', function(snapshot) {
         rentalData = snapshotToArray(snapshot);
         renderRentalEquipment();
+        var _acTab = document.querySelector('.tab-btn.active');
+        if (_acTab && _acTab.dataset.view === 'accounts') { renderAccountsRentalList(); }
         setTimeout(function() { checkRentalExpiryAlerts(); checkRentalAbsenceAfterDayClose(); }, 500);
     });
 
@@ -24481,12 +24483,19 @@ function saveRentalRate() {
     if (!editingRentalRateId) return;
     var val = parseFloat(document.getElementById('rate-edit-input').value) || 0;
     var contractorId = document.getElementById('rate-edit-contractor').value || null;
-    fbDb.ref('rental/' + editingRentalRateId).update({ dailyRate: val, contractorId: contractorId }).then(function() {
+    var rid = editingRentalRateId;
+    var ctName = '';
+    if (contractorId) { var _ct = contractorsData.find(function(c) { return c.id === contractorId; }); ctName = _ct ? _ct.name : ''; }
+    fbDb.ref('rental/' + rid).update({ dailyRate: val, contractorId: contractorId }).then(function() {
+        return fbDb.ref('rental/' + rid + '/contractorId').once('value');
+    }).then(function(snap) {
+        var saved = snap.val() || null;
+        if (saved !== contractorId) { showToast('⚠️ لم يتم حفظ المقاول في قاعدة البيانات — راجع صلاحيات الكتابة', true); return; }
         closeModal('rate-edit-modal');
-        showToast('✅ تم تحديث قيمة اليوم');
+        showToast(contractorId ? ('✅ تم الحفظ — المقاول: ' + ctName) : '✅ تم الحفظ — بدون مقاول');
         renderAccountsSummary();
         renderAccountsRentalList();
-    }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+    }).catch(function(err) { showToast('❌ فشل الحفظ: ' + (err.code ? err.code + ' — ' : '') + err.message, true); });
 }
 window.openEditRentalRate = openEditRentalRate;
 window.saveRentalRate = saveRentalRate;
