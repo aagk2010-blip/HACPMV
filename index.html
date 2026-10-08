@@ -1756,6 +1756,10 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="openEmployeeAttendanceModal()">📋 <span class="i18n-label" data-en="Today's Attendance" data-ar="حضور اليوم"></span></button>
         <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="printAllEmployeeAttQRs()">🏷️ <span class="i18n-label" data-en="Attendance QR Labels" data-ar="طباعة QR الحضور"></span></button>
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+        <label style="font-size:12px;font-weight:800;color:#0d1b2a;white-space:nowrap">📅 يوم تسجيل ✓ / ✗</label>
+        <input type="date" id="emp-mark-date" onchange="empMarkDate=this.value;refreshUI()" style="flex:1;border:1px solid #cbd5e1;border-radius:10px;padding:8px 10px;font-size:13px;font-family:inherit;box-sizing:border-box;background:#fff">
+      </div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#059669,#047857)" onclick="openEmployeeAttendanceReport()">📊 <span class="i18n-label" data-en="Monthly Attendance Report" data-ar="تقرير الحضور الشهري"></span></button>
       </div>
@@ -2107,7 +2111,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver"><span class="i18n-label" data-en="Add New Driver" data-ar="إضافة سائق جديد"></span></div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Full Name" data-ar="الاسم الكامل"></span> *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Phone Number" data-ar="رقم الهاتف"></span></label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Driving License No." data-ar="رقم رخصة القيادة"></span></label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="License Expiry Date" data-ar="تاريخ انتهاء الرخصة"></span></label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
 
-<div class="modal-overlay" id="employee-modal"><div class="modal-header"><div class="modal-title" id="modal-title-employee"><span class="i18n-label" data-en="Add New Employee" data-ar="إضافة موظف جديد"></span></div><button class="modal-close" onclick="closeModal('employee-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Employee Name" data-ar="اسم الموظف"></span> *</label><input class="form-input" id="employee-name" placeholder="الاسم الكامل"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Profession / Job" data-ar="المهنة / الوظيفة"></span> *</label><input class="form-input" id="employee-title" placeholder="مثال: فورمان كهرباء قوي"></div><div class="form-field"><label class="form-label">🏗️ الموقع / المشروع *</label><input class="form-input" id="employee-project" list="employee-locations-list" placeholder="اكتب اسم الموقع أو اختر من القائمة"><datalist id="employee-locations-list"></datalist></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Mobile Number" data-ar="رقم الموبايل"></span></label><input class="form-input" id="employee-phone" placeholder="01xxxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Job Code" data-ar="الكود الوظيفي"></span></label><input class="form-input" id="employee-code" placeholder="مثال: 10213419"></div><div class="form-field"><label class="form-label">معين / سركي</label><select class="form-select" id="employee-type"><option>معين</option><option>سركي</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="employee-status"><option>نشط</option><option>منتهي الخدمة</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="employee-notes"></textarea></div></div><button class="save-btn" onclick="saveEmployee()">✅ حفظ الموظف</button></div></div>
+<div class="modal-overlay" id="employee-modal"><div class="modal-header"><div class="modal-title" id="modal-title-employee"><span class="i18n-label" data-en="Add New Employee" data-ar="إضافة موظف جديد"></span></div><button class="modal-close" onclick="closeModal('employee-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Employee Name" data-ar="اسم الموظف"></span> *</label><input class="form-input" id="employee-name" placeholder="الاسم الكامل"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Profession / Job" data-ar="المهنة / الوظيفة"></span> *</label><input class="form-input" id="employee-title" placeholder="مثال: فورمان كهرباء قوي"></div><div class="form-field"><label class="form-label">🏗️ الموقع / المشروع *</label><input class="form-input" id="employee-project" list="employee-locations-list" placeholder="اكتب اسم الموقع أو اختر من القائمة"><datalist id="employee-locations-list"></datalist></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Mobile Number" data-ar="رقم الموبايل"></span></label><input class="form-input" id="employee-phone" placeholder="01xxxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Job Code" data-ar="الكود الوظيفي"></span></label><input class="form-input" id="employee-code" placeholder="مثال: 10213419"></div><div class="form-field"><label class="form-label">معين / سركي</label><select class="form-select" id="employee-type" onchange="toggleEmployeeLeaveField()"><option>معين</option><option>سركي</option></select></div><div class="form-field" id="employee-leave-field"><label class="form-label">🏖️ رصيد الإجازات (أيام) — للمعين فقط</label><input class="form-input" id="employee-leave-balance" type="number" min="0" step="0.5" placeholder="0"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="employee-status"><option>نشط</option><option>منتهي الخدمة</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="employee-notes"></textarea></div></div><button class="save-btn" onclick="saveEmployee()">✅ حفظ الموظف</button></div></div>
 
 <div class="modal-overlay" id="fuel-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">⛽ <span class="i18n-label" data-en="Log Fuel Refill" data-ar="تسجيل تزود بالوقود"></span></div><button class="modal-close" onclick="closeModal('fuel-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span></label><select class="form-select" id="fuel-equipment"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Quantity (L)" data-ar="الكمية (لتر)"></span></label><input class="form-input" type="number" id="fuel-amount"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Cost (EGP)" data-ar="التكلفة (ج.م)"></span></label><input class="form-input" type="number" id="fuel-cost"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Current Meter" data-ar="العداد الحالي"></span></label><input class="form-input" type="number" id="fuel-hours"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Date" data-ar="التاريخ"></span></label><input class="form-input" type="date" id="fuel-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Driver" data-ar="السائق"></span></label><select class="form-select" id="fuel-driver"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="fuel-notes"></textarea></div></div><button class="save-btn" onclick="saveFuelRecord()">✅ <span class="i18n-label" data-en="Save Refill" data-ar="حفظ التزود"></span></button></div></div>
 
@@ -9491,7 +9495,7 @@ function printAllEmployeeAttQRs() {
     openQRLabelsWindow(buildEmployeeQRLabelsPage(list));
 }
 
-// شاشة المتابعة: من سجّل بدء العمل ومن لم يسجّل في يوم معيّن (للموظفين غير المسندين لمعدات)
+// شاشة المتابعة: من سجّل بدء العمل ومن لم يسجّل (مع الإجازات/الغياب المسجّلة من كارت الموظف)
 function openEmployeeAttendanceModal() {
     var old = document.getElementById('emp-att-overlay'); if (old) old.remove();
     var ov = document.createElement('div');
@@ -9518,41 +9522,52 @@ function openEmployeeAttendanceModal() {
         var listEl = document.getElementById('eam-list');
         listEl.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b">⏳ جاري التحميل...</div>';
         if (typeof fbDb === 'undefined' || !fbDb) { listEl.innerHTML = '<div style="text-align:center;padding:30px;color:#dc2626">غير متصل بقاعدة البيانات</div>'; return; }
-        fbDb.ref('employeeAttendance/' + d).once('value').then(function(snap) {
-            render(d, snap.val() || {});
+        Promise.all([
+            fbDb.ref('employeeAttendance/' + d).once('value'),
+            fbDb.ref('employeeDayStatus/' + d).once('value').catch(function() { return null; })
+        ]).then(function(r) {
+            render(d, r[0].val() || {}, (r[1] && r[1].val()) || {});
         }).catch(function(err) {
             var denied = String((err && (err.code || err.message)) || '').toUpperCase().indexOf('PERMISSION') !== -1;
             listEl.innerHTML = '<div style="text-align:center;padding:30px;color:#dc2626;line-height:1.9">' +
                 (denied ? 'قواعد Firebase لا تسمح بقراءة <b>employeeAttendance</b> — أضف القاعدة المطلوبة ثم أعد المحاولة.' : 'تعذّر تحميل السجل — تأكد من الاتصال بالإنترنت.') + '</div>';
         });
     }
-    function render(d, recs) {
+    function render(d, recs, st) {
         var rows = {};
-        employeesData.filter(employeeIsUnassigned).forEach(function(e) { rows[e.id] = { e: e, rec: null }; });
-        Object.keys(recs).forEach(function(id) {
-            var r = recs[id]; if (!r) return;
-            if (!rows[id]) rows[id] = { e: employeesData.find(function(x) { return x.id === id; }) || { id: id, name: r.name || id }, rec: null };
-            rows[id].rec = r;
+        var ensure = function(id, r) { if (!rows[id]) rows[id] = { e: employeesData.find(function(x) { return x.id === id; }) || { id: id, name: (r && r.name) || id }, rec: null, s: null }; return rows[id]; };
+        employeesData.filter(employeeIsUnassigned).forEach(function(e) { ensure(e.id); });
+        Object.keys(recs).forEach(function(id) { if (recs[id] && recs[id].startAt) ensure(id, recs[id]).rec = recs[id]; });
+        Object.keys(st).forEach(function(id) { if (st[id] && st[id].status) ensure(id, st[id]).s = st[id]; });
+        var arr = Object.keys(rows).map(function(k) {
+            var x = rows[k]; x.state = x.s ? x.s.status : (x.rec ? 'present' : 'none'); return x;
         });
-        var arr = Object.keys(rows).map(function(k) { return rows[k]; });
-        var present = arr.filter(function(x) { return x.rec; }).length;
+        var order = { none: 0, absent: 1, leave: 2, present: 3 };
         arr.sort(function(a, b) {
-            if (!!a.rec !== !!b.rec) return a.rec ? 1 : -1;     // اللي لم يسجّل أولًا للمتابعة
+            if (order[a.state] !== order[b.state]) return order[a.state] - order[b.state];
             return String(a.e.name || '').localeCompare(String(b.e.name || ''), 'ar');
         });
+        var cnt = function(k) { return arr.filter(function(x) { return x.state === k; }).length; };
+        var chip = function(bg, fg, t) { return '<div style="background:' + bg + ';color:' + fg + ';border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">' + t + '</div>'; };
         document.getElementById('eam-sum').innerHTML =
-            '<div style="background:#d1fae5;color:#065f46;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">✅ سجّل: ' + present + '</div>' +
-            '<div style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">❌ لم يسجّل: ' + (arr.length - present) + '</div>' +
-            '<div style="background:#e2e8f0;color:#334155;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">👥 الإجمالي: ' + arr.length + '</div>';
+            chip('#d1fae5', '#065f46', '✅ حاضر: ' + cnt('present')) +
+            chip('#cffafe', '#155e75', '🏖️ إجازة: ' + cnt('leave')) +
+            chip('#fecaca', '#7f1d1d', '🔴 غياب: ' + cnt('absent')) +
+            chip('#fee2e2', '#991b1b', '❌ لم يسجّل: ' + cnt('none')) +
+            chip('#e2e8f0', '#334155', '👥 الإجمالي: ' + arr.length);
+        var color = { present: '#10b981', leave: '#0891b2', absent: '#b91c1c', none: '#ef4444' };
         document.getElementById('eam-list').innerHTML = arr.length ? arr.map(function(x) {
-            var r = x.rec, e = x.e;
-            var right = r
-                ? '<div style="text-align:left"><div style="font-weight:800;color:#065f46;direction:ltr">🟢 ' + fmtTime(r.startAt) + (r.endAt ? ' → 🔴 ' + fmtTime(r.endAt) : '') + '</div>' +
-                  (r.endAt ? '<div style="font-size:11px;color:#334155;font-weight:700">⏱️ ' + fmtDur(r) + '</div>' : '<div style="font-size:11px;color:#b45309;font-weight:700">لم ينصرف بعد</div>') +
-                  (r.lat != null ? '<a href="https://www.google.com/maps?q=' + r.lat + ',' + r.lng + '" target="_blank" rel="noopener" style="font-size:11px;color:#0891b2;font-weight:700">📍 الموقع</a>'
-                                 : '<span style="font-size:11px;color:#b45309">بدون موقع</span>') + '</div>'
-                : '<div style="font-weight:800;color:#dc2626;font-size:12.5px">❌ لم يسجّل</div>';
-            return '<div style="background:#fff;border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-right:4px solid ' + (r ? '#10b981' : '#ef4444') + '">' +
+            var r = x.rec, e = x.e, right;
+            if (x.state === 'present' && r) {
+                right = '<div style="text-align:left"><div style="font-weight:800;color:#065f46;direction:ltr">🟢 ' + fmtTime(r.startAt) + (r.endAt ? ' → 🔴 ' + fmtTime(r.endAt) : '') + '</div>' +
+                    (r.endAt ? '<div style="font-size:11px;color:#334155;font-weight:700">⏱️ ' + fmtDur(r) + '</div>' : '<div style="font-size:11px;color:#b45309;font-weight:700">لم ينصرف بعد</div>') +
+                    (r.lat != null ? '<a href="https://www.google.com/maps?q=' + r.lat + ',' + r.lng + '" target="_blank" rel="noopener" style="font-size:11px;color:#0891b2;font-weight:700">📍 الموقع</a>' : '<span style="font-size:11px;color:#b45309">بدون موقع</span>') + '</div>';
+            } else if (x.state === 'present') {
+                right = '<div style="font-weight:800;color:#065f46;font-size:12.5px">🟢 حاضر (تسجيل يدوي)' + (x.s.hours ? '<div style="font-size:11px;color:#334155">⏱️ ' + x.s.hours + ' ساعة</div>' : '') + '</div>';
+            } else if (x.state === 'leave') right = '<div style="font-weight:800;color:#155e75;font-size:12.5px">🏖️ إجازة</div>';
+            else if (x.state === 'absent') right = '<div style="font-weight:800;color:#7f1d1d;font-size:12.5px">🔴 غياب</div>';
+            else right = '<div style="font-weight:800;color:#dc2626;font-size:12.5px">❌ لم يسجّل</div>';
+            return '<div style="background:#fff;border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-right:4px solid ' + color[x.state] + '">' +
                 '<div style="min-width:0"><div style="font-weight:800;font-size:13.5px;color:#0d1b2a">' + escapeHtml(e.name || '—') + (r && r.source === 'request' ? ' <span style="font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:8px;padding:1px 6px">✍️ بطلب معتمد</span>' : '') + '</div>' +
                 '<div style="font-size:11px;color:#64748b">' + escapeHtml(e.title || '') + (e.projectSite ? ' · ' + escapeHtml(e.projectSite) : '') + '</div></div>' + right + '</div>';
         }).join('') : '<div style="text-align:center;padding:30px;color:#94a3b8">لا يوجد موظفون غير مسندين لمعدات</div>';
@@ -9812,6 +9827,7 @@ function openEmployeeAttendanceReport() {
     function hm(iso) { try { return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
     function dur(m) { return Math.floor(m / 60) + 'س ' + (m % 60) + 'د'; }
     function minsOf(r) {
+        if (!r) return null;
         if (r.totalMinutes != null) return r.totalMinutes;
         if (r.startAt && r.endAt) return Math.max(0, Math.round((new Date(r.endAt) - new Date(r.startAt)) / 60000));
         return null;
@@ -9821,56 +9837,81 @@ function openEmployeeAttendanceReport() {
         if (!m) return;
         listEl.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b">⏳ جاري التحميل...</div>';
         if (typeof fbDb === 'undefined' || !fbDb) { listEl.innerHTML = '<div style="text-align:center;padding:30px;color:#dc2626">غير متصل بقاعدة البيانات</div>'; return; }
-        fbDb.ref('employeeAttendance').orderByKey().startAt(m + '-01').endAt(m + '-31').once('value').then(function(snap) {
-            build(m, snap.val() || {});
+        var q = function(path) { return fbDb.ref(path).orderByKey().startAt(m + '-01').endAt(m + '-31').once('value'); };
+        Promise.all([q('employeeAttendance'), q('employeeDayStatus').catch(function() { return null; })]).then(function(r) {
+            build(m, r[0].val() || {}, (r[1] && r[1].val()) || {});
         }).catch(function(err) {
             var denied = String((err && (err.code || err.message)) || '').toUpperCase().indexOf('PERMISSION') !== -1;
             listEl.innerHTML = '<div style="text-align:center;padding:30px;color:#dc2626;line-height:1.9">' +
                 (denied ? 'قواعد Firebase لا تسمح بقراءة <b>employeeAttendance</b>.' : 'تعذّر تحميل التقرير — تأكد من الاتصال بالإنترنت.') + '</div>';
         });
     }
-    function build(m, byDate) {
+    function build(m, att, st) {
         var emps = {};
         employeesData.filter(employeeIsUnassigned).forEach(function(e) { emps[e.id] = { e: e, days: [] }; });
-        Object.keys(byDate).sort().forEach(function(d) {
-            var day = byDate[d] || {};
-            Object.keys(day).forEach(function(id) {
-                var r = day[id]; if (!r || !r.startAt) return;
-                if (!emps[id]) emps[id] = { e: employeesData.find(function(x) { return x.id === id; }) || { id: id, name: r.name || id }, days: [] };
-                emps[id].days.push({ date: d, rec: r, mins: minsOf(r) });
+        var dates = {};
+        Object.keys(att).forEach(function(d) { dates[d] = 1; });
+        Object.keys(st).forEach(function(d) { dates[d] = 1; });
+        Object.keys(dates).sort().forEach(function(d) {
+            var A = att[d] || {}, S = st[d] || {}, ids = {};
+            Object.keys(A).forEach(function(k) { ids[k] = 1; });
+            Object.keys(S).forEach(function(k) { ids[k] = 1; });
+            Object.keys(ids).forEach(function(id) {
+                var a = A[id] && A[id].startAt ? A[id] : null, s = S[id] && S[id].status ? S[id] : null;
+                if (!a && !s) return;
+                if (!emps[id]) emps[id] = { e: employeesData.find(function(x) { return x.id === id; }) || { id: id, name: (s && s.name) || (a && a.name) || id }, days: [] };
+                var kind = s ? s.status : 'present', mins = null, manual = false;
+                if (kind === 'present') {
+                    if (a) mins = minsOf(a);
+                    else { manual = true; if (s && s.hours) mins = Math.round(s.hours * 60); }
+                }
+                emps[id].days.push({ date: d, kind: kind, rec: a || {}, mins: mins, manual: manual, viaReq: !!(a && a.source === 'request') });
             });
         });
         var rows = Object.keys(emps).map(function(k) {
-            var x = emps[k], known = x.days.filter(function(d) { return d.mins != null; });
+            var x = emps[k], pres = x.days.filter(function(d) { return d.kind === 'present'; });
+            var known = pres.filter(function(d) { return d.mins != null; });
             var total = known.reduce(function(a, d) { return a + d.mins; }, 0);
             return {
-                e: x.e, days: x.days, present: x.days.length, total: total,
+                e: x.e, days: x.days, present: pres.length, total: total,
                 avg: known.length ? Math.round(total / known.length) : 0,
-                open: x.days.length - known.length,
-                manual: x.days.filter(function(d) { return d.rec.source === 'request'; }).length
+                leave: x.days.filter(function(d) { return d.kind === 'leave'; }).length,
+                absent: x.days.filter(function(d) { return d.kind === 'absent'; }).length,
+                open: pres.filter(function(d) { return d.rec.startAt && d.mins == null; }).length,
+                manual: pres.filter(function(d) { return d.manual; }).length,
+                viaReq: pres.filter(function(d) { return d.viaReq; }).length
             };
         }).sort(function(a, b) { return String(a.e.name || '').localeCompare(String(b.e.name || ''), 'ar'); });
         report = { month: m, rows: rows };
-        var totalMins = rows.reduce(function(a, r) { return a + r.total; }, 0);
-        var totalDays = rows.reduce(function(a, r) { return a + r.present; }, 0);
+        var sum = function(f) { return rows.reduce(function(a, r) { return a + r[f]; }, 0); };
+        var chip = function(bg, fg, t) { return '<div style="background:' + bg + ';color:' + fg + ';border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">' + t + '</div>'; };
         document.getElementById('ear-sum').innerHTML =
-            '<div style="background:#e2e8f0;color:#334155;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">👥 ' + rows.length + ' موظف</div>' +
-            '<div style="background:#d1fae5;color:#065f46;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">📅 ' + totalDays + ' يوم حضور</div>' +
-            '<div style="background:#dbeafe;color:#1e40af;border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:800">⏱️ ' + Math.round(totalMins / 60) + ' ساعة</div>';
+            chip('#e2e8f0', '#334155', '👥 ' + rows.length + ' موظف') +
+            chip('#d1fae5', '#065f46', '📅 ' + sum('present') + ' يوم حضور') +
+            chip('#dbeafe', '#1e40af', '⏱️ ' + Math.round(sum('total') / 60) + ' ساعة') +
+            chip('#cffafe', '#155e75', '🏖️ ' + sum('leave') + ' إجازة') +
+            chip('#fecaca', '#7f1d1d', '🔴 ' + sum('absent') + ' غياب');
         document.getElementById('ear-list').innerHTML = rows.length ? rows.map(function(r, i) {
             var det = r.days.map(function(d) {
+                var mid, col = '#065f46';
+                if (d.kind === 'leave') { mid = '🏖️ إجازة'; col = '#155e75'; }
+                else if (d.kind === 'absent') { mid = '🔴 غياب'; col = '#7f1d1d'; }
+                else if (d.rec.startAt) mid = '🟢 ' + hm(d.rec.startAt) + (d.rec.endAt ? ' → 🔴 ' + hm(d.rec.endAt) : '');
+                else mid = '✓ تسجيل يدوي';
+                var tail = d.kind !== 'present' ? '' : (d.mins != null ? dur(d.mins) : (d.rec.startAt ? 'لم ينصرف' : '')) + (d.viaReq ? ' ✍️' : '');
                 return '<div style="display:flex;justify-content:space-between;gap:6px;font-size:12px;padding:5px 0;border-top:1px dashed #e2e8f0">' +
                     '<span style="direction:ltr;color:#475569">' + d.date.slice(8) + '/' + d.date.slice(5, 7) + '</span>' +
-                    '<span style="direction:ltr;color:#0d1b2a">🟢 ' + hm(d.rec.startAt) + (d.rec.endAt ? ' → 🔴 ' + hm(d.rec.endAt) : '') + '</span>' +
-                    '<span style="font-weight:700;color:' + (d.mins != null ? '#065f46' : '#b45309') + '">' + (d.mins != null ? dur(d.mins) : 'لم ينصرف') + (d.rec.source === 'request' ? ' ✍️' : '') + '</span></div>';
-            }).join('') || '<div style="font-size:12px;color:#94a3b8;padding:6px 0">لا توجد سجلات حضور هذا الشهر</div>';
-            return '<div style="background:#fff;border-radius:12px;padding:10px 14px;margin-bottom:8px;border-right:4px solid ' + (r.present ? '#10b981' : '#ef4444') + '">' +
+                    '<span style="direction:ltr;color:#0d1b2a">' + mid + '</span>' +
+                    '<span style="font-weight:700;color:' + col + '">' + tail + '</span></div>';
+            }).join('') || '<div style="font-size:12px;color:#94a3b8;padding:6px 0">لا توجد سجلات هذا الشهر</div>';
+            var notes = (r.leave ? '🏖️ ' + r.leave + ' إجازة  ' : '') + (r.absent ? '🔴 ' + r.absent + ' غياب  ' : '') + (r.open ? '⚠️ ' + r.open + ' يوم بدون انتهاء  ' : '') + (r.manual ? '✓ ' + r.manual + ' يدوي  ' : '') + (r.viaReq ? '✍️ ' + r.viaReq + ' بطلب معتمد' : '');
+            return '<div style="background:#fff;border-radius:12px;padding:10px 14px;margin-bottom:8px;border-right:4px solid ' + (r.present ? '#10b981' : (r.leave ? '#0891b2' : '#ef4444')) + '">' +
                 '<div data-ear-toggle="' + i + '" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer">' +
                 '<div style="min-width:0"><div style="font-weight:800;font-size:13.5px;color:#0d1b2a">' + escapeHtml(r.e.name || '—') + '</div>' +
                 '<div style="font-size:11px;color:#64748b">' + escapeHtml(r.e.title || '') + (r.e.projectSite ? ' · ' + escapeHtml(r.e.projectSite) : '') + '</div></div>' +
                 '<div style="text-align:left;flex-shrink:0"><div style="font-weight:800;color:#0d1b2a;font-size:13px">' + r.present + ' يوم</div>' +
                 '<div style="font-size:11.5px;color:#334155;font-weight:700">' + (r.total ? dur(r.total) : '—') + '</div></div></div>' +
-                (r.open || r.manual ? '<div style="font-size:10.5px;margin-top:4px;color:#b45309">' + (r.open ? '⚠️ ' + r.open + ' يوم بدون انتهاء  ' : '') + (r.manual ? '✍️ ' + r.manual + ' بطلب معتمد' : '') + '</div>' : '') +
+                (notes ? '<div style="font-size:10.5px;margin-top:4px;color:#b45309">' + notes + '</div>' : '') +
                 '<div id="ear-det-' + i + '" style="display:none;margin-top:8px">' + det + '</div></div>';
         }).join('') : '<div style="text-align:center;padding:30px;color:#94a3b8">لا توجد بيانات</div>';
         document.getElementById('ear-list').onclick = function(ev) {
@@ -9882,19 +9923,22 @@ function openEmployeeAttendanceReport() {
     function exportReport() {
         if (!report || !report.rows.length) { showToast('لا توجد بيانات لتصديرها', true); return; }
         try {
-            var sum = [['م', 'الموظف', 'المهنة', 'الموقع / المشروع', 'أيام الحضور', 'إجمالي الساعات', 'متوسط الساعات في اليوم', 'أيام بدون انتهاء', 'أيام بطلب معتمد']];
-            var det = [['التاريخ', 'الموظف', 'المهنة', 'الدخول', 'الخروج', 'الساعات', 'المصدر', 'الموقع']];
+            var r2 = function(m) { return Math.round(m / 60 * 100) / 100; };
+            var sum = [['م', 'الموظف', 'المهنة', 'نوع التعيين', 'الموقع / المشروع', 'أيام الحضور', 'إجمالي الساعات', 'متوسط الساعات في اليوم', 'أيام إجازة', 'أيام غياب', 'أيام بدون انتهاء', 'حضور بتسجيل يدوي', 'حضور بطلب معتمد', 'رصيد الإجازات الحالي']];
+            var det = [['التاريخ', 'الموظف', 'المهنة', 'الحالة', 'الدخول', 'الخروج', 'الساعات', 'المصدر', 'الموقع']];
+            var KIND = { present: 'حضور', leave: 'إجازة', absent: 'غياب' };
             report.rows.forEach(function(r, i) {
-                sum.push([i + 1, r.e.name || '', r.e.title || '', r.e.projectSite || '', r.present, Math.round(r.total / 60 * 100) / 100, Math.round(r.avg / 60 * 100) / 100, r.open, r.manual]);
+                sum.push([i + 1, r.e.name || '', r.e.title || '', r.e.employmentType || '', r.e.projectSite || '', r.present, r2(r.total), r2(r.avg), r.leave, r.absent, r.open, r.manual, r.viaReq,
+                    r.e.employmentType === 'معين' ? (parseFloat(r.e.leaveBalance) || 0) : '']);
                 r.days.forEach(function(d) {
-                    det.push([d.date, r.e.name || '', r.e.title || '', hm(d.rec.startAt), d.rec.endAt ? hm(d.rec.endAt) : '',
-                        d.mins != null ? Math.round(d.mins / 60 * 100) / 100 : '', d.rec.source === 'request' ? 'طلب معتمد' : 'QR',
-                        d.rec.lat != null ? 'https://www.google.com/maps?q=' + d.rec.lat + ',' + d.rec.lng : 'بدون موقع']);
+                    det.push([d.date, r.e.name || '', r.e.title || '', KIND[d.kind] || d.kind, d.rec.startAt ? hm(d.rec.startAt) : '', d.rec.endAt ? hm(d.rec.endAt) : '',
+                        d.mins != null ? r2(d.mins) : '', (d.kind !== 'present' || d.manual) ? 'تسجيل يدوي (HR)' : (d.viaReq ? 'طلب معتمد' : 'QR'),
+                        d.rec.lat != null ? 'https://www.google.com/maps?q=' + d.rec.lat + ',' + d.rec.lng : '']);
                 });
             });
             var ws1 = XLSX.utils.aoa_to_sheet(sum), ws2 = XLSX.utils.aoa_to_sheet(det);
-            ws1['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 20 }, { wch: 20 }, { wch: 12 }, { wch: 14 }, { wch: 18 }, { wch: 14 }, { wch: 14 }];
-            ws2['!cols'] = [{ wch: 12 }, { wch: 28 }, { wch: 20 }, { wch: 9 }, { wch: 9 }, { wch: 10 }, { wch: 12 }, { wch: 40 }];
+            ws1['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 14 }, { wch: 18 }, { wch: 11 }, { wch: 11 }, { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 16 }];
+            ws2['!cols'] = [{ wch: 12 }, { wch: 28 }, { wch: 20 }, { wch: 9 }, { wch: 9 }, { wch: 9 }, { wch: 10 }, { wch: 18 }, { wch: 40 }];
             var wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws1, 'ملخص الشهر');
             XLSX.utils.book_append_sheet(wb, ws2, 'التفاصيل اليومية');
@@ -9905,16 +9949,18 @@ function openEmployeeAttendanceReport() {
 }
 
 // ==================== قسم الموارد البشرية في الصفحة الرئيسية (حضور اليوم لحظة بلحظة) ====================
-var _homeHr = { date: '', ref: null, recs: {}, ok: null };
+var _homeHr = { date: '', refs: [], recs: {}, st: {}, ok: null };
 function homeHrAttach() {
     var d = businessDateStr(new Date());
-    if (_homeHr.date === d && _homeHr.ref) return;
-    if (_homeHr.ref) { try { _homeHr.ref.off(); } catch (e) {} }
-    _homeHr.date = d; _homeHr.recs = {}; _homeHr.ok = null; _homeHr.ref = null;
+    if (_homeHr.date === d && _homeHr.refs.length) return;
+    _homeHr.refs.forEach(function(r) { try { r.off(); } catch (e) {} });
+    _homeHr.date = d; _homeHr.recs = {}; _homeHr.st = {}; _homeHr.ok = null; _homeHr.refs = [];
     if (typeof fbDb === 'undefined' || !fbDb) return;
-    _homeHr.ref = fbDb.ref('employeeAttendance/' + d);
-    _homeHr.ref.on('value', function(s) { _homeHr.recs = s.val() || {}; _homeHr.ok = true; renderHomeHrSection(); },
+    var r1 = fbDb.ref('employeeAttendance/' + d), r2 = fbDb.ref('employeeDayStatus/' + d);
+    r1.on('value', function(s) { _homeHr.recs = s.val() || {}; _homeHr.ok = true; renderHomeHrSection(); },
         function() { _homeHr.ok = false; renderHomeHrSection(); });
+    r2.on('value', function(s) { _homeHr.st = s.val() || {}; renderHomeHrSection(); }, function() {});
+    _homeHr.refs = [r1, r2];
 }
 function renderHomeHrSection() {
     var el = document.getElementById('home-hr-section');
@@ -9923,12 +9969,16 @@ function renderHomeHrSection() {
     if (!allowed) { el.innerHTML = ''; return; }
     homeHrAttach();
     if (_homeHr.ok !== true) { el.innerHTML = ''; return; }
-    var recs = _homeHr.recs || {};
-    var has = function(id) { return !!(recs[id] && recs[id].startAt); };
+    var recs = _homeHr.recs || {}, st = _homeHr.st || {};
+    var qr = function(id) { return !!(recs[id] && recs[id].startAt); };
+    var sOf = function(id) { return st[id] && st[id].status; };
+    var present = function(id) { return sOf(id) ? sOf(id) === 'present' : qr(id); };
+    var away = function(id) { return sOf(id) === 'leave' || sOf(id) === 'absent'; };
     var emps = (employeesData || []).filter(employeeIsUnassigned);
-    var registered = emps.filter(function(e) { return has(e.id); });
-    var missing = emps.filter(function(e) { return !has(e.id); });
-    var open = Object.keys(recs).filter(function(k) { return has(k) && !recs[k].endAt; }).length;
+    var registered = emps.filter(function(e) { return present(e.id); });
+    var awayList = emps.filter(function(e) { return away(e.id); });
+    var missing = emps.filter(function(e) { return !present(e.id) && !away(e.id); });
+    var open = Object.keys(recs).filter(function(k) { return qr(k) && !recs[k].endAt && !away(k); }).length;
     var pending = (empAttRequests || []).filter(function(r) { return r.status === 'pending'; }).length;
     if (!emps.length && !Object.keys(recs).length && !pending) { el.innerHTML = ''; return; }
     var tile = function(label, val, color, bg, act) {
@@ -9945,10 +9995,181 @@ function renderHomeHrSection() {
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px">' +
         tile('✅ سجّلوا', registered.length + ' / ' + emps.length, '#065f46', '#d1fae5', 'openEmployeeAttendanceModal()') +
         tile('❌ لم يسجّلوا', missing.length, '#991b1b', '#fee2e2', 'openEmployeeAttendanceModal()') +
+        tile('🏖️ إجازة / غياب', awayList.length, '#155e75', '#cffafe', 'openEmployeeAttendanceModal()') +
         tile('⏳ لم ينصرفوا', open, '#92400e', '#fef3c7', 'openEmployeeAttendanceModal()') +
         tile('📥 طلبات معلّقة', pending, '#3730a3', '#e0e7ff', 'openEmpAttRequestsModal()') + '</div>' +
         (missing.length ? '<div style="margin-top:10px;font-size:11.5px;color:#64748b;line-height:1.7">لم يسجّل بعد: <b style="color:#334155">' + names + '</b></div>' : '') +
         '</div>';
+}
+
+// ==================== تسجيل حضور (✓) / غياب أو إجازة (✗) من كارت الموظف + رصيد الإجازات ====================
+// employeeDayStatus/{date}/{empId} = { empId, name, date, status: 'present'|'absent'|'leave', hours?, deducted?, by, at }
+// employeeLeaveLedger/{empId}/{pushId} = { type: 'grant'|'extra'|'leave'|'refund'|'adjust', days(+/-), balanceAfter, note, date?, by, at }
+// employees/{id}.leaveBalance = رصيد الإجازات بالأيام (للمعيّن فقط — السركي يُحاسب على ساعات الحضور)
+var empMarkDate = '';
+var empDay = { date: '', refs: [], st: {}, att: {}, ok: false };
+function empMarkDateGet() { return empMarkDate || businessDateStr(new Date()); }
+function toggleEmployeeLeaveField() {
+    var f = document.getElementById('employee-leave-field'), t = document.getElementById('employee-type');
+    if (f && t) f.style.display = t.value === 'معين' ? '' : 'none';
+}
+function empDayAttach() {
+    var d = empMarkDateGet();
+    if (empDay.date === d && empDay.refs.length) return;
+    empDay.refs.forEach(function(r) { try { r.off(); } catch (e) {} });
+    empDay = { date: d, refs: [], st: {}, att: {}, ok: false };
+    if (typeof fbDb === 'undefined' || !fbDb) return;
+    var rerender = function() { var b = document.querySelector('.tab-btn.active'); if (b && b.dataset.view === 'employees') refreshUI(); };
+    var r1 = fbDb.ref('employeeDayStatus/' + d), r2 = fbDb.ref('employeeAttendance/' + d);
+    r1.on('value', function(s) { empDay.st = s.val() || {}; empDay.ok = true; rerender(); }, function() {});
+    r2.on('value', function(s) { empDay.att = s.val() || {}; rerender(); }, function() {});
+    empDay.refs = [r1, r2];
+}
+function empDayStatusOf(id) {
+    var s = empDay.st && empDay.st[id];
+    if (s && s.status) return { status: s.status, src: 'mark', rec: s };
+    var a = empDay.att && empDay.att[id];
+    if (a && a.startAt) return { status: 'present', src: 'qr', rec: a };
+    return null;
+}
+function empByWho() { return (currentUser && (currentUser.name || currentUser.username)) || 'مشرف'; }
+function empCanMark() { return hasPermission('all') || canEdit('employees'); }
+function empLedgerAdd(empId, entry) {
+    return fbDb.ref('employeeLeaveLedger/' + empId).push(Object.assign({ at: new Date().toISOString(), by: empByWho() }, entry));
+}
+// تعديل الرصيد + تسجيله في السجل. يرجع Promise<boolean> (false لو الرصيد لا يكفي عند minZero)
+function empAdjustBalance(empId, delta, entry, minZero) {
+    var ref = fbDb.ref('employees/' + empId + '/leaveBalance');
+    return ref.once('value').then(function(s) {
+        var cur = parseFloat(s.val()) || 0, n = cur + delta;
+        if (minZero && n < 0) return false;
+        return ref.set(n).then(function() { return empLedgerAdd(empId, Object.assign({ days: delta, balanceAfter: n }, entry)); }).then(function() { return true; });
+    });
+}
+function empDialog(title, bodyHtml, buttons) {
+    var old = document.getElementById('emp-dlg'); if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'emp-dlg';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:10080;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;direction:rtl;font-family:Cairo,Tahoma,sans-serif';
+    var btns = buttons.map(function(b, i) {
+        return '<button data-i="' + i + '" style="flex:1 1 100%;padding:12px;border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer;background:' + (b.bg || '#e2e8f0') + ';color:' + (b.color || '#0d1b2a') + '">' + b.label + '</button>';
+    }).join('');
+    ov.innerHTML = '<div style="background:#fff;border-radius:20px 20px 0 0;padding:18px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto">' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2a;margin-bottom:8px">' + title + '</div>' +
+        '<div style="font-size:13px;color:#475569;line-height:1.8;margin-bottom:12px">' + bodyHtml + '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:8px">' + btns + '</div></div>';
+    document.body.appendChild(ov);
+    ov.onclick = function(e) {
+        if (e.target === ov) { ov.remove(); return; }
+        var b = e.target.closest('[data-i]'); if (!b) return;
+        var def = buttons[+b.getAttribute('data-i')];
+        if (def.action) { if (def.action(ov) !== true) ov.remove(); } else ov.remove();
+    };
+}
+function empWriteStatus(e, status, extra) {
+    var d = empMarkDateGet();
+    return fbDb.ref('employeeDayStatus/' + d + '/' + e.id).set(Object.assign({ empId: e.id, name: e.name || '', date: d, status: status, by: empByWho(), at: new Date().toISOString() }, extra || {}));
+}
+function empClearStatus(e) { return fbDb.ref('employeeDayStatus/' + empMarkDateGet() + '/' + e.id).remove(); }
+// لو اليوم كان "إجازة" بخصم من الرصيد → نرجّع اليوم للرصيد قبل تغيير الحالة
+function empRefundIfLeave(e) {
+    var cur = empDay.st && empDay.st[e.id];
+    if (cur && cur.status === 'leave' && cur.deducted) return empAdjustBalance(e.id, cur.deducted, { type: 'refund', date: empMarkDateGet(), note: 'إلغاء إجازة' }, false);
+    return Promise.resolve(true);
+}
+function empMarkGuard(id) {
+    if (!empCanMark()) { showToast('⛔ غير مصرح', true); return null; }
+    if (empMarkDateGet() > businessDateStr(new Date())) { showToast('لا يمكن التسجيل لتاريخ مستقبلي', true); return null; }
+    return employeesData.find(function(x) { return x.id === id; }) || null;
+}
+function markEmpPresent(id) {
+    var e = empMarkGuard(id); if (!e) return;
+    var cur = empDayStatusOf(id);
+    if (cur && cur.status === 'present' && cur.src === 'qr') { showToast('✅ حضوره مسجّل عبر QR بالفعل'); return; }
+    if (cur && cur.status === 'present' && cur.src === 'mark') {
+        empClearStatus(e).then(function() { showToast('تم إلغاء تسجيل الحضور'); }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+        return;
+    }
+    var finish = function(extra) {
+        empRefundIfLeave(e).then(function() { return empWriteStatus(e, 'present', extra); })
+            .then(function() { showToast('✅ تم تسجيل حضور ' + e.name); })
+            .catch(function(err) { showToast('خطأ: ' + err.message, true); });
+    };
+    if (e.employmentType === 'سركي') {
+        empDialog('✅ حضور ' + escapeHtml(e.name),
+            'موظف سركي (يومية) — يُحاسب على ساعات الحضور فقط:<input id="emp-dlg-hours" type="number" min="0.5" max="24" step="0.5" value="8" style="width:100%;margin-top:8px;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font-size:15px;box-sizing:border-box;font-family:inherit"><div style="font-size:11.5px;color:#94a3b8;margin-top:4px">عدد ساعات العمل</div>',
+            [{ label: '✅ تأكيد الحضور', bg: '#059669', color: '#fff', action: function() {
+                var h = parseFloat(document.getElementById('emp-dlg-hours').value);
+                if (!(h > 0 && h <= 24)) { showToast('أدخل عدد ساعات صحيح', true); return true; }
+                finish({ hours: h });
+            } }, { label: 'إلغاء' }]);
+    } else finish({});
+}
+function markEmpAbsent(id) {
+    var e = empMarkGuard(id); if (!e) return;
+    var cur = empDayStatusOf(id);
+    if (cur && cur.src === 'mark' && (cur.status === 'absent' || cur.status === 'leave')) {
+        empRefundIfLeave(e).then(function() { return empClearStatus(e); })
+            .then(function() { showToast('تم إلغاء التسجيل' + (cur.status === 'leave' ? ' وإرجاع اليوم للرصيد' : '')); })
+            .catch(function(err) { showToast('خطأ: ' + err.message, true); });
+        return;
+    }
+    var bal = parseFloat(e.leaveBalance) || 0;
+    var asAbsent = function(note) {
+        empRefundIfLeave(e).then(function() { return empWriteStatus(e, 'absent'); })
+            .then(function() { showToast(note || ('🔴 تم تسجيل غياب ' + e.name)); })
+            .catch(function(err) { showToast('خطأ: ' + err.message, true); });
+    };
+    if (e.employmentType === 'معين' && bal >= 1) {
+        empDialog('✗ ' + escapeHtml(e.name),
+            'موظف معيّن ورصيد إجازاته <b>' + bal + ' يوم</b>.<br>هل يُحتسب هذا اليوم إجازة من الرصيد أم غياب؟',
+            [{ label: '🏖️ إجازة (خصم يوم من الرصيد)', bg: '#0891b2', color: '#fff', action: function() {
+                empRefundIfLeave(e).then(function() { return empAdjustBalance(e.id, -1, { type: 'leave', date: empMarkDateGet(), note: 'إجازة من الرصيد' }, true); })
+                    .then(function(ok) {
+                        if (!ok) { showToast('الرصيد غير كافٍ', true); return; }
+                        return empWriteStatus(e, 'leave', { deducted: 1 }).then(function() { showToast('🏖️ سُجّلت إجازة — الرصيد المتبقي ' + (bal - 1) + ' يوم'); });
+                    }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+            } },
+            { label: '🔴 غياب (بدون خصم من الرصيد)', bg: '#dc2626', color: '#fff', action: function() { asAbsent(); } },
+            { label: 'إلغاء' }]);
+    } else {
+        asAbsent(e.employmentType === 'معين' ? '🔴 لا يوجد رصيد إجازات — سُجّل غياب لـ ' + e.name : null);
+    }
+}
+function addLeaveDaysDialog(id) {
+    var e = employeesData.find(function(x) { return x.id === id; }); if (!e) return;
+    if (!empCanMark()) { showToast('⛔ غير مصرح', true); return; }
+    var inp = 'width:100%;margin-top:6px;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font-size:14px;box-sizing:border-box;font-family:inherit';
+    empDialog('➕ إضافة أيام لرصيد ' + escapeHtml(e.name),
+        'الرصيد الحالي: <b>' + (parseFloat(e.leaveBalance) || 0) + ' يوم</b>' +
+        '<select id="lv-type" style="' + inp + '"><option value="extra">⭐ أيام إضافية (عمل في إجازة/عطلة)</option><option value="grant">➕ رصيد / استحقاق</option></select>' +
+        '<input id="lv-days" type="number" min="0.5" step="0.5" placeholder="عدد الأيام" style="' + inp + '">' +
+        '<input id="lv-note" placeholder="ملاحظة (اختياري)" style="' + inp + '">',
+        [{ label: '✅ إضافة للرصيد', bg: '#059669', color: '#fff', action: function() {
+            var d = parseFloat(document.getElementById('lv-days').value);
+            if (!(d > 0)) { showToast('أدخل عدد أيام صحيح', true); return true; }
+            var type = document.getElementById('lv-type').value, note = document.getElementById('lv-note').value.trim();
+            empAdjustBalance(id, d, { type: type, note: note || (type === 'extra' ? 'أيام إضافية' : 'رصيد') }, false)
+                .then(function() { showToast('✅ تمت إضافة ' + d + ' يوم'); setTimeout(function() { openEmployeeDetail(id); }, 400); })
+                .catch(function(err) { showToast('خطأ: ' + err.message, true); });
+        } }, { label: 'إلغاء' }]);
+}
+function showLeaveLedger(id) {
+    var e = employeesData.find(function(x) { return x.id === id; }); if (!e) return;
+    var T = { grant: '➕ رصيد', extra: '⭐ أيام إضافية', leave: '🏖️ إجازة', refund: '↩️ استرجاع', adjust: '✏️ تعديل' };
+    fbDb.ref('employeeLeaveLedger/' + id).limitToLast(40).once('value').then(function(s) {
+        var v = s.val() || {};
+        var rows = Object.keys(v).map(function(k) { return v[k]; }).sort(function(a, b) { return String(b.at || '').localeCompare(String(a.at || '')); });
+        var html = rows.length ? rows.map(function(r) {
+            var pos = (r.days || 0) >= 0;
+            return '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid #f1f5f9;font-size:12.5px">' +
+                '<div><div style="font-weight:700;color:#0d1b2a">' + (T[r.type] || r.type) + (r.date ? ' · ' + escapeHtml(r.date) : '') + '</div>' +
+                '<div style="font-size:11px;color:#94a3b8">' + escapeHtml(r.note || '') + ' — ' + escapeHtml(r.by || '') + ' · ' + escapeHtml(String(r.at || '').slice(0, 10)) + '</div></div>' +
+                '<div style="text-align:left;flex-shrink:0"><div style="font-weight:800;color:' + (pos ? '#059669' : '#dc2626') + ';direction:ltr">' + (pos ? '+' : '') + r.days + '</div>' +
+                (r.balanceAfter != null ? '<div style="font-size:10.5px;color:#94a3b8">الرصيد ' + r.balanceAfter + '</div>' : '') + '</div></div>';
+        }).join('') : '<div style="text-align:center;padding:18px;color:#94a3b8">لا توجد حركات بعد</div>';
+        empDialog('📜 سجل رصيد ' + escapeHtml(e.name), html, [{ label: 'إغلاق' }]);
+    }).catch(function() { showToast('تعذّر تحميل السجل — تأكد من قواعد Firebase', true); });
 }
 
 function printSingleQRLabel(eqId) {
@@ -10307,6 +10528,8 @@ function openAddEmployeeModal() {
     });
     document.getElementById('employee-type').value = 'معين';
     document.getElementById('employee-status').value = 'نشط';
+    document.getElementById('employee-leave-balance').value = '';
+    toggleEmployeeLeaveField();
     populateEmployeeLocationsDatalist();
     document.getElementById('employee-modal').classList.add('active');
 }
@@ -10324,6 +10547,8 @@ function saveEmployee() {
         notes: document.getElementById('employee-notes').value,
         updatedAt: new Date().toISOString()
     };
+    var _lb = parseFloat(document.getElementById('employee-leave-balance').value);
+    if (employee.employmentType === 'معين') employee.leaveBalance = isNaN(_lb) ? 0 : _lb;   // السركي: لا رصيد (يُحاسب على ساعات الحضور)
 
     if (!employee.name) {
         showToast(RL('Enter the employee name','أدخل اسم الموظف'), true);
@@ -10345,6 +10570,9 @@ function saveEmployee() {
             return;
         }
         if (existingEmployee && existingEmployee.ownerId) employee.ownerId = existingEmployee.ownerId;
+        if (existingEmployee && employee.leaveBalance != null && (parseFloat(existingEmployee.leaveBalance) || 0) !== employee.leaveBalance) {
+            empLedgerAdd(editingEmployeeId, { type: 'adjust', days: employee.leaveBalance - (parseFloat(existingEmployee.leaveBalance) || 0), balanceAfter: employee.leaveBalance, note: 'تعديل الرصيد من بيانات الموظف' });
+        }
         saveToFirebase('employees', Object.assign({ id: editingEmployeeId }, employee));
         showToast(RL('Employee info updated','تم تحديث بيانات الموظف'));
     } else {
@@ -10372,6 +10600,14 @@ function openEmployeeDetail(id) {
         contentHtml += '<div class="detail-section"><div class="detail-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></div><div class="detail-value">' + escapeHtml(employee.notes) + '</div></div>';
     }
     var empAssigned = equipmentData.filter(function(e) { return e.assignedDriver === employee.id; });
+    if (employee.employmentType === 'معين') {
+        contentHtml += '<div class="detail-section"><div class="detail-label">🏖️ رصيد الإجازات</div>' +
+            '<div style="font-size:24px;font-weight:800;color:#0891b2;margin:4px 0 8px">' + (parseFloat(employee.leaveBalance) || 0) + ' <span style="font-size:13px;color:#64748b">يوم</span></div>' +
+            ((hasPermission('all') || canEdit('employees')) ? '<div style="display:flex;gap:8px"><button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="addLeaveDaysDialog(\'' + employee.id + '\')">➕ إضافة أيام</button>' +
+            '<button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:9px;background:linear-gradient(135deg,#64748b,#475569)" onclick="showLeaveLedger(\'' + employee.id + '\')">📜 سجل الرصيد</button></div>' : '') + '</div>';
+    } else if (employee.employmentType === 'سركي') {
+        contentHtml += '<div class="detail-section"><div class="detail-label">🧾 نظام اليومية</div><div style="font-size:12px;color:#64748b;margin-top:4px;line-height:1.7">الموظف السركي يُحاسب على ساعات الحضور فقط — لا يوجد له رصيد إجازات.</div></div>';
+    }
     if (!empAssigned.length && employee.status !== 'منتهي الخدمة') {
         contentHtml += '<div class="detail-section"><div class="detail-label">🏷️ QR تسجيل بدء العمل اليومي</div>' +
             '<div style="font-size:11.5px;color:#64748b;margin:4px 0 8px">الموظف غير مسند لمعدة — يمسح هذا الرمز كل يوم ويضغط «بدء العمل».</div>' +
@@ -10433,6 +10669,8 @@ function editEmployee(id) {
     document.getElementById('employee-phone').value = employee.phone || '';
     document.getElementById('employee-code').value = employee.jobCode || '';
     document.getElementById('employee-type').value = employee.employmentType || 'معين';
+    document.getElementById('employee-leave-balance').value = (employee.leaveBalance != null ? employee.leaveBalance : '');
+    toggleEmployeeLeaveField();
     document.getElementById('employee-status').value = employee.status || 'نشط';
     document.getElementById('employee-notes').value = employee.notes || '';
     populateEmployeeLocationsDatalist();
@@ -19295,6 +19533,11 @@ function refreshUI() {
                 }).join('');
         }
 
+        try {
+            empDayAttach();
+            var _de = document.getElementById('emp-mark-date');
+            if (_de) { _de.max = businessDateStr(new Date()); if (_de.value !== empMarkDateGet()) _de.value = empMarkDateGet(); }
+        } catch (err) {}
         // فلترة الموظفين
         var filteredEmployees = employeesData.filter(function(e) {
             if (empSearch && !(e.name && e.name.includes(empSearch))) return false;
@@ -19320,12 +19563,28 @@ function refreshUI() {
         function renderEmployeeCard(e) {
             var typeColor = e.employmentType === 'معين' ? 'badge-active' : 'badge-maintenance';
             var statusDot = e.status === 'منتهي الخدمة' ? '⚫' : '🟢';
+            var active = e.status !== 'منتهي الخدمة';
+            var st = empDayStatusOf(e.id);
+            var okOn = !!(st && st.status === 'present');
+            var noOn = !!(st && (st.status === 'absent' || st.status === 'leave'));
+            var lbl = '';
+            if (st) {
+                if (st.status === 'present') lbl = '<span style="color:#059669;font-weight:700">🟢 حاضر' + (st.src === 'qr' && st.rec.startAt ? ' ' + new Date(st.rec.startAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : (st.rec.hours ? ' — ' + st.rec.hours + ' س' : '')) + '</span>';
+                else if (st.status === 'leave') lbl = '<span style="color:#0891b2;font-weight:700">🏖️ إجازة</span>';
+                else lbl = '<span style="color:#dc2626;font-weight:700">🔴 غياب</span>';
+            }
+            var bal = e.employmentType === 'معين' ? ' <span style="background:#e0f2fe;color:#075985;border-radius:10px;padding:1px 7px;font-size:10.5px;font-weight:700">🏖️ ' + (parseFloat(e.leaveBalance) || 0) + ' يوم</span>' : '';
+            var btn = 'width:36px;height:36px;border-radius:50%;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;padding:0;';
+            var marks = active ? '<div style="display:flex;gap:6px;flex-shrink:0;margin-inline-start:6px">' +
+                '<button onclick="event.stopPropagation();markEmpPresent(\'' + e.id + '\')" style="' + btn + 'border:2px solid #10b981;background:' + (okOn ? '#10b981' : '#fff') + ';color:' + (okOn ? '#fff' : '#10b981') + '">✓</button>' +
+                '<button onclick="event.stopPropagation();markEmpAbsent(\'' + e.id + '\')" style="' + btn + 'border:2px solid ' + (st && st.status === 'leave' ? '#0891b2' : '#ef4444') + ';background:' + (noOn ? (st.status === 'leave' ? '#0891b2' : '#ef4444') : '#fff') + ';color:' + (noOn ? '#fff' : '#ef4444') + '">' + (st && st.status === 'leave' ? '🏖️' : '✗') + '</button></div>' : '';
             return '<div class="employee-card" onclick="openEmployeeDetail(\'' + e.id + '\')">' +
                 '<div style="min-width:0;flex:1">' +
                 '<div class="emp-name"><span class="c-ico">' + statusDot + '</span> ' + escapeHtml(e.name) + '</div>' +
                 '<div class="emp-title">' + escapeHtml(e.title || '—') + (e.phone ? ' · 📱 ' + escapeHtml(e.phone) : '') + '</div>' +
+                ((lbl || bal) ? '<div style="font-size:11.5px;margin-top:3px">' + lbl + bal + '</div>' : '') +
                 '</div>' +
-                '<span class="badge emp-badge ' + typeColor + '">' + escapeHtml(e.employmentType || '—') + '</span>' +
+                '<span class="badge emp-badge ' + typeColor + '">' + escapeHtml(e.employmentType || '—') + '</span>' + marks +
                 '</div>';
         }
 
