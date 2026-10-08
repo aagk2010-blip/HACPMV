@@ -4026,17 +4026,19 @@ function openEditUserModal(idx) {
             if (!isNew) finishSaveUser();
 
             function finishSaveUser() {
-                saveAppUsers();
-                // تحديث صلاحيات المستخدم الحالي إذا كان هو المعدَّل
-                if (currentUser && !isNew && APP_USERS[idx] && currentUser.id === APP_USERS[idx].id) {
-                    currentUser.role = selectedRole;
-                    currentUser.sections = sections;
-                    currentUser.sites = sites;
-                    currentUser.name = name;
-                }
-                modal.remove();
-                renderUsersList();
-                showToast(isNew ? '✅ تم إضافة المستخدم' : '✅ تم تحديث البيانات');
+                var savedId = isNew ? user.id : APP_USERS[idx].id;
+                saveAppUsers(savedId).then(function() {
+                    // تحديث صلاحيات المستخدم الحالي إذا كان هو المعدَّل
+                    if (currentUser && !isNew && APP_USERS[idx] && currentUser.id === APP_USERS[idx].id) {
+                        currentUser.role = selectedRole;
+                        currentUser.sections = sections;
+                        currentUser.sites = sites;
+                        currentUser.name = name;
+                    }
+                    modal.remove();
+                    renderUsersList();
+                    showToast(isNew ? '✅ تم إضافة المستخدم' : '✅ تم تحديث البيانات');
+                }).catch(function() { /* رسالة الخطأ ظهرت من saveAppUsers، والنافذة تبقى مفتوحة */ });
             }
         });
     };
@@ -4617,15 +4619,31 @@ var APP_USERS = [
 ];
 
 // حفظ المستخدمين في Firebase (مزامنة على كل الأجهزة)
-function saveAppUsers() {
+function saveAppUsers(onlyUserId) {
     if (!fbDb) {
         showToast('❌ لا يوجد اتصال بقاعدة البيانات - لم يتم الحفظ', true);
         return Promise.reject(new Error('NO_FIREBASE'));
     }
-    var usersObj = {};
-    APP_USERS.forEach(function(u) { usersObj[u.id] = u; });
-    return fbDb.ref('appUsers').set(usersObj).catch(function(e) {
-        showToast('❌ فشل حفظ المستخدمين: ' + e.message, true);
+    // تنظيف أي قيم undefined (Firebase يرفضها ويرمي خطأ فوري)
+    function clean(o) { return JSON.parse(JSON.stringify(o)); }
+    var p;
+    try {
+        if (onlyUserId) {
+            // حفظ المستخدم المعدَّل فقط (لا يحتاج صلاحية كتابة على كامل appUsers)
+            var u = APP_USERS.filter(function(x) { return x.id === onlyUserId; })[0];
+            p = u ? fbDb.ref('appUsers/' + onlyUserId).set(clean(u)) : Promise.resolve();
+        } else {
+            var usersObj = {};
+            APP_USERS.forEach(function(x) { usersObj[x.id] = clean(x); });
+            p = fbDb.ref('appUsers').set(usersObj);
+        }
+    } catch (e) { p = Promise.reject(e); }
+    return p.catch(function(e) {
+        var denied = e && (e.code === 'PERMISSION_DENIED' || /permission_denied/i.test(e.message || ''));
+        var authed = !!(typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
+        showToast('❌ فشل حفظ المستخدمين: ' + (e && e.message || e) +
+            (denied ? (authed ? ' — قواعد Firebase لا تعتبر حسابك مديرًا (تحقق من uidIndex ودور admin)'
+                              : ' — لا توجد جلسة Firebase Auth لهذا الحساب، سجّل الخروج ثم الدخول مرة أخرى') : ''), true);
         throw e;
     });
 }
