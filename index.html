@@ -1467,6 +1467,36 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 .tab-bar,.modal-overlay,.admin-panel-overlay{
   transition:background .35s ease,color .35s ease,border-color .35s ease,box-shadow .35s ease;
 }
+/* ===== صفحة التقارير (تجميع كل أزرار التقارير والطباعة) ===== */
+#view-reports .rp-wrap{padding:12px 12px 96px;max-width:1100px;margin:0 auto}
+#view-reports .rp-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+#view-reports .rp-search{flex:1 1 180px;display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:7px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+#view-reports .rp-search input{border:0;outline:0;background:transparent;font-family:inherit;font-size:13px;width:100%;color:#0d1b2a}
+#view-reports .rp-kinds{display:flex;gap:5px;flex-wrap:wrap}
+#view-reports .rp-kind{border:0;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;background:#e2e8f0;color:#475569;transition:background .15s,color .15s}
+#view-reports .rp-kind.on{background:#0d1b2a;color:#fff}
+#view-reports .rp-card{background:#fff;border-radius:16px;padding:10px 12px 12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+#view-reports .rp-head{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#0d1b2a;margin-bottom:8px}
+#view-reports .rp-head .rp-n{margin-inline-start:auto;font-size:10.5px;font-weight:700;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 9px}
+#view-reports .rp-period{display:flex;gap:6px 8px;align-items:center;flex-wrap:wrap;background:#f8fafc;border-radius:12px;padding:6px 10px;margin-bottom:8px;font-size:11px;color:#64748b}
+#view-reports .rp-period input,#view-reports .rp-period select{border:1px solid #e2e8f0;border-radius:9px;padding:4px 8px;font-size:11.5px;font-family:inherit;background:#fff;color:#0d1b2a;min-width:0;max-width:150px}
+#view-reports .rp-period .rp-hint{flex-basis:100%;font-size:10px;opacity:.85}
+#view-reports .rp-chips{display:flex;flex-wrap:wrap;gap:6px}
+#view-reports .rp-chip{display:inline-flex;align-items:center;gap:5px;border:0;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:700;color:#fff;padding:6px 12px;border-radius:999px;line-height:1.2;box-shadow:0 1px 2px rgba(0,0,0,.15);transition:transform .15s,box-shadow .15s,filter .15s;white-space:nowrap}
+#view-reports .rp-chip:hover{transform:translateY(-1px);filter:brightness(1.07);box-shadow:0 3px 8px rgba(0,0,0,.2)}
+#view-reports .rp-chip:active{transform:scale(.96)}
+#view-reports .rp-chip .rp-i{font-size:13px}
+#view-reports .rp-chip .rp-tag{font-size:9px;font-weight:700;background:rgba(255,255,255,.24);border-radius:6px;padding:1px 5px}
+#view-reports .rp-empty{text-align:center;color:#94a3b8;font-size:13px;padding:30px 10px}
+#view-reports .rp-foot{text-align:center;color:#94a3b8;font-size:10.5px;margin-top:6px}
+html[data-theme="dark"] #view-reports .rp-search,html[data-theme="dark"] #view-reports .rp-card{background:#1e293b}
+html[data-theme="dark"] #view-reports .rp-search input,html[data-theme="dark"] #view-reports .rp-head{color:#e2e8f0}
+html[data-theme="dark"] #view-reports .rp-kind{background:#334155;color:#cbd5e1}
+html[data-theme="dark"] #view-reports .rp-kind.on{background:#e8a020;color:#0d1b2a}
+html[data-theme="dark"] #view-reports .rp-head .rp-n{background:#334155;color:#cbd5e1}
+html[data-theme="dark"] #view-reports .rp-period{background:#0f172a;color:#94a3b8}
+html[data-theme="dark"] #view-reports .rp-period input,html[data-theme="dark"] #view-reports .rp-period select{background:#1e293b;border-color:#334155;color:#e2e8f0}
+@media (max-width:480px){#view-reports .rp-chip{font-size:11px;padding:6px 10px}#view-reports .rp-period input,#view-reports .rp-period select{max-width:132px}}
 </style>
 <style id="map-person-label-css">
 .map-person-label{background:rgba(255,255,255,.95)!important;border:1px solid rgba(0,0,0,.15)!important;border-radius:8px!important;padding:2px 7px!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important;font-family:Cairo,sans-serif;font-size:11px;font-weight:800;color:#0f172a!important;text-align:center;line-height:1.35;white-space:nowrap;direction:rtl}
@@ -1521,7 +1551,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 <symbol id="ic-gauge" viewBox="0 0 24 24"><path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l5-6"/><path d="M2 15h2M20 15h2M12 5v2"/></symbol>
 <symbol id="ic-empty" viewBox="0 0 24 24"><path d="M3 9l2-5h14l2 5"/><path d="M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9"/><path d="M3 9h18"/><path d="M9 13a3 3 0 0 0 6 0"/></symbol>
 <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></symbol>
-<symbol id="ic-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+<symbol id="ic-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol><symbol id="ic-report" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
 <symbol id="ic-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></symbol>
 <symbol id="ic-crane" viewBox="0 0 24 24"><path d="M4 21V7l9-4v18"/><path d="M13 6h7l-3 4"/><path d="M17 10v6a2 2 0 0 1-2 2H9"/><path d="M4 21h16"/></symbol>
 <symbol id="ic-truck" viewBox="0 0 24 24"><path d="M2 8h11v9H2z"/><path d="M13 11h4l3 3v3h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></symbol>
@@ -1639,6 +1669,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
       <button class="tab-btn sidebar-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span class="i18n-label" data-en="Fuel" data-ar="الوقود"></span></button>
       <button class="tab-btn sidebar-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span class="i18n-label" data-en="Maintenance" data-ar="الصيانة"></span></button>
       <button class="tab-btn sidebar-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span class="i18n-label" data-en="Analytics" data-ar="التحليلات"></span></button>
+      <button class="tab-btn sidebar-btn" data-view="reports"><span class="tab-icon"><svg class="icon"><use href="#ic-report"/></svg></span><span class="i18n-label" data-en="Reports" data-ar="التقارير"></span></button>
       <button class="tab-btn sidebar-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span class="i18n-label" data-en="Sites" data-ar="المواقع"></span></button>
       <button class="tab-btn sidebar-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span class="i18n-label" data-en="Inventory" data-ar="المخزن"></span></button>
       <button class="tab-btn sidebar-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span class="i18n-label" data-en="Import" data-ar="استيراد"></span></button>
@@ -1702,6 +1733,15 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
     <div id="analytics-body"></div>
   </div></div>
   
+  <div id="view-reports" style="display:none"><div class="rp-wrap">
+    <div class="rp-tools">
+      <label class="rp-search"><span>🔍</span><input type="text" id="rp-search" data-en-ph="Search reports..." data-ar-ph="ابحث في التقارير..." placeholder="ابحث في التقارير..." autocomplete="off"></label>
+      <div class="rp-kinds" id="rp-kinds"></div>
+    </div>
+    <div id="reports-hub-body"></div>
+    <div class="rp-foot">كل تقرير هنا يعمل بنفس دالة زره الأصلي، والأزرار القديمة لسه في أماكنها في كل صفحة.</div>
+  </div></div>
+
   <div id="view-equipment" style="display:none"><div style="padding:14px">
     <div id="eq-meter-requests-banner"></div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -2031,7 +2071,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
         <div style="width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg,#0e7490,#065f46); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0">🏗️</div>
         <div style="flex:1; min-width:0">
           <div style="font-weight:800; font-size:14px; color:#0d1b2a; margin-bottom:2px">ملف معدات الموقع</div>
-          <div style="font-size:11.5px; color:var(--gray); line-height:1.5">تحديث ساعات العمل ومواعيد الصيانة والوقود اليومي</div>
+          <div style="font-size:11.5px; color:var(--gray); line-height:1.5">تحديث بيانات المعدات (الاسم، الكود، الشاسيه، المحرك، التواريخ، العدادات) والوقود اليومي</div>
         </div>
         <input type="file" id="equipment-excel-input" accept=".xlsx, .xls" style="display:none">
         <button id="upload-equipment-excel-btn" style="padding:9px 16px; border:none; border-radius:10px; background:linear-gradient(135deg,#0e7490,#065f46); color:white; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer; flex-shrink:0; white-space:nowrap">📂 رفع</button>
@@ -2076,7 +2116,7 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
   </div>
   
   </div><!-- /.app-main -->
-  <div class="tab-bar"><div class="tab-bar-scroll"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span class="i18n-label" data-en="Home" data-ar="الرئيسية"></span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span class="i18n-label" data-en="Equipment" data-ar="المعدات"></span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span class="i18n-label" data-en="Rental" data-ar="الإيجار"></span></button><button class="tab-btn" data-view="accounts"><span class="tab-icon"><svg class="icon"><use href="#ic-accounts"/></svg></span><span class="i18n-label" data-en="Accounts" data-ar="الحسابات"></span></button><button class="tab-btn" data-view="map"><span class="tab-icon"><svg class="icon"><use href="#ic-map"/></svg></span><span class="i18n-label" data-en="Map" data-ar="الخريطة"></span></button><button class="tab-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span class="i18n-label" data-en="Human Resources" data-ar="الموارد البشرية"></span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span class="i18n-label" data-en="Fuel" data-ar="الوقود"></span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span class="i18n-label" data-en="Maintenance" data-ar="الصيانة"></span></button><button class="tab-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span class="i18n-label" data-en="Analytics" data-ar="التحليلات"></span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span class="i18n-label" data-en="Sites" data-ar="المواقع"></span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span class="i18n-label" data-en="Inventory" data-ar="المخزن"></span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span class="i18n-label" data-en="Import" data-ar="استيراد"></span></button></div></div>
+  <div class="tab-bar"><div class="tab-bar-scroll"><button class="tab-btn" data-view="home"><span class="tab-icon"><svg class="icon"><use href="#ic-dashboard"/></svg></span><span class="i18n-label" data-en="Home" data-ar="الرئيسية"></span></button><button class="tab-btn" data-view="equipment"><span class="tab-icon"><svg class="icon"><use href="#ic-equipment"/></svg></span><span class="i18n-label" data-en="Equipment" data-ar="المعدات"></span></button><button class="tab-btn" data-view="rental"><span class="tab-icon"><svg class="icon"><use href="#ic-rental"/></svg></span><span class="i18n-label" data-en="Rental" data-ar="الإيجار"></span></button><button class="tab-btn" data-view="accounts"><span class="tab-icon"><svg class="icon"><use href="#ic-accounts"/></svg></span><span class="i18n-label" data-en="Accounts" data-ar="الحسابات"></span></button><button class="tab-btn" data-view="map"><span class="tab-icon"><svg class="icon"><use href="#ic-map"/></svg></span><span class="i18n-label" data-en="Map" data-ar="الخريطة"></span></button><button class="tab-btn" data-view="employees"><span class="tab-icon"><svg class="icon"><use href="#ic-employees"/></svg></span><span class="i18n-label" data-en="Human Resources" data-ar="الموارد البشرية"></span></button><button class="tab-btn" data-view="fuel"><span class="tab-icon"><svg class="icon"><use href="#ic-fuel"/></svg></span><span class="i18n-label" data-en="Fuel" data-ar="الوقود"></span></button><button class="tab-btn" data-view="maintenance"><span class="tab-icon"><svg class="icon"><use href="#ic-maintenance"/></svg></span><span class="i18n-label" data-en="Maintenance" data-ar="الصيانة"></span></button><button class="tab-btn" data-view="analytics"><span class="tab-icon"><svg class="icon"><use href="#ic-chart"/></svg></span><span class="i18n-label" data-en="Analytics" data-ar="التحليلات"></span></button><button class="tab-btn" data-view="reports"><span class="tab-icon"><svg class="icon"><use href="#ic-report"/></svg></span><span class="i18n-label" data-en="Reports" data-ar="التقارير"></span></button><button class="tab-btn" data-view="sites"><span class="tab-icon"><svg class="icon"><use href="#ic-building"/></svg></span><span class="i18n-label" data-en="Sites" data-ar="المواقع"></span></button><button class="tab-btn" data-view="inventory"><span class="tab-icon"><svg class="icon"><use href="#ic-inventory"/></svg></span><span class="i18n-label" data-en="Inventory" data-ar="المخزن"></span></button><button class="tab-btn" data-view="import"><span class="tab-icon"><svg class="icon"><use href="#ic-import"/></svg></span><span class="i18n-label" data-en="Import" data-ar="استيراد"></span></button></div></div>
   <button class="fab" id="fab-btn">+</button>
 </div>
 
@@ -2813,7 +2853,7 @@ var currentUserRole = 'viewer';
 var currentUserPlan = 'free';
 var currentUserStatus = 'active';
 // صلاحيات وضع "الزائر" (دخول مباشر بدون حساب) — يتحكم فيها المدير من لوحة التحكم
-var VIEWER_SECTIONS = { home:'view', equipment:'none', fuel:'none', maintenance:'none', inventory:'none', rental:'view', drivers:'view', employees:'none', equipmentChecks:'none', sites:'none', analytics:'none' };
+var VIEWER_SECTIONS = { home:'view', equipment:'none', fuel:'none', maintenance:'none', inventory:'none', rental:'view', drivers:'view', employees:'none', equipmentChecks:'none', sites:'none', analytics:'none', reports:'view' };
 
 function initFirestoreUsers() {
     try {
@@ -3627,7 +3667,7 @@ function renderUsersList(listEl) {
         var isAdmin = u.role === 'admin';
         var sections = u.sections || {};
         var secHtml = '';
-        var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['accounts','الحسابات'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646'],['sites','\u0627\u0644\u0645\u0648\u0627\u0642\u0639'],['analytics','\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a']];
+        var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['accounts','الحسابات'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646'],['sites','\u0627\u0644\u0645\u0648\u0627\u0642\u0639'],['analytics','\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a'],['reports','\u0627\u0644\u062a\u0642\u0627\u0631\u064a\u0631']];
         SECS.forEach(function(s) {
             var key = s[0], label = s[1];
             var perm = isAdmin ? 'full' : (sections[key] || 'none');
@@ -3717,7 +3757,7 @@ function openAddUserModal() {
 function openEditUserModal(idx) {
     var isNew = idx === null;
     var user = isNew ? { id: 'u_' + Date.now(), username: '', password: '', name: '', role: 'custom', active: true,
-        sections: { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', map:'none', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none' }, sites: [] } : APP_USERS[idx];
+        sections: { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', map:'none', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none', reports:'view' }, sites: [] } : APP_USERS[idx];
 
     var old = document.getElementById('user-edit-modal');
     if (old) old.remove();
@@ -3749,7 +3789,7 @@ function openEditUserModal(idx) {
         '<div id="uem-permissions-section" style="border-top:1px solid #f1f5f9;padding-top:10px">' +
         '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">\u{1F511} \u0635\u0644\u0627\u062D\u064A\u0627\u062A \u0627\u0644\u0623\u0642\u0633\u0627\u0645</div>' +
         (function() {
-            var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['accounts','الحسابات'],['map','\u062e\u0631\u064a\u0637\u0629 \u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646'],['employees','\u0627\u0644\u0645\u0648\u0638\u0641\u064a\u0646'],['equipmentChecks','\u0645\u0631\u0627\u062c\u0639\u0629 \u0627\u0644\u0645\u0639\u062f\u0627\u062a \u0627\u0644\u0633\u0631\u064a\u0639\u0629'],['sites','\u0627\u0644\u0645\u0648\u0627\u0642\u0639'],['analytics','\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a']];
+            var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['accounts','الحسابات'],['map','\u062e\u0631\u064a\u0637\u0629 \u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646'],['employees','\u0627\u0644\u0645\u0648\u0638\u0641\u064a\u0646'],['equipmentChecks','\u0645\u0631\u0627\u062c\u0639\u0629 \u0627\u0644\u0645\u0639\u062f\u0627\u062a \u0627\u0644\u0633\u0631\u064a\u0639\u0629'],['sites','\u0627\u0644\u0645\u0648\u0627\u0642\u0639'],['analytics','\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a'],['reports','\u0627\u0644\u062a\u0642\u0627\u0631\u064a\u0631']];
             return SECS.map(function(s) {
                 var key = s[0], label = s[1];
                 var cur = (user.sections || {})[key] || 'none';
@@ -3808,7 +3848,7 @@ function openEditUserModal(idx) {
     }
 
     // ==== تبديل نوع الحساب: مدير / مستخدم عادي / مشاهدة فقط ====
-    var SECS_ALL = ['home','equipment','fuel','maintenance','inventory','rental','accounts','map','drivers','employees','equipmentChecks','sites','analytics'];
+    var SECS_ALL = ['home','equipment','fuel','maintenance','inventory','rental','accounts','map','drivers','employees','equipmentChecks','sites','analytics','reports'];
     var roleAdminBtn = document.getElementById('uem-role-admin');
     var roleUserBtn = document.getElementById('uem-role-user');
     var roleViewerBtn = document.getElementById('uem-role-viewer');
@@ -3816,7 +3856,7 @@ function openEditUserModal(idx) {
     var selectedRole = (user.role === 'admin') ? 'admin' : 'custom';
     // نحفظ آخر صلاحيات مخصّصة كي نرجع لها لو رجع لـ"مستخدم عادي"
     var lastCustomSections = (user.role === 'admin')
-        ? { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', map:'view', drivers:'view', employees:'view', equipmentChecks:'view', sites:'view', analytics:'view' }
+        ? { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', map:'view', drivers:'view', employees:'view', equipmentChecks:'view', sites:'view', analytics:'view', reports:'view' }
         : Object.assign({}, user.sections || {});
     // هل المستخدم في وضع "مشاهدة فقط" (كل الأقسام عرض فقط أو مخفية، بدون أي صلاحية إضافة/تعديل)؟
     function sectionsAreViewOnly(sections) {
@@ -3927,7 +3967,7 @@ function openEditUserModal(idx) {
         });
         if (dup) { showToast('\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645 \u0645\u0648\u062C\u0648\u062F \u0645\u0633\u0628\u0642\u0627\u064B', true); return; }
 
-        var SECS = ['home','equipment','fuel','maintenance','inventory','rental','accounts','drivers','employees','equipmentChecks','sites','analytics'];
+        var SECS = ['home','equipment','fuel','maintenance','inventory','rental','accounts','drivers','employees','equipmentChecks','sites','analytics','reports'];
         var sections = {};
         if (selectedRole === 'admin') {
             SECS.forEach(function(k) { sections[k] = 'full'; });
@@ -4098,13 +4138,13 @@ function createUserByAdmin() {
     // تحديد الصلاحيات حسب الدور
     var defaultSections;
     if (role === 'admin') {
-        defaultSections = { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', equipmentChecks:'full', sites:'full', analytics:'full' };
+        defaultSections = { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', equipmentChecks:'full', sites:'full', analytics:'full', reports:'full' };
     } else if (role === 'manager') {
-        defaultSections = { home:'full', equipment:'edit', fuel:'edit', maintenance:'edit', inventory:'edit', rental:'edit', drivers:'edit', employees:'edit', equipmentChecks:'add', sites:'view', analytics:'view' };
+        defaultSections = { home:'full', equipment:'edit', fuel:'edit', maintenance:'edit', inventory:'edit', rental:'edit', drivers:'edit', employees:'edit', equipmentChecks:'add', sites:'view', analytics:'view', reports:'view' };
     } else if (role === 'editor') {
-        defaultSections = { home:'view', equipment:'add', fuel:'add', maintenance:'add', inventory:'add', rental:'add', drivers:'add', employees:'add', equipmentChecks:'add', sites:'none', analytics:'none' };
+        defaultSections = { home:'view', equipment:'add', fuel:'add', maintenance:'add', inventory:'add', rental:'add', drivers:'add', employees:'add', equipmentChecks:'add', sites:'none', analytics:'none', reports:'view' };
     } else {
-        defaultSections = { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', map:'none', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none' };
+        defaultSections = { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', map:'none', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none', reports:'view' };
     }
 
     // إضافة المستخدم في APP_USERS
@@ -4563,7 +4603,7 @@ var APP_USERS = [
         name: 'المدير',
         role: 'admin',
         active: true,
-        sections: { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', equipmentChecks:'full', sites:'full', analytics:'full' }
+        sections: { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', equipmentChecks:'full', sites:'full', analytics:'full', reports:'full' }
     },
     {
         id: 'user_mohamed',
@@ -4735,7 +4775,7 @@ function isViewOnlyUser() {
     if (!currentUser) return false;
     if (currentUser.role === 'admin') return false;
     if (currentUser.role === 'viewer') return true;
-    var secs = ['home','equipment','fuel','maintenance','inventory','rental','map','drivers','employees','equipmentChecks','sites','analytics'];
+    var secs = ['home','equipment','fuel','maintenance','inventory','rental','map','drivers','employees','equipmentChecks','sites','analytics','reports'];
     var sections = currentUser.sections || {};
     return secs.every(function(k) {
         var v = sections[k] || 'none';
@@ -6115,7 +6155,7 @@ function openViewerPermissionsModal() {
     var old = document.getElementById('viewer-perm-modal');
     if (old) old.remove();
 
-    var SECS = [['home','الرئيسية'],['equipment','المعدات'],['fuel','الوقود'],['maintenance','الصيانة'],['inventory','المخزن'],['rental','الإيجار'],['accounts','الحسابات'],['drivers','السائقين'],['sites','المواقع'],['analytics','التحليلات']];
+    var SECS = [['home','الرئيسية'],['equipment','المعدات'],['fuel','الوقود'],['maintenance','الصيانة'],['inventory','المخزن'],['rental','الإيجار'],['accounts','الحسابات'],['drivers','السائقين'],['sites','المواقع'],['analytics','التحليلات'],['reports','التقارير']];
 
     var modal = document.createElement('div');
     modal.id = 'viewer-perm-modal';
@@ -6504,13 +6544,13 @@ var accountRequestsData = [];
 // نفس منطق الصلاحيات الافتراضية حسب الدور المستخدم في إنشاء المستخدمين من لوحة المدير
 function sectionsForRole(role) {
     if (role === 'admin') {
-        return { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', equipmentChecks:'full', sites:'full', analytics:'full' };
+        return { home:'full', equipment:'full', fuel:'full', maintenance:'full', inventory:'full', rental:'full', drivers:'full', employees:'full', equipmentChecks:'full', sites:'full', analytics:'full', reports:'full' };
     } else if (role === 'manager') {
-        return { home:'full', equipment:'edit', fuel:'edit', maintenance:'edit', inventory:'edit', rental:'edit', drivers:'edit', employees:'edit', equipmentChecks:'add', sites:'view', analytics:'view' };
+        return { home:'full', equipment:'edit', fuel:'edit', maintenance:'edit', inventory:'edit', rental:'edit', drivers:'edit', employees:'edit', equipmentChecks:'add', sites:'view', analytics:'view', reports:'view' };
     } else if (role === 'editor') {
-        return { home:'view', equipment:'add', fuel:'add', maintenance:'add', inventory:'add', rental:'add', drivers:'add', employees:'add', equipmentChecks:'add', sites:'none', analytics:'none' };
+        return { home:'view', equipment:'add', fuel:'add', maintenance:'add', inventory:'add', rental:'add', drivers:'add', employees:'add', equipmentChecks:'add', sites:'none', analytics:'none', reports:'view' };
     }
-    return { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', map:'none', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none' };
+    return { home:'view', equipment:'view', fuel:'view', maintenance:'view', inventory:'view', rental:'view', map:'none', drivers:'view', employees:'view', equipmentChecks:'add', sites:'none', analytics:'none', reports:'view' };
 }
 
 var ACCOUNT_ROLE_OPTIONS_HTML =
@@ -6831,7 +6871,7 @@ function proceedToApp() {
     var sectionToView = {
         home: 'home', equipment: 'equipment', fuel: 'fuel',
         maintenance: 'maintenance', inventory: 'inventory',
-        rental: 'rental', accounts: 'accounts', map: 'map', sites: 'sites', analytics: 'analytics'
+        rental: 'rental', accounts: 'accounts', map: 'map', sites: 'sites', analytics: 'analytics', reports: 'reports'
     };
 
     var firstAllowedView = null;
@@ -6841,7 +6881,9 @@ function proceedToApp() {
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
         var view = btn.dataset.view;
         var allowed;
-        if (view === 'employees') {
+        if (view === 'reports') {
+            allowed = canViewReports();
+        } else if (view === 'employees') {
             // زرار "الموظفين" المدمج يُعتبر "مسموح" لتحديد الصفحة الافتراضية لو عند المستخدم صلاحية على قسم الموظفين أو السائقين
             allowed = canView('employees') || canView('drivers');
         } else {
@@ -7943,6 +7985,7 @@ function openEquipmentDetail(id) {
         '<div><div class="detail-label">🏷️ ' + RL('Ownership Type', 'نوع الملكية') + '</div><div class="detail-value">' + (equipment.ownership === 'إيجار' ? '📋 ' + RL('Rented', 'إيجار') : '🔑 ' + RL('Owned', 'ملك')) + '</div></div>' +
         '<div><div class="detail-label"><span class="i18n-label" data-en="Maintenance Cycle" data-ar="دورة الصيانة"></span></div><div class="detail-value">' + RL('Every ', 'كل ') + (equipment.interval || 250) + ' ' + RL('h', 'س') + '</div></div>' +
         '</div></div>' +
+        renderSiteFileDetails(equipment) +
         '<div class="detail-section">' +
         '<div><div class="detail-label">⏱️ ' + RL('Current Meter', 'العداد الحالي') + '</div><div class="detail-value">' + formatNumber(equipment.hours) + ' ' + RL('h', 'س') + '</div></div>' +
         '<div><div class="detail-label">🔧 ' + RL('Next Maintenance', 'الصيانة القادمة') + '</div><div class="detail-value">' + formatNumber(equipment.nextHours) + ' ' + RL('h', 'س') + '</div></div>' +
@@ -16135,18 +16178,7 @@ function handleEquipmentFileUpload(inputElement) {
 
             // ---- تجهيز جدول معاينة تفصيلي: القيمة المسجلة قبل التحديث مقابل الجديدة (زي معاينة المخزون) ----
             var previewHeaders = equipmentRows[0] || [];
-            var pCol = { code: -1, sapCode: -1, name: -1, currentHours: -1, nextHours: -1 };
-            for (var hi = 0; hi < previewHeaders.length; hi++) {
-                var hTxt = previewHeaders[hi] ? previewHeaders[hi].toString().trim() : '';
-                var hLow = hTxt.toLowerCase();
-                if (hTxt === 'SAP CODE' || hLow.indexOf('sap') !== -1) pCol.sapCode = hi;
-                if (hTxt === 'الرقم التعريفي للمعدة' || hLow.indexOf('تعريفي') !== -1 || (hLow.indexOf('code') !== -1 && hLow.indexOf('sap') === -1)) pCol.code = hi;
-                if (hTxt === 'اسم المعدة' || hLow.indexOf('اسم') !== -1 || hLow.indexOf('name') !== -1) pCol.name = hi;
-                if (hTxt === 'العداد الحالي' || hLow.indexOf('current') !== -1 || hLow.indexOf('عداد حالي') !== -1) pCol.currentHours = hi;
-                if (hTxt === 'ميعاد الصيانة القادمة' || hLow.indexOf('next') !== -1 || hLow.indexOf('قادمة') !== -1) pCol.nextHours = hi;
-            }
-            if (pCol.code === -1 && pCol.sapCode !== -1) pCol.code = pCol.sapCode;
-            if (pCol.code === -1) pCol.code = 0;
+            var pCol = detectEquipmentColumns(previewHeaders);
 
             var itemsToUpdate = [];
             var newCount = 0, updateCount = 0, sameCount = 0;
@@ -16241,6 +16273,85 @@ function updateImportProgress(current, total, message) {
     }
 }
 
+
+// ==================== أعمدة ملف معدات الموقع (تعرّف تلقائي + كل الأعمدة "كما هي") ====================
+function normEqHeader(h) {
+    return String(h == null ? '' : h).toLowerCase()
+        .replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+        .replace(/\s+/g, ' ').trim();
+}
+
+function detectEquipmentColumns(headers) {
+    var c = { code: -1, sapCode: -1, name: -1, type: -1, chassis: -1, location: -1,
+        engineModel: -1, engineSN: -1, arrivalDate: -1, arrivalHours: -1,
+        lastMaintenanceDate: -1, lastMaintenanceHours: -1, currentHours: -1,
+        nextHours: -1, interval: -1, status: -1, notes: -1 };
+    function setOnce(key, i) { if (c[key] === -1) c[key] = i; }
+    for (var i = 0; i < headers.length; i++) {
+        var n = normEqHeader(headers[i]);
+        if (!n) continue;
+        var isDate = n.indexOf('تاريخ') !== -1;
+        if (n === 'sap code' || n === 'sapcode') setOnce('sapCode', i);
+        else if (n.indexOf('اسم') !== -1 || n === 'name') setOnce('name', i);
+        else if (n === 'كود المعده' || n.indexOf('تعريفي') !== -1 || n === 'code') setOnce('code', i);
+        else if (n.indexOf('مسلسل') !== -1 || n.indexOf('serial') !== -1) setOnce('chassis', i);
+        else if (n === 'engine model') setOnce('engineModel', i);
+        else if (n === 'engine s/n' || n === 'engine sn') setOnce('engineSN', i);
+        else if (isDate && n.indexOf('الوصول') !== -1) setOnce('arrivalDate', i);
+        else if (!isDate && n.indexOf('عداد') !== -1 && n.indexOf('عند الوصول') !== -1) setOnce('arrivalHours', i);
+        else if (isDate && n.indexOf('صيانه') !== -1) setOnce('lastMaintenanceDate', i);
+        else if (!isDate && n.indexOf('عداد') !== -1 && (n.indexOf('عند الصيانه') !== -1 || n.indexOf('الصيانه الاخيره') !== -1)) setOnce('lastMaintenanceHours', i);
+        else if (n === 'العداد الحالي' || n.indexOf('عداد حالي') !== -1 || n.indexOf('current') !== -1) setOnce('currentHours', i);
+        else if (!isDate && n.indexOf('مراجعه') !== -1 && n.indexOf('عداد') !== -1) setOnce('currentHours', i); // آخر مراجعة عداد ساعات = القراءة الحالية
+        else if (n.indexOf('قادمه') !== -1 || n.indexOf('next') !== -1) setOnce('nextHours', i);
+        else if (n.indexOf('دوره') !== -1 || n.indexOf('interval') !== -1) setOnce('interval', i);
+        else if (n === 'الحاله' || n === 'status') setOnce('status', i);
+        else if (n.indexOf('ملاحظات') !== -1 || n.indexOf('note') !== -1) setOnce('notes', i);
+        else if (n === 'النوع' || n === 'type') setOnce('type', i);
+        else if (n === 'الموقع' || n === 'location') setOnce('location', i);
+    }
+    if (c.code === -1 && c.sapCode !== -1) c.code = c.sapCode;
+    if (c.code === -1) c.code = 0;
+    if (c.currentHours === -1) c.currentHours = 10;
+    if (c.nextHours === -1) c.nextHours = 11;
+    return c;
+}
+
+// تحويل رقم تاريخ إكسل (serial) إلى نص يوم/شهر/سنة زي ما بيظهر في الملف
+function eqExcelSerialToText(v) {
+    var d = new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 86400000);
+    return d.getUTCDate() + '/' + (d.getUTCMonth() + 1) + '/' + d.getUTCFullYear();
+}
+
+// كل عمود في الملف -> خانة في تفاصيل المعدة بنفس اسم العمود والقيمة كما هي
+function buildSiteFileFields(headers, row) {
+    var out = [];
+    for (var j = 0; j < headers.length; j++) {
+        var label = headers[j] == null ? '' : String(headers[j]).trim();
+        if (!label) continue;
+        var v = row[j];
+        var text = '';
+        if (v !== undefined && v !== null && v !== '') {
+            if (typeof v === 'number' && label.indexOf('تاريخ') !== -1 && v > 20000 && v < 80000) text = eqExcelSerialToText(v);
+            else text = String(v).trim();
+        }
+        out.push({ k: label, v: text });
+    }
+    return out;
+}
+
+function renderSiteFileDetails(equipment) {
+    var f = equipment && equipment.siteFile;
+    if (!f || !f.length) return '';
+    return '<div class="detail-section" style="border-right:4px solid #0e7490">' +
+        '<div style="font-weight:800;font-size:13px;color:#0f172a;margin-bottom:8px">📑 بيانات ملف معدات الموقع</div>' +
+        '<div class="grid-2">' +
+        f.map(function(x) {
+            return '<div><div class="detail-label">' + escapeHtml(x.k) + '</div><div class="detail-value">' + (x.v !== '' ? escapeHtml(x.v) : '—') + '</div></div>';
+        }).join('') +
+        '</div></div>';
+}
+
 function importEquipmentData() {
     var sheet = pendingImportData.equipment;
     if (!sheet || sheet.length < 2) {
@@ -16251,39 +16362,7 @@ function importEquipmentData() {
     var headers = sheet[0];
     var startRow = 1;
     
-    var colIndex = {
-        code: -1, sapCode: -1, name: -1, type: -1, chassis: -1, location: -1,
-        engineModel: -1, engineSN: -1, arrivalDate: -1, arrivalHours: -1,
-        lastMaintenanceDate: -1, lastMaintenanceHours: -1, currentHours: -1,
-        nextHours: -1, interval: -1, status: -1, notes: -1
-    };
-    
-    for (var i = 0; i < headers.length; i++) {
-        var header = headers[i] ? headers[i].toString().trim() : '';
-        var hl = header.toLowerCase();
-        if (header === 'SAP CODE' || hl.includes('sap')) colIndex.sapCode = i;
-        if (header === 'الرقم التعريفي للمعدة' || hl.includes('تعريفي') || (hl.includes('code') && !hl.includes('sap'))) colIndex.code = i;
-        if (header === 'اسم المعدة' || hl.includes('اسم') || hl.includes('name')) colIndex.name = i;
-        if (header === 'النوع' || hl.includes('type')) colIndex.type = i;
-        if (header === 'رقم مسلسل S/N' || hl.includes('مسلسل') || hl.includes('serial')) colIndex.chassis = i;
-        if (header === 'الموقع' || hl.includes('موقع') || hl.includes('location')) colIndex.location = i;
-        if (header === 'Engine Model' || hl.includes('engine model')) colIndex.engineModel = i;
-        if (header === 'Engine S/N' || hl.includes('engine sn')) colIndex.engineSN = i;
-        if (header === 'تاريخ الوصول' || hl.includes('تاريخ الوصول')) colIndex.arrivalDate = i;
-        if (header === 'عداد الساعة / الساعات عند الوصول' || hl.includes('عداد عند الوصول')) colIndex.arrivalHours = i;
-        if (header === 'تاريخ الصيانه السابقه' || hl.includes('تاريخ الصيانة')) colIndex.lastMaintenanceDate = i;
-        if (header === 'عداد الصيانه الاخيره' || hl.includes('عداد الصيانة')) colIndex.lastMaintenanceHours = i;
-        if (header === 'العداد الحالي' || hl.includes('current') || hl.includes('عداد حالي')) colIndex.currentHours = i;
-        if (header === 'ميعاد الصيانة القادمة' || hl.includes('next') || hl.includes('قادمة')) colIndex.nextHours = i;
-        if (header === 'دورة الصيانة' || hl.includes('دورة') || hl.includes('interval')) colIndex.interval = i;
-        if (header === 'الحالة' || hl.includes('status')) colIndex.status = i;
-        if (header === 'ملاحظات' || hl.includes('note')) colIndex.notes = i;
-    }
-    
-    if (colIndex.code === -1 && colIndex.sapCode !== -1) colIndex.code = colIndex.sapCode;
-    if (colIndex.code === -1) colIndex.code = 0;
-    if (colIndex.currentHours === -1) colIndex.currentHours = 10;
-    if (colIndex.nextHours === -1) colIndex.nextHours = 11;
+    var colIndex = detectEquipmentColumns(headers);
     
     var equipmentUpdates = {};
     var equipmentCount = 0;
@@ -16384,6 +16463,7 @@ function importEquipmentData() {
             else if (lh && lh.toString().trim() !== '') lastMaintenanceHours = parseFloat(lh) || 0;
         }
         
+        var siteFileFields = buildSiteFileFields(headers, row);
         var existingEquipment = equipmentData.find(function(e) { return e.code === internalCode || e.sapCode === internalCode; });
         var equipmentDataToSave;
         
@@ -16398,8 +16478,8 @@ function importEquipmentData() {
                 sapCode: internalCode,
                 name: name,
                 type: existingEquipment.type || type,
-                chassis: chassis || existingEquipment.chassis,
-                location: location || existingEquipment.location,
+                chassis: chassis || existingEquipment.chassis || '',
+                location: location || existingEquipment.location || '',
                 assignedDriver: existingEquipment.assignedDriver || null,
                 // الحقول دي كانت بتتمسح عند الاستيراد (ومنها اسم الموظف/السائق المسند اللي صفحة QR بتعتمد عليه)
                 assignedDriverType: existingEquipment.assignedDriverType || null,
@@ -16412,14 +16492,15 @@ function importEquipmentData() {
                 hours: currentHours,
                 nextHours: nextHours,
                 interval: existingEquipment.interval || interval,
-                engineModel: engineModel || existingEquipment.engineModel,
-                engineSN: engineSN || existingEquipment.engineSN,
-                arrivalDate: arrivalDate || existingEquipment.arrivalDate,
+                engineModel: engineModel || existingEquipment.engineModel || '',
+                engineSN: engineSN || existingEquipment.engineSN || '',
+                siteFile: siteFileFields,
+                arrivalDate: arrivalDate || existingEquipment.arrivalDate || '',
                 arrivalHours: arrivalHours,
-                lastMaintenanceDate: lastMaintenanceDate || existingEquipment.lastMaintenanceDate,
+                lastMaintenanceDate: lastMaintenanceDate || existingEquipment.lastMaintenanceDate || '',
                 lastMaintenanceHours: lastMaintenanceHours,
                 status: status,
-                notes: notes || existingEquipment.notes,
+                notes: notes || existingEquipment.notes || '',
                 filters: existingEquipment.filters || {},
                 maintenanceLogs: existingEquipment.maintenanceLogs || [],
                 hoursLog: newLog,
@@ -16443,6 +16524,7 @@ function importEquipmentData() {
                 interval: interval,
                 engineModel: engineModel,
                 engineSN: engineSN,
+                siteFile: siteFileFields,
                 arrivalDate: arrivalDate,
                 arrivalHours: arrivalHours,
                 lastMaintenanceDate: lastMaintenanceDate,
@@ -20471,11 +20553,13 @@ function renderHomeAppGrid(stats) {
         { view: 'map',        icon: '🗺️', label: RL('Equipment Map', 'خريطة المعدات'), color: 'linear-gradient(135deg,#0891b2,#155e75)', section: 'map' },
         { view: 'sites',      icon: '🏢', label: RL('Sites Dashboard', 'لوحة المواقع'), color: 'linear-gradient(135deg,#0d1b2a,#334155)', section: 'sites' },
         { view: 'analytics',  icon: '📈', label: RL('Analytics', 'التحليلات'), color: 'linear-gradient(135deg,#06b6d4,#0e7490)', section: 'analytics' },
+        { view: 'reports',    icon: '🧾', label: RL('Reports', 'التقارير'), color: 'linear-gradient(135deg,#f97316,#c2410c)', sectionOr: ['home','analytics','equipment','rental','accounts','fuel','maintenance','inventory','sites','employees','drivers'] },
         { view: 'import',     icon: '📥', label: RL('Import', 'استيراد'),  color: 'linear-gradient(135deg,#334155,#0f172a)', adminOnly: true }
     ];
     var html = apps.filter(function(app) {
         if (app.adminOnly) return isAdmin;
         if (isAdmin) return true;
+        if (app.view === 'reports') return canViewReports();
         if (app.sectionOr) return app.sectionOr.some(function(s) { return canView(s); });
         return canView(app.section);
     }).map(function(app) {
@@ -20597,12 +20681,243 @@ function updateEmployeesFab() {
     }
 }
 
+// ==================== صفحة التقارير: تجمع كل أزرار التقارير والطباعة من كل الصفحات ====================
+// ملاحظة: الأزرار القديمة في الصفحات الأصلية ما اتغيّرتش — كل زر هنا بينادي نفس دالة الزر الأصلي (أو يضغط الزر الأصلي نفسه).
+function _rpExplicit() {
+    var secs = (currentUser && currentUser.sections) || {};
+    return secs.reports !== undefined;
+}
+function canViewReports() {
+    if (!currentUser) return false;
+    if (currentUser.role === 'admin') return true;
+    // لو للمستخدم صلاحية "التقارير" محددة صراحةً نلتزم بيها، وإلا (حسابات قديمة) نتبع صلاحيات الأقسام المرتبطة
+    if (_rpExplicit()) return canView('reports');
+    return ['home', 'analytics', 'equipment', 'rental', 'accounts', 'fuel', 'maintenance', 'inventory', 'sites', 'employees', 'drivers'].some(function(s) { return canView(s); });
+}
+
+function _rpClickBtn(id) {
+    return function() {
+        var b = document.getElementById(id);
+        if (b) b.click(); else showToast('هذا التقرير غير متاح حاليًا', true);
+    };
+}
+
+var RP_KINDS = [
+    { k: 'all',   ico: '✨', en: 'All',          ar: 'الكل' },
+    { k: 'print', ico: '🖨️', en: 'Print / PDF',  ar: 'طباعة / PDF' },
+    { k: 'excel', ico: '📊', en: 'Excel',        ar: 'Excel' },
+    { k: 'wa',    ico: '📱', en: 'WhatsApp',     ar: 'واتساب' },
+    { k: 'ai',    ico: '🤖', en: 'Smart',        ar: 'ذكي / تنفيذي' }
+];
+var RP_TAGS = { print: 'PDF', excel: 'XLSX', wa: 'WA', ai: 'AI' };
+
+// hideVO = يختفي عن مستخدم "مشاهدة فقط" (زي ما كانت أزراره الأصلية مخفية له)
+var REPORTS_GROUPS = [
+    { key: 'ownrent', ico: '📈', en: 'Hours & Fuel — Open Period', ar: 'ساعات العمل والوقود (مدة مفتوحة)', sec: ['analytics'], hideVO: true,
+      period: { type: 'monthRange', from: 'ownrent-report-from', to: 'ownrent-report-to', hint: 'فارغ = الدورة الحالية' },
+      items: [
+        { k: 'print', ico: '🔑', en: 'Owned Report',      ar: 'تقرير الملك',     c: '#059669,#047857', run: function() { printOwnedEquipmentReport(); } },
+        { k: 'print', ico: '📋', en: 'Rental Report',     ar: 'تقرير الإيجار',   c: '#0e7490,#155e75', run: function() { printRentalEquipmentReport(); } },
+        { k: 'print', ico: '📊', en: 'Owned vs Rented',   ar: 'مقارنة الاثنين',  c: '#7c3aed,#4c1d95', run: function() { printOwnedVsRentalFullReport(); } }
+      ] },
+    { key: 'inventory-pdf', ico: '📑', en: 'Equipment Inventory Lists (PDF)', ar: 'تقارير الحصر (PDF)', sec: ['analytics'], hideVO: true,
+      items: [
+        { k: 'print', ico: '🔑', en: 'Owned Inventory',  ar: 'حصر معدات الملك',   c: '#059669,#047857', run: function() { printOwnedInventoryReport(); } },
+        { k: 'print', ico: '📋', en: 'Rental Inventory', ar: 'حصر معدات الإيجار', c: '#0e7490,#155e75', run: function() { printRentalInventoryReport(); } }
+      ] },
+    { key: 'equipment', ico: '🏗️', en: 'Equipment', ar: 'المعدات', sec: ['equipment'], hideVO: true,
+      period: { type: 'dateRange', from: 'owned-cycle-report-from', to: 'owned-cycle-report-to', hint: 'فارغ = الدورة الحالية (21 ← 20)' },
+      items: [
+        { k: 'print', ico: '📄', en: 'Owned: Hours + Fuel',  ar: 'العمل والوقود — ملك',   c: '#059669,#047857', run: function() { printOwnedEquipmentCycleReport(); } },
+        { k: 'print', ico: '📄', en: 'Rental: Hours + Fuel', ar: 'العمل والوقود — إيجار', c: '#b45309,#92400e', run: function() { printRentalEquipmentCycleReport(); } },
+        { k: 'print', ico: '🛡️', en: 'Security Report',      ar: 'تقرير قسم الأمن',       c: '#0d1b2a,#1b2838', tip: 'يتبع فلاتر صفحة المعدات الحالية (الموقع / المشروع / البحث)', run: function() { generateSecurityReport(); } },
+        { k: 'print', ico: '🏷️', en: 'QR Labels',            ar: 'ملصقات QR',             c: '#0891b2,#155e75', run: function() { openQRLabelsModal(); } },
+        { k: 'excel', ico: '📊', en: 'Meter Log',            ar: 'سجل العدادات',          c: '#10b981,#0e7490', run: _rpClickBtn('export-hours-excel-btn') },
+        { k: 'excel', ico: '📆', en: 'Owned Hours',          ar: 'ساعات الملك',           c: '#7c3aed,#4f46e5', run: _rpClickBtn('export-owned-daily-btn') }
+      ] },
+    { key: 'sites', ico: '🏢', en: 'Sites', ar: 'المواقع', sec: ['sites'], hideVO: true,
+      period: { type: 'month', id: 'unified-report-month', hint: 'فارغ = الدورة الحالية' },
+      items: [
+        { k: 'print', ico: '📋', en: 'Unified Monthly PDF',     ar: 'التقرير الشهري الموحّد',  c: '#7c3aed,#4f46e5', run: _rpClickBtn('unified-report-btn') },
+        { k: 'wa',    ico: '📤', en: 'Periodic Sites Report',   ar: 'تقرير دوري لكل المواقع',  c: '#16a34a,#15803d', run: _rpClickBtn('sites-report-btn') }
+      ] },
+    { key: 'rental', ico: '🚧', en: 'Rental — Daily Log', ar: 'الإيجار — السجل اليومي', sec: ['rental'],
+      period: { type: 'date', id: 'rental-daily-date', hint: 'فارغ = اليوم' },
+      items: [
+        { k: 'print', ico: '🖨️', en: 'Full Daily Report',   ar: 'التقرير اليومي الشامل', c: '#0e7490,#0369a1', tip: 'حضور + ساعات + إضافي + ملاحظات', run: function() { printRentalDailyFullReport(); } },
+        { k: 'print', ico: '⚡',  en: 'Daily Overtime',      ar: 'الإضافي اليومي',        c: '#d97706,#b45309', run: function() { printRentalDailyOvertimeReport(); } },
+        { k: 'excel', ico: '📊', en: 'Export Rental Excel', ar: 'تصدير سجل الإيجار',     c: '#059669,#047857', run: function() { exportRentalToExcel(); } },
+        { k: 'wa',    ico: '📱', en: 'Rental WhatsApp',     ar: 'تقرير الإيجار واتساب',  c: '#25d366,#128c7e', run: function() { sendRentalWhatsApp(); } }
+      ] },
+    { key: 'accounts', ico: '💰', en: 'Accounts — Statements', ar: 'الحسابات — المستخلصات', sec: ['accounts'],
+      period: { type: 'accounts', from: 'accounts-statement-from', to: 'accounts-statement-to', contractor: 'accounts-contractor-filter', hint: 'فارغ = الدورة الحالية' },
+      items: [
+        { k: 'print', ico: '🖨️', en: 'Statement + Cost', ar: 'مستخلص بالتكلفة', c: '#166534,#14532d', run: function() { printFullAccountsStatement(true); } },
+        { k: 'print', ico: '🖨️', en: 'Work Days Only',   ar: 'أيام العمل فقط',  c: '#0369a1,#075985', run: function() { printFullAccountsStatement(false); } }
+      ] },
+    { key: 'fuel', ico: '⛽', en: 'Fuel', ar: 'الوقود', sec: ['fuel'], hideVO: true,
+      items: [
+        { k: 'print', ico: '📊', en: 'Monthly Report',        ar: 'تقرير شهري',            c: '#10b981,#0e7490', run: _rpClickBtn('monthly-fuel-report-btn') },
+        { k: 'print', ico: '📅', en: 'Custom Period Report',  ar: 'تقرير بمدة محددة',      c: '#0d1b2a,#ec4899', run: _rpClickBtn('custom-range-fuel-btn') },
+        { k: 'print', ico: '⛽', en: 'Fuel Consumption',      ar: 'تقرير استهلاك الوقود',  c: '#065f46,#0e7490', run: function() { openFuelReportModal(); } },
+        { k: 'excel', ico: '📊', en: 'Full Fuel Excel',       ar: 'تقرير الوقود Excel',    c: '#10b981,#0e7490', run: function() { exportFuelReportExcel(); } }
+      ] },
+    { key: 'maintenance', ico: '🔧', en: 'Maintenance', ar: 'الصيانة', sec: ['maintenance'], hideVO: true,
+      items: [
+        { k: 'print', ico: '📋', en: 'Shortage Order (Scheduled)', ar: 'طلبية نواقص الصيانة', c: '#dc2626,#b45309', run: function() { printScheduledMaintenanceShortageOrder(); } },
+        { k: 'print', ico: '🧾', en: 'Issue Vouchers Report',      ar: 'تقرير أذون الصرف',    c: '#0e7490,#155e75', run: function() { openIssueVoucherReportModal(); } },
+        { k: 'wa',    ico: '📱', en: 'Maintenance WhatsApp',       ar: 'واتساب الصيانة',      c: '#25d366,#128c7e', run: _rpClickBtn('whatsapp-maint-btn') }
+      ] },
+    { key: 'inventory', ico: '📦', en: 'Inventory', ar: 'المخزن', sec: ['inventory'], hideVO: true,
+      items: [
+        { k: 'print', ico: '📋', en: 'Shortage Order',  ar: 'طلبية نواقص',     c: '#ef4444,#f59e0b', run: _rpClickBtn('order-report-btn') },
+        { k: 'excel', ico: '📊', en: 'Inventory Excel', ar: 'تصدير المخزن',    c: '#10b981,#0e7490', run: _rpClickBtn('export-inventory-excel-btn') }
+      ] },
+    { key: 'employees', ico: '👥', en: 'Human Resources', ar: 'الموارد البشرية', sec: ['employees', 'drivers'], hideVO: true,
+      items: [
+        { k: 'print', ico: '📊', en: 'Monthly Attendance',  ar: 'تقرير الحضور الشهري', c: '#059669,#047857', run: function() { openEmployeeAttendanceReport(); } },
+        { k: 'print', ico: '🏷️', en: 'Attendance QR Labels', ar: 'ملصقات QR الحضور',    c: '#7c3aed,#4f46e5', run: function() { printAllEmployeeAttQRs(); } },
+        { k: 'print', ico: '📄', en: 'Employees PDF',       ar: 'الموظفين PDF',        c: '#dc2626,#991b1b', run: function() { exportEmployeesPDF(); } },
+        { k: 'excel', ico: '📊', en: 'Employees Excel',     ar: 'الموظفين Excel',      c: '#059669,#047857', run: function() { exportEmployeesExcel(); } }
+      ] },
+    { key: 'smart', ico: '🤖', en: 'Smart & Executive', ar: 'التقارير الذكية والتنفيذية', sec: ['home'],
+      items: [
+        { k: 'ai', ico: '🤖', en: 'AI Report',    ar: 'تقرير AI',      c: '#6366f1,#4f46e5', run: function() { openAiReportModal(); } },
+        { k: 'ai', ico: '🧠', en: 'AI Analysis',  ar: 'تحليل ذكي AI',  c: '#8b5cf6,#6366f1', run: function() { openAiAnalysisModal(); } },
+        { k: 'ai', ico: '📊', en: 'Executive',    ar: 'لوحة تنفيذية',  c: '#0f172a,#1e293b', run: function() { openExecutiveDashboard(); } }
+      ] }
+];
+
+var _rpRegistry = [];
+var _rpBound = false;
+var _rpKindSel = 'all';
+
+function _rpPeriodHtml(p) {
+    var h = '<div class="rp-period">';
+    function inp(type, src, label) {
+        return '<label>' + label + '</label><input type="' + type + '" data-src="' + src + '">';
+    }
+    if (p.type === 'monthRange') h += inp('month', p.from, 'من شهر') + inp('month', p.to, 'لغاية شهر');
+    else if (p.type === 'dateRange') h += inp('date', p.from, 'من') + inp('date', p.to, 'إلى');
+    else if (p.type === 'month') h += inp('month', p.id, '📅 الشهر');
+    else if (p.type === 'date') h += inp('date', p.id, '📅 اليوم');
+    else if (p.type === 'accounts') {
+        h += inp('date', p.from, 'من') + inp('date', p.to, 'إلى') +
+             '<label>👷 المقاول</label><select data-src="' + p.contractor + '" data-kind="select"></select>';
+    }
+    if (p.hint) h += '<span class="rp-hint">' + escapeHtml(p.hint) + '</span>';
+    return h + '</div>';
+}
+
+function renderReportsHub() {
+    var host = document.getElementById('reports-hub-body');
+    if (!host) return;
+    var vo = (typeof isViewOnlyUser === 'function') && isViewOnlyUser();
+    _rpRegistry = [];
+    var html = '';
+    REPORTS_GROUPS.forEach(function(g) {
+        if (vo && g.hideVO) return;
+        if (!_rpExplicit() && !g.sec.some(function(s) { return canView(s); })) return;
+        var chips = g.items.map(function(it) {
+            var idx = _rpRegistry.push(it) - 1;
+            var q = (it.en + ' ' + it.ar + ' ' + g.en + ' ' + g.ar).toLowerCase();
+            return '<button type="button" class="rp-chip" data-i="' + idx + '" data-kind="' + it.k + '" data-q="' + escapeHtml(q) + '"' +
+                   ' style="background:linear-gradient(135deg,' + it.c + ')"' + (it.tip ? ' title="' + escapeHtml(it.tip) + '"' : '') + '>' +
+                   '<span class="rp-i">' + it.ico + '</span><span>' + RL(it.en, it.ar) + '</span>' +
+                   '<span class="rp-tag">' + RP_TAGS[it.k] + '</span></button>';
+        }).join('');
+        html += '<div class="rp-card" data-g="' + g.key + '">' +
+                '<div class="rp-head"><span>' + g.ico + '</span><span>' + RL(g.en, g.ar) + '</span><span class="rp-n">' + g.items.length + '</span></div>' +
+                (g.period ? _rpPeriodHtml(g.period) : '') +
+                '<div class="rp-chips">' + chips + '</div></div>';
+    });
+    host.innerHTML = html || '<div class="rp-empty">لا توجد تقارير متاحة لصلاحياتك</div>';
+
+    // مزامنة خانات الفترة مع الخانات الأصلية في الصفحات الأخرى
+    host.querySelectorAll('[data-src]').forEach(function(el) {
+        var orig = document.getElementById(el.getAttribute('data-src'));
+        if (!orig) { el.disabled = true; return; }
+        if (el.getAttribute('data-kind') === 'select') {
+            if (orig.options.length < 2 && typeof renderAccountsRentalList === 'function') { try { renderAccountsRentalList(); } catch (e) {} }
+            el.innerHTML = orig.innerHTML;
+        }
+        el.value = orig.value;
+    });
+
+    // أزرار نوع التقرير
+    var kindsEl = document.getElementById('rp-kinds');
+    if (kindsEl) {
+        kindsEl.innerHTML = RP_KINDS.map(function(k) {
+            return '<button type="button" class="rp-kind' + (k.k === _rpKindSel ? ' on' : '') + '" data-k="' + k.k + '">' + k.ico + ' ' + RL(k.en, k.ar) + '</button>';
+        }).join('');
+    }
+
+    if (!_rpBound) {
+        _rpBound = true;
+        host.addEventListener('click', function(ev) {
+            var chip = ev.target.closest ? ev.target.closest('.rp-chip') : null;
+            if (!chip) return;
+            var it = _rpRegistry[parseInt(chip.getAttribute('data-i'), 10)];
+            if (!it) return;
+            try { it.run(); }
+            catch (e) { console.error('report error', e); showToast('تعذّر فتح التقرير: ' + (e && e.message ? e.message : ''), true); }
+        });
+        function syncOrig(ev) {
+            var el = ev.target;
+            var src = el && el.getAttribute ? el.getAttribute('data-src') : null;
+            if (!src) return;
+            var orig = document.getElementById(src);
+            if (!orig) return;
+            orig.value = el.value;
+            orig.dispatchEvent(new Event('input', { bubbles: true }));
+            orig.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        host.addEventListener('input', syncOrig);
+        host.addEventListener('change', syncOrig);
+        var s = document.getElementById('rp-search');
+        if (s) s.addEventListener('input', applyReportsFilter);
+        if (kindsEl) kindsEl.addEventListener('click', function(ev) {
+            var b = ev.target.closest ? ev.target.closest('.rp-kind') : null;
+            if (!b) return;
+            _rpKindSel = b.getAttribute('data-k');
+            kindsEl.querySelectorAll('.rp-kind').forEach(function(x) { x.classList.toggle('on', x === b); });
+            applyReportsFilter();
+        });
+    }
+    applyReportsFilter();
+}
+
+function applyReportsFilter() {
+    var host = document.getElementById('reports-hub-body');
+    if (!host) return;
+    var sEl = document.getElementById('rp-search');
+    var q = ((sEl && sEl.value) || '').trim().toLowerCase();
+    var any = false;
+    host.querySelectorAll('.rp-card').forEach(function(card) {
+        var shown = 0;
+        card.querySelectorAll('.rp-chip').forEach(function(chip) {
+            var ok = (_rpKindSel === 'all' || chip.getAttribute('data-kind') === _rpKindSel) &&
+                     (!q || (chip.getAttribute('data-q') || '').indexOf(q) !== -1);
+            chip.style.display = ok ? '' : 'none';
+            if (ok) shown++;
+        });
+        card.style.display = shown ? '' : 'none';
+        if (shown) any = true;
+    });
+    var empty = host.querySelector('.rp-empty-filter');
+    if (!any && host.querySelector('.rp-card')) {
+        if (!empty) { empty = document.createElement('div'); empty.className = 'rp-empty rp-empty-filter'; empty.textContent = 'لا توجد تقارير مطابقة'; host.appendChild(empty); }
+    } else if (empty) empty.remove();
+}
+
 function switchView(view) {
     // التحقق من صلاحية الوصول للقسم
     if (currentUser && currentUser.role !== 'admin') {
         var denied = false;
         if (view === 'employees') {
             if (!canView('employees') && !canView('drivers')) denied = true;
+        } else if (view === 'reports') {
+            if (!canViewReports()) denied = true;
         } else if (view === 'import') {
             // صفحة استيراد البيانات مقصورة على المدير فقط
             denied = true;
@@ -20615,6 +20930,7 @@ function switchView(view) {
     document.getElementById('view-home').style.display = view === 'home' ? 'block' : 'none';
     document.getElementById('view-sites').style.display = view === 'sites' ? 'block' : 'none';
     document.getElementById('view-analytics').style.display = view === 'analytics' ? 'block' : 'none';
+    var _vr = document.getElementById('view-reports'); if (_vr) _vr.style.display = view === 'reports' ? 'block' : 'none';
     document.getElementById('view-equipment').style.display = view === 'equipment' ? 'block' : 'none';
     document.getElementById('view-employees').style.display = view === 'employees' ? 'block' : 'none';
     document.getElementById('view-fuel').style.display = view === 'fuel' ? 'block' : 'none';
@@ -20633,10 +20949,12 @@ function switchView(view) {
     if (view === 'maintenance') listenIssueVouchers();
     if (view === 'equipment') renderMeterUpdateRequestsBanner();
     if (view === 'accounts') { renderAccountsRentalList(); renderAccountsSummary(); }
+    if (view === 'reports') renderReportsHub();
     var titles = {
         home: '📊 ' + RL('Dashboard', 'لوحة القيادة'),
         sites: '🏢 ' + RL('Sites Dashboard', 'لوحة المواقع'),
         analytics: '📈 ' + RL('Analytics & Reports', 'التحليلات والتقارير'),
+        reports: '🧾 ' + RL('Reports', 'التقارير'),
         equipment: '🏗️ ' + RL('Equipment', 'المعدات'),
         employees: '👥 ' + RL('Human Resources', 'الموارد البشرية'),
         fuel: '⛽ ' + RL('Fuel', 'الوقود'),
