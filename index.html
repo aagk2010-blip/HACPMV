@@ -4650,8 +4650,13 @@ function saveAppUsers(onlyUserId) {
         throw e;
     }).catch(function(e) {
         var denied = e && (e.code === 'PERMISSION_DENIED' || /permission_denied/i.test(e.message || ''));
-        showToast('❌ فشل حفظ المستخدمين: ' + (e && e.message || e) +
-            (denied ? ' — سجّل الخروج ثم ادخل بحساب المدير الأساسي وأعد المحاولة' : ''), true);
+        var info = '';
+        if (denied) {
+            var fu2 = null; try { fu2 = firebase.auth().currentUser; } catch (x) {}
+            info = fu2 ? ' — الجلسة الحالية: ' + (fu2.email || fu2.uid) + ' (غير مرتبطة بمدير). سجّل الخروج وادخل بحساب المدير'
+                       : ' — لا توجد جلسة Firebase، سجّل الخروج ثم ادخل من جديد';
+        }
+        showToast('❌ فشل حفظ المستخدمين: ' + (e && e.message || e) + info, true);
         throw e;
     });
 }
