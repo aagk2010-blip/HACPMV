@@ -600,12 +600,12 @@ html[data-theme="dark"] .page-topbar-title{color:#f1f5f9}
 .hdash-card.wide .hdash-body{height:190px}
 .hdash-more{display:block;width:100%;margin-top:6px;border:none;background:none;font-family:inherit;font-size:10px;font-weight:700;color:var(--hd-accent,#7c3aed);cursor:pointer;text-align:center;padding:2px 0}
 .hdash-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gray);text-align:center;padding:0 10px}
-.hdash-card.c-fleet{--hd-accent:#059669;--hd-soft:rgba(5,150,105,.12)}
+.hdash-card.c-fleet{--hd-accent:#0284c7;--hd-soft:rgba(2,132,199,.12)}
 .hdash-card.c-maint{--hd-accent:#0e7490;--hd-soft:rgba(14,116,144,.12)}
-.hdash-card.c-fuel{--hd-accent:#d97706;--hd-soft:rgba(217,119,6,.13)}
+.hdash-card.c-fuel{--hd-accent:#6366f1;--hd-soft:rgba(99,102,241,.13)}
 .hdash-card.c-top{--hd-accent:#0e7490;--hd-soft:rgba(14,116,144,.12)}
-.hdash-card.c-hours{--hd-accent:#059669;--hd-soft:rgba(5,150,105,.12)}
-.hdash-card.c-cost{--hd-accent:#d97706;--hd-soft:rgba(217,119,6,.13)}
+.hdash-card.c-hours{--hd-accent:#0284c7;--hd-soft:rgba(2,132,199,.12)}
+.hdash-card.c-cost{--hd-accent:#6366f1;--hd-soft:rgba(99,102,241,.13)}
 .hdash-card.c-split{--hd-accent:#8b5cf6;--hd-soft:rgba(139,92,246,.13)}
 
 /* هيكل الصفحة: الموبايل = عمود واحد بالترتيب (إجراءات ← رسومات ← استخدام ← أقسام) */
@@ -1478,15 +1478,16 @@ body,.equipment-card,.driver-card,.employee-card,.fuel-card,.fuel-card-compact,.
 #view-reports .rp-card{background:#fff;border-radius:16px;padding:10px 12px 12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 #view-reports .rp-head{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#0d1b2a;margin-bottom:8px}
 #view-reports .rp-head .rp-n{margin-inline-start:auto;font-size:10.5px;font-weight:700;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 9px}
-#view-reports .rp-period{display:flex;gap:6px 8px;align-items:center;flex-wrap:wrap;background:#f8fafc;border-radius:12px;padding:6px 10px;margin-bottom:8px;font-size:11px;color:#64748b}
-#view-reports .rp-period input,#view-reports .rp-period select{border:1px solid #e2e8f0;border-radius:9px;padding:4px 8px;font-size:11.5px;font-family:inherit;background:#fff;color:#0d1b2a;min-width:0;max-width:150px}
+#view-reports .rp-period{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap;background:#f8fafc;border-radius:12px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:#64748b}
+#view-reports .rp-period input,#view-reports .rp-period select{border:1px solid #e2e8f0;border-radius:9px;padding:4px 8px;font-size:11.5px;font-family:inherit;background:#fff;color:#0d1b2a;min-width:0;flex:1 1 130px;max-width:190px}
 #view-reports .rp-period .rp-hint{flex-basis:100%;font-size:10px;opacity:.85}
-#view-reports .rp-chips{display:flex;flex-wrap:wrap;gap:6px}
-#view-reports .rp-chip{background:linear-gradient(135deg,#0e7490,#155e75);display:inline-flex;align-items:center;gap:5px;border:0;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:700;color:#fff;padding:6px 12px;border-radius:999px;line-height:1.2;box-shadow:0 1px 2px rgba(0,0,0,.15);transition:transform .15s,box-shadow .15s,filter .15s;white-space:nowrap}
+#view-reports .rp-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+#view-reports .rp-chip{background:linear-gradient(135deg,#0e7490,#155e75);display:flex;align-items:center;gap:8px;border:0;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;color:#fff;padding:8px 10px;min-height:46px;border-radius:12px;line-height:1.3;text-align:start;box-shadow:0 1px 2px rgba(0,0,0,.15);transition:transform .15s,box-shadow .15s,filter .15s;white-space:normal;box-sizing:border-box;width:100%}
 #view-reports .rp-chip:hover{transform:translateY(-1px);filter:brightness(1.07);box-shadow:0 3px 8px rgba(0,0,0,.2)}
-#view-reports .rp-chip:active{transform:scale(.96)}
-#view-reports .rp-chip .rp-i{font-size:13px}
-#view-reports .rp-chip .rp-tag{font-size:9px;font-weight:700;background:rgba(255,255,255,.24);border-radius:6px;padding:1px 5px}
+#view-reports .rp-chip:active{transform:scale(.97)}
+#view-reports .rp-chip .rp-i{flex:0 0 28px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:15px;background:rgba(255,255,255,.18);border-radius:8px}
+#view-reports .rp-chip > span:nth-child(2){flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+#view-reports .rp-chip .rp-tag{flex:0 0 auto;min-width:34px;text-align:center;font-size:9px;font-weight:700;background:rgba(255,255,255,.24);border-radius:6px;padding:2px 5px}
 #view-reports .rp-empty{text-align:center;color:#94a3b8;font-size:13px;padding:30px 10px}
 #view-reports .rp-foot{text-align:center;color:#94a3b8;font-size:10.5px;margin-top:6px}
 html[data-theme="dark"] #view-reports .rp-search,html[data-theme="dark"] #view-reports .rp-card{background:#1e293b}
@@ -1496,7 +1497,15 @@ html[data-theme="dark"] #view-reports .rp-kind.on{background:#e8a020;color:#0d1b
 html[data-theme="dark"] #view-reports .rp-head .rp-n{background:#334155;color:#cbd5e1}
 html[data-theme="dark"] #view-reports .rp-period{background:#0f172a;color:#94a3b8}
 html[data-theme="dark"] #view-reports .rp-period input,html[data-theme="dark"] #view-reports .rp-period select{background:#1e293b;border-color:#334155;color:#e2e8f0}
-@media (max-width:480px){#view-reports .rp-chip{font-size:11px;padding:6px 10px}#view-reports .rp-period input,#view-reports .rp-period select{max-width:132px}}
+@media (max-width:480px){#view-reports .rp-chips{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}#view-reports .rp-chip{font-size:11px;padding:7px 8px;gap:6px;min-height:48px}#view-reports .rp-chip .rp-i{flex-basis:24px;width:24px;height:24px;font-size:13px}#view-reports .rp-chip .rp-tag{display:none}#view-reports .rp-period input,#view-reports .rp-period select{max-width:none;flex:1 1 120px}}
+/* ===== كارت المعدة: الاسم والتفاصيل في صف واحد (الاسم يتقصّ بـ … بدل ما ينزل سطر جديد) ===== */
+#equipment-list .equipment-card>div:first-child{flex-wrap:nowrap!important;overflow:hidden}
+#equipment-list .equipment-card>div:first-child>div:first-child{flex:1 1 0!important;min-width:64px!important;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#equipment-list .equipment-card>div:first-child>*:not(:first-child){flex-shrink:0;white-space:nowrap}
+@media (max-width:480px){
+  #equipment-list .equipment-card>div:first-child{gap:3px!important}
+  #equipment-list .equipment-card>div:first-child>div:first-child span{font-size:12.5px!important;letter-spacing:0!important}
+}
 </style>
 <style id="map-person-label-css">
 .map-person-label{background:rgba(255,255,255,.95)!important;border:1px solid rgba(0,0,0,.15)!important;border-radius:8px!important;padding:2px 7px!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important;font-family:Cairo,sans-serif;font-size:11px;font-weight:800;color:#0f172a!important;text-align:center;line-height:1.35;white-space:nowrap;direction:rtl}
@@ -3667,7 +3676,7 @@ function renderUsersList(listEl) {
         var isAdmin = u.role === 'admin';
         var sections = u.sections || {};
         var secHtml = '';
-        var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['accounts','الحسابات'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646'],['sites','\u0627\u0644\u0645\u0648\u0627\u0642\u0639'],['analytics','\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a'],['reports','\u0627\u0644\u062a\u0642\u0627\u0631\u064a\u0631']];
+        var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['accounts','الحسابات'],['drivers','الموارد البشرية — السائقين'],['employees','الموارد البشرية — الموظفين'],['sites','\u0627\u0644\u0645\u0648\u0627\u0642\u0639'],['analytics','\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a'],['reports','\u0627\u0644\u062a\u0642\u0627\u0631\u064a\u0631']];
         SECS.forEach(function(s) {
             var key = s[0], label = s[1];
             var perm = isAdmin ? 'full' : (sections[key] || 'none');
@@ -3698,9 +3707,9 @@ function renderUsersList(listEl) {
             '</div>' +
             '<div style="display:flex;gap:6px;align-items:center">' +
             '<span style="font-size:11px;padding:3px 8px;border-radius:8px;background:' + (u.active ? '#d1fae5' : '#fee2e2') + ';color:' + (u.active ? '#065f46' : '#7f1d1d') + '">' + (u.active ? '\u2705 \u0646\u0634\u0637' : '\u{1F6AB} \u0645\u0639\u0637\u0651\u0644') + '</span>' +
-            (!isAdmin ? '<button data-action="toggle-user" data-idx="' + idx + '" style="background:#f1f5f9;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px">\u{1F501}</button>' : '') +
-            (!isAdmin ? '<button data-action="edit-user" data-idx="' + idx + '" style="background:#e0e7ff;color:#3730a3;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px">\u270F\uFE0F</button>' : '') +
-            (!isAdmin ? '<button data-action="del-user" data-idx="' + idx + '" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px">\u{1F5D1}\uFE0F</button>' : '') +
+            (!(u.id === currentUid) ? '<button data-action="toggle-user" data-idx="' + idx + '" style="background:#f1f5f9;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px">\u{1F501}</button>' : '') +
+            (true ? '<button data-action="edit-user" data-idx="' + idx + '" style="background:#e0e7ff;color:#3730a3;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px">\u270F\uFE0F</button>' : '') +
+            (!(u.id === currentUid) ? '<button data-action="del-user" data-idx="' + idx + '" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px">\u{1F5D1}\uFE0F</button>' : '') +
             '</div></div>' +
             '<div style="border-top:1px solid #f1f5f9;padding-top:8px">' + secHtml + '</div>' +
             '</div>';
@@ -3733,11 +3742,15 @@ function renderUsersList(listEl) {
         if (!user) return;
 
         if (action === 'toggle-user') {
+            if (user.id === currentUid) { showToast('لا يمكنك تعطيل حسابك الحالي', true); return; }
+            if (user.role === 'admin' && user.active && APP_USERS.filter(function(x){ return x.role === 'admin' && x.active; }).length <= 1) { showToast('لا يمكن تعطيل آخر مدير نشط في النظام', true); return; }
             user.active = !user.active;
             saveAppUsers();
             renderUsersList(listEl);
         }
         if (action === 'del-user') {
+            if (user.id === currentUid) { showToast('لا يمكنك حذف حسابك الحالي', true); return; }
+            if (user.role === 'admin' && APP_USERS.filter(function(x){ return x.role === 'admin'; }).length <= 1) { showToast('لا يمكن حذف آخر مدير في النظام', true); return; }
             if (confirm('\u062D\u0630\u0641 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645 ' + user.name + '\u061F')) {
                 APP_USERS.splice(idx, 1);
                 saveAppUsers();
@@ -3789,7 +3802,7 @@ function openEditUserModal(idx) {
         '<div id="uem-permissions-section" style="border-top:1px solid #f1f5f9;padding-top:10px">' +
         '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">\u{1F511} \u0635\u0644\u0627\u062D\u064A\u0627\u062A \u0627\u0644\u0623\u0642\u0633\u0627\u0645</div>' +
         (function() {
-            var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['accounts','الحسابات'],['map','\u062e\u0631\u064a\u0637\u0629 \u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['drivers','\u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646'],['employees','\u0627\u0644\u0645\u0648\u0638\u0641\u064a\u0646'],['equipmentChecks','\u0645\u0631\u0627\u062c\u0639\u0629 \u0627\u0644\u0645\u0639\u062f\u0627\u062a \u0627\u0644\u0633\u0631\u064a\u0639\u0629'],['sites','\u0627\u0644\u0645\u0648\u0627\u0642\u0639'],['analytics','\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a'],['reports','\u0627\u0644\u062a\u0642\u0627\u0631\u064a\u0631']];
+            var SECS = [['home','\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'],['equipment','\u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['fuel','\u0627\u0644\u0648\u0642\u0648\u062f'],['maintenance','\u0627\u0644\u0635\u064a\u0627\u0646\u0629'],['inventory','\u0627\u0644\u0645\u062e\u0632\u0646'],['rental','\u0627\u0644\u0625\u064a\u062c\u0627\u0631'],['accounts','الحسابات'],['map','\u062e\u0631\u064a\u0637\u0629 \u0627\u0644\u0645\u0639\u062f\u0627\u062a'],['drivers','الموارد البشرية — السائقين'],['employees','الموارد البشرية — الموظفين'],['equipmentChecks','\u0645\u0631\u0627\u062c\u0639\u0629 \u0627\u0644\u0645\u0639\u062f\u0627\u062a \u0627\u0644\u0633\u0631\u064a\u0639\u0629'],['sites','\u0627\u0644\u0645\u0648\u0627\u0642\u0639'],['analytics','\u0627\u0644\u062a\u062d\u0644\u064a\u0644\u0627\u062a'],['reports','\u0627\u0644\u062a\u0642\u0627\u0631\u064a\u0631']];
             return SECS.map(function(s) {
                 var key = s[0], label = s[1];
                 var cur = (user.sections || {})[key] || 'none';
@@ -6186,7 +6199,7 @@ function openViewerPermissionsModal() {
     var old = document.getElementById('viewer-perm-modal');
     if (old) old.remove();
 
-    var SECS = [['home','الرئيسية'],['equipment','المعدات'],['fuel','الوقود'],['maintenance','الصيانة'],['inventory','المخزن'],['rental','الإيجار'],['accounts','الحسابات'],['drivers','السائقين'],['sites','المواقع'],['analytics','التحليلات'],['reports','التقارير']];
+    var SECS = [['home','الرئيسية'],['equipment','المعدات'],['fuel','الوقود'],['maintenance','الصيانة'],['inventory','المخزن'],['rental','الإيجار'],['accounts','الحسابات'],['drivers','الموارد البشرية — السائقين'],['employees','الموارد البشرية — الموظفين'],['sites','المواقع'],['analytics','التحليلات'],['reports','التقارير']];
 
     var modal = document.createElement('div');
     modal.id = 'viewer-perm-modal';
@@ -8110,7 +8123,7 @@ function openEquipmentDetail(id) {
     
     if (filtersHtml || oilsHtml || true) {
         contentHtml += '<div class="detail-section"><div style="display:flex;justify-content:space-between;align-items:center"><div class="detail-label" style="margin:0">🔧 ' + RL('Filters &amp; oils used in this equipment&#39;s maintenance', 'الفلاتر والزيوت المستخدمة في صيانة هذه المعدة') + '</div>' +
-            (hasPermission('all') ? '<button onclick="openManageEquipmentFiltersModal(\'' + equipment.id + '\')" style="padding:6px 12px;border:none;border-radius:10px;background:linear-gradient(135deg,#0891b2,#155e75);color:white;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">⚙️ ' + RL('Manage', 'إدارة') + '</button>' : '') +
+            (hasPermission('all') ? '<button onclick="openManageEquipmentFiltersModal(\'' + equipment.id + '\')" style="padding:6px 12px;border:none;border-radius:10px;background:linear-gradient(135deg,#0284c7,#075985);color:white;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">⚙️ ' + RL('Manage', 'إدارة') + '</button>' : '') +
             '</div>' +
             (filtersHtml ? '<div style="margin-top:8px"><div style="font-size:11px;font-weight:700;color:#475569">🔧 ' + RL('Filters', 'الفلاتر') + '</div>' + filtersHtml + '</div>' : '') +
             (oilsHtml ? '<div style="margin-top:8px"><div style="font-size:11px;font-weight:700;color:#475569">🛢️ ' + RL('Oils', 'الزيوت') + '</div>' + oilsHtml + '</div>' : '') +
@@ -8165,8 +8178,8 @@ function openEquipmentDetail(id) {
     var calibStatus = equipment.calibrationFile ? '✅ ' + RL('Uploaded', 'مرفوعة') : '⚪ ' + RL('Not Uploaded', 'غير مرفوعة');
     contentHtml += '<div class="detail-section"><div class="detail-label">🗂️ ' + RL('Equipment Documents', 'مستندات المعدة') + '</div>' +
         '<div style="display:flex;gap:8px;margin-top:6px">' +
-        '<button onclick="openMainAppEquipmentFileModal(\'' + equipment.id + '\',\'inspectionFile\',\'' + RLA('Equipment Inspection', 'فحص المعدة') + '\',\'📋\')" style="flex:1;padding:10px 6px;border:none;border-radius:12px;background:linear-gradient(135deg,#0f766e,#134e4a);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📋 ' + RL('Equipment Inspection', 'فحص المعدة') + '<br><span style="font-size:9.5px;opacity:.85">' + inspStatus + '</span></button>' +
-        '<button onclick="openMainAppEquipmentFileModal(\'' + equipment.id + '\',\'calibrationFile\',\'' + RLA('Calibration Certificate', 'شهادة المعايرة') + '\',\'📜\')" style="flex:1;padding:10px 6px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📜 ' + RL('Calibration Certificate', 'شهادة المعايرة') + '<br><span style="font-size:9.5px;opacity:.85">' + calibStatus + '</span></button>' +
+        '<button onclick="openMainAppEquipmentFileModal(\'' + equipment.id + '\',\'inspectionFile\',\'' + RLA('Equipment Inspection', 'فحص المعدة') + '\',\'📋\')" style="flex:1;padding:10px 6px;border:none;border-radius:12px;background:linear-gradient(135deg,#0284c7,#075985);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📋 ' + RL('Equipment Inspection', 'فحص المعدة') + '<br><span style="font-size:9.5px;opacity:.85">' + inspStatus + '</span></button>' +
+        '<button onclick="openMainAppEquipmentFileModal(\'' + equipment.id + '\',\'calibrationFile\',\'' + RLA('Calibration Certificate', 'شهادة المعايرة') + '\',\'📜\')" style="flex:1;padding:10px 6px;border:none;border-radius:12px;background:linear-gradient(135deg,#0284c7,#075985);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📜 ' + RL('Calibration Certificate', 'شهادة المعايرة') + '<br><span style="font-size:9.5px;opacity:.85">' + calibStatus + '</span></button>' +
         '</div></div>';
     var curStage = getCurrentMaintenanceStage(equipment);
     var suggestedTierInfo = maintenanceTierLabel(getEffectiveMaintenanceTier(equipment));
@@ -8180,28 +8193,28 @@ function openEquipmentDetail(id) {
         (!hasPlan ? '<div style="font-size:10.5px;color:#dc2626;margin-bottom:8px">⚠️ ' + RL('Maintenance plan parts not specified for this equipment yet — the system currently uses the general link (filters/oils) until they are added', 'لم يتم تحديد قطع خطة الصيانات لهذه المعدة بعد — النظام حاليًا بيستخدم الربط العام (فلاتر/زيوت) لحين إضافتها') + '</div>' : '') +
         (hasPermission('all') ? (
             '<div style="display:flex;gap:8px;margin-bottom:8px">' +
-            '<button onclick="openMaintenancePlanModal(\'' + equipment.id + '\')" style="flex:1;padding:9px;border:none;border-radius:10px;background:linear-gradient(135deg,#0891b2,#155e75);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📋 ' + RL('Edit Maintenance Plan', 'تعديل خطة الصيانات') + '</button>' +
-            '<button onclick="completeCurrentMaintenanceStage(\'' + equipment.id + '\')" style="flex:1;padding:9px;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">✅ ' + RL('Complete &amp; Move to Next', 'إتمام والانتقال للتالية') + '</button>' +
+            '<button onclick="openMaintenancePlanModal(\'' + equipment.id + '\')" style="flex:1;padding:9px;border:none;border-radius:10px;background:linear-gradient(135deg,#0284c7,#075985);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">📋 ' + RL('Edit Maintenance Plan', 'تعديل خطة الصيانات') + '</button>' +
+            '<button onclick="completeCurrentMaintenanceStage(\'' + equipment.id + '\')" style="flex:1;padding:9px;border:none;border-radius:10px;background:linear-gradient(135deg,#0284c7,#075985);color:white;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">✅ ' + RL('Complete &amp; Move to Next', 'إتمام والانتقال للتالية') + '</button>' +
             '</div>'
         ) : '') +
-        '<button onclick="createMaintenanceWorkOrderForEquipment(\'' + equipment.id + '\')" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#e8a020,#c88a18);color:#0d1b2a;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:8px">🖨️ ' + RL('Create Maintenance Voucher for Current Stage Parts', 'عمل إذن صيانة بقطع المرحلة الحالية') + '</button>' +
-        '<button onclick="openIssueVouchersView(\'' + equipment.id + '\')" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">🧾 ' + RL('Issue Vouchers for this Equipment', 'أذون الصرف الخاصة بهذه المعدة') + '</button>' +
+        '<button onclick="createMaintenanceWorkOrderForEquipment(\'' + equipment.id + '\')" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#0284c7,#075985);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:8px">🖨️ ' + RL('Create Maintenance Voucher for Current Stage Parts', 'عمل إذن صيانة بقطع المرحلة الحالية') + '</button>' +
+        '<button onclick="openIssueVouchersView(\'' + equipment.id + '\')" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#0284c7,#075985);color:white;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">🧾 ' + RL('Issue Vouchers for this Equipment', 'أذون الصرف الخاصة بهذه المعدة') + '</button>' +
         '</div>';
     contentHtml += '<div class="grid-2" style="margin:12px 14px">';
     if (hasPermission('all')) {
-        contentHtml += '<button class="save-btn" style="margin:0;background:var(--accent)" onclick="editEquipment(\'' + equipment.id + '\')">✏️ <span class="i18n-label" data-en="Edit" data-ar="تعديل"></span></button>' +
+        contentHtml += '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0284c7,#075985)" onclick="editEquipment(\'' + equipment.id + '\')">✏️ <span class="i18n-label" data-en="Edit" data-ar="تعديل"></span></button>' +
             '<button class="save-btn" style="margin:0;background:var(--danger)" onclick="confirmDelete(\'equipment\',\'' + equipment.id + '\')">🗑️ <span class="i18n-label" data-en="Delete" data-ar="حذف"></span></button>';
     }
-    contentHtml += '<button class="save-btn" style="margin:0;background:var(--info)" onclick="showHoursHistory(\'' + equipment.id + '\')">📈 ' + RL('Meter Log', 'سجل العداد') + '</button>' +
-        '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#d97706,#b45309)" onclick="closeModal(\'detail-modal\');setTimeout(function(){showPMHistory(\'' + equipment.id + '\')},100)">📋 ' + RL('Maintenance Log', 'سجل الصيانات') + '</button>' +
-        '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,var(--success),var(--info))" onclick="generateEquipmentMaintenanceOrder(\'' + equipment.id + '\')">📄 ' + RL('Maintenance Order PDF', 'أمر صيانة PDF') + '</button>' +
-        (hasPermission('all') ? '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="openTransferEquipmentModal(\'' + equipment.id + '\')">🚚 ' + RL('Transfer to Another Site', 'نقل لموقع آخر') + '</button>' : '') +
-        '<button class="save-btn" style="margin:0;background:#475569" onclick="showTransferHistory(\'' + equipment.id + '\')">🗺️ ' + RL('Transfer Log', 'سجل النقل') + '</button>' +
-        '<button class="save-btn" style="margin:0;background:#334155" onclick="showEquipmentChangeLog(\'' + equipment.id + '\')">📜 ' + RL('Edit Log', 'سجل التعديلات') + '</button>' +
+    contentHtml += '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0284c7,#075985)" onclick="showHoursHistory(\'' + equipment.id + '\')">📈 ' + RL('Meter Log', 'سجل العداد') + '</button>' +
+        '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0284c7,#075985)" onclick="closeModal(\'detail-modal\');setTimeout(function(){showPMHistory(\'' + equipment.id + '\')},100)">📋 ' + RL('Maintenance Log', 'سجل الصيانات') + '</button>' +
+        '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0284c7,#075985)" onclick="generateEquipmentMaintenanceOrder(\'' + equipment.id + '\')">📄 ' + RL('Maintenance Order PDF', 'أمر صيانة PDF') + '</button>' +
+        (hasPermission('all') ? '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0284c7,#075985)" onclick="openTransferEquipmentModal(\'' + equipment.id + '\')">🚚 ' + RL('Transfer to Another Site', 'نقل لموقع آخر') + '</button>' : '') +
+        '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0284c7,#075985)" onclick="showTransferHistory(\'' + equipment.id + '\')">🗺️ ' + RL('Transfer Log', 'سجل النقل') + '</button>' +
+        '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0284c7,#075985)" onclick="showEquipmentChangeLog(\'' + equipment.id + '\')">📜 ' + RL('Edit Log', 'سجل التعديلات') + '</button>' +
         '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#dc2626,#991b1b)" onclick="openFaultReportModal(\'' + equipment.id + '\')">🚨 ' + RL('Report a Fault', 'الإبلاغ عن عطل') + '</button>' +
-        ((hasPermission('all') || canAdd('equipmentChecks')) ? '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0891b2,#0e7490)" onclick="openQuickCheckModal(\'' + equipment.id + '\')">🔍 ' + RL('Quick Check', 'مراجعة سريعة') + '</button>' : '') +
-        ((hasPermission('all') || canView('equipmentChecks')) ? '<button class="save-btn" style="margin:0;background:#0f766e" onclick="showEquipmentCheckHistory(\'' + equipment.id + '\')">📋 ' + RL('Checks Log', 'سجل المراجعات') + '</button>' : '') +
-        '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0891b2,#155e75)" onclick="printSingleQRLabel(\'' + equipment.id + '\')">🏷️ ' + RL('Print QR Label', 'طباعة ملصق QR') + '</button>' +
+        ((hasPermission('all') || canAdd('equipmentChecks')) ? '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0284c7,#075985)" onclick="openQuickCheckModal(\'' + equipment.id + '\')">🔍 ' + RL('Quick Check', 'مراجعة سريعة') + '</button>' : '') +
+        ((hasPermission('all') || canView('equipmentChecks')) ? '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0284c7,#075985)" onclick="showEquipmentCheckHistory(\'' + equipment.id + '\')">📋 ' + RL('Checks Log', 'سجل المراجعات') + '</button>' : '') +
+        '<button class="save-btn" style="margin:0;background:linear-gradient(135deg,#0284c7,#075985)" onclick="printSingleQRLabel(\'' + equipment.id + '\')">🏷️ ' + RL('Print QR Label', 'طباعة ملصق QR') + '</button>' +
         '</div>';
     
     document.getElementById('detail-title').innerHTML = '🏗️ ' + escapeHtml(equipment.name);
@@ -18903,7 +18916,7 @@ function renderAnalytics() {
             '⛽ متوسط استهلاك المعدات في هذه الفترة: <b>' + avgRate.toFixed(2) + ' لتر/ساعة</b> — أي معدة تتخطى ' + (avgRate*1.3).toFixed(2) + ' لتر/ساعة تُعتبر "استهلاك مرتفع"' +
             '</div>';
     }
-    html += usageGroupHtml('🔑 معدات الملك (' + periodLabel + ')', '#7c3aed', ownedWorking, overallMaxHours);
+    html += usageGroupHtml('🔑 معدات الملك (' + periodLabel + ')', '#0284c7', ownedWorking, overallMaxHours);
     html += usageGroupHtml('📋 معدات الإيجار (' + periodLabel + ')', '#0e7490', rentalWorking, overallMaxHours);
     html += usageGroupHtml('⛔ معدات لا تعمل', '#64748b', notWorking, overallMaxHours);
 
@@ -20226,7 +20239,7 @@ function renderHomeUsageChartsInner(equipmentList) {
             data: {
                 labels: ['معدات الملك 🔑', 'معدات الإيجار 📋'],
                 datasets: [
-                    { label: 'الفترة الحالية', data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: '#059669', borderRadius: 8 },
+                    { label: 'الفترة الحالية', data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: '#0284c7', borderRadius: 8 },
                     { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.owned.prev), Math.round(data.rented.prevHours)], backgroundColor: '#94a3b8', borderRadius: 8 }
                 ]
             },
@@ -20241,7 +20254,7 @@ function renderHomeUsageChartsInner(equipmentList) {
             data: {
                 labels: ['تكلفة معدات الإيجار'],
                 datasets: [
-                    { label: 'الفترة الحالية', data: [Math.round(data.rented.curCost)], backgroundColor: '#d97706', borderRadius: 8 },
+                    { label: 'الفترة الحالية', data: [Math.round(data.rented.curCost)], backgroundColor: '#6366f1', borderRadius: 8 },
                     { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.rented.prevCost)], backgroundColor: '#94a3b8', borderRadius: 8 }
                 ]
             },
@@ -20276,7 +20289,7 @@ function renderHomeUsageChartsInner(equipmentList) {
             type: 'doughnut',
             data: {
                 labels: ['ساعات الملك 🔑', 'ساعات الإيجار 📋'],
-                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#059669', '#f59e0b'], borderWidth: 2, borderColor: '#fff' }]
+                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#0284c7', '#6366f1'], borderWidth: 2, borderColor: '#fff' }]
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '74%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } }, tooltip: { callbacks: { label: function(ctx) {
                 var total = ctx.dataset.data.reduce(function(s, v) { return s + (v || 0); }, 0);
@@ -20418,7 +20431,7 @@ function renderHomeDashboardChartsInner(eqList) {
                     labels: ['سليمة', 'قريبة الصيانة', 'متأخرة', 'متوقفة'],
                     datasets: [{
                         data: [data.fleet.healthy, data.fleet.soon, data.fleet.overdue, data.fleet.stopped],
-                        backgroundColor: ['#059669', '#d97706', '#dc2626', '#64748b'],
+                        backgroundColor: ['#0284c7', '#6366f1', '#dc2626', '#64748b'],
                         borderWidth: 2, borderColor: ringBorder
                     }]
                 },
@@ -20460,7 +20473,7 @@ function renderHomeDashboardChartsInner(eqList) {
                 labels: data.fuelTrend.map(lbl),
                 datasets: [
                     { label: 'لتر', data: data.fuelTrend.map(function(m) { return m.liters; }), borderColor: '#0891b2', backgroundColor: proGrad('8,145,178'), fill: true, pointBackgroundColor: '#fff', pointBorderColor: '#0891b2', pointBorderWidth: 2, pointRadius: 3, tension: .4, tension: .35, pointRadius: 3, yAxisID: 'y' },
-                    { label: 'تكلفة (ج.م)', data: data.fuelTrend.map(function(m) { return m.cost; }), borderColor: '#d97706', backgroundColor: proGrad('217,119,6'), pointBackgroundColor: '#fff', pointBorderColor: '#d97706', pointBorderWidth: 2, pointRadius: 3, tension: .4, fill: true, tension: .35, pointRadius: 3, yAxisID: 'y1' }
+                    { label: 'تكلفة (ج.م)', data: data.fuelTrend.map(function(m) { return m.cost; }), borderColor: '#6366f1', backgroundColor: proGrad('99,102,241'), pointBackgroundColor: '#fff', pointBorderColor: '#6366f1', pointBorderWidth: 2, pointRadius: 3, tension: .4, fill: true, tension: .35, pointRadius: 3, yAxisID: 'y1' }
                 ]
             },
             options: {
@@ -24019,7 +24032,7 @@ function renderRentalEquipment() {
         '<div style="background:linear-gradient(135deg,#0284c7,#075985);padding:7px 10px;color:white;display:flex;justify-content:space-between;align-items:center;gap:5px">'+
         '<div style="min-width:0;flex:1;overflow:hidden">'+
         '<div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+escapeHtml(eqLabel)+'"><span class="c-ico">🚧</span> '+escapeHtml(eqLabel)+'</div>'+
-        '<div style="font-size:11px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(r.company?'🏢 '+escapeHtml(r.company)+(drv?' · ':''):'' )+(drv?'👨‍✈️ '+escapeHtml(drv.name):'')+'</div></div>'+
+        '<div style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(r.company?'<span style="opacity:.8">🏢 '+escapeHtml(r.company)+(drv?' · ':'')+'</span>':'' )+(drv?'<span style="font-weight:800">👨‍✈️ '+escapeHtml(drv.name)+'</span>':'')+'</div></div>'+
         (isAdmin?'<div style="display:flex;gap:3px;flex-shrink:0">'+
         '<button data-action="edit-rental" data-id="'+rid+'" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:12px">✏️</button>'+
         '<button data-action="del-rental"  data-id="'+rid+'" style="background:rgba(255,0,0,.3);color:white;border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:12px">🗑️</button></div>':'')+
