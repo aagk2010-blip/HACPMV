@@ -19291,8 +19291,8 @@ function refreshUI() {
                 equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px">' +
                     '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">' +
                     '<div style="flex:1;min-width:0">' +
-                    '<span style="font-size:12px;font-weight:800;color:var(--primary)">' + escapeHtml(eq.name) + '</span>' + pendingCheckDot +
-                    ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.code) + '</span>' +
+                    '<span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">' + escapeHtml(eq.code || eq.name) + '</span>' + pendingCheckDot +
+                    (eq.code && eq.name ? ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.name) + '</span>' : '') +
                     '</div>' +
                     ownershipBadge +
                     toolBadge +
@@ -19322,8 +19322,8 @@ function refreshUI() {
                 equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px;border-right:4px solid ' + eqHealthBorder + '">' +
                 '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap">' +
                 '<div style="flex:1;min-width:0">' +
-                '<span style="font-size:12px;font-weight:800;color:var(--primary)">' + escapeHtml(eq.name) + '</span>' + pendingCheckDot +
-                ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.code) + '</span>' +
+                '<span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">' + escapeHtml(eq.code || eq.name) + '</span>' + pendingCheckDot +
+                (eq.code && eq.name ? ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.name) + '</span>' : '') +
                 '</div>' +
                 ownershipBadge +
                 eqHealthBadge +
@@ -19345,8 +19345,8 @@ function refreshUI() {
                 equipmentListHtml += '<div class="equipment-card' + checkStatusClass + '" data-eqid="' + eq.id + '" style="padding:3px 6px;cursor:pointer;margin-bottom:4px;border-radius:10px;border-right:4px solid ' + eqHealthBorder + '">' +
                 '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap">' +
                 '<div style="flex:1;min-width:0">' +
-                '<span style="font-size:12px;font-weight:800;color:var(--primary)">' + escapeHtml(eq.name) + '</span>' + pendingCheckDot +
-                ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.code) + '</span>' +
+                '<span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">' + escapeHtml(eq.code || eq.name) + '</span>' + pendingCheckDot +
+                (eq.code && eq.name ? ' <span style="font-size:9px;color:var(--gray);font-weight:500">' + escapeHtml(eq.name) + '</span>' : '') +
                 '</div>' +
                 ownershipBadge +
                 eqHealthBadge +
