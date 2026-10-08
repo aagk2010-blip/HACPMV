@@ -19530,9 +19530,7 @@ function refreshUI() {
                     '<span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">' + escapeHtml(eq.code || eq.name) + '</span>' + pendingCheckDot +
                     (eq.code && eq.name ? ' <span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">- ' + escapeHtml(eq.name) + '</span>' : '') +
                     '</div>' +
-                    ownershipBadge +
                     toolBadge +
-                    statusBadge +
                     quickCheckBtns +
                     (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:1px 5px;border-radius:4px;cursor:pointer;font-size:8px;flex-shrink:0">✏️</button>' : '') +
                     '</div>' +
@@ -19563,11 +19561,8 @@ function refreshUI() {
                 '<span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">' + escapeHtml(eq.code || eq.name) + '</span>' + pendingCheckDot +
                 (rDriverName ? ' <span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">- ' + escapeHtml(rDriverName) + '</span>' : '') +
                 '</div>' +
-                ownershipBadge +
-                eqHealthBadge +
                 '<span style="color:' + rGaugeColor + ';font-weight:800;font-size:9px;white-space:nowrap">' + rDaysLabel + '</span>' +
                 '<span style="color:#6b7a8d;font-weight:800;font-size:9px;white-space:nowrap">' + rHoursLabel + '</span>' +
-                statusBadge +
                 quickCheckBtns +
                 (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:1px 5px;border-radius:4px;cursor:pointer;font-size:8px;flex-shrink:0">✏️</button>' : '') +
                 '</div>' +
@@ -19586,11 +19581,8 @@ function refreshUI() {
                 '<span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">' + escapeHtml(eq.code || eq.name) + '</span>' + pendingCheckDot +
                 (eq.code && eq.name ? ' <span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">- ' + escapeHtml(eq.name) + '</span>' : '') +
                 '</div>' +
-                ownershipBadge +
-                eqHealthBadge +
                 '<span style="font-size:9px;color:#6b7a8d;white-space:nowrap">⏱️<b>' + formatNumber(eq.hours) + '</b> | 🔧<b>' + formatNumber(eq.nextHours) + '</b></span>' +
                 '<span style="color:' + gaugeColor + ';font-weight:800;font-size:9px;white-space:nowrap">' + remainingLabel + '</span>' +
-                statusBadge +
                 quickCheckBtns +
                 (hasPermission('all') ? '<button class="edit-equipment-btn" data-id="' + eq.id + '" style="background:var(--accent);border:none;color:white;padding:1px 5px;border-radius:4px;cursor:pointer;font-size:8px;flex-shrink:0">✏️</button>' : '') +
                 '</div>' +
