@@ -23972,7 +23972,7 @@ function renderRentalEquipment() {
         var pct   = Math.min(daysCount/cycleDayCount,1);
         var color = daysCount>=25?'#059669':daysCount>=15?'#0e7490':daysCount>=7?'#d97706':'#64748b';
         var angle = (pct*360-90)*Math.PI/180;
-        var eqLabel  = eq ? (eq.type+' — '+(eq.name||eq.code)) : (r.equipmentCode||'—');
+        var eqLabel  = eq ? (eq.type+' — '+eq.code) : (r.equipmentCode||'—');
         var rid = r.id;
         var todayStatusColor = todayRec ? '#065f46' : '#92400e';
         var todayStatus = todayRec ? '✅ مسجّل اليوم' : '⏳ لم يسجّل اليوم';
