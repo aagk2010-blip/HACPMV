@@ -18420,7 +18420,7 @@ function printOwnedInventoryReport() {
     _invOpenReport('حصر معدات الملك', 'تاريخ التقرير: ' + new Date().toLocaleDateString('en-GB'), body);
 }
 
-// حصر معدات الإيجار: لكل مقاول معداته تحت بعض، وداخل المقاول كل نوع تحت بعض — (الاسم، النوع، المقاول، الحالة)
+// حصر معدات الإيجار: لكل مقاول معداته تحت بعض، وداخل المقاول كل نوع تحت بعض — (الاسم، النوع، السائق، المقاول، الحالة)
 function printRentalInventoryReport() {
     var list = getVisibleEquipment().filter(function(e) { return e.ownership === 'إيجار'; });
     var byContractor = {};
@@ -18441,11 +18441,15 @@ function printRentalInventoryReport() {
     names.forEach(function(ctName) {
         var items = byContractor[ctName];
         body += '<div class="ctr-title">👷 ' + escapeHtml(ctName) + ' (' + items.length + ')</div>';
-        body += '<table><thead><tr><th style="width:36px">م</th><th>اسم المعدة</th><th>نوع المعدة</th><th>اسم المقاول</th><th>الحالة</th></tr></thead><tbody>' +
+        body += '<table><thead><tr><th style="width:36px">م</th><th>اسم المعدة</th><th>نوع المعدة</th><th>اسم السائق</th><th>اسم المقاول</th><th>الحالة</th></tr></thead><tbody>' +
             _invSortByTypeName(items).map(function(eq, i) {
+                var rc = rentalData.find(function(r) { return r.equipmentId === eq.id && r.driverId; }) || rentalData.find(function(r) { return r.equipmentId === eq.id; });
+                var drv = rc ? driversData.find(function(d) { return d.id === rc.driverId; }) : null;
+                var drvName = drv ? (drv.name || '') : (eq.assignedDriverName || (rc && rc.driverName) || '');
                 return '<tr><td>' + (i + 1) + '</td>' +
                     '<td style="font-weight:700">' + escapeHtml(eq.name || '—') + '</td>' +
                     '<td>' + escapeHtml(eq.type || '—') + '</td>' +
+                    '<td>' + escapeHtml(drvName || '—') + '</td>' +
                     '<td>' + escapeHtml(ctName) + '</td>' +
                     '<td>' + _invStatusBadge(eq.status) + '</td></tr>';
             }).join('') + '</tbody></table>';
@@ -19307,6 +19311,8 @@ function refreshUI() {
                 // للمعدات المستأجرة: نفس شكل شريط معدات الملك بالظبط، بس بدل ساعات العداد المتبقية
                 // بنعرض عدد أيام العمل في الدورة الشهرية الحالية وجمبها إجمالي ساعات العمل (من تقرير الإيجار)
                 var rentalContract = rentalData.find(function(rc) { return rc.equipmentId === eq.id; });
+                var rDrvObj = rentalContract ? driversData.find(function(d) { return d.id === rentalContract.driverId; }) : null;
+                var rDriverName = rDrvObj ? (rDrvObj.name || '') : (eq.assignedDriverName || (rentalContract && rentalContract.driverName) || '');
                 var rDaysCount = 0, rTotalHours = 0;
                 if (rentalContract) {
                     var rMonthDays = rentalDailyData.filter(function(d) {
@@ -19325,7 +19331,7 @@ function refreshUI() {
                 '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;flex-wrap:wrap">' +
                 '<div style="flex:1;min-width:0">' +
                 '<span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">' + escapeHtml(eq.code || eq.name) + '</span>' + pendingCheckDot +
-                (eq.code && eq.name ? ' <span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">- ' + escapeHtml(eq.name) + '</span>' : '') +
+                (rDriverName ? ' <span style="font-size:14px;font-weight:800;color:var(--primary);letter-spacing:.2px">- ' + escapeHtml(rDriverName) + '</span>' : '') +
                 '</div>' +
                 ownershipBadge +
                 eqHealthBadge +
