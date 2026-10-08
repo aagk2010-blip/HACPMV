@@ -591,22 +591,22 @@ html[data-theme="dark"] .page-topbar-title{color:#f1f5f9}
 .hdash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--hd-accent,#7c3aed)}
 .hdash-card.wide{grid-column:1/-1;padding:12px 12px 10px}
 .hdash-card-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 7px;margin-bottom:8px}
-.hdash-ico{width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--hd-soft,rgba(124,58,237,.12))}
+.hdash-ico{width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--hd-soft,rgba(2,132,199,.12))}
 .hdash-title{font-weight:800;font-size:11.5px;color:var(--primary);line-height:1.25;flex:1 1 0;min-width:0}
-.hdash-kpi{font-size:10.5px;font-weight:800;color:var(--hd-accent,#7c3aed);background:var(--hd-soft,rgba(124,58,237,.12));border-radius:10px;padding:2px 8px;white-space:nowrap}
+.hdash-kpi{font-size:10.5px;font-weight:800;color:var(--hd-accent,#0284c7);background:var(--hd-soft,rgba(2,132,199,.12));border-radius:10px;padding:2px 8px;white-space:nowrap}
 /* الكروت النصف: العنوان أولاً والرقم الملخص تحته عشان ما يتزاحموش */
 .hdash-card:not(.wide) .hdash-title{flex:1 1 calc(100% - 40px)}
 .hdash-body{position:relative;height:150px;flex:0 0 auto}
 .hdash-card.wide .hdash-body{height:190px}
-.hdash-more{display:block;width:100%;margin-top:6px;border:none;background:none;font-family:inherit;font-size:10px;font-weight:700;color:var(--hd-accent,#7c3aed);cursor:pointer;text-align:center;padding:2px 0}
+.hdash-more{display:block;width:100%;margin-top:6px;border:none;background:none;font-family:inherit;font-size:10px;font-weight:700;color:var(--hd-accent,#0284c7);cursor:pointer;text-align:center;padding:2px 0}
 .hdash-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gray);text-align:center;padding:0 10px}
 .hdash-card.c-fleet{--hd-accent:#0284c7;--hd-soft:rgba(2,132,199,.12)}
 .hdash-card.c-maint{--hd-accent:#0e7490;--hd-soft:rgba(14,116,144,.12)}
-.hdash-card.c-fuel{--hd-accent:#6366f1;--hd-soft:rgba(99,102,241,.13)}
+.hdash-card.c-fuel{--hd-accent:#075985;--hd-soft:rgba(7,89,133,.13)}
 .hdash-card.c-top{--hd-accent:#0e7490;--hd-soft:rgba(14,116,144,.12)}
 .hdash-card.c-hours{--hd-accent:#0284c7;--hd-soft:rgba(2,132,199,.12)}
-.hdash-card.c-cost{--hd-accent:#6366f1;--hd-soft:rgba(99,102,241,.13)}
-.hdash-card.c-split{--hd-accent:#8b5cf6;--hd-soft:rgba(139,92,246,.13)}
+.hdash-card.c-cost{--hd-accent:#075985;--hd-soft:rgba(7,89,133,.13)}
+.hdash-card.c-split{--hd-accent:#075985;--hd-soft:rgba(7,89,133,.13)}
 
 /* هيكل الصفحة: الموبايل = عمود واحد بالترتيب (إجراءات ← رسومات ← استخدام ← أقسام) */
 #view-home .home-layout{display:flex;flex-direction:column;gap:16px;padding:4px 14px 24px}
@@ -20254,7 +20254,7 @@ function renderHomeUsageChartsInner(equipmentList) {
             data: {
                 labels: ['تكلفة معدات الإيجار'],
                 datasets: [
-                    { label: 'الفترة الحالية', data: [Math.round(data.rented.curCost)], backgroundColor: '#6366f1', borderRadius: 8 },
+                    { label: 'الفترة الحالية', data: [Math.round(data.rented.curCost)], backgroundColor: '#075985', borderRadius: 8 },
                     { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.rented.prevCost)], backgroundColor: '#94a3b8', borderRadius: 8 }
                 ]
             },
@@ -20289,7 +20289,7 @@ function renderHomeUsageChartsInner(equipmentList) {
             type: 'doughnut',
             data: {
                 labels: ['ساعات الملك 🔑', 'ساعات الإيجار 📋'],
-                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#0284c7', '#6366f1'], borderWidth: 2, borderColor: '#fff' }]
+                datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#0284c7', '#075985'], borderWidth: 2, borderColor: '#fff' }]
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '74%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } }, tooltip: { callbacks: { label: function(ctx) {
                 var total = ctx.dataset.data.reduce(function(s, v) { return s + (v || 0); }, 0);
@@ -20431,7 +20431,7 @@ function renderHomeDashboardChartsInner(eqList) {
                     labels: ['سليمة', 'قريبة الصيانة', 'متأخرة', 'متوقفة'],
                     datasets: [{
                         data: [data.fleet.healthy, data.fleet.soon, data.fleet.overdue, data.fleet.stopped],
-                        backgroundColor: ['#0284c7', '#6366f1', '#dc2626', '#64748b'],
+                        backgroundColor: ['#0284c7', '#075985', '#dc2626', '#64748b'],
                         borderWidth: 2, borderColor: ringBorder
                     }]
                 },
@@ -20473,7 +20473,7 @@ function renderHomeDashboardChartsInner(eqList) {
                 labels: data.fuelTrend.map(lbl),
                 datasets: [
                     { label: 'لتر', data: data.fuelTrend.map(function(m) { return m.liters; }), borderColor: '#0891b2', backgroundColor: proGrad('8,145,178'), fill: true, pointBackgroundColor: '#fff', pointBorderColor: '#0891b2', pointBorderWidth: 2, pointRadius: 3, tension: .4, tension: .35, pointRadius: 3, yAxisID: 'y' },
-                    { label: 'تكلفة (ج.م)', data: data.fuelTrend.map(function(m) { return m.cost; }), borderColor: '#6366f1', backgroundColor: proGrad('99,102,241'), pointBackgroundColor: '#fff', pointBorderColor: '#6366f1', pointBorderWidth: 2, pointRadius: 3, tension: .4, fill: true, tension: .35, pointRadius: 3, yAxisID: 'y1' }
+                    { label: 'تكلفة (ج.م)', data: data.fuelTrend.map(function(m) { return m.cost; }), borderColor: '#075985', backgroundColor: proGrad('7,89,133'), pointBackgroundColor: '#fff', pointBorderColor: '#075985', pointBorderWidth: 2, pointRadius: 3, tension: .4, fill: true, tension: .35, pointRadius: 3, yAxisID: 'y1' }
                 ]
             },
             options: {
