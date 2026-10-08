@@ -15984,6 +15984,86 @@ function printOwnedEquipmentCycleReport() {
 }
 window.printOwnedEquipmentCycleReport = printOwnedEquipmentCycleReport;
 
+// ==================== تقرير العمل لمعدات الإيجار: أيام وساعات العمل من سجلات الإيجار اليومية + الوقود، لنفس الفترة المحددة فوق ====================
+function printRentalEquipmentCycleReport() {
+    var range = readOwnedCycleReportRange();
+    var eqList = getVisibleEquipment().filter(function(e) { return e.ownership === 'إيجار'; });
+    if (!eqList.length) { showToast('لا توجد معدات إيجار لعرضها', true); return; }
+    var statusMap = { 'يعمل': '🟢 تعمل', 'صيانة': '🟡 تحت الصيانة', 'متوقف': '🔴 متوقفة' };
+
+    var rows = eqList.map(function(eq) {
+        var rc = rentalData.find(function(r) { return r.equipmentId === eq.id; });
+        var hours = 0, workDates = {};
+        if (rc) {
+            rentalDailyData.forEach(function(d) {
+                if (d.equipmentId !== rc.id || !d.date || d.date < range.from || d.date > range.to) return;
+                var h = (d.basicHours || 0) + (d.breakHours || 0) + (d.extraHours || 0);
+                hours += h;
+                if (h > 0) workDates[d.date] = true;
+            });
+        }
+        var drv = rc ? driversData.find(function(d) { return d.id === rc.driverId; }) : null;
+        var driverName = drv ? (drv.name || '') : (eq.assignedDriverName || (rc && rc.driverName) || '');
+        var fuel = computeFuelForEquipmentInRange(eq, range.from, range.to);
+        var dayHrs = rc ? rentalBillingDayHours(rc) : 8;
+        return { eq: eq, driverName: driverName, hours: hours, days: hours / dayHrs, workedDays: Object.keys(workDates).length, fuel: fuel };
+    }).sort(function(a, b) { return b.hours - a.hours; });
+
+    var totalHours = rows.reduce(function(s, r) { return s + r.hours; }, 0);
+    var totalFuel = rows.reduce(function(s, r) { return s + r.fuel; }, 0);
+    var stoppedCount = rows.filter(function(r) { return r.eq.status === 'متوقف'; }).length;
+    var underMaintCount = rows.filter(function(r) { return r.eq.status === 'صيانة'; }).length;
+    var idleCount = rows.filter(function(r) { return r.hours === 0 && r.eq.status === 'يعمل'; }).length;
+
+    var rowsHtml = rows.map(function(r, idx) {
+        return '<tr>' +
+            '<td>' + (idx + 1) + '</td>' +
+            '<td style="text-align:right;font-weight:800;font-size:13px">' + escapeHtml(r.eq.code || r.eq.name || '—') + '</td>' +
+            '<td>' + escapeHtml(r.driverName || '—') + '</td>' +
+            '<td>' + escapeHtml(r.eq.type || '—') + '</td>' +
+            '<td>' + (statusMap[r.eq.status] || escapeHtml(r.eq.status || '—')) + '</td>' +
+            '<td>' + r.workedDays + '</td>' +
+            '<td>' + r.hours.toFixed(1) + ' س</td>' +
+            '<td>' + (r.fuel > 0 ? r.fuel.toLocaleString('en-US', { maximumFractionDigits: 1 }) + ' لتر' : '—') + '</td>' +
+            '<td>&nbsp;</td>' +
+            '</tr>';
+    }).join('');
+
+    var title = 'تقرير العمل واستهلاك الوقود لمعدات الإيجار';
+    var w = window.open('', '_blank');
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + title + '</title><style>' +
+        'body{font-family:Arial;padding:18px;direction:rtl;color:#0d1b2a;font-size:12px}' +
+        'table{width:100%;border-collapse:collapse;margin-top:12px;font-size:11px}' +
+        'th,td{border:1px solid #e2e8f0;padding:6px 7px;text-align:center}' +
+        'th{background:#0d1b2a;color:white;font-size:11px}' +
+        'tr:nth-child(even) td{background:#f8fafc}' +
+        '.summary-box{background:linear-gradient(135deg,#0d1b2a,#1b2838);color:white;border-radius:12px;padding:12px 16px;margin:12px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}' +
+        '.summary-box .v{font-size:19px;font-weight:800}' +
+        '.summary-box .l{font-size:10.5px;opacity:.85}' +
+        '.footer{margin-top:16px;font-size:9px;color:#999;text-align:center}' +
+        '@media print{ .no-print{display:none} @page{ size:A4; margin:8mm } }' +
+        '</style></head><body>' +
+        reportHeaderHtml(title, 'من ' + range.from + ' إلى ' + range.to) +
+        ownRentProjectNamesHtml(eqList) +
+        '<div class="summary-box">' +
+        '<div><div class="v">' + rows.length + '</div><div class="l">عدد معدات الإيجار</div></div>' +
+        '<div><div class="v">' + totalHours.toFixed(1) + '</div><div class="l">إجمالي ساعات العمل</div></div>' +
+        '<div><div class="v">' + totalFuel.toLocaleString('en-US', { maximumFractionDigits: 0 }) + '</div><div class="l">إجمالي الوقود (لتر)</div></div>' +
+        '<div><div class="v">' + underMaintCount + '</div><div class="l">تحت الصيانة الآن</div></div>' +
+        '<div><div class="v">' + stoppedCount + '</div><div class="l">متوقفة الآن</div></div>' +
+        '</div>' +
+        (idleCount ? '<div style="background:#fff7ed;color:#92400e;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:11px">⚠️ يوجد ' + idleCount + ' معدة بحالة "تعمل" بدون أي ساعات عمل مسجّلة خلال الفترة</div>' : '') +
+        '<table><thead><tr><th>#</th><th>كود المعدة</th><th>اسم السائق</th><th>النوع</th><th>الحالة التشغيلية</th><th>أيام العمل</th><th>ساعات العمل</th><th>استهلاك الوقود</th><th>ملاحظات</th></tr></thead><tbody>' +
+        rowsHtml +
+        '</tbody></table>' +
+        '<div style="margin-top:6px;font-size:10px;color:#64748b">* الساعات من سجلات الإيجار اليومية (الأساسي + الراحة + الإضافي)، وأيام العمل = عدد الأيام التي سُجّلت فيها ساعات.</div>' +
+        '<div class="footer">تم إصدار التقرير بتاريخ ' + new Date().toLocaleString('en-US') + '</div>' +
+        '<div class="no-print" style="text-align:center;margin-top:18px"><button onclick="window.print()" style="padding:10px 30px;background:#e8a020;border:none;border-radius:10px;font-weight:700;cursor:pointer">🖨️ طباعة</button></div>' +
+        '</body></html>');
+    w.document.close();
+}
+window.printRentalEquipmentCycleReport = printRentalEquipmentCycleReport;
+
 function exportInventoryExcel() {
     if (!inventoryItems.length) {
         showToast('لا توجد بيانات في المخزون');
@@ -18420,7 +18500,7 @@ function printOwnedInventoryReport() {
     _invOpenReport('حصر معدات الملك', 'تاريخ التقرير: ' + new Date().toLocaleDateString('en-GB'), body);
 }
 
-// حصر معدات الإيجار: لكل مقاول معداته تحت بعض، وداخل المقاول كل نوع تحت بعض — (الاسم، النوع، السائق، المقاول، الحالة)
+// حصر معدات الإيجار: لكل مقاول معداته تحت بعض، وداخل المقاول كل نوع تحت بعض — (الكود، النوع، السائق، المقاول، الحالة)
 function printRentalInventoryReport() {
     var list = getVisibleEquipment().filter(function(e) { return e.ownership === 'إيجار'; });
     var byContractor = {};
@@ -18441,13 +18521,13 @@ function printRentalInventoryReport() {
     names.forEach(function(ctName) {
         var items = byContractor[ctName];
         body += '<div class="ctr-title">👷 ' + escapeHtml(ctName) + ' (' + items.length + ')</div>';
-        body += '<table><thead><tr><th style="width:36px">م</th><th>اسم المعدة</th><th>نوع المعدة</th><th>اسم السائق</th><th>اسم المقاول</th><th>الحالة</th></tr></thead><tbody>' +
+        body += '<table><thead><tr><th style="width:36px">م</th><th>كود المعدة</th><th>نوع المعدة</th><th>اسم السائق</th><th>اسم المقاول</th><th>الحالة</th></tr></thead><tbody>' +
             _invSortByTypeName(items).map(function(eq, i) {
                 var rc = rentalData.find(function(r) { return r.equipmentId === eq.id && r.driverId; }) || rentalData.find(function(r) { return r.equipmentId === eq.id; });
                 var drv = rc ? driversData.find(function(d) { return d.id === rc.driverId; }) : null;
                 var drvName = drv ? (drv.name || '') : (eq.assignedDriverName || (rc && rc.driverName) || '');
                 return '<tr><td>' + (i + 1) + '</td>' +
-                    '<td style="font-weight:700">' + escapeHtml(eq.name || '—') + '</td>' +
+                    '<td style="font-weight:700">' + escapeHtml(eq.code || eq.name || '—') + '</td>' +
                     '<td>' + escapeHtml(eq.type || '—') + '</td>' +
                     '<td>' + escapeHtml(drvName || '—') + '</td>' +
                     '<td>' + escapeHtml(ctName) + '</td>' +
@@ -19206,6 +19286,18 @@ function switchEquipmentOwnershipTab(tab) {
         } else {
             rentalBtn.style.background = 'linear-gradient(135deg,#b45309,#92400e)'; rentalBtn.style.color = 'white';
             ownedBtn.style.background = '#f1f5f9'; ownedBtn.style.color = '#475569';
+        }
+    }
+    var cycBtn = document.getElementById('owned-cycle-report-btn');
+    if (cycBtn) {
+        if (tab === 'إيجار') {
+            cycBtn.style.background = 'linear-gradient(135deg,#b45309,#92400e)';
+            cycBtn.onclick = function() { printRentalEquipmentCycleReport(); };
+            cycBtn.innerHTML = '<span class="qi">📄</span><span>' + RL('Rental Equipment Report (Hours + Fuel)', 'تقرير العمل والوقود للإيجار') + '</span>';
+        } else {
+            cycBtn.style.background = 'linear-gradient(135deg,#059669,#047857)';
+            cycBtn.onclick = function() { printOwnedEquipmentCycleReport(); };
+            cycBtn.innerHTML = '<span class="qi">📄</span><span>' + RL('Owned Equipment Report (Hours + Fuel)', 'تقرير العمل والوقود للملك') + '</span>';
         }
     }
     refreshUI();
