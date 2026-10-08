@@ -4624,26 +4624,34 @@ function saveAppUsers(onlyUserId) {
         showToast('❌ لا يوجد اتصال بقاعدة البيانات - لم يتم الحفظ', true);
         return Promise.reject(new Error('NO_FIREBASE'));
     }
-    // تنظيف أي قيم undefined (Firebase يرفضها ويرمي خطأ فوري)
     function clean(o) { return JSON.parse(JSON.stringify(o)); }
-    var p;
-    try {
-        if (onlyUserId) {
-            // حفظ المستخدم المعدَّل فقط (لا يحتاج صلاحية كتابة على كامل appUsers)
-            var u = APP_USERS.filter(function(x) { return x.id === onlyUserId; })[0];
-            p = u ? fbDb.ref('appUsers/' + onlyUserId).set(clean(u)) : Promise.resolve();
-        } else {
+    function attempt() {
+        try {
+            if (onlyUserId) {
+                var u = APP_USERS.filter(function(x) { return x.id === onlyUserId; })[0];
+                return u ? fbDb.ref('appUsers/' + onlyUserId).set(clean(u)) : Promise.resolve();
+            }
             var usersObj = {};
             APP_USERS.forEach(function(x) { usersObj[x.id] = clean(x); });
-            p = fbDb.ref('appUsers').set(usersObj);
-        }
-    } catch (e) { p = Promise.reject(e); }
-    return p.catch(function(e) {
+            return fbDb.ref('appUsers').set(usersObj);
+        } catch (e) { return Promise.reject(e); }
+    }
+    return attempt().catch(function(e) {
         var denied = e && (e.code === 'PERMISSION_DENIED' || /permission_denied/i.test(e.message || ''));
-        var authed = !!(typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
+        var fu = null;
+        try { fu = firebase.auth().currentUser; } catch (x) {}
+        if (denied && fu) {
+            // إصلاح تلقائي: ربط حساب Firebase الحالي بمستخدمه (uidIndex) ثم إعادة المحاولة مرة واحدة
+            var me = APP_USERS.filter(function(x) { return x.firebaseUid === fu.uid; })[0];
+            if (me && me.role === 'admin') {
+                return fbDb.ref('uidIndex/' + fu.uid).set(me.id).then(attempt, function() { throw e; });
+            }
+        }
+        throw e;
+    }).catch(function(e) {
+        var denied = e && (e.code === 'PERMISSION_DENIED' || /permission_denied/i.test(e.message || ''));
         showToast('❌ فشل حفظ المستخدمين: ' + (e && e.message || e) +
-            (denied ? (authed ? ' — قواعد Firebase لا تعتبر حسابك مديرًا (تحقق من uidIndex ودور admin)'
-                              : ' — لا توجد جلسة Firebase Auth لهذا الحساب، سجّل الخروج ثم الدخول مرة أخرى') : ''), true);
+            (denied ? ' — سجّل الخروج ثم ادخل بحساب المدير الأساسي وأعد المحاولة' : ''), true);
         throw e;
     });
 }
@@ -6399,6 +6407,11 @@ function secureLogin() {
         // المستخدم له حساب حقيقي في Firebase Authentication (اتربط بـ firebaseUid) — بنسجّل دخوله بالطريقة الرسمية والآمنة
         if (found.firebaseUid && typeof firebase !== 'undefined' && firebase.auth) {
             firebase.auth().signInWithEmailAndPassword(getAuthEmail(found), password).then(function() {
+                // ربط تلقائي لحساب Firebase بالمستخدم (uidIndex) عند كل دخول — بصمت ولا يعطّل الدخول
+                try {
+                    var _cu = firebase.auth().currentUser;
+                    if (_cu && typeof fbDb !== 'undefined' && fbDb && found.id) fbDb.ref('uidIndex/' + _cu.uid).set(found.id).catch(function() {});
+                } catch (_e) {}
                 finalizeLogin();
             }).catch(function() {
                 // أي فشل في تسجيل الدخول عبر Firebase (إيميل مش متطابق، كلمة سر اتغيّرت بالنظام القديم بس ولسه
