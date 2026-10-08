@@ -1498,6 +1498,13 @@ html[data-theme="dark"] #view-reports .rp-head .rp-n{background:#334155;color:#c
 html[data-theme="dark"] #view-reports .rp-period{background:#0f172a;color:#94a3b8}
 html[data-theme="dark"] #view-reports .rp-period input,html[data-theme="dark"] #view-reports .rp-period select{background:#1e293b;border-color:#334155;color:#e2e8f0}
 @media (max-width:480px){#view-reports .rp-chips{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}#view-reports .rp-chip{font-size:11px;padding:7px 8px;gap:6px;min-height:48px}#view-reports .rp-chip .rp-i{flex-basis:24px;width:24px;height:24px;font-size:13px}#view-reports .rp-chip .rp-tag{display:none}#view-reports .rp-period input,#view-reports .rp-period select{max-width:none;flex:1 1 120px}}
+/* ===== أرقام الصفحة الرئيسية بالأسود (الثيم الفاتح فقط) ===== */
+html:not([data-theme="dark"]) #view-home .stat-number{color:#000!important;-webkit-text-fill-color:#000!important;background:none!important}
+html[data-theme="dark"] #view-home .stat-number{color:#fff!important;-webkit-text-fill-color:#fff!important;background:none!important}
+html[data-theme="dark"] #view-home .hdash-kpi{color:#fff!important}
+html[data-theme="dark"] #view-home #home-hr-section div[style*="font-size:22px"]{color:#fff!important}
+html:not([data-theme="dark"]) #view-home .hdash-kpi{color:#000!important}
+html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:22px"]{color:#000!important}
 /* ===== كارت المعدة: الاسم والتفاصيل في صف واحد (الاسم يتقصّ بـ … بدل ما ينزل سطر جديد) ===== */
 #equipment-list .equipment-card>div:first-child{flex-wrap:nowrap!important;overflow:hidden}
 #equipment-list .equipment-card>div:first-child>div:first-child{flex:1 1 0!important;min-width:64px!important;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
@@ -20232,6 +20239,7 @@ function renderHomeUsageChartsInner(equipmentList) {
         if (homeChartInstances[k]) { homeChartInstances[k].destroy(); homeChartInstances[k] = null; }
     });
 
+    var _numClr = document.documentElement.getAttribute('data-theme') === 'dark' ? '#ffffff' : '#000000';
     var hoursCanvas = document.getElementById('chart-home-hours');
     if (hoursCanvas) {
         homeChartInstances.hours = new Chart(hoursCanvas, {
@@ -20243,7 +20251,7 @@ function renderHomeUsageChartsInner(equipmentList) {
                     { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.owned.prev), Math.round(data.rented.prevHours)], backgroundColor: '#94a3b8', borderRadius: 8 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } } }, scales: { y: { beginAtZero: true, ticks: { font: { size: 8.5 } } }, x: { ticks: { font: { size: 8.5 } } } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } } }, scales: { y: { beginAtZero: true, ticks: { color: _numClr, font: { size: 8.5 } } }, x: { ticks: { color: _numClr, font: { size: 8.5 } } } } }
         });
     }
 
@@ -20258,7 +20266,7 @@ function renderHomeUsageChartsInner(equipmentList) {
                     { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.rented.prevCost)], backgroundColor: '#94a3b8', borderRadius: 8 }
                 ]
             },
-            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } } }, scales: { x: { beginAtZero: true, ticks: { font: { size: 8.5 } } }, y: { ticks: { font: { size: 8.5 } } } } }
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } } }, scales: { x: { beginAtZero: true, ticks: { color: _numClr, font: { size: 8.5 } } }, y: { ticks: { color: _numClr, font: { size: 8.5 } } } } }
         });
     }
 
@@ -20277,7 +20285,7 @@ function renderHomeUsageChartsInner(equipmentList) {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.font = "700 15px Cairo, sans-serif";
-                ctx.fillStyle = '#0f172a';
+                ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'dark' ? '#ffffff' : '#000000';
                 ctx.fillText(formatNumber(Math.round(total)), arc.x, arc.y - 7);
                 ctx.font = "600 8px Cairo, sans-serif";
                 ctx.fillStyle = '#64748b';
@@ -20387,7 +20395,7 @@ function renderHomeDashboardChartsInner(eqList) {
     document.querySelectorAll('#home-dash-section .hdash-empty').forEach(function(e) { e.remove(); });
 
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    var txt = dark ? '#cbd5e1' : '#475569';
+    var txt = dark ? '#ffffff' : '#000000';
     var grid = dark ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.06)';
     var ringBorder = dark ? '#1e293b' : '#ffffff';
     var font = { family: 'Cairo', size: 9.5 };
@@ -20416,7 +20424,7 @@ function renderHomeDashboardChartsInner(eqList) {
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillStyle = dark ? '#f1f5f9' : '#0d1b2a';
+                    ctx.fillStyle = dark ? '#ffffff' : '#000000';
                     ctx.font = '800 17px Cairo, sans-serif';
                     ctx.fillText(String(data.total), m.x, m.y - 3);
                     ctx.fillStyle = txt;
