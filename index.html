@@ -1912,7 +1912,7 @@ html[data-theme="dark"] #view-reports .rp-period input,html[data-theme="dark"] #
 
   <div id="view-accounts" data-section="accounts" style="display:none">
     <div style="padding:14px">
-      <div style="background:linear-gradient(135deg,#166534,#14532d);border-radius:16px;padding:16px;color:white;margin-bottom:14px">
+      <div style="background:linear-gradient(135deg,#0e7490,#155e75);border-radius:16px;padding:16px;color:white;margin-bottom:14px">
         <div style="font-weight:800;font-size:15px;margin-bottom:4px">💰 حسابات إيجار المعدات</div>
         <div style="font-size:12px;opacity:.9">احسب مستخلص كل معدة إيجار بناءً على الساعات المسجّلة وقيمة يوم العمل، واطبع مستخلص رسمي جاهز للتسليم.</div>
       </div>
@@ -1927,9 +1927,9 @@ html[data-theme="dark"] #view-reports .rp-period input,html[data-theme="dark"] #
       </div>
 
       <div class="home-quick-actions" style="padding:0 0 14px">
-        <button class="edit-btn home-quick-btn" onclick="openContractorsModal()" style="background:#e8a020;color:#0d1b2a"><span class="qi">👷</span>المقاولين</button>
-        <button onclick="printFullAccountsStatement(true)" class="home-quick-btn" style="background:linear-gradient(135deg,#166534,#14532d)"><span class="qi">🖨️</span>طباعة بالتكلفة</button>
-        <button onclick="printFullAccountsStatement(false)" class="home-quick-btn" style="background:linear-gradient(135deg,#0369a1,#075985)"><span class="qi">🖨️</span>أيام العمل فقط</button>
+        <button class="edit-btn home-quick-btn" onclick="openContractorsModal()" style="background:linear-gradient(135deg,#0e7490,#155e75);color:#fff"><span class="qi">👷</span>المقاولين</button>
+        <button onclick="printFullAccountsStatement(true)" class="home-quick-btn" style="background:linear-gradient(135deg,#0e7490,#155e75)"><span class="qi">🖨️</span>طباعة بالتكلفة</button>
+        <button onclick="printFullAccountsStatement(false)" class="home-quick-btn" style="background:linear-gradient(135deg,#0e7490,#155e75)"><span class="qi">🖨️</span>أيام العمل فقط</button>
       </div>
 
       <div id="accounts-total-card" style="background:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
@@ -1943,7 +1943,7 @@ html[data-theme="dark"] #view-reports .rp-period input,html[data-theme="dark"] #
   </div>
 
   <div class="modal-overlay" id="rate-edit-modal">
-    <div class="modal-header" style="background:linear-gradient(135deg,#166534,#14532d)">
+    <div class="modal-header" style="background:linear-gradient(135deg,#0e7490,#155e75)">
       <div class="modal-title">💰 <span class="i18n-label" data-en="Edit Work Day Value" data-ar="تعديل قيمة يوم العمل"></span></div>
       <button class="modal-close" onclick="closeModal('rate-edit-modal')">✕</button>
     </div>
@@ -1953,7 +1953,7 @@ html[data-theme="dark"] #view-reports .rp-period input,html[data-theme="dark"] #
         <input class="form-input" type="number" id="rate-edit-input" placeholder="مثال: 2500" step="0.01"></div>
       <div class="form-field"><label class="form-label">👷 المقاول</label>
         <select class="form-select" id="rate-edit-contractor"><option value="">بدون مقاول</option></select></div>
-      <button class="save-btn" style="background:linear-gradient(135deg,#166534,#14532d)" onclick="saveRentalRate()">✅ حفظ</button>
+      <button class="save-btn" style="background:linear-gradient(135deg,#0e7490,#155e75)" onclick="saveRentalRate()">✅ حفظ</button>
     </div>
   </div>
 
@@ -24789,7 +24789,7 @@ function renderAccountsSummary() {
         var actualId = key === '__none__' ? null : key;
         var curr = computeContractorMonthTotal(actualId, currentMonth);
         var hist = pastMonths.map(function(m) { return computeContractorMonthTotal(actualId, m); });
-        return accountsBarRowHtml('c' + idx, '👷 ' + escapeHtml(name), curr, hist, '#166534');
+        return accountsBarRowHtml('c' + idx, '👷 ' + escapeHtml(name), curr, hist, '#0e7490');
     }).join('');
 
     var histOverall = pastMonths.map(function(m) { return computeAccountsMonthTotal(m); });
@@ -24805,7 +24805,7 @@ function renderAccountsSummary() {
     if (!canvas || typeof Chart === 'undefined') return;
     if (accountsTrendChartInstance) { accountsTrendChartInstance.destroy(); accountsTrendChartInstance = null; }
     var labels = months.map(function(m) { return rentalPeriodLabel(m); });
-    var bgColors = months.map(function(m, idx) { return idx === months.length - 1 ? '#166534' : '#a7c4b5'; });
+    var bgColors = months.map(function(m, idx) { return idx === months.length - 1 ? '#0e7490' : '#a5d3dc'; });
     accountsTrendChartInstance = new Chart(canvas, {
         type: 'bar',
         data: {
@@ -24864,15 +24864,15 @@ function renderAccountsRentalList() {
         var drv = driversData.find(function(d) { return d.id === r.driverId; });
         var contractor = contractorsData.find(function(ct) { return ct.id === r.contractorId; });
         var hasRate = (r.dailyRate || 0) > 0;
-        return '<div style="background:white;border-radius:16px;border-right:4px solid #166534;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+        return '<div style="background:white;border-radius:16px;border-right:4px solid #0e7490;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
             '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">' +
             '<div style="font-size:14px;font-weight:700;color:#0d1b2a">🚧 ' + escapeHtml(eq ? (eq.code || eq.name || '—') : (r.equipmentCode || '—')) + '</div>' +
-            (hasRate ? '<span style="background:#16653422;color:#166534;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap">' + (r.dailyRate).toLocaleString() + ' / يوم</span>' : '<span style="background:#fef3c7;color:#92400e;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap">⚠️ لا يوجد سعر</span>') +
+            (hasRate ? '<span style="background:#0e749022;color:#0e7490;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap">' + (r.dailyRate).toLocaleString() + ' / يوم</span>' : '<span style="background:#fef3c7;color:#92400e;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap">⚠️ لا يوجد سعر</span>') +
             '</div>' +
             '<div style="font-size:11.5px;color:#6b7a8d;margin-top:4px">🏢 ' + escapeHtml(r.company || '—') + (drv ? ' &nbsp;|&nbsp; 👨‍✈️ ' + escapeHtml(drv.name) : '') + (contractor ? ' &nbsp;|&nbsp; 👷 ' + escapeHtml(contractor.name) : '') + '</div>' +
             '<div style="display:flex;gap:6px;margin-top:10px">' +
-            '<button onclick="showRentalReport(\'' + r.id + '\', \'accounts\')" style="flex:1;padding:9px;background:linear-gradient(135deg,#166534,#14532d);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">🧾 حساب المستخلص</button>' +
-            '<button class="edit-btn" onclick="openEditRentalRate(\'' + r.id + '\')" style="padding:9px 12px;background:#e8a020;color:#0d1b2a;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">💰 تعديل السعر</button>' +
+            '<button onclick="showRentalReport(\'' + r.id + '\', \'accounts\')" style="flex:1;padding:9px;background:linear-gradient(135deg,#0e7490,#155e75);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">🧾 حساب المستخلص</button>' +
+            '<button class="edit-btn" onclick="openEditRentalRate(\'' + r.id + '\')" style="padding:9px 12px;background:linear-gradient(135deg,#0e7490,#155e75);color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">💰 تعديل السعر</button>' +
             '</div></div>';
     }).join('');
 }
