@@ -925,7 +925,7 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 .rental-card{border-radius:16px!important;box-shadow:0 2px 10px rgba(13,27,42,.06),0 1px 2px rgba(13,27,42,.04)!important;border:1px solid rgba(124,58,237,.10)!important}
 .rental-card:hover,.rental-card.touch-active{box-shadow:0 18px 36px rgba(124,58,237,.18)!important;border-color:rgba(124,58,237,.22)!important}
 
-.emp-subtab-btn{flex:1;border:none;background:transparent;padding:9px 10px;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer;transition:all .18s ease}
+.emp-subtab-btn{flex:1 0 auto;white-space:nowrap;border:none;background:transparent;padding:9px 10px;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer;transition:all .18s ease}
 .emp-subtab-btn.active{background:white;color:var(--primary);box-shadow:0 2px 6px rgba(13,27,42,.12)}
 
 /* --- شبكة الأقسام (لوحة التحكم الرئيسية بأسلوب أودو) --- */
@@ -1795,9 +1795,47 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
   </div></div>
   
   <div id="view-employees" style="display:none"><div style="padding:14px">
-    <div id="employees-subtabs" style="display:flex;gap:8px;margin-bottom:12px;background:#eef1f5;padding:4px;border-radius:14px">
-      <button class="emp-subtab-btn active" data-subtab="employees" onclick="switchEmployeesSubTab('employees')">👥 <span class="i18n-label" data-en="Employees" data-ar="الموظفين"></span></button>
-      <button class="emp-subtab-btn" data-subtab="drivers" onclick="switchEmployeesSubTab('drivers')">👨‍✈️ <span class="i18n-label" data-en="Drivers" data-ar="السائقين"></span></button>
+    <!-- تبويبات الموارد البشرية المطورة -->
+    <div id="employees-subtabs" style="display:flex;gap:6px;margin-bottom:14px;background:#e2e8f0;padding:6px;border-radius:14px;overflow-x:auto;scrollbar-width:thin">
+      <button class="emp-subtab-btn active" data-subtab="employees" onclick="switchEmployeesSubTab('employees')">
+        👥 <span class="i18n-label" data-en="Employees" data-ar="الموظفين">الموظفين</span>
+      </button>
+      <button class="emp-subtab-btn" data-subtab="drivers" onclick="switchEmployeesSubTab('drivers')">
+        👨‍✈️ <span class="i18n-label" data-en="Drivers" data-ar="السائقين">السائقين</span>
+      </button>
+      <button class="emp-subtab-btn" data-subtab="attendance" onclick="switchEmployeesSubTab('attendance')">
+        🕒 <span class="i18n-label" data-en="Attendance" data-ar="الحضور والورديات">الحضور والورديات</span>
+      </button>
+      <button class="emp-subtab-btn" data-subtab="leaves" onclick="switchEmployeesSubTab('leaves')">
+        🏖️ <span class="i18n-label" data-en="Leaves" data-ar="الإجازات">الإجازات والراحات</span>
+      </button>
+      <button class="emp-subtab-btn" data-subtab="payroll" onclick="switchEmployeesSubTab('payroll')">
+        💰 <span class="i18n-label" data-en="Payroll" data-ar="الرواتب">الرواتب والبدلات</span>
+      </button>
+      <button class="emp-subtab-btn" data-subtab="custody" onclick="switchEmployeesSubTab('custody')">
+        📑 <span class="i18n-label" data-en="Documents & Custody" data-ar="الوثائق والعهد">الوثائق والعهد</span>
+      </button>
+    </div>
+
+    <!-- الحاويات الخاصة بالأقسام الجديدة -->
+    <div id="emp-panel-attendance" style="display:none">
+      <!-- سيتم عرض كروت الحضور الحيّة وملخص ساعات اليوم وسجل البصمات -->
+      <div id="attendance-dashboard-container"></div>
+    </div>
+
+    <div id="emp-panel-leaves" style="display:none">
+      <!-- جدول رصيد الإجازات وطلبات الراحات المعلقة -->
+      <div id="leaves-dashboard-container"></div>
+    </div>
+
+    <div id="emp-panel-payroll" style="display:none">
+      <!-- مسير الرواتب الشهري وحساب البدلات والإضافي -->
+      <div id="payroll-dashboard-container"></div>
+    </div>
+
+    <div id="emp-panel-custody" style="display:none">
+      <!-- تنبيهات انتهاء الرخص وبطاقات الهوية ومهمات السلامة PPE -->
+      <div id="custody-dashboard-container"></div>
     </div>
 
     <div id="emp-panel-employees">
@@ -21043,20 +21081,1050 @@ function updateEmployeesSubTabVisibility() {
     var canSeeEmployees = hasPermission('all') || canView('employees');
     if (driversTabBtn) driversTabBtn.style.display = canSeeDrivers ? '' : 'none';
     if (employeesTabBtn) employeesTabBtn.style.display = canSeeEmployees ? '' : 'none';
+    HR_EXTRA_TABS.forEach(function(x) { var b = document.querySelector('.emp-subtab-btn[data-subtab="' + x + '"]'); if (b) b.style.display = canSeeEmployees ? '' : 'none'; });
+    if (HR_EXTRA_TABS.indexOf(employeesActiveSubTab) !== -1 && !canSeeEmployees) employeesActiveSubTab = canSeeDrivers ? 'drivers' : 'employees';
     if (employeesActiveSubTab === 'drivers' && !canSeeDrivers) employeesActiveSubTab = 'employees';
     if (employeesActiveSubTab === 'employees' && !canSeeEmployees) employeesActiveSubTab = 'drivers';
 }
 
+// ==================== أقسام الموارد البشرية الجديدة: شاشات الإدخال + النوافذ + ربط Firebase ====================
+// العقد المستخدمة في Firebase (الجديدة):
+//  hrShifts/{id} = { name, start:'HH:MM', end:'HH:MM', grace(د), breakMin(د) }
+//  hrShiftAssignments/{empId} = { shiftId, by, at }
+//  hrLeaveRequests/{id} = { empId, name, type, from, to, days, reason, status:'pending|approved|rejected|cancelled', deducted, requestedBy, requestedAt, reviewedBy, reviewedAt, reviewNote }
+//  hrDocuments/{id} = { empId, name, docType, number, issueDate, expiryDate, note, by, at }
+//  hrCustody/{id} = { empId, name, item, qty, serial, issueDate, returnDate, status:'issued|returned|lost|damaged', condition, note, by, at }
+//  hrPayrollProfiles/{empId} = { payType:'monthly|daily', baseSalary, dailyRate, housing, transport, meal, other, otRate, note }
+//  hrPayrollAdj/{YYYY-MM}/{empId}/{id} = { kind:'allowance|bonus|deduction|advance|overtime', label, amount, hours?, by, at }
+//  hrPayrollStatus/{YYYY-MM}/{empId} = { status:'approved|paid', net, by, at }
+//  hrPayrollDays/{YYYY-MM}/{empId} = { present, absent, leave, calcAt }
+// ويعتمد كمان على العقد الموجودة: employeeAttendance / employeeDayStatus / employeeLeaveLedger / employees.leaveBalance
+var HRX = { ready: false, refs: [], denied: {}, shifts: {}, assign: {}, leaves: {}, docs: {}, custody: {}, profiles: {},
+            adj: {}, pstatus: {}, pdays: {}, payRefs: [], pm: '', custTab: 'docs', custEmp: '',
+            att: { date: '', st: {}, at: {}, loaded: false, loading: false, denied: false } };
+var HRX_PATHS = { shifts: 'hrShifts', assign: 'hrShiftAssignments', leaves: 'hrLeaveRequests', docs: 'hrDocuments', custody: 'hrCustody' };
+
+// ---------- أدوات عامة ----------
+function hrxL(en, ar) { var m = getAppLanguage(); return m === 'en' ? en : (m === 'both' ? ar + ' / ' + en : ar); }
+function hrxEsc(x) { return escapeHtml(x == null ? '' : String(x)); }
+function hrxToday() { return businessDateStr(new Date()); }
+function hrxNow() { return new Date().toISOString(); }
+function hrxWho() { return (currentUser && (currentUser.name || currentUser.username)) || 'مشرف'; }
+function hrxCanWrite() { return hasPermission('all') || canAdd('employees') || canEdit('employees'); }
+function hrxCanManage() { return hasPermission('all') || canEdit('employees'); }
+function hrxEmps() {
+    return (employeesData || []).filter(function(e) { return e.status !== 'منتهي الخدمة'; })
+        .sort(function(a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
+}
+function hrxEmp(id) { return (employeesData || []).find(function(e) { return e.id === id; }); }
+function hrxEmpName(id) { var e = hrxEmp(id); return e ? (e.name || '—') : '—'; }
+function hrxFmt(n) { return (Math.round((+n || 0) * 100) / 100).toLocaleString('en-US'); }
+function hrxDaysBetween(from, to) {
+    var out = [];
+    if (!from || !to || from > to) return out;
+    var d = new Date(from + 'T12:00:00'), end = new Date(to + 'T12:00:00');
+    while (d <= end && out.length < 92) {
+        out.push(d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2));
+        d.setDate(d.getDate() + 1);
+    }
+    return out;
+}
+function hrxTime(iso) { if (!iso) return '—'; var d = new Date(iso); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+function hrxErrMsg(e) {
+    var m = (e && e.message) || '';
+    if (/permission/i.test(m)) return hrxL('Firebase rules do not allow this — publish the updated database_rules.json', 'قواعد Firebase لا تسمح — انشر ملف database_rules.json المحدّث');
+    return m || hrxL('Operation failed', 'تعذّر التنفيذ');
+}
+function hrxFail(e) { console.error(e); showToast('❌ ' + hrxErrMsg(e), true); }
+function hrxDb() { if (typeof fbDb === 'undefined' || !fbDb) { showToast(hrxL('No database connection', 'لا يوجد اتصال بقاعدة البيانات'), true); return null; } return fbDb; }
+
+function hrxCss() {
+    if (document.getElementById('hrx-css')) return;
+    var st = document.createElement('style'); st.id = 'hrx-css';
+    st.textContent = '.hrx-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px;margin-bottom:12px}' +
+        '.hrx-tile{background:#fff;border:1px solid #e6ecf5;border-radius:14px;padding:10px 6px;text-align:center}.hrx-tile b{display:block;font-size:20px;font-weight:800}.hrx-tile span{font-size:10.5px;color:#64748b}' +
+        '.hrx-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px}' +
+        '.hrx-bar input,.hrx-bar select{border:1px solid #cbd5e1;border-radius:10px;padding:8px;font-family:inherit;font-size:12.5px;background:#fff;color:#0d1b2a}' +
+        '.hrx-btn{background:linear-gradient(135deg,#0284c7,#075985);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}' +
+        '.hrx-btn.alt{background:#e2e8f0;color:#0d1b2a}.hrx-btn.red{background:linear-gradient(135deg,#dc2626,#b91c1c)}.hrx-btn.green{background:linear-gradient(135deg,#059669,#047857)}.hrx-btn.sm{padding:5px 9px;font-size:11px;border-radius:8px}' +
+        '.hrx-card{background:#fff;border:1px solid #e6ecf5;border-radius:14px;padding:12px;margin-bottom:8px}' +
+        '.hrx-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}' +
+        '.hrx-h{font-size:14px;font-weight:800;margin:16px 0 8px;color:#0d1b2a}.hrx-sub{font-size:11px;color:#64748b;line-height:1.6}' +
+        '.hrx-chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;background:#e2e8f0;color:#334155}' +
+        '.hrx-chip.ok{background:#d1fae5;color:#065f46}.hrx-chip.bad{background:#fee2e2;color:#991b1b}.hrx-chip.warn{background:#fef3c7;color:#92400e}.hrx-chip.info{background:#e0f2fe;color:#075985}' +
+        '.hrx-empty{text-align:center;color:#64748b;padding:26px 12px;font-size:12.5px;background:#fff;border:1px dashed #cbd5e1;border-radius:14px}' +
+        '.hrx-kv{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:11.5px;margin-top:8px}.hrx-kv div{display:flex;justify-content:space-between;gap:6px;border-bottom:1px dashed #e2e8f0;padding:2px 0}' +
+        '.hrx-seg{display:flex;gap:4px;background:#e2e8f0;padding:4px;border-radius:12px;margin-bottom:12px}.hrx-seg button{flex:1;border:none;background:transparent;padding:8px;border-radius:9px;font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer;color:#475569}.hrx-seg button.on{background:#fff;color:#0d1b2a;box-shadow:0 1px 4px rgba(0,0,0,.12)}' +
+        'html[data-theme="dark"] .hrx-tile,html[data-theme="dark"] .hrx-card,html[data-theme="dark"] .hrx-empty{background:#1e293b;border-color:#334155;color:#e2e8f0}' +
+        'html[data-theme="dark"] .hrx-h{color:#e2e8f0}html[data-theme="dark"] .hrx-bar input,html[data-theme="dark"] .hrx-bar select{background:#0f172a;color:#e2e8f0;border-color:#334155}';
+    document.head.appendChild(st);
+}
+
+// ---------- نوافذ الإدخال (تستخدم نفس تنسيق نوافذ التطبيق) ----------
+function hrxCloseModal() { var m = document.getElementById('hrx-modal'); if (m) m.remove(); }
+function hrxModal(title, body, saveLabel, onSave) {
+    hrxCloseModal();
+    var ov = document.createElement('div');
+    ov.className = 'modal-overlay active'; ov.id = 'hrx-modal';
+    ov.innerHTML = '<div class="modal-header"><div class="modal-title">' + title + '</div><button class="modal-close" onclick="hrxCloseModal()">✕</button></div>' +
+        '<div><div class="form-group">' + body + '</div>' + (onSave ? '<button class="save-btn" id="hrx-save-btn">' + saveLabel + '</button>' : '') + '</div>';
+    document.body.appendChild(ov);
+    if (onSave) document.getElementById('hrx-save-btn').onclick = function() {
+        var b = this; if (b.disabled) return; b.disabled = true;
+        var res; try { res = onSave(); } catch (e) { b.disabled = false; hrxFail(e); return; }
+        Promise.resolve(res).then(function(ok) { if (ok === false) b.disabled = false; else hrxCloseModal(); }).catch(function(e) { b.disabled = false; hrxFail(e); });
+    };
+}
+function hrxF(label, inner) { return '<div class="form-field"><label class="form-label">' + label + '</label>' + inner + '</div>'; }
+function hrxIn(id, type, val, extra) { return '<input class="form-input" id="hrx-f-' + id + '" type="' + (type || 'text') + '" value="' + hrxEsc(val == null ? '' : val) + '" ' + (extra || '') + '>'; }
+function hrxTa(id, val) { return '<textarea class="form-textarea" id="hrx-f-' + id + '">' + hrxEsc(val || '') + '</textarea>'; }
+function hrxSel(id, opts, cur, extra) {
+    return '<select class="form-select" id="hrx-f-' + id + '" ' + (extra || '') + '>' + opts.map(function(o) {
+        return '<option value="' + hrxEsc(o[0]) + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + hrxEsc(o[1]) + '</option>';
+    }).join('') + '</select>';
+}
+function hrxV(id) { var el = document.getElementById('hrx-f-' + id); return el ? String(el.value || '').trim() : ''; }
+function hrxEmpOpts(filterFn) {
+    return hrxEmps().filter(filterFn || function() { return true; }).map(function(e) { return [e.id, (e.name || '') + (e.jobCode ? ' (' + e.jobCode + ')' : '')]; });
+}
+
+// ---------- الاشتراك في بيانات Firebase (مرة واحدة) ----------
+function hrxAttach() {
+    if (HRX.ready) return;
+    var db = (typeof fbDb !== 'undefined') ? fbDb : null;
+    if (!db) return;
+    HRX.ready = true;
+    Object.keys(HRX_PATHS).forEach(function(k) {
+        var ref = db.ref(HRX_PATHS[k]);
+        ref.on('value', function(s) { HRX[k] = s.val() || {}; HRX.denied[k] = false; hrxRerender(); },
+               function() { HRX.denied[k] = true; hrxRerender(); });
+        HRX.refs.push(ref);
+    });
+    if (hrxCanManage()) {
+        var pr = db.ref('hrPayrollProfiles');
+        pr.on('value', function(s) { HRX.profiles = s.val() || {}; HRX.denied.profiles = false; hrxRerender(); },
+              function() { HRX.denied.profiles = true; hrxRerender(); });
+        HRX.refs.push(pr);
+    }
+}
+var _hrxT = null;
+function hrxRerender() {
+    clearTimeout(_hrxT);
+    _hrxT = setTimeout(function() {
+        var v = document.getElementById('view-employees');
+        if (!v || v.style.display === 'none') return;
+        if (HR_EXTRA_TABS.indexOf(hrActiveSubTab) !== -1) renderHRExtraPanel(hrActiveSubTab);
+    }, 60);
+}
+function hrxDeniedBanner(keys) {
+    var bad = keys.filter(function(k) { return HRX.denied[k]; });
+    if (!bad.length) return '';
+    return '<div class="hrx-card" style="border-color:#fecaca;background:#fef2f2;color:#991b1b;font-size:12px">⚠️ ' +
+        hrxL('Firebase rules do not allow reading some data for this section. Publish the updated database_rules.json file.', 'قواعد Firebase لا تسمح بقراءة بعض بيانات هذا القسم. انشر ملف database_rules.json المحدّث.') + '</div>';
+}
+
+// =====================================================================
+// 1) الحضور والورديات
+// =====================================================================
+function hrxShiftOf(empId) {
+    var a = HRX.assign[empId];
+    return a && HRX.shifts[a.shiftId] ? Object.assign({ id: a.shiftId }, HRX.shifts[a.shiftId]) : null;
+}
+function hrxLoadAtt() {
+    var db = hrxDb(); var a = HRX.att; if (!db || a.loading) return;
+    var d = a.date; a.loading = true;
+    Promise.all([
+        db.ref('employeeAttendance/' + d).once('value'),
+        db.ref('employeeDayStatus/' + d).once('value').catch(function() { return null; })
+    ]).then(function(r) {
+        if (a.date !== d) return;
+        a.at = (r[0] && r[0].val()) || {}; a.st = (r[1] && r[1].val()) || {}; a.loaded = true; a.denied = false;
+    }).catch(function() { a.denied = true; a.loaded = true; })
+      .then(function() { a.loading = false; if (a.date !== d) { a.loaded = false; } hrxRerender(); });
+}
+function hrxAttDate(v) { var a = HRX.att; a.date = v || hrxToday(); a.loaded = false; a.loading = false; renderHRAttendancePanel(); }
+function hrxAttReload() { HRX.att.loaded = false; HRX.att.loading = false; renderHRAttendancePanel(); }
+
+function renderHRAttendancePanel() {
+    hrxAttach(); hrxCss();
+    var box = document.getElementById('attendance-dashboard-container'); if (!box) return;
+    var a = HRX.att; if (!a.date) a.date = hrxToday();
+    if (!a.loaded && !a.loading) hrxLoadAtt();
+    var emps = hrxEmps(), cnt = { present: 0, absent: 0, leave: 0, none: 0, late: 0 };
+    var canW = hrxCanWrite();
+    var shiftOpts = [['', hrxL('— No shift —', '— بدون وردية —')]].concat(Object.keys(HRX.shifts).map(function(k) { return [k, HRX.shifts[k].name || k]; }));
+    var cards = emps.map(function(e) {
+        var st = a.st[e.id], at = a.at[e.id], shift = hrxShiftOf(e.id);
+        var status = st && st.status ? st.status : (at && at.startAt ? 'present' : '');
+        var late = 0;
+        if (status === 'present' && at && at.startAt && shift && shift.start) {
+            var d = new Date(at.startAt), sm = shift.start.split(':');
+            var diff = (d.getHours() * 60 + d.getMinutes()) - ((+sm[0]) * 60 + (+sm[1] || 0));
+            if (diff > (+shift.grace || 0) && diff < 720) late = diff;
+        }
+        cnt[status || 'none']++; if (late) cnt.late++;
+        var hours = '—';
+        if (at && at.startAt && at.endAt) {
+            var h = (new Date(at.endAt) - new Date(at.startAt)) / 36e5 - ((shift && +shift.breakMin) || 0) / 60;
+            hours = hrxFmt(Math.max(0, h)) + hrxL(' h', ' س');
+        } else if (at && at.startAt) hours = hrxL('In progress', 'جارٍ');
+        var chip = status === 'present' ? '<span class="hrx-chip ok">✅ ' + hrxL('Present', 'حاضر') + '</span>'
+            : status === 'absent' ? '<span class="hrx-chip bad">❌ ' + hrxL('Absent', 'غائب') + '</span>'
+            : status === 'leave' ? '<span class="hrx-chip info">🏖️ ' + hrxL('On leave', 'إجازة') + '</span>'
+            : '<span class="hrx-chip">⏳ ' + hrxL('Not recorded', 'لم يُسجَّل') + '</span>';
+        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(e.name) + '</b><div class="hrx-sub">' + hrxEsc(e.title || '') + (e.projectSite ? ' — ' + hrxEsc(e.projectSite) : '') + '</div></div>' + chip + '</div>' +
+            '<div class="hrx-kv"><div><span>' + hrxL('Check-in', 'الدخول') + '</span><b>' + hrxTime(at && at.startAt) + '</b></div><div><span>' + hrxL('Check-out', 'الخروج') + '</span><b>' + hrxTime(at && at.endAt) + '</b></div>' +
+            '<div><span>' + hrxL('Hours', 'الساعات') + '</span><b>' + hours + '</b></div><div><span>' + hrxL('Late', 'التأخير') + '</span><b style="color:' + (late ? '#dc2626' : 'inherit') + '">' + (late ? late + hrxL(' min', ' د') : '—') + '</b></div></div>' +
+            (at && at.manual ? '<div class="hrx-sub">✍️ ' + hrxL('Entered manually', 'تسجيل يدوي') + (at.by ? ' — ' + hrxEsc(at.by) : '') + '</div>' : '') +
+            (st && st.note ? '<div class="hrx-sub">📝 ' + hrxEsc(st.note) + '</div>' : '') +
+            '<div class="hrx-row" style="margin-top:8px"><select ' + (canW ? '' : 'disabled') + ' onchange="hrxAssignShift(\'' + e.id + '\',this.value)" style="border:1px solid #cbd5e1;border-radius:8px;padding:5px;font-family:inherit;font-size:11.5px;max-width:55%">' +
+            shiftOpts.map(function(o) { return '<option value="' + hrxEsc(o[0]) + '"' + ((shift && shift.id === o[0]) || (!shift && o[0] === '') ? ' selected' : '') + '>' + hrxEsc(o[1]) + '</option>'; }).join('') + '</select>' +
+            (canW ? '<button class="hrx-btn sm" onclick="hrxOpenAttModal(\'' + e.id + '\')">✏️ ' + hrxL('Record / edit', 'تسجيل / تعديل') + '</button>' : '') + '</div></div>';
+    }).join('');
+    box.innerHTML = hrxDeniedBanner(['shifts', 'assign']) +
+        '<div class="hrx-bar"><input type="date" value="' + a.date + '" max="' + hrxToday() + '" onchange="hrxAttDate(this.value)">' +
+        (canW ? '<button class="hrx-btn" onclick="hrxOpenAttModal()">➕ ' + hrxL('Manual attendance', 'تسجيل حضور يدوي') + '</button>' : '') +
+        (canW ? '<button class="hrx-btn alt" onclick="hrxOpenShiftsModal()">⚙️ ' + hrxL('Shifts', 'الورديات') + '</button>' : '') +
+        '<button class="hrx-btn alt" onclick="hrxAttReload()">🔄</button>' +
+        '<button class="hrx-btn alt" onclick="hrxRepAttendancePdf(HRX.att.date.slice(0,7))">📄 ' + hrxL('Month PDF', 'PDF الشهر') + '</button>' +
+        '<button class="hrx-btn alt" onclick="hrxRepAttendanceExcel(HRX.att.date.slice(0,7))">⬇️ Excel</button></div>' +
+        (a.denied ? '<div class="hrx-card" style="color:#991b1b;background:#fef2f2">⚠️ ' + hrxL('Could not load attendance for this date (check Firebase rules / connection).', 'تعذّر تحميل حضور هذا اليوم (تأكد من القواعد / الاتصال).') + '</div>' : '') +
+        '<div class="hrx-tiles"><div class="hrx-tile"><b style="color:#059669">' + cnt.present + '</b><span>' + hrxL('Present', 'حاضر') + '</span></div>' +
+        '<div class="hrx-tile"><b style="color:#dc2626">' + cnt.absent + '</b><span>' + hrxL('Absent', 'غائب') + '</span></div>' +
+        '<div class="hrx-tile"><b style="color:#0284c7">' + cnt.leave + '</b><span>' + hrxL('On leave', 'إجازة') + '</span></div>' +
+        '<div class="hrx-tile"><b style="color:#d97706">' + cnt.late + '</b><span>' + hrxL('Late', 'متأخر') + '</span></div>' +
+        '<div class="hrx-tile"><b>' + cnt.none + '</b><span>' + hrxL('Not recorded', 'لم يُسجَّل') + '</span></div></div>' +
+        (a.loading && !a.loaded ? '<div class="hrx-empty">⏳ ' + hrxL('Loading...', 'جاري التحميل...') + '</div>' : (cards || '<div class="hrx-empty">' + hrxL('No employees', 'لا يوجد موظفون') + '</div>'));
+}
+
+function hrxAssignShift(empId, shiftId) {
+    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var db = hrxDb(); if (!db) return;
+    var ref = db.ref('hrShiftAssignments/' + empId);
+    (shiftId ? ref.set({ shiftId: shiftId, by: hrxWho(), at: hrxNow() }) : ref.remove())
+        .then(function() { showToast('✅ ' + hrxL('Shift updated', 'تم تحديث الوردية')); }).catch(hrxFail);
+}
+
+function hrxOpenAttModal(empId) {
+    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var d = HRX.att.date || hrxToday();
+    var body = hrxF('👤 ' + hrxL('Employee', 'الموظف') + ' *', hrxSel('emp', [['', hrxL('— Select —', '— اختر —')]].concat(hrxEmpOpts()), empId || '')) +
+        hrxF('📅 ' + hrxL('Date', 'التاريخ'), hrxIn('date', 'date', d, 'max="' + hrxToday() + '"')) +
+        hrxF(hrxL('Status', 'الحالة'), hrxSel('status', [['present', '✅ ' + hrxL('Present', 'حاضر')], ['absent', '❌ ' + hrxL('Absent', 'غائب')]], 'present', 'onchange="document.getElementById(\'hrx-times\').style.display=this.value===\'present\'?\'\':\'none\'"')) +
+        '<div id="hrx-times">' + hrxF('🕒 ' + hrxL('Check-in time', 'وقت الدخول') + ' *', hrxIn('in', 'time', '08:00')) + hrxF('🕔 ' + hrxL('Check-out time', 'وقت الخروج'), hrxIn('out', 'time', '')) + '</div>' +
+        hrxF('📝 ' + hrxL('Note', 'ملاحظة'), hrxTa('note', ''));
+    hrxModal('🕒 ' + hrxL('Manual attendance', 'تسجيل حضور يدوي'), body, '✅ ' + hrxL('Save', 'حفظ'), hrxSaveAtt);
+}
+function hrxSaveAtt() {
+    var db = hrxDb(); if (!db) return false;
+    var id = hrxV('emp'), d = hrxV('date'), status = hrxV('status'), tin = hrxV('in'), tout = hrxV('out'), note = hrxV('note');
+    var e = hrxEmp(id);
+    if (!e) { showToast(hrxL('Select the employee', 'اختر الموظف'), true); return false; }
+    if (!d || d > hrxToday()) { showToast(hrxL('Invalid date', 'تاريخ غير صحيح'), true); return false; }
+    var shift = hrxShiftOf(id), who = hrxWho(), now = hrxNow();
+    if (status === 'present') {
+        if (!tin) { showToast(hrxL('Enter the check-in time', 'أدخل وقت الدخول'), true); return false; }
+        var s = new Date(d + 'T' + tin + ':00'), en = null;
+        if (tout) { en = new Date(d + 'T' + tout + ':00'); if (en <= s) en.setDate(en.getDate() + 1); }
+        var rec = { empId: id, name: e.name || '', date: d, startAt: s.toISOString(), endAt: en ? en.toISOString() : null, manual: true, source: 'manual', by: who, editedAt: now };
+        if (shift) rec.shiftId = shift.id;
+        if (note) rec.note = note;
+        return db.ref('employeeAttendance/' + d + '/' + id).update(rec).then(function() {
+            return db.ref('employeeDayStatus/' + d + '/' + id).once('value').then(function(sn) {
+                var v = sn.val(); return v && v.status === 'absent' ? db.ref('employeeDayStatus/' + d + '/' + id).remove() : null;
+            });
+        }).then(function() { showToast('✅ ' + hrxL('Attendance saved', 'تم حفظ الحضور')); hrxAttReload(); });
+    }
+    return db.ref('employeeAttendance/' + d + '/' + id).once('value').then(function(sn) {
+        if (sn.exists() && !confirm(hrxL('This employee has a check-in record on this day. Mark absent and delete it?', 'للموظف تسجيل دخول في هذا اليوم. تسجيله غائبًا وحذف تسجيل الدخول؟'))) return false;
+        var ops = sn.exists() ? db.ref('employeeAttendance/' + d + '/' + id).remove() : Promise.resolve();
+        return ops.then(function() {
+            return db.ref('employeeDayStatus/' + d + '/' + id).set({ empId: id, name: e.name || '', date: d, status: 'absent', note: note, by: who, at: now });
+        }).then(function() { showToast('✅ ' + hrxL('Absence recorded', 'تم تسجيل الغياب')); hrxAttReload(); });
+    });
+}
+
+function hrxOpenShiftsModal() {
+    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var list = Object.keys(HRX.shifts).map(function(k) {
+        var s = HRX.shifts[k];
+        return '<div class="hrx-card" style="margin:0 0 6px"><div class="hrx-row"><div><b>' + hrxEsc(s.name) + '</b><div class="hrx-sub">' + hrxEsc(s.start) + ' → ' + hrxEsc(s.end) + ' • ' + hrxL('Grace', 'سماح') + ' ' + (+s.grace || 0) + hrxL(' min', ' د') + ' • ' + hrxL('Break', 'استراحة') + ' ' + (+s.breakMin || 0) + hrxL(' min', ' د') + '</div></div>' +
+            (hrxCanManage() ? '<button class="hrx-btn red sm" onclick="hrxDelShift(\'' + k + '\')">🗑️</button>' : '') + '</div></div>';
+    }).join('') || '<div class="hrx-sub" style="text-align:center;padding:8px">' + hrxL('No shifts yet', 'لا توجد ورديات بعد') + '</div>';
+    var body = '<div style="padding:0 14px">' + list + '</div>' +
+        '<div class="hrx-h" style="padding:0 14px">➕ ' + hrxL('New shift', 'وردية جديدة') + '</div>' +
+        hrxF(hrxL('Shift name', 'اسم الوردية') + ' *', hrxIn('sname', 'text', '', 'placeholder="' + hrxL('e.g. Day shift', 'مثال: وردية نهارية') + '"')) +
+        hrxF(hrxL('Start', 'البداية'), hrxIn('sstart', 'time', '08:00')) + hrxF(hrxL('End', 'النهاية'), hrxIn('send', 'time', '17:00')) +
+        hrxF(hrxL('Late grace (minutes)', 'سماح التأخير (دقائق)'), hrxIn('sgrace', 'number', '15', 'min="0"')) +
+        hrxF(hrxL('Break (minutes, deducted from hours)', 'الاستراحة (دقائق — تُخصم من الساعات)'), hrxIn('sbreak', 'number', '60', 'min="0"'));
+    hrxModal('⚙️ ' + hrxL('Shifts', 'الورديات'), body, '✅ ' + hrxL('Add shift', 'إضافة وردية'), function() {
+        var db = hrxDb(); if (!db) return false;
+        var name = hrxV('sname'); if (!name) { showToast(hrxL('Enter the shift name', 'أدخل اسم الوردية'), true); return false; }
+        return db.ref('hrShifts').push({ name: name, start: hrxV('sstart') || '08:00', end: hrxV('send') || '17:00', grace: +hrxV('sgrace') || 0, breakMin: +hrxV('sbreak') || 0, by: hrxWho(), at: hrxNow() })
+            .then(function() { showToast('✅ ' + hrxL('Shift added', 'تمت إضافة الوردية')); });
+    });
+}
+function hrxDelShift(id) {
+    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var used = Object.keys(HRX.assign).filter(function(k) { return HRX.assign[k] && HRX.assign[k].shiftId === id; }).length;
+    if (!confirm(hrxL('Delete this shift?', 'حذف هذه الوردية؟') + (used ? '\n' + hrxL('It is assigned to ' + used + ' employee(s); they will become unassigned.', 'مسندة لـ ' + used + ' موظف وسيصبحون بدون وردية.') : ''))) return;
+    var db = hrxDb(); if (!db) return;
+    var ups = {}; ups['hrShifts/' + id] = null;
+    Object.keys(HRX.assign).forEach(function(k) { if (HRX.assign[k] && HRX.assign[k].shiftId === id) ups['hrShiftAssignments/' + k] = null; });
+    db.ref().update(ups).then(function() { showToast('🗑️ ' + hrxL('Shift deleted', 'تم حذف الوردية')); hrxCloseModal(); }).catch(hrxFail);
+}
+
+// =====================================================================
+// 2) الإجازات والراحات
+// =====================================================================
+function hrxLeaveTypes() {
+    return [['annual', '🏖️ ' + hrxL('Annual leave (deducted)', 'إجازة سنوية (تُخصم من الرصيد)')], ['sick', '🤒 ' + hrxL('Sick leave', 'إجازة مرضية')],
+            ['emergency', '🚨 ' + hrxL('Emergency leave', 'إجازة طارئة')], ['rest', '🛌 ' + hrxL('Rest day', 'راحة')], ['unpaid', '💸 ' + hrxL('Unpaid leave', 'إجازة بدون أجر')]];
+}
+function hrxLeaveTypeLabel(t) { var f = hrxLeaveTypes().filter(function(x) { return x[0] === t; })[0]; return f ? f[1].replace(/\s*\(.*\)$/, '') : t; }
+function hrxLeaveReqs() {
+    return Object.keys(HRX.leaves).map(function(k) { return Object.assign({ id: k }, HRX.leaves[k]); })
+        .sort(function(a, b) { return String(b.requestedAt || '').localeCompare(String(a.requestedAt || '')); });
+}
+
+function renderHRLeavesPanel() {
+    hrxAttach(); hrxCss();
+    var box = document.getElementById('leaves-dashboard-container'); if (!box) return;
+    var today = hrxToday(), canW = hrxCanWrite(), canM = hrxCanManage();
+    var reqs = hrxLeaveReqs();
+    var pending = reqs.filter(function(r) { return r.status === 'pending'; });
+    var onLeave = reqs.filter(function(r) { return r.status === 'approved' && r.from <= today && r.to >= today; });
+    var perm = hrxEmps().filter(function(e) { return e.employmentType === 'معين'; });
+    var low = perm.filter(function(e) { return (parseFloat(e.leaveBalance) || 0) <= 3; }).length;
+    var statusChip = function(s) {
+        return s === 'approved' ? '<span class="hrx-chip ok">✅ ' + hrxL('Approved', 'معتمدة') + '</span>' : s === 'rejected' ? '<span class="hrx-chip bad">🚫 ' + hrxL('Rejected', 'مرفوضة') + '</span>'
+            : s === 'cancelled' ? '<span class="hrx-chip">↩️ ' + hrxL('Cancelled', 'ملغاة') + '</span>' : '<span class="hrx-chip warn">⏳ ' + hrxL('Pending', 'بانتظار الاعتماد') + '</span>';
+    };
+    var reqCard = function(r, actions) {
+        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(r.name || hrxEmpName(r.empId)) + '</b><div class="hrx-sub">' + hrxEsc(hrxLeaveTypeLabel(r.type)) + ' • ' + hrxEsc(r.from) + ' → ' + hrxEsc(r.to) + ' (' + (r.days || 0) + hrxL(' d', ' يوم') + ')</div></div>' + statusChip(r.status) + '</div>' +
+            (r.reason ? '<div class="hrx-sub">📝 ' + hrxEsc(r.reason) + '</div>' : '') +
+            '<div class="hrx-sub">' + hrxL('Requested by', 'قدّمه') + ': ' + hrxEsc(r.requestedBy || '—') + (r.reviewedBy ? ' • ' + hrxL('Reviewed by', 'راجعه') + ': ' + hrxEsc(r.reviewedBy) : '') + (r.reviewNote ? ' • ' + hrxEsc(r.reviewNote) : '') + '</div>' +
+            (actions || '') + '</div>';
+    };
+    var pendHtml = pending.map(function(r) {
+        return reqCard(r, canM ? '<div class="hrx-row" style="margin-top:8px"><button class="hrx-btn green" style="flex:1" onclick="hrxApproveLeave(\'' + r.id + '\')">✅ ' + hrxL('Approve', 'اعتماد') + '</button><button class="hrx-btn red" style="flex:1" onclick="hrxRejectLeave(\'' + r.id + '\')">🚫 ' + hrxL('Reject', 'رفض') + '</button></div>' : '');
+    }).join('') || '<div class="hrx-empty">' + hrxL('No pending requests', 'لا توجد طلبات معلّقة') + '</div>';
+    var hist = reqs.filter(function(r) { return r.status !== 'pending'; }).slice(0, 25).map(function(r) {
+        return reqCard(r, canM && r.status === 'approved' ? '<div style="margin-top:8px"><button class="hrx-btn alt sm" onclick="hrxCancelLeave(\'' + r.id + '\')">↩️ ' + hrxL('Cancel & refund', 'إلغاء واسترداد الرصيد') + '</button></div>' : '');
+    }).join('') || '<div class="hrx-empty">' + hrxL('No history yet', 'لا يوجد سجل بعد') + '</div>';
+    var bal = perm.map(function(e) {
+        var b = parseFloat(e.leaveBalance) || 0;
+        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(e.name) + '</b><div class="hrx-sub">' + hrxEsc(e.title || '') + '</div></div>' +
+            '<span class="hrx-chip ' + (b <= 0 ? 'bad' : b <= 3 ? 'warn' : 'ok') + '" style="font-size:13px">' + hrxFmt(b) + ' ' + hrxL('days', 'يوم') + '</span></div>' +
+            '<div class="hrx-row" style="margin-top:8px"><button class="hrx-btn alt sm" onclick="hrxOpenLedgerModal(\'' + e.id + '\')">📒 ' + hrxL('Ledger', 'سجل الرصيد') + '</button>' +
+            (canM ? '<button class="hrx-btn sm" onclick="hrxOpenBalanceModal(\'' + e.id + '\')">± ' + hrxL('Adjust balance', 'تعديل الرصيد') + '</button>' : '') + '</div></div>';
+    }).join('') || '<div class="hrx-empty">' + hrxL('No permanent employees', 'لا يوجد موظفون معيّنون') + '</div>';
+    box.innerHTML = hrxDeniedBanner(['leaves']) +
+        '<div class="hrx-bar">' + (canW ? '<button class="hrx-btn" onclick="hrxOpenLeaveModal()">➕ ' + hrxL('New leave / rest request', 'طلب إجازة / راحة') + '</button>' : '') + '</div>' +
+        '<div class="hrx-tiles"><div class="hrx-tile"><b style="color:#d97706">' + pending.length + '</b><span>' + hrxL('Pending', 'بانتظار الاعتماد') + '</span></div>' +
+        '<div class="hrx-tile"><b style="color:#0284c7">' + onLeave.length + '</b><span>' + hrxL('On leave today', 'في إجازة اليوم') + '</span></div>' +
+        '<div class="hrx-tile"><b style="color:#dc2626">' + low + '</b><span>' + hrxL('Low balance (≤3)', 'رصيد منخفض (≤3)') + '</span></div></div>' +
+        '<div class="hrx-h">⏳ ' + hrxL('Pending requests', 'الطلبات المعلّقة') + '</div>' + pendHtml +
+        '<div class="hrx-h">📒 ' + hrxL('Leave balances (permanent staff)', 'أرصدة الإجازات (المعيّنون)') + '</div>' + bal +
+        '<div class="hrx-h">🗂️ ' + hrxL('Recent requests', 'آخر الطلبات') + '</div>' + hist;
+}
+
+function hrxOpenLeaveModal() {
+    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var today = hrxToday();
+    var upd = 'oninput="hrxLeaveCalc()" onchange="hrxLeaveCalc()"';
+    var body = hrxF('👤 ' + hrxL('Employee', 'الموظف') + ' *', hrxSel('emp', [['', hrxL('— Select —', '— اختر —')]].concat(hrxEmpOpts()), '', upd)) +
+        hrxF(hrxL('Type', 'النوع'), hrxSel('type', hrxLeaveTypes(), 'annual', upd)) +
+        hrxF('📅 ' + hrxL('From', 'من') + ' *', hrxIn('from', 'date', today, upd)) + hrxF('📅 ' + hrxL('To', 'إلى') + ' *', hrxIn('to', 'date', today, upd)) +
+        '<div class="form-field"><div id="hrx-leave-info" class="hrx-sub" style="background:#f1f5f9;border-radius:10px;padding:8px"></div></div>' +
+        hrxF('📝 ' + hrxL('Reason', 'السبب'), hrxTa('reason', '')) +
+        (hrxCanManage() ? '<div class="form-field"><label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" id="hrx-f-auto"> ⚡ ' + hrxL('Approve immediately', 'اعتماد فوري') + '</label></div>' : '');
+    hrxModal('🏖️ ' + hrxL('Leave / rest request', 'طلب إجازة / راحة'), body, '✅ ' + hrxL('Submit', 'إرسال'), hrxSaveLeave);
+    hrxLeaveCalc();
+}
+function hrxLeaveCalc() {
+    var info = document.getElementById('hrx-leave-info'); if (!info) return;
+    var days = hrxDaysBetween(hrxV('from'), hrxV('to')).length, e = hrxEmp(hrxV('emp')), t = hrxV('type');
+    var txt = hrxL('Days: ', 'عدد الأيام: ') + days;
+    if (e && t === 'annual') {
+        if (e.employmentType === 'معين') { var b = parseFloat(e.leaveBalance) || 0; txt += ' • ' + hrxL('Balance: ', 'الرصيد: ') + hrxFmt(b) + (days > b ? ' ⚠️ ' + hrxL('insufficient', 'غير كافٍ') : ''); }
+        else txt += ' • ' + hrxL('Daily-wage staff have no balance', 'السركي لا يوجد له رصيد');
+    }
+    info.textContent = txt;
+}
+function hrxSaveLeave() {
+    var db = hrxDb(); if (!db) return false;
+    var id = hrxV('emp'), e = hrxEmp(id), from = hrxV('from'), to = hrxV('to'), t = hrxV('type');
+    if (!e) { showToast(hrxL('Select the employee', 'اختر الموظف'), true); return false; }
+    var days = hrxDaysBetween(from, to).length;
+    if (!days) { showToast(hrxL('Invalid dates', 'التواريخ غير صحيحة'), true); return false; }
+    var req = { empId: id, name: e.name || '', type: t, from: from, to: to, days: days, reason: hrxV('reason'), status: 'pending', deducted: 0, requestedBy: hrxWho(), requestedAt: hrxNow() };
+    var auto = document.getElementById('hrx-f-auto') && document.getElementById('hrx-f-auto').checked && hrxCanManage();
+    var ref = db.ref('hrLeaveRequests').push();
+    return ref.set(req).then(function() {
+        if (auto) return hrxApplyLeave(ref.key, req);
+        showToast('✅ ' + hrxL('Request submitted', 'تم إرسال الطلب'));
+    });
+}
+
+// تطبيق الاعتماد: خصم الرصيد (للسنوية والمعيّن) + تسجيل أيام الإجازة في employeeDayStatus
+function hrxApplyLeave(id, req) {
+    var db = hrxDb(); if (!db) return Promise.resolve(false);
+    var e = hrxEmp(req.empId), dates = hrxDaysBetween(req.from, req.to);
+    var deduct = req.type === 'annual' && e && e.employmentType === 'معين';
+    var p = deduct ? empAdjustBalance(req.empId, -dates.length, { type: 'leave', date: req.from, note: 'إجازة سنوية معتمدة (' + dates.length + ' يوم)' }, true) : Promise.resolve(true);
+    return p.then(function(ok) {
+        if (!ok) { showToast('⚠️ ' + hrxL('Insufficient leave balance', 'رصيد الإجازات غير كافٍ'), true); return false; }
+        var ups = {}, who = hrxWho(), now = hrxNow();
+        dates.forEach(function(d) {
+            ups['employeeDayStatus/' + d + '/' + req.empId] = { empId: req.empId, name: req.name || '', date: d, status: 'leave', deducted: deduct ? 1 : 0, leaveType: req.type, reqId: id, by: who, at: now };
+        });
+        ups['hrLeaveRequests/' + id + '/status'] = 'approved';
+        ups['hrLeaveRequests/' + id + '/deducted'] = deduct ? dates.length : 0;
+        ups['hrLeaveRequests/' + id + '/reviewedBy'] = who;
+        ups['hrLeaveRequests/' + id + '/reviewedAt'] = now;
+        return db.ref().update(ups).then(function() { showToast('✅ ' + hrxL('Leave approved and applied', 'تم اعتماد الإجازة وتطبيقها')); return true; });
+    }).catch(function(e2) { hrxFail(e2); return false; });
+}
+function hrxApproveLeave(id) {
+    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var r = HRX.leaves[id]; if (!r || r.status !== 'pending') return;
+    hrxApplyLeave(id, r);
+}
+function hrxRejectLeave(id) {
+    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var note = prompt(hrxL('Rejection reason (optional)', 'سبب الرفض (اختياري)'), '');
+    if (note === null) return;
+    var db = hrxDb(); if (!db) return;
+    db.ref('hrLeaveRequests/' + id).update({ status: 'rejected', reviewedBy: hrxWho(), reviewedAt: hrxNow(), reviewNote: note || '' })
+        .then(function() { showToast('🚫 ' + hrxL('Request rejected', 'تم رفض الطلب')); }).catch(hrxFail);
+}
+function hrxCancelLeave(id) {
+    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var r = HRX.leaves[id]; if (!r || r.status !== 'approved') return;
+    if (!confirm(hrxL('Cancel this approved leave and refund the deducted balance?', 'إلغاء هذه الإجازة المعتمدة واسترداد الرصيد المخصوم؟'))) return;
+    var db = hrxDb(); if (!db) return;
+    var dates = hrxDaysBetween(r.from, r.to);
+    Promise.all(dates.map(function(d) { return db.ref('employeeDayStatus/' + d + '/' + r.empId).once('value'); })).then(function(snaps) {
+        var ups = {};
+        snaps.forEach(function(s, i) { var v = s.val(); if (v && v.reqId === id) ups['employeeDayStatus/' + dates[i] + '/' + r.empId] = null; });
+        ups['hrLeaveRequests/' + id + '/status'] = 'cancelled';
+        ups['hrLeaveRequests/' + id + '/reviewedBy'] = hrxWho();
+        ups['hrLeaveRequests/' + id + '/reviewedAt'] = hrxNow();
+        return db.ref().update(ups);
+    }).then(function() {
+        var ded = +r.deducted || 0;
+        return ded > 0 ? empAdjustBalance(r.empId, ded, { type: 'refund', date: r.from, note: 'إلغاء إجازة معتمدة' }, false) : true;
+    }).then(function() { showToast('↩️ ' + hrxL('Leave cancelled', 'تم إلغاء الإجازة')); }).catch(hrxFail);
+}
+
+function hrxOpenBalanceModal(empId) {
+    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var e = hrxEmp(empId); if (!e) return;
+    var body = '<div class="form-field"><div class="hrx-sub" style="background:#f1f5f9;border-radius:10px;padding:8px"><b>' + hrxEsc(e.name) + '</b> — ' + hrxL('Current balance', 'الرصيد الحالي') + ': ' + hrxFmt(parseFloat(e.leaveBalance) || 0) + '</div></div>' +
+        hrxF(hrxL('Operation', 'العملية'), hrxSel('kind', [['grant', '➕ ' + hrxL('Grant days', 'منح أيام')], ['extra', '🎁 ' + hrxL('Extra days', 'أيام إضافية')], ['adjust', '± ' + hrxL('Adjustment (+/−)', 'تسوية (+/−)')]], 'grant')) +
+        hrxF(hrxL('Days', 'عدد الأيام') + ' *', hrxIn('days', 'number', '', 'step="0.5"')) + hrxF('📝 ' + hrxL('Note', 'ملاحظة'), hrxTa('note', ''));
+    hrxModal('± ' + hrxL('Adjust leave balance', 'تعديل رصيد الإجازات'), body, '✅ ' + hrxL('Save', 'حفظ'), function() {
+        var k = hrxV('kind'), n = parseFloat(hrxV('days'));
+        if (isNaN(n) || n === 0) { showToast(hrxL('Enter the number of days', 'أدخل عدد الأيام'), true); return false; }
+        var delta = k === 'adjust' ? n : Math.abs(n);
+        return empAdjustBalance(empId, delta, { type: k, note: hrxV('note') || '' }, false).then(function() { showToast('✅ ' + hrxL('Balance updated', 'تم تحديث الرصيد')); });
+    });
+}
+function hrxOpenLedgerModal(empId) {
+    var db = hrxDb(); if (!db) return;
+    hrxModal('📒 ' + hrxEsc(hrxEmpName(empId)), '<div id="hrx-ledger" style="padding:0 14px"><div class="hrx-empty">⏳ ' + hrxL('Loading...', 'جاري التحميل...') + '</div></div>', '', null);
+    var names = { grant: hrxL('Grant', 'منح'), extra: hrxL('Extra', 'إضافي'), leave: hrxL('Leave', 'إجازة'), refund: hrxL('Refund', 'استرداد'), adjust: hrxL('Adjustment', 'تسوية') };
+    db.ref('employeeLeaveLedger/' + empId).limitToLast(40).once('value').then(function(s) {
+        var el = document.getElementById('hrx-ledger'); if (!el) return;
+        var arr = []; s.forEach(function(c) { arr.push(c.val()); });
+        arr.reverse();
+        el.innerHTML = arr.map(function(x) {
+            var d = +x.days || 0;
+            return '<div class="hrx-card" style="margin:0 0 6px"><div class="hrx-row"><b>' + hrxEsc(names[x.type] || x.type) + '</b><span class="hrx-chip ' + (d >= 0 ? 'ok' : 'bad') + '">' + (d > 0 ? '+' : '') + hrxFmt(d) + '</span></div>' +
+                '<div class="hrx-sub">' + hrxL('Balance after', 'الرصيد بعدها') + ': ' + hrxFmt(x.balanceAfter) + ' • ' + hrxEsc(String(x.at || '').slice(0, 10)) + ' • ' + hrxEsc(x.by || '') + (x.note ? '<br>' + hrxEsc(x.note) : '') + '</div></div>';
+        }).join('') || '<div class="hrx-empty">' + hrxL('No entries', 'لا توجد حركات') + '</div>';
+    }).catch(function(e) { var el = document.getElementById('hrx-ledger'); if (el) el.innerHTML = '<div class="hrx-empty">⚠️ ' + hrxEsc(hrxErrMsg(e)) + '</div>'; });
+}
+
+// =====================================================================
+// 3) الرواتب والبدلات (للمدير / من يملك صلاحية تعديل الموظفين فقط)
+// =====================================================================
+function hrxPayAttach(m) {
+    var db = (typeof fbDb !== 'undefined') ? fbDb : null;
+    if (!db || (HRX.pm === m && HRX.payRefs.length)) return;
+    HRX.payRefs.forEach(function(r) { try { r.off(); } catch (e) {} });
+    HRX.payRefs = []; HRX.pm = m; HRX.adj = {}; HRX.pstatus = {}; HRX.pdays = {};
+    [['adj', 'hrPayrollAdj'], ['pstatus', 'hrPayrollStatus'], ['pdays', 'hrPayrollDays']].forEach(function(x) {
+        var r = db.ref(x[1] + '/' + m);
+        r.on('value', function(s) { HRX[x[0]] = s.val() || {}; HRX.denied.pay = false; hrxRerender(); }, function() { HRX.denied.pay = true; hrxRerender(); });
+        HRX.payRefs.push(r);
+    });
+}
+function hrxPayMonth(v) { HRX.pm = ''; HRX._pmSel = v || hrxToday().slice(0, 7); renderHRPayrollPanel(); }
+function hrxPayCalc(e) { return hrxPayCalcData(e, HRX.profiles, HRX.adj, HRX.pdays); }
+
+function renderHRPayrollPanel() {
+    hrxAttach(); hrxCss();
+    var box = document.getElementById('payroll-dashboard-container'); if (!box) return;
+    if (!hrxCanManage()) { box.innerHTML = '<div class="hrx-empty">🔒 ' + hrxL('Payroll is available to managers only', 'قسم الرواتب متاح للمدير / صاحب صلاحية التعديل فقط') + '</div>'; return; }
+    var m = HRX._pmSel || hrxToday().slice(0, 7);
+    hrxPayAttach(m);
+    var emps = hrxEmps(), tot = { net: 0, gross: 0, ded: 0, paid: 0, appr: 0, nop: 0 };
+    var cards = emps.map(function(e) {
+        var c = hrxPayCalc(e), st = HRX.pstatus[e.id];
+        if (c.has) { tot.net += c.net; tot.gross += c.gross; tot.ded += c.ded; } else tot.nop++;
+        if (st && st.status === 'paid') tot.paid++; else if (st && st.status === 'approved') tot.appr++;
+        var chip = st && st.status === 'paid' ? '<span class="hrx-chip ok">💵 ' + hrxL('Paid', 'مدفوع') + '</span>' : st && st.status === 'approved' ? '<span class="hrx-chip info">✔️ ' + hrxL('Approved', 'معتمد') + '</span>' : '<span class="hrx-chip warn">📝 ' + hrxL('Draft', 'مسوّدة') + '</span>';
+        var next = !st ? '<button class="hrx-btn green sm" onclick="hrxPaySetStatus(\'' + e.id + '\',\'approved\')">✔️ ' + hrxL('Approve', 'اعتماد') + '</button>'
+            : st.status === 'approved' ? '<button class="hrx-btn green sm" onclick="hrxPaySetStatus(\'' + e.id + '\',\'paid\')">💵 ' + hrxL('Mark paid', 'تم الدفع') + '</button>' : '';
+        var back = st ? '<button class="hrx-btn alt sm" onclick="hrxPaySetStatus(\'' + e.id + '\',\'\')">↩️</button>' : '';
+        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(e.name) + '</b><div class="hrx-sub">' + hrxEsc(e.title || '') + ' • ' + (e.employmentType === 'سركي' ? hrxL('Daily wage', 'سركي') : hrxL('Permanent', 'معيّن')) + '</div></div>' + chip + '</div>' +
+            (c.has ? '<div style="font-size:20px;font-weight:800;color:#075985;margin:6px 0">' + hrxFmt(c.net) + ' <span style="font-size:11px;color:#64748b">' + hrxL('EGP net', 'ج.م صافي') + '</span></div>' +
+            '<div class="hrx-kv"><div><span>' + (c.daily ? hrxL('Daily pay', 'أجر الأيام') : hrxL('Base', 'الأساسي')) + '</span><b>' + hrxFmt(c.basePay) + '</b></div><div><span>' + hrxL('Fixed allowances', 'بدلات ثابتة') + '</span><b>' + hrxFmt(c.fixed) + '</b></div>' +
+            '<div><span>' + hrxL('Extra allowances', 'بدلات إضافية') + '</span><b>' + hrxFmt(c.sum.allowance) + '</b></div><div><span>' + hrxL('Bonuses', 'مكافآت') + '</span><b>' + hrxFmt(c.sum.bonus) + '</b></div>' +
+            '<div><span>' + hrxL('Overtime', 'الإضافي') + (c.sum.otHours ? ' (' + hrxFmt(c.sum.otHours) + hrxL(' h', ' س') + ')' : '') + '</span><b>' + hrxFmt(c.sum.overtime) + '</b></div><div><span>' + hrxL('Deductions', 'خصومات') + '</span><b>' + hrxFmt(c.sum.deduction) + '</b></div>' +
+            '<div><span>' + hrxL('Advances', 'سلف') + '</span><b>' + hrxFmt(c.sum.advance) + '</b></div><div><span>' + hrxL('Absence deduction', 'خصم الغياب') + (c.days ? ' (' + (+c.days.absent || 0) + ')' : '') + '</span><b>' + hrxFmt(c.absentDed) + '</b></div></div>'
+            : '<div class="hrx-sub" style="margin:8px 0">⚠️ ' + hrxL('No salary profile yet', 'لم يُحدَّد ملف الراتب بعد') + '</div>') +
+            '<div class="hrx-row" style="margin-top:8px;justify-content:flex-start;gap:6px"><button class="hrx-btn sm" onclick="hrxOpenProfileModal(\'' + e.id + '\')">⚙️ ' + hrxL('Salary', 'الراتب') + '</button>' +
+            '<button class="hrx-btn sm" onclick="hrxOpenAdjModal(\'' + e.id + '\')">➕ ' + hrxL('Item', 'بند') + '</button><button class="hrx-btn alt sm" onclick="hrxOpenAdjList(\'' + e.id + '\')">📋</button>' + (c.has ? '<button class="hrx-btn alt sm" onclick="hrxRepPayslipsPdf(HRX.pm,\'' + e.id + '\')">🧾</button>' : '') + next + back + '</div></div>';
+    }).join('');
+    box.innerHTML = hrxDeniedBanner(['profiles', 'pay']) +
+        '<div class="hrx-bar"><input type="month" value="' + m + '" onchange="hrxPayMonth(this.value)">' +
+        '<button class="hrx-btn" onclick="hrxPayCalcDays()">🔄 ' + hrxL('Calculate days from attendance', 'احتساب الأيام من الحضور') + '</button>' +
+        '<button class="hrx-btn alt" onclick="hrxPayImportOT()">⏱️ ' + hrxL('Import overtime from attendance', 'ترحيل الإضافي من الحضور') + '</button>' +
+        '<button class="hrx-btn alt" onclick="hrxPayExport()">⬇️ Excel</button>' +
+        '<button class="hrx-btn alt" onclick="hrxRepPayrollPdf(HRX.pm)">📄 PDF</button>' +
+        '<button class="hrx-btn alt" onclick="hrxRepPayslipsPdf(HRX.pm)">🧾 ' + hrxL('Payslips', 'القسائم') + '</button></div>' +
+        '<div class="hrx-tiles"><div class="hrx-tile"><b style="color:#075985">' + hrxFmt(tot.net) + '</b><span>' + hrxL('Total net (EGP)', 'إجمالي الصافي (ج.م)') + '</span></div>' +
+        '<div class="hrx-tile"><b>' + hrxFmt(tot.gross) + '</b><span>' + hrxL('Gross', 'الإجمالي') + '</span></div><div class="hrx-tile"><b style="color:#dc2626">' + hrxFmt(tot.ded) + '</b><span>' + hrxL('Deductions', 'الخصومات') + '</span></div>' +
+        '<div class="hrx-tile"><b style="color:#059669">' + tot.paid + '</b><span>' + hrxL('Paid', 'مدفوع') + '</span></div><div class="hrx-tile"><b style="color:#d97706">' + tot.nop + '</b><span>' + hrxL('No profile', 'بدون ملف راتب') + '</span></div></div>' +
+        (cards || '<div class="hrx-empty">' + hrxL('No employees', 'لا يوجد موظفون') + '</div>');
+}
+
+function hrxOpenProfileModal(empId) {
+    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var e = hrxEmp(empId); if (!e) return; var p = HRX.profiles[empId] || {};
+    var body = '<div class="form-field"><div class="hrx-sub" style="background:#f1f5f9;border-radius:10px;padding:8px"><b>' + hrxEsc(e.name) + '</b> — ' + hrxEsc(e.title || '') + '</div></div>' +
+        hrxF(hrxL('Pay type', 'نظام الأجر'), hrxSel('ptype', [['monthly', hrxL('Monthly salary', 'راتب شهري')], ['daily', hrxL('Daily wage × present days', 'أجر يومي × أيام الحضور')]], p.payType || (e.employmentType === 'سركي' ? 'daily' : 'monthly'))) +
+        hrxF(hrxL('Monthly base salary', 'الراتب الأساسي الشهري'), hrxIn('base', 'number', p.baseSalary || '', 'min="0" step="any"')) +
+        hrxF(hrxL('Daily rate', 'أجر اليوم'), hrxIn('daily', 'number', p.dailyRate || '', 'min="0" step="any"')) +
+        hrxF('🏠 ' + hrxL('Housing allowance', 'بدل سكن'), hrxIn('housing', 'number', p.housing || '', 'min="0" step="any"')) +
+        hrxF('🚌 ' + hrxL('Transport allowance', 'بدل انتقال'), hrxIn('transport', 'number', p.transport || '', 'min="0" step="any"')) +
+        hrxF('🍽️ ' + hrxL('Meal allowance', 'بدل وجبات'), hrxIn('meal', 'number', p.meal || '', 'min="0" step="any"')) +
+        hrxF(hrxL('Other fixed allowances', 'بدلات ثابتة أخرى'), hrxIn('other', 'number', p.other || '', 'min="0" step="any"')) +
+        hrxF('⏱️ ' + hrxL('Overtime rate per hour', 'قيمة ساعة الإضافي'), hrxIn('ot', 'number', p.otRate || '', 'min="0" step="any"')) +
+        hrxF('📝 ' + hrxL('Note', 'ملاحظة'), hrxTa('note', p.note || ''));
+    hrxModal('⚙️ ' + hrxL('Salary profile', 'ملف الراتب'), body, '✅ ' + hrxL('Save', 'حفظ'), function() {
+        var db = hrxDb(); if (!db) return false;
+        var rec = { payType: hrxV('ptype'), baseSalary: +hrxV('base') || 0, dailyRate: +hrxV('daily') || 0, housing: +hrxV('housing') || 0, transport: +hrxV('transport') || 0, meal: +hrxV('meal') || 0, other: +hrxV('other') || 0, otRate: +hrxV('ot') || 0, note: hrxV('note'), by: hrxWho(), at: hrxNow() };
+        if (rec.payType === 'monthly' && !rec.baseSalary) { showToast(hrxL('Enter the base salary', 'أدخل الراتب الأساسي'), true); return false; }
+        if (rec.payType === 'daily' && !rec.dailyRate) { showToast(hrxL('Enter the daily rate', 'أدخل أجر اليوم'), true); return false; }
+        return db.ref('hrPayrollProfiles/' + empId).set(rec).then(function() { showToast('✅ ' + hrxL('Salary profile saved', 'تم حفظ ملف الراتب')); });
+    });
+}
+function hrxKinds() {
+    return [['allowance', '➕ ' + hrxL('Extra allowance', 'بدل إضافي')], ['bonus', '🎁 ' + hrxL('Bonus', 'مكافأة')], ['overtime', '⏱️ ' + hrxL('Overtime (hours)', 'إضافي (ساعات)')],
+            ['deduction', '➖ ' + hrxL('Deduction', 'خصم')], ['advance', '💸 ' + hrxL('Advance', 'سلفة')]];
+}
+function hrxOpenAdjModal(empId) {
+    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var e = hrxEmp(empId); if (!e) return; var m = HRX.pm;
+    var body = '<div class="form-field"><div class="hrx-sub" style="background:#f1f5f9;border-radius:10px;padding:8px"><b>' + hrxEsc(e.name) + '</b> — ' + m + '</div></div>' +
+        hrxF(hrxL('Item type', 'نوع البند'), hrxSel('kind', hrxKinds(), 'allowance', 'onchange="document.getElementById(\'hrx-hours-box\').style.display=this.value===\'overtime\'?\'\':\'none\';document.getElementById(\'hrx-amount-box\').style.display=this.value===\'overtime\'?\'none\':\'\'"')) +
+        '<div id="hrx-hours-box" style="display:none">' + hrxF(hrxL('Overtime hours', 'ساعات الإضافي') + ' *', hrxIn('hours', 'number', '', 'min="0" step="any"')) + '</div>' +
+        '<div id="hrx-amount-box">' + hrxF(hrxL('Amount (EGP)', 'المبلغ (ج.م)') + ' *', hrxIn('amount', 'number', '', 'min="0" step="any"')) + '</div>' +
+        hrxF(hrxL('Description', 'البيان'), hrxIn('label', 'text', '', 'placeholder="' + hrxL('e.g. Site allowance', 'مثال: بدل موقع') + '"'));
+    hrxModal('➕ ' + hrxL('Payroll item', 'بند في المسير'), body, '✅ ' + hrxL('Add', 'إضافة'), function() {
+        var db = hrxDb(); if (!db) return false;
+        var kind = hrxV('kind'), rec = { kind: kind, label: hrxV('label'), by: hrxWho(), at: hrxNow() };
+        if (kind === 'overtime') {
+            var h = parseFloat(hrxV('hours')), rate = +((HRX.profiles[empId] || {}).otRate) || 0;
+            if (isNaN(h) || h <= 0) { showToast(hrxL('Enter overtime hours', 'أدخل ساعات الإضافي'), true); return false; }
+            if (!rate) { showToast(hrxL('Set the overtime rate in the salary profile first', 'حدّد قيمة ساعة الإضافي في ملف الراتب أولًا'), true); return false; }
+            rec.hours = h; rec.amount = Math.round(h * rate * 100) / 100;
+        } else {
+            var a = parseFloat(hrxV('amount'));
+            if (isNaN(a) || a <= 0) { showToast(hrxL('Enter a valid amount', 'أدخل مبلغًا صحيحًا'), true); return false; }
+            rec.amount = a;
+        }
+        return db.ref('hrPayrollAdj/' + m + '/' + empId).push(rec).then(function() { showToast('✅ ' + hrxL('Item added', 'تمت إضافة البند')); });
+    });
+}
+function hrxOpenAdjList(empId) {
+    var adj = HRX.adj[empId] || {}, names = {}; hrxKinds().forEach(function(k) { names[k[0]] = k[1]; });
+    var html = Object.keys(adj).map(function(k) {
+        var a = adj[k];
+        return '<div class="hrx-card" style="margin:0 0 6px"><div class="hrx-row"><div><b>' + hrxEsc(names[a.kind] || a.kind) + '</b><div class="hrx-sub">' + hrxEsc(a.label || '') + (a.hours ? ' • ' + a.hours + hrxL(' h', ' س') : '') + ' • ' + hrxEsc(a.by || '') + '</div></div>' +
+            '<div><b>' + hrxFmt(a.amount) + '</b> <button class="hrx-btn red sm" onclick="hrxDelAdj(\'' + empId + '\',\'' + k + '\')">🗑️</button></div></div></div>';
+    }).join('') || '<div class="hrx-empty">' + hrxL('No items this month', 'لا توجد بنود هذا الشهر') + '</div>';
+    hrxModal('📋 ' + hrxEsc(hrxEmpName(empId)) + ' — ' + HRX.pm, '<div style="padding:0 14px">' + html + '</div>', '', null);
+}
+function hrxDelAdj(empId, id) {
+    if (!hrxCanManage()) return;
+    if (!confirm(hrxL('Delete this item?', 'حذف هذا البند؟'))) return;
+    var db = hrxDb(); if (!db) return;
+    db.ref('hrPayrollAdj/' + HRX.pm + '/' + empId + '/' + id).remove().then(function() { hrxCloseModal(); showToast('🗑️ ' + hrxL('Item deleted', 'تم حذف البند')); }).catch(hrxFail);
+}
+function hrxPaySetStatus(empId, status) {
+    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var db = hrxDb(); if (!db) return; var ref = db.ref('hrPayrollStatus/' + HRX.pm + '/' + empId);
+    var e = hrxEmp(empId), c = e ? hrxPayCalc(e) : null;
+    if (status && c && !c.has) { showToast(hrxL('Set the salary profile first', 'حدّد ملف الراتب أولًا'), true); return; }
+    (status ? ref.set({ status: status, net: c ? c.net : 0, by: hrxWho(), at: hrxNow() }) : ref.remove()).catch(hrxFail);
+}
+// حساب أيام الحضور/الغياب/الإجازة لكل موظف في الشهر من سجلات الحضور الموجودة
+function hrxPayCalcDays() {
+    if (!hrxCanManage()) return;
+    var db = hrxDb(); if (!db) return;
+    var m = HRX.pm, today = hrxToday(), last = new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate();
+    var dates = hrxDaysBetween(m + '-01', m + '-' + ('0' + last).slice(-2)).filter(function(d) { return d <= today; });
+    if (!dates.length) { showToast(hrxL('This month has not started yet', 'هذا الشهر لم يبدأ بعد'), true); return; }
+    showToast('⏳ ' + hrxL('Reading attendance records...', 'جاري قراءة سجلات الحضور...'));
+    Promise.all(dates.map(function(d) {
+        return Promise.all([db.ref('employeeAttendance/' + d).once('value').catch(function() { return null; }), db.ref('employeeDayStatus/' + d).once('value').catch(function() { return null; })]);
+    })).then(function(res) {
+        var out = {}, calcAt = hrxNow();
+        hrxEmps().forEach(function(e) { out[e.id] = { present: 0, absent: 0, leave: 0, calcAt: calcAt }; });
+        res.forEach(function(r) {
+            var at = (r[0] && r[0].val()) || {}, st = (r[1] && r[1].val()) || {};
+            Object.keys(out).forEach(function(id) {
+                var s = st[id] && st[id].status;
+                if (s === 'absent') out[id].absent++; else if (s === 'leave') out[id].leave++;
+                else if (s === 'present' || (at[id] && at[id].startAt)) out[id].present++;
+            });
+        });
+        return db.ref('hrPayrollDays/' + m).set(out);
+    }).then(function() { showToast('✅ ' + hrxL('Attendance days calculated', 'تم احتساب أيام الحضور')); }).catch(hrxFail);
+}
+function hrxPayExport() { hrxRepPayrollExcel(HRX.pm); }
+
+// =====================================================================
+// 4) الوثائق والعهد (الرخص، الهويات، مهمات السلامة PPE)
+// =====================================================================
+function hrxDocTypes() {
+    return [['license', '🚗 ' + hrxL('Driving license', 'رخصة قيادة')], ['id', '🪪 ' + hrxL('ID card', 'بطاقة هوية')], ['passport', '🛂 ' + hrxL('Passport', 'جواز سفر')], ['contract', '📄 ' + hrxL('Work contract', 'عقد عمل')],
+            ['health', '🩺 ' + hrxL('Health certificate', 'شهادة صحية')], ['safety', '🦺 ' + hrxL('Safety certificate', 'شهادة سلامة')], ['insurance', '🛡️ ' + hrxL('Insurance', 'تأمين')], ['other', '📎 ' + hrxL('Other', 'أخرى')]];
+}
+function hrxItemTypes() {
+    return ['خوذة', 'سترة عاكسة', 'حذاء سلامة', 'قفازات', 'نظارة واقية', 'سماعات أذن', 'كمامة', 'حزام أمان', 'هاتف', 'عدة يدوية', 'مفاتيح', 'زي موحّد', 'أخرى'];
+}
+function hrxLabelOf(list, v) { var f = list.filter(function(x) { return x[0] === v; })[0]; return f ? f[1] : v; }
+function hrxDocDays(d) { if (!d.expiryDate) return null; return Math.ceil((new Date(d.expiryDate + 'T12:00:00') - new Date(hrxToday() + 'T12:00:00')) / 864e5); }
+function hrxCustTab(t) { HRX.custTab = t; renderHRCustodyPanel(); }
+function hrxCustEmp(v) { HRX.custEmp = v; renderHRCustodyPanel(); }
+
+function renderHRCustodyPanel() {
+    hrxAttach(); hrxCss();
+    var box = document.getElementById('custody-dashboard-container'); if (!box) return;
+    var canW = hrxCanWrite(), canM = hrxCanManage(), f = HRX.custEmp;
+    var docs = Object.keys(HRX.docs).map(function(k) { return Object.assign({ id: k }, HRX.docs[k]); }).filter(function(d) { return !f || d.empId === f; })
+        .sort(function(a, b) { return String(a.expiryDate || '9999').localeCompare(String(b.expiryDate || '9999')); });
+    var items = Object.keys(HRX.custody).map(function(k) { return Object.assign({ id: k }, HRX.custody[k]); }).filter(function(d) { return !f || d.empId === f; })
+        .sort(function(a, b) { return String(b.issueDate || '').localeCompare(String(a.issueDate || '')); });
+    var allDocs = Object.keys(HRX.docs).map(function(k) { return HRX.docs[k]; }), allItems = Object.keys(HRX.custody).map(function(k) { return HRX.custody[k]; });
+    var expired = allDocs.filter(function(d) { var n = hrxDocDays(d); return n !== null && n < 0; }).length;
+    var soon = allDocs.filter(function(d) { var n = hrxDocDays(d); return n !== null && n >= 0 && n <= 30; }).length;
+    var issued = allItems.filter(function(i) { return i.status === 'issued'; }).length;
+    var bad = allItems.filter(function(i) { return i.status === 'lost' || i.status === 'damaged'; }).length;
+    var docTypes = hrxDocTypes();
+    var docHtml = docs.map(function(d) {
+        var n = hrxDocDays(d);
+        var chip = n === null ? '<span class="hrx-chip">' + hrxL('No expiry', 'بدون انتهاء') + '</span>' : n < 0 ? '<span class="hrx-chip bad">⛔ ' + hrxL('Expired', 'منتهية') + ' ' + (-n) + hrxL(' d ago', ' يوم') + '</span>'
+            : n <= 30 ? '<span class="hrx-chip warn">⚠️ ' + hrxL('Expires in', 'تنتهي بعد') + ' ' + n + hrxL(' d', ' يوم') + '</span>' : '<span class="hrx-chip ok">✅ ' + hrxL('Valid', 'سارية') + '</span>';
+        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(hrxLabelOf(docTypes, d.docType)) + '</b><div class="hrx-sub">👤 ' + hrxEsc(d.name || hrxEmpName(d.empId)) + (d.number ? ' • # ' + hrxEsc(d.number) : '') + '</div></div>' + chip + '</div>' +
+            '<div class="hrx-sub">' + hrxL('Issued', 'الإصدار') + ': ' + hrxEsc(d.issueDate || '—') + ' • ' + hrxL('Expiry', 'الانتهاء') + ': ' + hrxEsc(d.expiryDate || '—') + (d.note ? '<br>📝 ' + hrxEsc(d.note) : '') + '</div>' +
+            '<div class="hrx-row" style="margin-top:8px;justify-content:flex-start;gap:6px">' + (canW ? '<button class="hrx-btn sm" onclick="hrxOpenDocModal(\'' + d.id + '\')">✏️ ' + hrxL('Edit', 'تعديل') + '</button>' : '') + (canM ? '<button class="hrx-btn red sm" onclick="hrxDelRec(\'hrDocuments\',\'' + d.id + '\')">🗑️</button>' : '') + '</div></div>';
+    }).join('') || '<div class="hrx-empty">' + hrxL('No documents', 'لا توجد وثائق') + '</div>';
+    var stNames = { issued: ['info', hrxL('Issued', 'مسلَّمة')], returned: ['ok', hrxL('Returned', 'مرتجعة')], lost: ['bad', hrxL('Lost', 'مفقودة')], damaged: ['warn', hrxL('Damaged', 'تالفة')] };
+    var itemHtml = items.map(function(i) {
+        var s = stNames[i.status] || ['', i.status];
+        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(i.item) + (i.qty > 1 ? ' × ' + i.qty : '') + '</b><div class="hrx-sub">👤 ' + hrxEsc(i.name || hrxEmpName(i.empId)) + (i.serial ? ' • S/N ' + hrxEsc(i.serial) : '') + '</div></div><span class="hrx-chip ' + s[0] + '">' + s[1] + '</span></div>' +
+            '<div class="hrx-sub">' + hrxL('Issued', 'التسليم') + ': ' + hrxEsc(i.issueDate || '—') + (i.returnDate ? ' • ' + hrxL('Returned', 'الإرجاع') + ': ' + hrxEsc(i.returnDate) : '') + (i.condition ? ' • ' + hrxEsc(i.condition) : '') + (i.note ? '<br>📝 ' + hrxEsc(i.note) : '') + '</div>' +
+            '<div class="hrx-row" style="margin-top:8px;justify-content:flex-start;gap:6px">' + (canW && i.status === 'issued' ? '<button class="hrx-btn green sm" onclick="hrxReturnCustody(\'' + i.id + '\')">↩️ ' + hrxL('Receive back', 'استلام مرتجع') + '</button>' : '') +
+            (canW ? '<button class="hrx-btn sm" onclick="hrxOpenCustodyModal(\'' + i.id + '\')">✏️ ' + hrxL('Edit', 'تعديل') + '</button>' : '') + (canM ? '<button class="hrx-btn red sm" onclick="hrxDelRec(\'hrCustody\',\'' + i.id + '\')">🗑️</button>' : '') + '</div></div>';
+    }).join('') || '<div class="hrx-empty">' + hrxL('No custody items', 'لا توجد عهد') + '</div>';
+    var empSel = '<select onchange="hrxCustEmp(this.value)"><option value="">' + hrxL('All employees', 'كل الموظفين') + '</option>' + hrxEmps().map(function(e) { return '<option value="' + hrxEsc(e.id) + '"' + (f === e.id ? ' selected' : '') + '>' + hrxEsc(e.name) + '</option>'; }).join('') + '</select>';
+    box.innerHTML = hrxDeniedBanner(['docs', 'custody']) +
+        '<div class="hrx-tiles"><div class="hrx-tile"><b style="color:#dc2626">' + expired + '</b><span>' + hrxL('Expired docs', 'وثائق منتهية') + '</span></div><div class="hrx-tile"><b style="color:#d97706">' + soon + '</b><span>' + hrxL('Expiring ≤30d', 'تنتهي خلال 30 يوم') + '</span></div>' +
+        '<div class="hrx-tile"><b style="color:#0284c7">' + issued + '</b><span>' + hrxL('Items issued', 'عهد مسلَّمة') + '</span></div><div class="hrx-tile"><b style="color:#dc2626">' + bad + '</b><span>' + hrxL('Lost / damaged', 'مفقودة / تالفة') + '</span></div></div>' +
+        '<div class="hrx-seg"><button class="' + (HRX.custTab === 'docs' ? 'on' : '') + '" onclick="hrxCustTab(\'docs\')">📄 ' + hrxL('Documents', 'الوثائق') + '</button><button class="' + (HRX.custTab === 'custody' ? 'on' : '') + '" onclick="hrxCustTab(\'custody\')">🦺 ' + hrxL('Custody & PPE', 'العهد والسلامة') + '</button></div>' +
+        '<div class="hrx-bar">' + empSel + (canW ? (HRX.custTab === 'docs' ? '<button class="hrx-btn" onclick="hrxOpenDocModal()">➕ ' + hrxL('Add document', 'إضافة وثيقة') + '</button>' : '<button class="hrx-btn" onclick="hrxOpenCustodyModal()">➕ ' + hrxL('Issue item', 'تسليم عهدة') + '</button>') : '') + '</div>' +
+        (HRX.custTab === 'docs' ? docHtml : itemHtml);
+}
+function hrxDelRec(path, id) {
+    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    if (!confirm(hrxL('Delete this record permanently?', 'حذف هذا السجل نهائيًا؟'))) return;
+    var db = hrxDb(); if (!db) return;
+    db.ref(path + '/' + id).remove().then(function() { showToast('🗑️ ' + hrxL('Deleted', 'تم الحذف')); }).catch(hrxFail);
+}
+function hrxOpenDocModal(id) {
+    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var d = id ? (HRX.docs[id] || {}) : {};
+    var body = hrxF('👤 ' + hrxL('Employee', 'الموظف') + ' *', hrxSel('emp', [['', hrxL('— Select —', '— اختر —')]].concat(hrxEmpOpts()), d.empId || HRX.custEmp || '')) +
+        hrxF(hrxL('Document type', 'نوع الوثيقة'), hrxSel('dtype', hrxDocTypes(), d.docType || 'license')) +
+        hrxF(hrxL('Number', 'الرقم'), hrxIn('number', 'text', d.number || '')) +
+        hrxF(hrxL('Issue date', 'تاريخ الإصدار'), hrxIn('issue', 'date', d.issueDate || '')) + hrxF(hrxL('Expiry date', 'تاريخ الانتهاء'), hrxIn('expiry', 'date', d.expiryDate || '')) +
+        hrxF('📝 ' + hrxL('Note', 'ملاحظة'), hrxTa('note', d.note || ''));
+    hrxModal('📄 ' + (id ? hrxL('Edit document', 'تعديل وثيقة') : hrxL('Add document', 'إضافة وثيقة')), body, '✅ ' + hrxL('Save', 'حفظ'), function() {
+        var db = hrxDb(); if (!db) return false;
+        var eid = hrxV('emp'), e = hrxEmp(eid);
+        if (!e) { showToast(hrxL('Select the employee', 'اختر الموظف'), true); return false; }
+        var iss = hrxV('issue'), exp = hrxV('expiry');
+        if (iss && exp && exp < iss) { showToast(hrxL('Expiry date is before issue date', 'تاريخ الانتهاء قبل الإصدار'), true); return false; }
+        var rec = { empId: eid, name: e.name || '', docType: hrxV('dtype'), number: hrxV('number'), issueDate: iss, expiryDate: exp, note: hrxV('note'), by: hrxWho(), at: hrxNow() };
+        var ref = id ? db.ref('hrDocuments/' + id) : db.ref('hrDocuments').push();
+        return ref.set(rec).then(function() { showToast('✅ ' + hrxL('Document saved', 'تم حفظ الوثيقة')); });
+    });
+}
+function hrxOpenCustodyModal(id) {
+    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var c = id ? (HRX.custody[id] || {}) : {};
+    var items = hrxItemTypes().map(function(x) { return [x, x]; });
+    var body = hrxF('👤 ' + hrxL('Employee', 'الموظف') + ' *', hrxSel('emp', [['', hrxL('— Select —', '— اختر —')]].concat(hrxEmpOpts()), c.empId || HRX.custEmp || '')) +
+        hrxF(hrxL('Item', 'الصنف'), hrxSel('item', items, c.item || 'خوذة')) +
+        hrxF(hrxL('Quantity', 'الكمية'), hrxIn('qty', 'number', c.qty || 1, 'min="1" step="1"')) +
+        hrxF(hrxL('Serial / tag number', 'الرقم التسلسلي / الكود'), hrxIn('serial', 'text', c.serial || '')) +
+        hrxF(hrxL('Issue date', 'تاريخ التسليم'), hrxIn('issue', 'date', c.issueDate || hrxToday())) +
+        hrxF(hrxL('Status', 'الحالة'), hrxSel('status', [['issued', hrxL('Issued', 'مسلَّمة')], ['returned', hrxL('Returned', 'مرتجعة')], ['lost', hrxL('Lost', 'مفقودة')], ['damaged', hrxL('Damaged', 'تالفة')]], c.status || 'issued')) +
+        hrxF(hrxL('Condition', 'الحالة الفنية'), hrxIn('cond', 'text', c.condition || '', 'placeholder="' + hrxL('e.g. New', 'مثال: جديدة') + '"')) +
+        hrxF('📝 ' + hrxL('Note', 'ملاحظة'), hrxTa('note', c.note || ''));
+    hrxModal('🦺 ' + (id ? hrxL('Edit custody item', 'تعديل عهدة') : hrxL('Issue custody item', 'تسليم عهدة')), body, '✅ ' + hrxL('Save', 'حفظ'), function() {
+        var db = hrxDb(); if (!db) return false;
+        var eid = hrxV('emp'), e = hrxEmp(eid);
+        if (!e) { showToast(hrxL('Select the employee', 'اختر الموظف'), true); return false; }
+        var st = hrxV('status');
+        var rec = { empId: eid, name: e.name || '', item: hrxV('item'), qty: Math.max(1, parseInt(hrxV('qty'), 10) || 1), serial: hrxV('serial'), issueDate: hrxV('issue'), status: st, condition: hrxV('cond'), note: hrxV('note'), by: hrxWho(), at: hrxNow() };
+        if (st === 'returned') rec.returnDate = c.returnDate || hrxToday();
+        var ref = id ? db.ref('hrCustody/' + id) : db.ref('hrCustody').push();
+        return ref.set(rec).then(function() { showToast('✅ ' + hrxL('Saved', 'تم الحفظ')); });
+    });
+}
+function hrxReturnCustody(id) {
+    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    if (!confirm(hrxL('Mark this item as returned today?', 'تسجيل استلام هذه العهدة اليوم؟'))) return;
+    var db = hrxDb(); if (!db) return;
+    db.ref('hrCustody/' + id).update({ status: 'returned', returnDate: hrxToday(), by: hrxWho(), at: hrxNow() })
+        .then(function() { showToast('↩️ ' + hrxL('Item received back', 'تم استلام العهدة')); }).catch(hrxFail);
+}
+
+
+
+// =====================================================================
+// 5) ربط الرواتب وساعات الحضور بالتقارير + التصدير (Excel / PDF)
+// =====================================================================
+function hrxEnsureRepInput() {
+    var el = document.getElementById('hrx-rep-month');
+    if (!el) { el = document.createElement('input'); el.type = 'month'; el.id = 'hrx-rep-month'; el.style.display = 'none'; document.body.appendChild(el); }
+    if (!el.value) el.value = hrxToday().slice(0, 7);
+    return el;
+}
+function hrxRepMonth() { return hrxEnsureRepInput().value || hrxToday().slice(0, 7); }
+function hrxDir() { return getAppLanguage() === 'en' ? 'ltr' : 'rtl'; }
+function hrxMonthDates(m) {
+    var last = new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate(), today = hrxToday();
+    return hrxDaysBetween(m + '-01', m + '-' + ('0' + last).slice(-2)).filter(function(d) { return d <= today; });
+}
+function hrxShiftHours(sh) {
+    if (!sh || !sh.start || !sh.end) return 0;
+    var a = sh.start.split(':'), b = sh.end.split(':'), s = (+a[0]) * 60 + (+a[1] || 0), e = (+b[0]) * 60 + (+b[1] || 0);
+    if (e <= s) e += 1440;
+    return Math.max(0, (e - s - (+sh.breakMin || 0)) / 60);
+}
+function hrxLateMin(at, shift) {
+    if (!at || !at.startAt || !shift || !shift.start) return 0;
+    var d = new Date(at.startAt), sm = shift.start.split(':');
+    var diff = (d.getHours() * 60 + d.getMinutes()) - ((+sm[0]) * 60 + (+sm[1] || 0));
+    return (diff > (+shift.grace || 0) && diff < 720) ? diff : 0;
+}
+
+// تحميل حضور الشهر كامل (مع كاش قصير عشان تقرير PDF + Excel ورا بعض ما يعيدوش القراءة)
+var _hrxMonthCache = {};
+function hrxLoadMonthAtt(m) {
+    var c = _hrxMonthCache[m];
+    if (c && Date.now() - c.t < 90000) return Promise.resolve(c.v);
+    var db = hrxDb(); if (!db) return Promise.reject(new Error('no db'));
+    var dates = hrxMonthDates(m);
+    if (!dates.length) return Promise.resolve({ dates: [], at: {}, st: {} });
+    return Promise.all(dates.map(function(d) {
+        return Promise.all([db.ref('employeeAttendance/' + d).once('value'), db.ref('employeeDayStatus/' + d).once('value').catch(function() { return null; })]);
+    })).then(function(res) {
+        var v = { dates: dates, at: {}, st: {} };
+        res.forEach(function(r, i) { v.at[dates[i]] = r[0].val() || {}; v.st[dates[i]] = (r[1] && r[1].val()) || {}; });
+        _hrxMonthCache[m] = { t: Date.now(), v: v };
+        return v;
+    });
+}
+// صف ملخص لكل موظف: أيام حضور/غياب/إجازة، ساعات العمل، ساعات الإضافي (فوق ساعات الوردية)، التأخير، بدون خروج
+function hrxBuildAttRows(data) {
+    return hrxEmps().map(function(e) {
+        var shift = hrxShiftOf(e.id), std = hrxShiftHours(shift);
+        var r = { emp: e, shift: shift, present: 0, absent: 0, leave: 0, hours: 0, ot: 0, lateDays: 0, lateMin: 0, noOut: 0, byDay: {} };
+        data.dates.forEach(function(d) {
+            var at = (data.at[d] || {})[e.id], st = (data.st[d] || {})[e.id], s = st && st.status;
+            if (s === 'absent') { r.absent++; return; }
+            if (s === 'leave') { r.leave++; return; }
+            if (s === 'present' || (at && at.startAt)) {
+                r.present++;
+                if (at && at.startAt) {
+                    var lm = hrxLateMin(at, shift); if (lm) { r.lateDays++; r.lateMin += lm; }
+                    if (at.endAt) {
+                        var h = Math.max(0, (new Date(at.endAt) - new Date(at.startAt)) / 36e5 - ((shift && +shift.breakMin) || 0) / 60);
+                        r.hours += h; r.byDay[d] = Math.round(h * 100) / 100;
+                        if (std > 0 && h > std) r.ot += h - std;
+                    } else { r.noOut++; r.byDay[d] = null; }
+                }
+            }
+        });
+        r.hours = Math.round(r.hours * 100) / 100; r.ot = Math.round(r.ot * 100) / 100;
+        return r;
+    });
+}
+
+// ---------- الرواتب: حساب بالبيانات المُمرَّرة (يخدم الشاشة والتقارير) ----------
+function hrxPayCalcData(e, P, A, D) {
+    var p = P[e.id] || {}, adj = A[e.id] || {}, dy = D[e.id] || null;
+    var fixed = (+p.housing || 0) + (+p.transport || 0) + (+p.meal || 0) + (+p.other || 0);
+    var sum = { allowance: 0, bonus: 0, deduction: 0, advance: 0, overtime: 0, otHours: 0 };
+    Object.keys(adj).forEach(function(k) { var a = adj[k]; if (sum[a.kind] != null) sum[a.kind] += +a.amount || 0; if (a.kind === 'overtime') sum.otHours += +a.hours || 0; });
+    var daily = p.payType === 'daily';
+    var basePay = daily ? (+p.dailyRate || 0) * (dy ? (+dy.present || 0) : 0) : (+p.baseSalary || 0);
+    var absentDed = (!daily && dy) ? Math.round(((+p.baseSalary || 0) / 30) * (+dy.absent || 0) * 100) / 100 : 0;
+    var gross = basePay + fixed + sum.allowance + sum.bonus + sum.overtime;
+    var ded = sum.deduction + sum.advance + absentDed;
+    return { has: !!P[e.id], daily: daily, basePay: basePay, fixed: fixed, sum: sum, absentDed: absentDed, gross: gross, ded: ded, net: gross - ded, days: dy };
+}
+function hrxLoadPayData(m) {
+    var db = hrxDb(); if (!db) return Promise.reject(new Error('no db'));
+    return Promise.all([db.ref('hrPayrollProfiles').once('value'), db.ref('hrPayrollAdj/' + m).once('value'), db.ref('hrPayrollStatus/' + m).once('value'),
+                        db.ref('hrPayrollDays/' + m).once('value'), hrxLoadMonthAtt(m)]).then(function(r) {
+        var P = r[0].val() || {}, A = r[1].val() || {}, S = r[2].val() || {}, D = r[3].val() || {}, att = r[4];
+        var rows = hrxBuildAttRows(att), derived = false;
+        rows.forEach(function(x) { if (!D[x.emp.id]) { D[x.emp.id] = { present: x.present, absent: x.absent, leave: x.leave }; derived = true; } });
+        return { m: m, P: P, A: A, S: S, D: D, att: att, attRows: rows, derived: derived };
+    });
+}
+function hrxPayRows(data) {
+    return hrxEmps().map(function(e) { return { e: e, c: hrxPayCalcData(e, data.P, data.A, data.D), st: data.S[e.id] }; });
+}
+function hrxStatusText(st) { return st ? (st.status === 'paid' ? hrxL('Paid', 'مدفوع') : hrxL('Approved', 'معتمد')) : hrxL('Draft', 'مسوّدة'); }
+function hrxTypeText(e) { return e.employmentType === 'سركي' ? hrxL('Daily wage', 'سركي') : hrxL('Permanent', 'معيّن'); }
+
+// ---------- نافذة الطباعة / PDF ----------
+function hrxOpenWin(title) {
+    var w = window.open('', '_blank');
+    if (!w) { showToast('⚠️ ' + hrxL('Allow pop-ups for this site to open the report', 'اسمح بالنوافذ المنبثقة لهذا الموقع لفتح التقرير'), true); return null; }
+    try { w.document.write('<!DOCTYPE html><html dir="' + hrxDir() + '"><head><meta charset="UTF-8"><title>' + hrxEsc(title) + '</title></head><body style="font-family:Arial;padding:40px;text-align:center;color:#475569">⏳ ' + hrxL('Preparing report...', 'جاري تجهيز التقرير...') + '</body></html>'); } catch (e) {}
+    return w;
+}
+function hrxWriteWin(w, title, subtitle, css, bodyHtml) {
+    try {
+        w.document.open();
+        w.document.write('<!DOCTYPE html><html dir="' + hrxDir() + '"><head><meta charset="UTF-8"><title>' + hrxEsc(title) + '</title><style>' +
+            'body{font-family:Arial;padding:20px}.info{background:#f1f5f9;padding:10px;border-radius:8px;margin:14px 0;font-size:13px}' +
+            'table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:8px}th{background:#0d1b2a;color:#fff;padding:7px 4px;text-align:center}' +
+            'td{padding:6px 4px;border-bottom:1px solid #e2e8f0;text-align:center}tr.tot td{background:#f1f5f9;font-weight:800;border-top:2px solid #0d1b2a}' +
+            '.l{text-align:' + (hrxDir() === 'rtl' ? 'right' : 'left') + '}.neg{color:#b91c1c}.pos{color:#047857}.sig{display:flex;justify-content:space-around;margin-top:44px;font-size:12px}.sig div{border-top:1px solid #334155;padding-top:6px;min-width:150px;text-align:center}' +
+            '.footer{margin-top:22px;font-size:10px;color:#999;text-align:center}@media print{.no-print{display:none}}' + (css || '') + '</style></head><body>' +
+            reportHeaderHtml(title, subtitle) + bodyHtml + '<div class="footer">' + escapeHtml(COMPANY_NAME_EN) + ' | ' + hrxEsc(title) + ' | ' + new Date().toLocaleDateString('en-GB') + '</div></body></html>');
+        w.document.close();
+        setTimeout(function() { try { w.print(); } catch (e) {} }, 700);
+    } catch (e) { hrxFail(e); }
+}
+function hrxRepGuard(needManage) {
+    if (!hrxCanWrite() && !canView('employees')) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return false; }
+    if (needManage && !hrxCanManage()) { showToast('⛔ ' + hrxL('Payroll reports are for managers only', 'تقارير الرواتب للمدير فقط'), true); return false; }
+    return true;
+}
+function hrxXlsx(sheets, filename) {
+    if (typeof XLSX === 'undefined') { showToast(hrxL('Excel library is not loaded', 'مكتبة Excel غير محمّلة'), true); return; }
+    var wb = XLSX.utils.book_new();
+    sheets.forEach(function(s) { XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(s.rows.length ? s.rows : [{}]), s.name.replace(/[:\\\/?*\[\]]/g, '').slice(0, 31)); });
+    XLSX.writeFile(wb, filename);
+}
+function hrxN(x) { return Math.round((+x || 0) * 100) / 100; }
+
+// ---------- كشف الرواتب ----------
+function hrxRepPayrollPdf(m) {
+    if (!hrxRepGuard(true)) return; m = m || hrxRepMonth();
+    var title = hrxL('Payroll Sheet', 'كشف الرواتب'), w = hrxOpenWin(title); if (!w) return;
+    hrxLoadPayData(m).then(function(data) {
+        var rows = hrxPayRows(data), T = { base: 0, fixed: 0, add: 0, bonus: 0, ot: 0, ded: 0, abs: 0, gross: 0, net: 0 }, n = 0;
+        var body = rows.map(function(r) {
+            var c = r.c; if (!c.has) return '';
+            n++; var add = c.sum.allowance, ded = c.sum.deduction + c.sum.advance;
+            T.base += c.basePay; T.fixed += c.fixed; T.add += add; T.bonus += c.sum.bonus; T.ot += c.sum.overtime; T.ded += ded; T.abs += c.absentDed; T.gross += c.gross; T.net += c.net;
+            return '<tr><td>' + n + '</td><td class="l">' + hrxEsc(r.e.name) + '</td><td>' + hrxEsc(r.e.title || '') + '</td><td>' + hrxTypeText(r.e) + '</td><td>' + hrxFmt(c.basePay) + '</td><td>' + hrxFmt(c.fixed + add) + '</td><td>' + hrxFmt(c.sum.bonus) + '</td>' +
+                '<td>' + hrxFmt(c.sum.overtime) + '</td><td class="neg">' + hrxFmt(ded) + '</td><td class="neg">' + hrxFmt(c.absentDed) + '</td><td><b>' + hrxFmt(c.net) + '</b></td><td>' + hrxStatusText(r.st) + '</td></tr>';
+        }).join('');
+        var nop = rows.filter(function(r) { return !r.c.has; }).length;
+        var html = '<div class="info">📅 <b>' + hrxL('Month', 'الشهر') + ':</b> ' + m + ' &nbsp; 👥 <b>' + hrxL('Employees', 'الموظفون') + ':</b> ' + n + (nop ? ' &nbsp; ⚠️ ' + nop + ' ' + hrxL('without salary profile (not listed)', 'بدون ملف راتب (غير مدرجين)') : '') +
+            (data.derived ? '<br>ℹ️ ' + hrxL('Attendance days were derived from attendance records for employees without a saved calculation.', 'أيام الحضور احتُسبت من سجلات الحضور للموظفين الذين لم يُحفظ لهم احتساب.') : '') + '</div>' +
+            '<table><thead><tr><th>#</th><th>' + hrxL('Employee', 'الموظف') + '</th><th>' + hrxL('Title', 'المهنة') + '</th><th>' + hrxL('Type', 'النوع') + '</th><th>' + hrxL('Base / daily pay', 'الأساسي / أجر الأيام') + '</th><th>' + hrxL('Allowances', 'البدلات') + '</th><th>' + hrxL('Bonuses', 'المكافآت') + '</th><th>' + hrxL('Overtime', 'الإضافي') + '</th><th>' + hrxL('Deductions + advances', 'خصومات + سلف') + '</th><th>' + hrxL('Absence', 'خصم الغياب') + '</th><th>' + hrxL('Net', 'الصافي') + '</th><th>' + hrxL('Status', 'الحالة') + '</th></tr></thead><tbody>' + (body || '<tr><td colspan="12">' + hrxL('No salary profiles', 'لا توجد ملفات رواتب') + '</td></tr>') +
+            '<tr class="tot"><td colspan="4">' + hrxL('Total', 'الإجمالي') + '</td><td>' + hrxFmt(T.base) + '</td><td>' + hrxFmt(T.fixed + T.add) + '</td><td>' + hrxFmt(T.bonus) + '</td><td>' + hrxFmt(T.ot) + '</td><td>' + hrxFmt(T.ded) + '</td><td>' + hrxFmt(T.abs) + '</td><td>' + hrxFmt(T.net) + '</td><td></td></tr></tbody></table>' +
+            '<div class="sig"><div>' + hrxL('Prepared by', 'إعداد') + '</div><div>' + hrxL('Reviewed by', 'مراجعة') + '</div><div>' + hrxL('Approved by', 'اعتماد') + '</div></div>';
+        hrxWriteWin(w, title + ' — ' + m, hrxL('Monthly payroll', 'مسير الرواتب الشهري'), '@page{size:A4 landscape;margin:10mm}', html);
+    }).catch(function(e) { try { w.close(); } catch (x) {} hrxFail(e); });
+}
+function hrxRepPayrollExcel(m) {
+    if (!hrxRepGuard(true)) return; m = m || hrxRepMonth();
+    showToast('⏳ ' + hrxL('Preparing Excel...', 'جاري تجهيز Excel...'));
+    hrxLoadPayData(m).then(function(data) {
+        var rows = hrxPayRows(data).filter(function(r) { return r.c.has; }), items = [];
+        var sheet = rows.map(function(r) {
+            var c = r.c, d = c.days || {};
+            var o = {}; o[hrxL('Employee', 'الموظف')] = r.e.name || ''; o[hrxL('Title', 'المهنة')] = r.e.title || ''; o[hrxL('Type', 'النوع')] = hrxTypeText(r.e);
+            o[hrxL('Base / daily pay', 'الأساسي / أجر الأيام')] = hrxN(c.basePay); o[hrxL('Fixed allowances', 'بدلات ثابتة')] = hrxN(c.fixed); o[hrxL('Extra allowances', 'بدلات إضافية')] = hrxN(c.sum.allowance);
+            o[hrxL('Bonuses', 'مكافآت')] = hrxN(c.sum.bonus); o[hrxL('Overtime hours', 'ساعات الإضافي')] = hrxN(c.sum.otHours); o[hrxL('Overtime amount', 'قيمة الإضافي')] = hrxN(c.sum.overtime);
+            o[hrxL('Deductions', 'خصومات')] = hrxN(c.sum.deduction); o[hrxL('Advances', 'سلف')] = hrxN(c.sum.advance); o[hrxL('Absence deduction', 'خصم الغياب')] = hrxN(c.absentDed);
+            o[hrxL('Present days', 'أيام الحضور')] = d.present == null ? '' : d.present; o[hrxL('Absent days', 'أيام الغياب')] = d.absent == null ? '' : d.absent; o[hrxL('Gross', 'الإجمالي')] = hrxN(c.gross);
+            o[hrxL('Net', 'الصافي')] = hrxN(c.net); o[hrxL('Status', 'الحالة')] = hrxStatusText(r.st); return o;
+        });
+        var names = {}; hrxKinds().forEach(function(k) { names[k[0]] = k[1]; });
+        Object.keys(data.A).forEach(function(eid) { Object.keys(data.A[eid]).forEach(function(k) {
+            var a = data.A[eid][k], o = {}; o[hrxL('Employee', 'الموظف')] = hrxEmpName(eid); o[hrxL('Item type', 'نوع البند')] = names[a.kind] || a.kind; o[hrxL('Description', 'البيان')] = a.label || '';
+            o[hrxL('Hours', 'الساعات')] = a.hours || ''; o[hrxL('Amount', 'المبلغ')] = hrxN(a.amount); o[hrxL('By', 'بواسطة')] = a.by || ''; items.push(o);
+        }); });
+        hrxXlsx([{ name: hrxL('Payroll ', 'الرواتب ') + m, rows: sheet }, { name: hrxL('Items', 'البنود'), rows: items }], 'مسير_رواتب_' + m + '.xlsx');
+        showToast('✅ ' + hrxL('Excel exported', 'تم تصدير Excel'));
+    }).catch(hrxFail);
+}
+// ---------- قسائم الرواتب ----------
+function hrxPayslipHtml(r, m) {
+    var c = r.c, e = r.e, d = c.days || {};
+    function line(l, v, cls) { return '<tr><td class="l">' + l + '</td><td class="' + (cls || '') + '">' + hrxFmt(v) + '</td></tr>'; }
+    var earn = line(c.daily ? hrxL('Daily pay', 'أجر الأيام') + ' (' + (d.present || 0) + ' ' + hrxL('days', 'يوم') + ')' : hrxL('Base salary', 'الراتب الأساسي'), c.basePay) +
+        (c.fixed ? line(hrxL('Fixed allowances', 'بدلات ثابتة'), c.fixed) : '') + (c.sum.allowance ? line(hrxL('Extra allowances', 'بدلات إضافية'), c.sum.allowance) : '') +
+        (c.sum.bonus ? line(hrxL('Bonuses', 'مكافآت'), c.sum.bonus) : '') + (c.sum.overtime ? line(hrxL('Overtime', 'الإضافي') + ' (' + hrxFmt(c.sum.otHours) + hrxL(' h', ' س') + ')', c.sum.overtime) : '');
+    var ded = (c.sum.deduction ? line(hrxL('Deductions', 'خصومات'), c.sum.deduction, 'neg') : '') + (c.sum.advance ? line(hrxL('Advances', 'سلف'), c.sum.advance, 'neg') : '') +
+        (c.absentDed ? line(hrxL('Absence deduction', 'خصم الغياب') + ' (' + (d.absent || 0) + ' ' + hrxL('days', 'يوم') + ')', c.absentDed, 'neg') : '') || '<tr><td class="l" colspan="2">—</td></tr>';
+    return '<div style="border:1.5px solid #0d1b2a;border-radius:10px;padding:14px;margin-bottom:18px;page-break-inside:avoid">' +
+        '<div style="display:flex;justify-content:space-between;font-size:13px"><div><b>' + hrxEsc(e.name) + '</b><div style="color:#64748b;font-size:11.5px">' + hrxEsc(e.title || '') + ' • ' + hrxTypeText(e) + (e.jobCode ? ' • #' + hrxEsc(e.jobCode) : '') + '</div></div><div style="text-align:center"><b>' + hrxL('Payslip', 'قسيمة راتب') + '</b><div style="color:#64748b;font-size:11.5px">' + m + '</div></div></div>' +
+        '<div style="display:flex;gap:14px;margin-top:10px"><div style="flex:1"><div style="font-weight:800;color:#047857;font-size:12px">' + hrxL('Earnings', 'المستحقات') + '</div><table>' + earn + '<tr class="tot"><td class="l">' + hrxL('Gross', 'الإجمالي') + '</td><td>' + hrxFmt(c.gross) + '</td></tr></table></div>' +
+        '<div style="flex:1"><div style="font-weight:800;color:#b91c1c;font-size:12px">' + hrxL('Deductions', 'الاستقطاعات') + '</div><table>' + ded + '<tr class="tot"><td class="l">' + hrxL('Total deductions', 'إجمالي الاستقطاعات') + '</td><td>' + hrxFmt(c.ded) + '</td></tr></table></div></div>' +
+        '<div style="margin-top:10px;background:#0d1b2a;color:#fff;border-radius:8px;padding:9px;text-align:center;font-size:15px;font-weight:800">' + hrxL('Net salary', 'صافي الراتب') + ': ' + hrxFmt(c.net) + ' ' + hrxL('EGP', 'ج.م') + '</div>' +
+        '<div class="sig" style="margin-top:26px"><div>' + hrxL('Employee signature', 'توقيع الموظف') + '</div><div>' + hrxL('Accountant', 'المحاسب') + '</div></div></div>';
+}
+function hrxRepPayslipsPdf(m, onlyEmpId) {
+    if (!hrxRepGuard(true)) return; m = m || (onlyEmpId ? HRX.pm : hrxRepMonth()) || hrxRepMonth();
+    var title = hrxL('Payslips', 'قسائم الرواتب'), w = hrxOpenWin(title); if (!w) return;
+    hrxLoadPayData(m).then(function(data) {
+        var rows = hrxPayRows(data).filter(function(r) { return r.c.has && (!onlyEmpId || r.e.id === onlyEmpId); });
+        if (!rows.length) { try { w.close(); } catch (x) {} showToast(hrxL('No salary profiles for this selection', 'لا توجد ملفات رواتب لهذا الاختيار'), true); return; }
+        hrxWriteWin(w, title + ' — ' + m, hrxL('Employee payslips', 'قسائم رواتب الموظفين'), '@page{size:A4;margin:12mm}table{font-size:12px}', rows.map(function(r) { return hrxPayslipHtml(r, m); }).join(''));
+    }).catch(function(e) { try { w.close(); } catch (x) {} hrxFail(e); });
+}
+
+// ---------- ساعات الحضور ----------
+function hrxRepAttendancePdf(m) {
+    if (!hrxRepGuard(false)) return; m = m || hrxRepMonth();
+    var title = hrxL('Attendance Hours Report', 'تقرير ساعات الحضور'), w = hrxOpenWin(title); if (!w) return;
+    hrxLoadMonthAtt(m).then(function(att) {
+        var rows = hrxBuildAttRows(att), T = { p: 0, a: 0, l: 0, h: 0, ot: 0, ld: 0, lm: 0, no: 0 };
+        var body = rows.map(function(r, i) {
+            T.p += r.present; T.a += r.absent; T.l += r.leave; T.h += r.hours; T.ot += r.ot; T.ld += r.lateDays; T.lm += r.lateMin; T.no += r.noOut;
+            return '<tr><td>' + (i + 1) + '</td><td class="l">' + hrxEsc(r.emp.name) + '</td><td>' + hrxEsc(r.shift ? r.shift.name : '—') + '</td><td class="pos">' + r.present + '</td><td class="neg">' + r.absent + '</td><td>' + r.leave + '</td><td><b>' + hrxFmt(r.hours) + '</b></td><td>' + hrxFmt(r.ot) + '</td><td>' + r.lateDays + ' / ' + r.lateMin + '</td><td>' + (r.noOut || '—') + '</td></tr>';
+        }).join('');
+        var html = '<div class="info">📅 <b>' + hrxL('Month', 'الشهر') + ':</b> ' + m + ' &nbsp; 📆 <b>' + hrxL('Days covered', 'الأيام المشمولة') + ':</b> ' + att.dates.length + ' &nbsp; 👥 ' + rows.length + '<br><span style="font-size:11px;color:#64748b">' +
+            hrxL('Hours = check-out − check-in − shift break. Overtime = hours beyond the assigned shift length. Days without check-out are counted as present but without hours.', 'الساعات = الخروج − الدخول − استراحة الوردية. الإضافي = الساعات الزائدة عن طول الوردية المعيّنة. الأيام بدون تسجيل خروج تُحسب حضورًا بدون ساعات.') + '</span></div>' +
+            '<table><thead><tr><th>#</th><th>' + hrxL('Employee', 'الموظف') + '</th><th>' + hrxL('Shift', 'الوردية') + '</th><th>' + hrxL('Present', 'حضور') + '</th><th>' + hrxL('Absent', 'غياب') + '</th><th>' + hrxL('Leave', 'إجازة') + '</th><th>' + hrxL('Work hours', 'ساعات العمل') + '</th><th>' + hrxL('Overtime h', 'ساعات إضافي') + '</th><th>' + hrxL('Late (days / min)', 'تأخير (أيام / د)') + '</th><th>' + hrxL('No check-out', 'بدون خروج') + '</th></tr></thead><tbody>' + body +
+            '<tr class="tot"><td colspan="3">' + hrxL('Total', 'الإجمالي') + '</td><td>' + T.p + '</td><td>' + T.a + '</td><td>' + T.l + '</td><td>' + hrxFmt(T.h) + '</td><td>' + hrxFmt(T.ot) + '</td><td>' + T.ld + ' / ' + T.lm + '</td><td>' + T.no + '</td></tr></tbody></table>';
+        hrxWriteWin(w, title + ' — ' + m, hrxL('Monthly attendance & hours', 'الحضور والساعات الشهرية'), '@page{size:A4 landscape;margin:10mm}', html);
+    }).catch(function(e) { try { w.close(); } catch (x) {} hrxFail(e); });
+}
+function hrxRepAttendanceExcel(m) {
+    if (!hrxRepGuard(false)) return; m = m || hrxRepMonth();
+    showToast('⏳ ' + hrxL('Preparing Excel...', 'جاري تجهيز Excel...'));
+    hrxLoadMonthAtt(m).then(function(att) {
+        var rows = hrxBuildAttRows(att);
+        var sum = rows.map(function(r) {
+            var o = {}; o[hrxL('Employee', 'الموظف')] = r.emp.name || ''; o[hrxL('Title', 'المهنة')] = r.emp.title || ''; o[hrxL('Shift', 'الوردية')] = r.shift ? r.shift.name : '';
+            o[hrxL('Present days', 'أيام الحضور')] = r.present; o[hrxL('Absent days', 'أيام الغياب')] = r.absent; o[hrxL('Leave days', 'أيام الإجازة')] = r.leave; o[hrxL('Work hours', 'ساعات العمل')] = r.hours;
+            o[hrxL('Overtime hours', 'ساعات الإضافي')] = r.ot; o[hrxL('Late days', 'أيام التأخير')] = r.lateDays; o[hrxL('Late minutes', 'دقائق التأخير')] = r.lateMin; o[hrxL('Days without check-out', 'أيام بدون خروج')] = r.noOut; return o;
+        });
+        var daily = rows.map(function(r) {
+            var o = {}; o[hrxL('Employee', 'الموظف')] = r.emp.name || '';
+            att.dates.forEach(function(d) {
+                var st = (att.st[d] || {})[r.emp.id], s = st && st.status, v = r.byDay[d];
+                o[d.slice(8)] = s === 'absent' ? hrxL('A', 'غ') : s === 'leave' ? hrxL('L', 'إ') : (v === undefined ? '' : (v === null ? hrxL('P', 'ح') : v));
+            });
+            o[hrxL('Total hours', 'إجمالي الساعات')] = r.hours; return o;
+        });
+        hrxXlsx([{ name: hrxL('Summary ', 'الملخص ') + m, rows: sum }, { name: hrxL('Daily hours', 'الساعات اليومية'), rows: daily }], 'ساعات_الحضور_' + m + '.xlsx');
+        showToast('✅ ' + hrxL('Excel exported', 'تم تصدير Excel'));
+    }).catch(hrxFail);
+}
+
+// ---------- ترحيل الإضافي من الحضور إلى الرواتب ----------
+function hrxPayImportOT() {
+    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
+    var db = hrxDb(); if (!db) return; var m = HRX.pm;
+    showToast('⏳ ' + hrxL('Reading attendance records...', 'جاري قراءة سجلات الحضور...'));
+    hrxLoadMonthAtt(m).then(function(att) {
+        var rows = hrxBuildAttRows(att), ups = {}, n = 0, skipped = 0;
+        rows.forEach(function(r) {
+            var rate = +((HRX.profiles[r.emp.id] || {}).otRate) || 0, key = 'hrPayrollAdj/' + m + '/' + r.emp.id + '/auto_ot';
+            if (r.ot > 0 && rate > 0) {
+                ups[key] = { kind: 'overtime', hours: r.ot, amount: Math.round(r.ot * rate * 100) / 100, label: hrxL('Overtime calculated from attendance', 'إضافي محسوب من الحضور'), auto: true, by: hrxWho(), at: hrxNow() }; n++;
+            } else { if (r.ot > 0) skipped++; if (HRX.adj[r.emp.id] && HRX.adj[r.emp.id].auto_ot) ups[key] = null; }
+        });
+        if (!Object.keys(ups).length) { showToast(hrxL('No overtime to import (needs assigned shift + overtime rate)', 'لا يوجد إضافي للترحيل (يحتاج وردية معيّنة وقيمة ساعة إضافي)')); return; }
+        return db.ref().update(ups).then(function() {
+            showToast('✅ ' + hrxL('Overtime imported for ', 'تم ترحيل الإضافي لـ ') + n + hrxL(' employee(s)', ' موظف') + (skipped ? ' — ' + skipped + hrxL(' skipped (no overtime rate)', ' بدون قيمة ساعة إضافي') : ''));
+        });
+    }).catch(hrxFail);
+}
+
+// ---------- ربط الأزرار بصفحة التقارير ----------
+(function() {
+    hrxEnsureRepInput();
+    // لو القسم محتاج صلاحية معيّنة (need) يخفي الزر عن اللي مالوش صلاحية
+    var _origRRH = (typeof renderReportsHub === 'function') ? renderReportsHub : null;
+    if (_origRRH) renderReportsHub = function() { hrxEnsureRepInput(); return _origRRH.apply(this, arguments); };
+})();
+
+
+// ==================== نظام التبويبات المطور للموارد البشرية ====================
+let hrActiveSubTab = 'employees';
+var HR_EXTRA_TABS = ['attendance', 'leaves', 'payroll', 'custody'];
+var HR_PANEL_RENDERERS = { attendance: 'renderHRAttendancePanel', leaves: 'renderHRLeavesPanel', payroll: 'renderHRPayrollPanel', custody: 'renderHRCustodyPanel' };
+var HR_PANEL_CONTAINERS = { attendance: 'attendance-dashboard-container', leaves: 'leaves-dashboard-container', payroll: 'payroll-dashboard-container', custody: 'custody-dashboard-container' };
+
+// يشغّل دالة عرض القسم لو موجودة، وغير كده يعرض رسالة "قيد التطوير" بدل ما يطلع خطأ
+function renderHRExtraPanel(tab) {
+    var fnName = HR_PANEL_RENDERERS[tab];
+    if (fnName && typeof window[fnName] === 'function') { window[fnName](); return; }
+    var box = document.getElementById(HR_PANEL_CONTAINERS[tab]);
+    if (box && !box.innerHTML.trim()) {
+        box.innerHTML = '<div style="text-align:center;color:#64748b;padding:34px 14px;font-size:13px;background:white;border-radius:14px;border:1px dashed #cbd5e1">🚧 ' + RL('This section is under development', 'هذا القسم قيد التطوير') + '</div>';
+    }
+}
+
 function switchEmployeesSubTab(tab) {
+    var isExtra = HR_EXTRA_TABS.indexOf(tab) !== -1;
     if (tab === 'drivers' && !hasPermission('all') && !canView('drivers')) { showToast('غير مصرح بعرض السائقين', true); return; }
-    if (tab === 'employees' && !hasPermission('all') && !canView('employees')) { showToast('غير مصرح بعرض الموظفين', true); return; }
+    if ((tab === 'employees' || isExtra) && !hasPermission('all') && !canView('employees')) { showToast('غير مصرح بعرض الموظفين', true); return; }
     employeesActiveSubTab = tab;
-    document.getElementById('emp-panel-employees').style.display = tab === 'employees' ? 'block' : 'none';
-    document.getElementById('emp-panel-drivers').style.display = tab === 'drivers' ? 'block' : 'none';
+    hrActiveSubTab = tab;
+
+    // إظهار لوحة التبويب النشط فقط
+    ['employees', 'drivers'].concat(HR_EXTRA_TABS).forEach(function(p) {
+        var el = document.getElementById('emp-panel-' + p);
+        if (el) el.style.display = (p === tab) ? 'block' : 'none';
+    });
+
+    // تحديث أزرار التبويبات
     document.querySelectorAll('.emp-subtab-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.subtab === tab);
     });
+    var activeBtn = document.querySelector('.emp-subtab-btn.active');
+    if (activeBtn && activeBtn.scrollIntoView) { try { activeBtn.scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (e) {} }
+
     document.getElementById('header-title').innerHTML = '👥 ' + RL('Human Resources', 'الموارد البشرية');
+
+    // تشغيل دوال العرض الخاصة بالقسم النشط
+    if (isExtra) renderHRExtraPanel(tab);
+
     updateEmployeesFab();
     debouncedRefresh();
 }
@@ -21065,6 +22133,7 @@ function updateEmployeesFab() {
     var fabButton = document.getElementById('fab-btn');
     if (!fabButton) return;
     var section = employeesActiveSubTab === 'drivers' ? 'drivers' : 'employees';
+    if (HR_EXTRA_TABS.indexOf(employeesActiveSubTab) !== -1) { fabButton.style.display = 'none'; fabButton.onclick = null; return; }
     if (hasPermission('all') || canAdd(section)) {
         fabButton.style.display = 'flex';
         fabButton.onclick = employeesActiveSubTab === 'drivers'
@@ -21213,7 +22282,9 @@ function renderReportsHub() {
     REPORTS_GROUPS.forEach(function(g) {
         if (vo && g.hideVO) return;
         if (!_rpExplicit() && !g.sec.some(function(s) { return canView(s); })) return;
-        var chips = g.items.map(function(it) {
+        var gItems = g.items.filter(function(it) { return !it.need || it.need(); });
+        if (!gItems.length) return;
+        var chips = gItems.map(function(it) {
             var idx = _rpRegistry.push(it) - 1;
             var q = (it.en + ' ' + it.ar + ' ' + g.en + ' ' + g.ar).toLowerCase();
             return '<button type="button" class="rp-chip" data-i="' + idx + '" data-kind="' + it.k + '" data-q="' + escapeHtml(q) + '"' +
