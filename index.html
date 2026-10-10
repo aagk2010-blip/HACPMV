@@ -9697,7 +9697,7 @@ function eqpvToggleMeterOnlyBtn(show) {
     if (b && b.getAttribute('data-with-work') === '1' && !show) b.style.display = 'none';
 }
 
-// ==================== إبلاغ تزويد وقود ديزل من صفحة الـQR (ملك + إيجار) — للإعلام فقط ====================
+// ==================== إبلاغ تزويد وقود سولار من صفحة الـQR (ملك + إيجار) — للإعلام فقط ====================
 // لا يُسجَّل في سجلات الوقود (fuelRecords) — بيوصل للإدارة كإشعار بس، والتسجيل الفعلي بيتم من الشيت الدوري
 function eqpvRenderFuelNoticeCard(eq, driverName) {
     var host = document.getElementById('eqpv-fuel-notice');
@@ -9706,7 +9706,7 @@ function eqpvRenderFuelNoticeCard(eq, driverName) {
     var nm = escapeHtml(String(driverName || eq.assignedDriverName || ''));
     var inSt = 'flex:1;min-width:0;width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px;font-size:14px;font-family:inherit;box-sizing:border-box;direction:ltr;text-align:center;font-weight:700';
     host.innerHTML = '<div style="background:white;border-radius:12px;padding:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:7px;margin-bottom:8px">' +
-        '<div style="font-size:12.5px;font-weight:800;color:#0d1b2a">⛽ تم تزويد وقود ديزل</div>' +
+        '<div style="font-size:12.5px;font-weight:800;color:#0d1b2a">⛽ تم تزويد وقود سولار</div>' +
         '<div style="display:flex;gap:6px">' +
             '<input type="number" inputmode="decimal" min="0" step="any" id="eqpv-fuel-liters" placeholder="الكمية باللتر" style="' + inSt + '">' +
         '</div>' +
@@ -9746,7 +9746,7 @@ function eqpvSendFuelNotice() {
             liters: liters,
             source: 'QR'
         },
-        description: 'تزويد ديزل ' + liters + ' لتر — ' + (eq.name || '') + (eq.code ? ' (' + eq.code + ')' : ''),
+        description: 'تزويد سولار ' + liters + ' لتر — ' + (eq.name || '') + (eq.code ? ' (' + eq.code + ')' : ''),
         requestedBy: sender,
         requestedAt: new Date().toISOString(),
         status: 'pending'
@@ -9757,7 +9757,7 @@ function eqpvSendFuelNotice() {
         if (inp) inp.value = '';
         eqpvFuelStatusSay('✅ تم إرسال إشعار تزويد ' + liters + ' لتر للإدارة', '#059669');
         if (btn) btn.disabled = false;
-        try { showTopNotification('⛽', 'تم إرسال إشعار تزويد الديزل'); } catch (e) {}
+        try { showTopNotification('⛽', 'تم إرسال إشعار تزويد السولار'); } catch (e) {}
     }).catch(function(e) {
         console.error('eqpvSendFuelNotice error:', e);
         eqpvFuelStatusSay('⚠️ ' + eqpvMeterErrMsg(e), '#dc2626');
@@ -15736,7 +15736,7 @@ function renderMeterUpdateRequestsBanner() {
         cards + '</div>';
 }
 
-// ==================== إشعارات تزويد الديزل القادمة من الـQR (للإعلام فقط — لا تُسجَّل في سجلات الوقود) ====================
+// ==================== إشعارات تزويد السولار القادمة من الـQR (للإعلام فقط — لا تُسجَّل في سجلات الوقود) ====================
 var _knownFuelNoticeIds = null;
 function getPendingFuelNotices() {
     return approvalRequestsData.filter(function(r) { return r.type === 'fuelNotice' && r.status === 'pending'; })
@@ -15755,10 +15755,10 @@ function notifyNewFuelNotices() {
         var d = r.data || {};
         return (d.equipmentName || d.equipmentCode || 'معدة') + (d.equipmentCode ? ' (' + d.equipmentCode + ')' : '') + ': ' + d.liters + ' لتر';
     }).join(' | ');
-    showToast('⛽ إشعار تزويد ديزل جديد من QR — ' + text);
+    showToast('⛽ إشعار تزويد سولار جديد من QR — ' + text);
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try {
-            new Notification('⛽ إشعار تزويد ديزل', {
+            new Notification('⛽ إشعار تزويد سولار', {
                 body: text + ' — بواسطة ' + fresh.map(function(r) { return r.requestedBy || ''; }).join('، '),
                 icon: (typeof COMPANY_ICON_SQUARE_URI !== 'undefined' && COMPANY_ICON_SQUARE_URI) || undefined
             });
@@ -15779,13 +15779,13 @@ function renderFuelNoticesBanner() {
         var own = d.ownership === 'إيجار' ? '📋 إيجار' : (d.ownership ? '🔑 ' + escapeHtml(d.ownership) : '');
         return '<div style="background:white;border:1px solid #bae6fd;border-radius:12px;padding:10px 12px;margin-top:8px;font-size:12px">' +
             '<div style="font-weight:800;margin-bottom:3px">' + escapeHtml(d.equipmentName || '') + (d.equipmentCode ? ' <span style="color:#64748b;font-weight:600">(' + escapeHtml(d.equipmentCode) + ')</span>' : '') + (own ? ' <span style="font-size:10.5px;color:#64748b;font-weight:600">' + own + '</span>' : '') + '</div>' +
-            '<div style="font-size:15px;font-weight:800;color:#0369a1;margin-bottom:3px">⛽ ' + escapeHtml(String(d.liters)) + ' لتر ديزل</div>' +
+            '<div style="font-size:15px;font-weight:800;color:#0369a1;margin-bottom:3px">⛽ ' + escapeHtml(String(d.liters)) + ' لتر سولار</div>' +
             '<div style="color:#64748b;font-size:10.5px;margin-bottom:8px">بواسطة: ' + escapeHtml(r.requestedBy || '') + ' — ' + when + '</div>' +
             '<button onclick="ackFuelNotice(\'' + r.id + '\')" style="width:100%;background:linear-gradient(135deg,#0284c7,#075985);color:white;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">👁️ تم الاطلاع</button>' +
             '</div>';
     }).join('');
     el.innerHTML = '<div style="background:#f0f9ff;border:1.5px solid #38bdf8;border-radius:14px;padding:12px;margin-bottom:12px">' +
-        '<div style="font-weight:800;font-size:13px;color:#075985">⛽ إشعارات تزويد ديزل من الـQR (' + list.length + ')</div>' +
+        '<div style="font-weight:800;font-size:13px;color:#075985">⛽ إشعارات تزويد سولار من الـQR (' + list.length + ')</div>' +
         '<div style="font-size:10.5px;color:#64748b;margin-top:2px">للإعلام فقط — لا تُسجَّل في سجلات الوقود، وتُسجَّل من الشيت الدوري</div>' +
         cards + '</div>';
 }
@@ -16129,7 +16129,7 @@ function openNotifCenter() {
     if (a.pendingApprovals.length) {
         html += '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;color:#0369a1;margin-bottom:6px">✅ طلبات بانتظار الموافقة (' + a.pendingApprovals.length + ')</div>' +
             a.pendingApprovals.map(function(r) {
-                var typeLabel = r.type === 'transfer' ? '🚚 نقل معدة' : (r.type === 'delete' ? '🗑️ حذف' : (r.type === 'meterUpdate' ? '⏱️ تحديث عداد (QR)' : (r.type === 'fuelNotice' ? '⛽ تزويد ديزل (QR) — للإعلام فقط' : r.type)));
+                var typeLabel = r.type === 'transfer' ? '🚚 نقل معدة' : (r.type === 'delete' ? '🗑️ حذف' : (r.type === 'meterUpdate' ? '⏱️ تحديث عداد (QR)' : (r.type === 'fuelNotice' ? '⛽ تزويد سولار (QR) — للإعلام فقط' : r.type)));
                 var when = r.requestedAt ? new Date(r.requestedAt).toLocaleString('ar-EG') : '';
                 return '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:9px 10px;margin-bottom:6px;font-size:12px">' +
                     '<div style="font-weight:700;margin-bottom:2px">' + typeLabel + '</div>' +
