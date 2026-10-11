@@ -22238,7 +22238,13 @@ var REPORTS_GROUPS = [
         { k: 'excel', ico: '📊', en: 'Inventory Excel', ar: 'تصدير المخزن',    c: '#10b981,#0e7490', run: _rpClickBtn('export-inventory-excel-btn') }
       ] },
     { key: 'employees', ico: '👥', en: 'Human Resources', ar: 'الموارد البشرية', sec: ['employees', 'drivers'], hideVO: true,
+      period: { type: 'month', id: 'hrx-rep-month' },
       items: [
+        { k: 'print', ico: '⏱️', en: 'Attendance Hours PDF',   ar: 'ساعات الحضور PDF',   c: '#0284c7,#075985', run: function() { hrxRepAttendancePdf(); } },
+        { k: 'excel', ico: '⏱️', en: 'Attendance Hours Excel', ar: 'ساعات الحضور Excel', c: '#0284c7,#075985', run: function() { hrxRepAttendanceExcel(); } },
+        { k: 'print', ico: '💰', en: 'Payroll Sheet PDF',      ar: 'كشف الرواتب PDF',    c: '#0284c7,#075985', need: function() { return hrxCanManage(); }, run: function() { hrxRepPayrollPdf(); } },
+        { k: 'excel', ico: '💰', en: 'Payroll Excel',          ar: 'كشف الرواتب Excel',  c: '#0284c7,#075985', need: function() { return hrxCanManage(); }, run: function() { hrxRepPayrollExcel(); } },
+        { k: 'print', ico: '🧾', en: 'Payslips PDF',           ar: 'قسائم الرواتب PDF',  c: '#0284c7,#075985', need: function() { return hrxCanManage(); }, run: function() { hrxRepPayslipsPdf(); } },
         { k: 'print', ico: '📊', en: 'Monthly Attendance',  ar: 'تقرير الحضور الشهري', c: '#059669,#047857', run: function() { openEmployeeAttendanceReport(); } },
         { k: 'print', ico: '🏷️', en: 'Attendance QR Labels', ar: 'ملصقات QR الحضور',    c: '#7c3aed,#4f46e5', run: function() { printAllEmployeeAttQRs(); } },
         { k: 'print', ico: '📄', en: 'Employees PDF',       ar: 'الموظفين PDF',        c: '#dc2626,#991b1b', run: function() { exportEmployeesPDF(); } },
@@ -22293,7 +22299,7 @@ function renderReportsHub() {
                    '<span class="rp-tag">' + RP_TAGS[it.k] + '</span></button>';
         }).join('');
         html += '<div class="rp-card" data-g="' + g.key + '">' +
-                '<div class="rp-head"><span>' + g.ico + '</span><span>' + RL(g.en, g.ar) + '</span><span class="rp-n">' + g.items.length + '</span></div>' +
+                '<div class="rp-head"><span>' + g.ico + '</span><span>' + RL(g.en, g.ar) + '</span><span class="rp-n">' + gItems.length + '</span></div>' +
                 (g.period ? _rpPeriodHtml(g.period) : '') +
                 '<div class="rp-chips">' + chips + '</div></div>';
     });
