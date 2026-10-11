@@ -925,7 +925,7 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 .rental-card{border-radius:16px!important;box-shadow:0 2px 10px rgba(13,27,42,.06),0 1px 2px rgba(13,27,42,.04)!important;border:1px solid rgba(124,58,237,.10)!important}
 .rental-card:hover,.rental-card.touch-active{box-shadow:0 18px 36px rgba(124,58,237,.18)!important;border-color:rgba(124,58,237,.22)!important}
 
-.emp-subtab-btn{flex:1 0 auto;white-space:nowrap;border:none;background:transparent;padding:9px 10px;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer;transition:all .18s ease}
+.emp-subtab-btn{flex:1;border:none;background:transparent;padding:9px 10px;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer;transition:all .18s ease}
 .emp-subtab-btn.active{background:white;color:var(--primary);box-shadow:0 2px 6px rgba(13,27,42,.12)}
 
 /* --- شبكة الأقسام (لوحة التحكم الرئيسية بأسلوب أودو) --- */
@@ -1795,47 +1795,9 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
   </div></div>
   
   <div id="view-employees" style="display:none"><div style="padding:14px">
-    <!-- تبويبات الموارد البشرية المطورة -->
-    <div id="employees-subtabs" style="display:flex;gap:6px;margin-bottom:14px;background:#e2e8f0;padding:6px;border-radius:14px;overflow-x:auto;scrollbar-width:thin">
-      <button class="emp-subtab-btn active" data-subtab="employees" onclick="switchEmployeesSubTab('employees')">
-        👥 <span class="i18n-label" data-en="Employees" data-ar="الموظفين">الموظفين</span>
-      </button>
-      <button class="emp-subtab-btn" data-subtab="drivers" onclick="switchEmployeesSubTab('drivers')">
-        👨‍✈️ <span class="i18n-label" data-en="Drivers" data-ar="السائقين">السائقين</span>
-      </button>
-      <button class="emp-subtab-btn" data-subtab="attendance" onclick="switchEmployeesSubTab('attendance')">
-        🕒 <span class="i18n-label" data-en="Attendance" data-ar="الحضور والورديات">الحضور والورديات</span>
-      </button>
-      <button class="emp-subtab-btn" data-subtab="leaves" onclick="switchEmployeesSubTab('leaves')">
-        🏖️ <span class="i18n-label" data-en="Leaves" data-ar="الإجازات">الإجازات والراحات</span>
-      </button>
-      <button class="emp-subtab-btn" data-subtab="payroll" onclick="switchEmployeesSubTab('payroll')">
-        💰 <span class="i18n-label" data-en="Payroll" data-ar="الرواتب">الرواتب والبدلات</span>
-      </button>
-      <button class="emp-subtab-btn" data-subtab="custody" onclick="switchEmployeesSubTab('custody')">
-        📑 <span class="i18n-label" data-en="Documents & Custody" data-ar="الوثائق والعهد">الوثائق والعهد</span>
-      </button>
-    </div>
-
-    <!-- الحاويات الخاصة بالأقسام الجديدة -->
-    <div id="emp-panel-attendance" style="display:none">
-      <!-- سيتم عرض كروت الحضور الحيّة وملخص ساعات اليوم وسجل البصمات -->
-      <div id="attendance-dashboard-container"></div>
-    </div>
-
-    <div id="emp-panel-leaves" style="display:none">
-      <!-- جدول رصيد الإجازات وطلبات الراحات المعلقة -->
-      <div id="leaves-dashboard-container"></div>
-    </div>
-
-    <div id="emp-panel-payroll" style="display:none">
-      <!-- مسير الرواتب الشهري وحساب البدلات والإضافي -->
-      <div id="payroll-dashboard-container"></div>
-    </div>
-
-    <div id="emp-panel-custody" style="display:none">
-      <!-- تنبيهات انتهاء الرخص وبطاقات الهوية ومهمات السلامة PPE -->
-      <div id="custody-dashboard-container"></div>
+    <div id="employees-subtabs" style="display:flex;gap:8px;margin-bottom:12px;background:#eef1f5;padding:4px;border-radius:14px">
+      <button class="emp-subtab-btn active" data-subtab="employees" onclick="switchEmployeesSubTab('employees')">👥 <span class="i18n-label" data-en="Employees" data-ar="الموظفين"></span></button>
+      <button class="emp-subtab-btn" data-subtab="drivers" onclick="switchEmployeesSubTab('drivers')">👨‍✈️ <span class="i18n-label" data-en="Drivers" data-ar="السائقين"></span></button>
     </div>
 
     <div id="emp-panel-employees">
@@ -1956,6 +1918,7 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
         <div class="home-quick-actions" style="padding:0 0 10px">
           <button id="add-rental-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#0284c7,#075985)"><span class="qi">➕</span>إضافة عقد إيجار</button>
           <button onclick="openOvertimeAnomalyModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#0284c7,#075985)"><span class="qi">⚠️</span>كشف الإضافي المشبوه</button>
+          <button onclick="openTimesheetExportModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#059669,#047857)" title="تصدير Time Sheet (إكسيل) لكل المعدات المؤجرة"><span class="qi">📑</span>Time Sheet إكسيل</button>
           <button id="delete-all-rental-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" title="حذف جميع السجلات"><span class="qi">🗑️</span>حذف الكل</button>
         </div>
         <div id="rental-equipment-list"></div>
@@ -21081,1050 +21044,20 @@ function updateEmployeesSubTabVisibility() {
     var canSeeEmployees = hasPermission('all') || canView('employees');
     if (driversTabBtn) driversTabBtn.style.display = canSeeDrivers ? '' : 'none';
     if (employeesTabBtn) employeesTabBtn.style.display = canSeeEmployees ? '' : 'none';
-    HR_EXTRA_TABS.forEach(function(x) { var b = document.querySelector('.emp-subtab-btn[data-subtab="' + x + '"]'); if (b) b.style.display = canSeeEmployees ? '' : 'none'; });
-    if (HR_EXTRA_TABS.indexOf(employeesActiveSubTab) !== -1 && !canSeeEmployees) employeesActiveSubTab = canSeeDrivers ? 'drivers' : 'employees';
     if (employeesActiveSubTab === 'drivers' && !canSeeDrivers) employeesActiveSubTab = 'employees';
     if (employeesActiveSubTab === 'employees' && !canSeeEmployees) employeesActiveSubTab = 'drivers';
 }
 
-// ==================== أقسام الموارد البشرية الجديدة: شاشات الإدخال + النوافذ + ربط Firebase ====================
-// العقد المستخدمة في Firebase (الجديدة):
-//  hrShifts/{id} = { name, start:'HH:MM', end:'HH:MM', grace(د), breakMin(د) }
-//  hrShiftAssignments/{empId} = { shiftId, by, at }
-//  hrLeaveRequests/{id} = { empId, name, type, from, to, days, reason, status:'pending|approved|rejected|cancelled', deducted, requestedBy, requestedAt, reviewedBy, reviewedAt, reviewNote }
-//  hrDocuments/{id} = { empId, name, docType, number, issueDate, expiryDate, note, by, at }
-//  hrCustody/{id} = { empId, name, item, qty, serial, issueDate, returnDate, status:'issued|returned|lost|damaged', condition, note, by, at }
-//  hrPayrollProfiles/{empId} = { payType:'monthly|daily', baseSalary, dailyRate, housing, transport, meal, other, otRate, note }
-//  hrPayrollAdj/{YYYY-MM}/{empId}/{id} = { kind:'allowance|bonus|deduction|advance|overtime', label, amount, hours?, by, at }
-//  hrPayrollStatus/{YYYY-MM}/{empId} = { status:'approved|paid', net, by, at }
-//  hrPayrollDays/{YYYY-MM}/{empId} = { present, absent, leave, calcAt }
-// ويعتمد كمان على العقد الموجودة: employeeAttendance / employeeDayStatus / employeeLeaveLedger / employees.leaveBalance
-var HRX = { ready: false, refs: [], denied: {}, shifts: {}, assign: {}, leaves: {}, docs: {}, custody: {}, profiles: {},
-            adj: {}, pstatus: {}, pdays: {}, payRefs: [], pm: '', custTab: 'docs', custEmp: '',
-            att: { date: '', st: {}, at: {}, loaded: false, loading: false, denied: false } };
-var HRX_PATHS = { shifts: 'hrShifts', assign: 'hrShiftAssignments', leaves: 'hrLeaveRequests', docs: 'hrDocuments', custody: 'hrCustody' };
-
-// ---------- أدوات عامة ----------
-function hrxL(en, ar) { var m = getAppLanguage(); return m === 'en' ? en : (m === 'both' ? ar + ' / ' + en : ar); }
-function hrxEsc(x) { return escapeHtml(x == null ? '' : String(x)); }
-function hrxToday() { return businessDateStr(new Date()); }
-function hrxNow() { return new Date().toISOString(); }
-function hrxWho() { return (currentUser && (currentUser.name || currentUser.username)) || 'مشرف'; }
-function hrxCanWrite() { return hasPermission('all') || canAdd('employees') || canEdit('employees'); }
-function hrxCanManage() { return hasPermission('all') || canEdit('employees'); }
-function hrxEmps() {
-    return (employeesData || []).filter(function(e) { return e.status !== 'منتهي الخدمة'; })
-        .sort(function(a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
-}
-function hrxEmp(id) { return (employeesData || []).find(function(e) { return e.id === id; }); }
-function hrxEmpName(id) { var e = hrxEmp(id); return e ? (e.name || '—') : '—'; }
-function hrxFmt(n) { return (Math.round((+n || 0) * 100) / 100).toLocaleString('en-US'); }
-function hrxDaysBetween(from, to) {
-    var out = [];
-    if (!from || !to || from > to) return out;
-    var d = new Date(from + 'T12:00:00'), end = new Date(to + 'T12:00:00');
-    while (d <= end && out.length < 92) {
-        out.push(d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2));
-        d.setDate(d.getDate() + 1);
-    }
-    return out;
-}
-function hrxTime(iso) { if (!iso) return '—'; var d = new Date(iso); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
-function hrxErrMsg(e) {
-    var m = (e && e.message) || '';
-    if (/permission/i.test(m)) return hrxL('Firebase rules do not allow this — publish the updated database_rules.json', 'قواعد Firebase لا تسمح — انشر ملف database_rules.json المحدّث');
-    return m || hrxL('Operation failed', 'تعذّر التنفيذ');
-}
-function hrxFail(e) { console.error(e); showToast('❌ ' + hrxErrMsg(e), true); }
-function hrxDb() { if (typeof fbDb === 'undefined' || !fbDb) { showToast(hrxL('No database connection', 'لا يوجد اتصال بقاعدة البيانات'), true); return null; } return fbDb; }
-
-function hrxCss() {
-    if (document.getElementById('hrx-css')) return;
-    var st = document.createElement('style'); st.id = 'hrx-css';
-    st.textContent = '.hrx-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px;margin-bottom:12px}' +
-        '.hrx-tile{background:#fff;border:1px solid #e6ecf5;border-radius:14px;padding:10px 6px;text-align:center}.hrx-tile b{display:block;font-size:20px;font-weight:800}.hrx-tile span{font-size:10.5px;color:#64748b}' +
-        '.hrx-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px}' +
-        '.hrx-bar input,.hrx-bar select{border:1px solid #cbd5e1;border-radius:10px;padding:8px;font-family:inherit;font-size:12.5px;background:#fff;color:#0d1b2a}' +
-        '.hrx-btn{background:linear-gradient(135deg,#0284c7,#075985);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}' +
-        '.hrx-btn.alt{background:#e2e8f0;color:#0d1b2a}.hrx-btn.red{background:linear-gradient(135deg,#dc2626,#b91c1c)}.hrx-btn.green{background:linear-gradient(135deg,#059669,#047857)}.hrx-btn.sm{padding:5px 9px;font-size:11px;border-radius:8px}' +
-        '.hrx-card{background:#fff;border:1px solid #e6ecf5;border-radius:14px;padding:12px;margin-bottom:8px}' +
-        '.hrx-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}' +
-        '.hrx-h{font-size:14px;font-weight:800;margin:16px 0 8px;color:#0d1b2a}.hrx-sub{font-size:11px;color:#64748b;line-height:1.6}' +
-        '.hrx-chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;background:#e2e8f0;color:#334155}' +
-        '.hrx-chip.ok{background:#d1fae5;color:#065f46}.hrx-chip.bad{background:#fee2e2;color:#991b1b}.hrx-chip.warn{background:#fef3c7;color:#92400e}.hrx-chip.info{background:#e0f2fe;color:#075985}' +
-        '.hrx-empty{text-align:center;color:#64748b;padding:26px 12px;font-size:12.5px;background:#fff;border:1px dashed #cbd5e1;border-radius:14px}' +
-        '.hrx-kv{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:11.5px;margin-top:8px}.hrx-kv div{display:flex;justify-content:space-between;gap:6px;border-bottom:1px dashed #e2e8f0;padding:2px 0}' +
-        '.hrx-seg{display:flex;gap:4px;background:#e2e8f0;padding:4px;border-radius:12px;margin-bottom:12px}.hrx-seg button{flex:1;border:none;background:transparent;padding:8px;border-radius:9px;font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer;color:#475569}.hrx-seg button.on{background:#fff;color:#0d1b2a;box-shadow:0 1px 4px rgba(0,0,0,.12)}' +
-        'html[data-theme="dark"] .hrx-tile,html[data-theme="dark"] .hrx-card,html[data-theme="dark"] .hrx-empty{background:#1e293b;border-color:#334155;color:#e2e8f0}' +
-        'html[data-theme="dark"] .hrx-h{color:#e2e8f0}html[data-theme="dark"] .hrx-bar input,html[data-theme="dark"] .hrx-bar select{background:#0f172a;color:#e2e8f0;border-color:#334155}';
-    document.head.appendChild(st);
-}
-
-// ---------- نوافذ الإدخال (تستخدم نفس تنسيق نوافذ التطبيق) ----------
-function hrxCloseModal() { var m = document.getElementById('hrx-modal'); if (m) m.remove(); }
-function hrxModal(title, body, saveLabel, onSave) {
-    hrxCloseModal();
-    var ov = document.createElement('div');
-    ov.className = 'modal-overlay active'; ov.id = 'hrx-modal';
-    ov.innerHTML = '<div class="modal-header"><div class="modal-title">' + title + '</div><button class="modal-close" onclick="hrxCloseModal()">✕</button></div>' +
-        '<div><div class="form-group">' + body + '</div>' + (onSave ? '<button class="save-btn" id="hrx-save-btn">' + saveLabel + '</button>' : '') + '</div>';
-    document.body.appendChild(ov);
-    if (onSave) document.getElementById('hrx-save-btn').onclick = function() {
-        var b = this; if (b.disabled) return; b.disabled = true;
-        var res; try { res = onSave(); } catch (e) { b.disabled = false; hrxFail(e); return; }
-        Promise.resolve(res).then(function(ok) { if (ok === false) b.disabled = false; else hrxCloseModal(); }).catch(function(e) { b.disabled = false; hrxFail(e); });
-    };
-}
-function hrxF(label, inner) { return '<div class="form-field"><label class="form-label">' + label + '</label>' + inner + '</div>'; }
-function hrxIn(id, type, val, extra) { return '<input class="form-input" id="hrx-f-' + id + '" type="' + (type || 'text') + '" value="' + hrxEsc(val == null ? '' : val) + '" ' + (extra || '') + '>'; }
-function hrxTa(id, val) { return '<textarea class="form-textarea" id="hrx-f-' + id + '">' + hrxEsc(val || '') + '</textarea>'; }
-function hrxSel(id, opts, cur, extra) {
-    return '<select class="form-select" id="hrx-f-' + id + '" ' + (extra || '') + '>' + opts.map(function(o) {
-        return '<option value="' + hrxEsc(o[0]) + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + hrxEsc(o[1]) + '</option>';
-    }).join('') + '</select>';
-}
-function hrxV(id) { var el = document.getElementById('hrx-f-' + id); return el ? String(el.value || '').trim() : ''; }
-function hrxEmpOpts(filterFn) {
-    return hrxEmps().filter(filterFn || function() { return true; }).map(function(e) { return [e.id, (e.name || '') + (e.jobCode ? ' (' + e.jobCode + ')' : '')]; });
-}
-
-// ---------- الاشتراك في بيانات Firebase (مرة واحدة) ----------
-function hrxAttach() {
-    if (HRX.ready) return;
-    var db = (typeof fbDb !== 'undefined') ? fbDb : null;
-    if (!db) return;
-    HRX.ready = true;
-    Object.keys(HRX_PATHS).forEach(function(k) {
-        var ref = db.ref(HRX_PATHS[k]);
-        ref.on('value', function(s) { HRX[k] = s.val() || {}; HRX.denied[k] = false; hrxRerender(); },
-               function() { HRX.denied[k] = true; hrxRerender(); });
-        HRX.refs.push(ref);
-    });
-    if (hrxCanManage()) {
-        var pr = db.ref('hrPayrollProfiles');
-        pr.on('value', function(s) { HRX.profiles = s.val() || {}; HRX.denied.profiles = false; hrxRerender(); },
-              function() { HRX.denied.profiles = true; hrxRerender(); });
-        HRX.refs.push(pr);
-    }
-}
-var _hrxT = null;
-function hrxRerender() {
-    clearTimeout(_hrxT);
-    _hrxT = setTimeout(function() {
-        var v = document.getElementById('view-employees');
-        if (!v || v.style.display === 'none') return;
-        if (HR_EXTRA_TABS.indexOf(hrActiveSubTab) !== -1) renderHRExtraPanel(hrActiveSubTab);
-    }, 60);
-}
-function hrxDeniedBanner(keys) {
-    var bad = keys.filter(function(k) { return HRX.denied[k]; });
-    if (!bad.length) return '';
-    return '<div class="hrx-card" style="border-color:#fecaca;background:#fef2f2;color:#991b1b;font-size:12px">⚠️ ' +
-        hrxL('Firebase rules do not allow reading some data for this section. Publish the updated database_rules.json file.', 'قواعد Firebase لا تسمح بقراءة بعض بيانات هذا القسم. انشر ملف database_rules.json المحدّث.') + '</div>';
-}
-
-// =====================================================================
-// 1) الحضور والورديات
-// =====================================================================
-function hrxShiftOf(empId) {
-    var a = HRX.assign[empId];
-    return a && HRX.shifts[a.shiftId] ? Object.assign({ id: a.shiftId }, HRX.shifts[a.shiftId]) : null;
-}
-function hrxLoadAtt() {
-    var db = hrxDb(); var a = HRX.att; if (!db || a.loading) return;
-    var d = a.date; a.loading = true;
-    Promise.all([
-        db.ref('employeeAttendance/' + d).once('value'),
-        db.ref('employeeDayStatus/' + d).once('value').catch(function() { return null; })
-    ]).then(function(r) {
-        if (a.date !== d) return;
-        a.at = (r[0] && r[0].val()) || {}; a.st = (r[1] && r[1].val()) || {}; a.loaded = true; a.denied = false;
-    }).catch(function() { a.denied = true; a.loaded = true; })
-      .then(function() { a.loading = false; if (a.date !== d) { a.loaded = false; } hrxRerender(); });
-}
-function hrxAttDate(v) { var a = HRX.att; a.date = v || hrxToday(); a.loaded = false; a.loading = false; renderHRAttendancePanel(); }
-function hrxAttReload() { HRX.att.loaded = false; HRX.att.loading = false; renderHRAttendancePanel(); }
-
-function renderHRAttendancePanel() {
-    hrxAttach(); hrxCss();
-    var box = document.getElementById('attendance-dashboard-container'); if (!box) return;
-    var a = HRX.att; if (!a.date) a.date = hrxToday();
-    if (!a.loaded && !a.loading) hrxLoadAtt();
-    var emps = hrxEmps(), cnt = { present: 0, absent: 0, leave: 0, none: 0, late: 0 };
-    var canW = hrxCanWrite();
-    var shiftOpts = [['', hrxL('— No shift —', '— بدون وردية —')]].concat(Object.keys(HRX.shifts).map(function(k) { return [k, HRX.shifts[k].name || k]; }));
-    var cards = emps.map(function(e) {
-        var st = a.st[e.id], at = a.at[e.id], shift = hrxShiftOf(e.id);
-        var status = st && st.status ? st.status : (at && at.startAt ? 'present' : '');
-        var late = 0;
-        if (status === 'present' && at && at.startAt && shift && shift.start) {
-            var d = new Date(at.startAt), sm = shift.start.split(':');
-            var diff = (d.getHours() * 60 + d.getMinutes()) - ((+sm[0]) * 60 + (+sm[1] || 0));
-            if (diff > (+shift.grace || 0) && diff < 720) late = diff;
-        }
-        cnt[status || 'none']++; if (late) cnt.late++;
-        var hours = '—';
-        if (at && at.startAt && at.endAt) {
-            var h = (new Date(at.endAt) - new Date(at.startAt)) / 36e5 - ((shift && +shift.breakMin) || 0) / 60;
-            hours = hrxFmt(Math.max(0, h)) + hrxL(' h', ' س');
-        } else if (at && at.startAt) hours = hrxL('In progress', 'جارٍ');
-        var chip = status === 'present' ? '<span class="hrx-chip ok">✅ ' + hrxL('Present', 'حاضر') + '</span>'
-            : status === 'absent' ? '<span class="hrx-chip bad">❌ ' + hrxL('Absent', 'غائب') + '</span>'
-            : status === 'leave' ? '<span class="hrx-chip info">🏖️ ' + hrxL('On leave', 'إجازة') + '</span>'
-            : '<span class="hrx-chip">⏳ ' + hrxL('Not recorded', 'لم يُسجَّل') + '</span>';
-        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(e.name) + '</b><div class="hrx-sub">' + hrxEsc(e.title || '') + (e.projectSite ? ' — ' + hrxEsc(e.projectSite) : '') + '</div></div>' + chip + '</div>' +
-            '<div class="hrx-kv"><div><span>' + hrxL('Check-in', 'الدخول') + '</span><b>' + hrxTime(at && at.startAt) + '</b></div><div><span>' + hrxL('Check-out', 'الخروج') + '</span><b>' + hrxTime(at && at.endAt) + '</b></div>' +
-            '<div><span>' + hrxL('Hours', 'الساعات') + '</span><b>' + hours + '</b></div><div><span>' + hrxL('Late', 'التأخير') + '</span><b style="color:' + (late ? '#dc2626' : 'inherit') + '">' + (late ? late + hrxL(' min', ' د') : '—') + '</b></div></div>' +
-            (at && at.manual ? '<div class="hrx-sub">✍️ ' + hrxL('Entered manually', 'تسجيل يدوي') + (at.by ? ' — ' + hrxEsc(at.by) : '') + '</div>' : '') +
-            (st && st.note ? '<div class="hrx-sub">📝 ' + hrxEsc(st.note) + '</div>' : '') +
-            '<div class="hrx-row" style="margin-top:8px"><select ' + (canW ? '' : 'disabled') + ' onchange="hrxAssignShift(\'' + e.id + '\',this.value)" style="border:1px solid #cbd5e1;border-radius:8px;padding:5px;font-family:inherit;font-size:11.5px;max-width:55%">' +
-            shiftOpts.map(function(o) { return '<option value="' + hrxEsc(o[0]) + '"' + ((shift && shift.id === o[0]) || (!shift && o[0] === '') ? ' selected' : '') + '>' + hrxEsc(o[1]) + '</option>'; }).join('') + '</select>' +
-            (canW ? '<button class="hrx-btn sm" onclick="hrxOpenAttModal(\'' + e.id + '\')">✏️ ' + hrxL('Record / edit', 'تسجيل / تعديل') + '</button>' : '') + '</div></div>';
-    }).join('');
-    box.innerHTML = hrxDeniedBanner(['shifts', 'assign']) +
-        '<div class="hrx-bar"><input type="date" value="' + a.date + '" max="' + hrxToday() + '" onchange="hrxAttDate(this.value)">' +
-        (canW ? '<button class="hrx-btn" onclick="hrxOpenAttModal()">➕ ' + hrxL('Manual attendance', 'تسجيل حضور يدوي') + '</button>' : '') +
-        (canW ? '<button class="hrx-btn alt" onclick="hrxOpenShiftsModal()">⚙️ ' + hrxL('Shifts', 'الورديات') + '</button>' : '') +
-        '<button class="hrx-btn alt" onclick="hrxAttReload()">🔄</button>' +
-        '<button class="hrx-btn alt" onclick="hrxRepAttendancePdf(HRX.att.date.slice(0,7))">📄 ' + hrxL('Month PDF', 'PDF الشهر') + '</button>' +
-        '<button class="hrx-btn alt" onclick="hrxRepAttendanceExcel(HRX.att.date.slice(0,7))">⬇️ Excel</button></div>' +
-        (a.denied ? '<div class="hrx-card" style="color:#991b1b;background:#fef2f2">⚠️ ' + hrxL('Could not load attendance for this date (check Firebase rules / connection).', 'تعذّر تحميل حضور هذا اليوم (تأكد من القواعد / الاتصال).') + '</div>' : '') +
-        '<div class="hrx-tiles"><div class="hrx-tile"><b style="color:#059669">' + cnt.present + '</b><span>' + hrxL('Present', 'حاضر') + '</span></div>' +
-        '<div class="hrx-tile"><b style="color:#dc2626">' + cnt.absent + '</b><span>' + hrxL('Absent', 'غائب') + '</span></div>' +
-        '<div class="hrx-tile"><b style="color:#0284c7">' + cnt.leave + '</b><span>' + hrxL('On leave', 'إجازة') + '</span></div>' +
-        '<div class="hrx-tile"><b style="color:#d97706">' + cnt.late + '</b><span>' + hrxL('Late', 'متأخر') + '</span></div>' +
-        '<div class="hrx-tile"><b>' + cnt.none + '</b><span>' + hrxL('Not recorded', 'لم يُسجَّل') + '</span></div></div>' +
-        (a.loading && !a.loaded ? '<div class="hrx-empty">⏳ ' + hrxL('Loading...', 'جاري التحميل...') + '</div>' : (cards || '<div class="hrx-empty">' + hrxL('No employees', 'لا يوجد موظفون') + '</div>'));
-}
-
-function hrxAssignShift(empId, shiftId) {
-    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var db = hrxDb(); if (!db) return;
-    var ref = db.ref('hrShiftAssignments/' + empId);
-    (shiftId ? ref.set({ shiftId: shiftId, by: hrxWho(), at: hrxNow() }) : ref.remove())
-        .then(function() { showToast('✅ ' + hrxL('Shift updated', 'تم تحديث الوردية')); }).catch(hrxFail);
-}
-
-function hrxOpenAttModal(empId) {
-    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var d = HRX.att.date || hrxToday();
-    var body = hrxF('👤 ' + hrxL('Employee', 'الموظف') + ' *', hrxSel('emp', [['', hrxL('— Select —', '— اختر —')]].concat(hrxEmpOpts()), empId || '')) +
-        hrxF('📅 ' + hrxL('Date', 'التاريخ'), hrxIn('date', 'date', d, 'max="' + hrxToday() + '"')) +
-        hrxF(hrxL('Status', 'الحالة'), hrxSel('status', [['present', '✅ ' + hrxL('Present', 'حاضر')], ['absent', '❌ ' + hrxL('Absent', 'غائب')]], 'present', 'onchange="document.getElementById(\'hrx-times\').style.display=this.value===\'present\'?\'\':\'none\'"')) +
-        '<div id="hrx-times">' + hrxF('🕒 ' + hrxL('Check-in time', 'وقت الدخول') + ' *', hrxIn('in', 'time', '08:00')) + hrxF('🕔 ' + hrxL('Check-out time', 'وقت الخروج'), hrxIn('out', 'time', '')) + '</div>' +
-        hrxF('📝 ' + hrxL('Note', 'ملاحظة'), hrxTa('note', ''));
-    hrxModal('🕒 ' + hrxL('Manual attendance', 'تسجيل حضور يدوي'), body, '✅ ' + hrxL('Save', 'حفظ'), hrxSaveAtt);
-}
-function hrxSaveAtt() {
-    var db = hrxDb(); if (!db) return false;
-    var id = hrxV('emp'), d = hrxV('date'), status = hrxV('status'), tin = hrxV('in'), tout = hrxV('out'), note = hrxV('note');
-    var e = hrxEmp(id);
-    if (!e) { showToast(hrxL('Select the employee', 'اختر الموظف'), true); return false; }
-    if (!d || d > hrxToday()) { showToast(hrxL('Invalid date', 'تاريخ غير صحيح'), true); return false; }
-    var shift = hrxShiftOf(id), who = hrxWho(), now = hrxNow();
-    if (status === 'present') {
-        if (!tin) { showToast(hrxL('Enter the check-in time', 'أدخل وقت الدخول'), true); return false; }
-        var s = new Date(d + 'T' + tin + ':00'), en = null;
-        if (tout) { en = new Date(d + 'T' + tout + ':00'); if (en <= s) en.setDate(en.getDate() + 1); }
-        var rec = { empId: id, name: e.name || '', date: d, startAt: s.toISOString(), endAt: en ? en.toISOString() : null, manual: true, source: 'manual', by: who, editedAt: now };
-        if (shift) rec.shiftId = shift.id;
-        if (note) rec.note = note;
-        return db.ref('employeeAttendance/' + d + '/' + id).update(rec).then(function() {
-            return db.ref('employeeDayStatus/' + d + '/' + id).once('value').then(function(sn) {
-                var v = sn.val(); return v && v.status === 'absent' ? db.ref('employeeDayStatus/' + d + '/' + id).remove() : null;
-            });
-        }).then(function() { showToast('✅ ' + hrxL('Attendance saved', 'تم حفظ الحضور')); hrxAttReload(); });
-    }
-    return db.ref('employeeAttendance/' + d + '/' + id).once('value').then(function(sn) {
-        if (sn.exists() && !confirm(hrxL('This employee has a check-in record on this day. Mark absent and delete it?', 'للموظف تسجيل دخول في هذا اليوم. تسجيله غائبًا وحذف تسجيل الدخول؟'))) return false;
-        var ops = sn.exists() ? db.ref('employeeAttendance/' + d + '/' + id).remove() : Promise.resolve();
-        return ops.then(function() {
-            return db.ref('employeeDayStatus/' + d + '/' + id).set({ empId: id, name: e.name || '', date: d, status: 'absent', note: note, by: who, at: now });
-        }).then(function() { showToast('✅ ' + hrxL('Absence recorded', 'تم تسجيل الغياب')); hrxAttReload(); });
-    });
-}
-
-function hrxOpenShiftsModal() {
-    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var list = Object.keys(HRX.shifts).map(function(k) {
-        var s = HRX.shifts[k];
-        return '<div class="hrx-card" style="margin:0 0 6px"><div class="hrx-row"><div><b>' + hrxEsc(s.name) + '</b><div class="hrx-sub">' + hrxEsc(s.start) + ' → ' + hrxEsc(s.end) + ' • ' + hrxL('Grace', 'سماح') + ' ' + (+s.grace || 0) + hrxL(' min', ' د') + ' • ' + hrxL('Break', 'استراحة') + ' ' + (+s.breakMin || 0) + hrxL(' min', ' د') + '</div></div>' +
-            (hrxCanManage() ? '<button class="hrx-btn red sm" onclick="hrxDelShift(\'' + k + '\')">🗑️</button>' : '') + '</div></div>';
-    }).join('') || '<div class="hrx-sub" style="text-align:center;padding:8px">' + hrxL('No shifts yet', 'لا توجد ورديات بعد') + '</div>';
-    var body = '<div style="padding:0 14px">' + list + '</div>' +
-        '<div class="hrx-h" style="padding:0 14px">➕ ' + hrxL('New shift', 'وردية جديدة') + '</div>' +
-        hrxF(hrxL('Shift name', 'اسم الوردية') + ' *', hrxIn('sname', 'text', '', 'placeholder="' + hrxL('e.g. Day shift', 'مثال: وردية نهارية') + '"')) +
-        hrxF(hrxL('Start', 'البداية'), hrxIn('sstart', 'time', '08:00')) + hrxF(hrxL('End', 'النهاية'), hrxIn('send', 'time', '17:00')) +
-        hrxF(hrxL('Late grace (minutes)', 'سماح التأخير (دقائق)'), hrxIn('sgrace', 'number', '15', 'min="0"')) +
-        hrxF(hrxL('Break (minutes, deducted from hours)', 'الاستراحة (دقائق — تُخصم من الساعات)'), hrxIn('sbreak', 'number', '60', 'min="0"'));
-    hrxModal('⚙️ ' + hrxL('Shifts', 'الورديات'), body, '✅ ' + hrxL('Add shift', 'إضافة وردية'), function() {
-        var db = hrxDb(); if (!db) return false;
-        var name = hrxV('sname'); if (!name) { showToast(hrxL('Enter the shift name', 'أدخل اسم الوردية'), true); return false; }
-        return db.ref('hrShifts').push({ name: name, start: hrxV('sstart') || '08:00', end: hrxV('send') || '17:00', grace: +hrxV('sgrace') || 0, breakMin: +hrxV('sbreak') || 0, by: hrxWho(), at: hrxNow() })
-            .then(function() { showToast('✅ ' + hrxL('Shift added', 'تمت إضافة الوردية')); });
-    });
-}
-function hrxDelShift(id) {
-    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var used = Object.keys(HRX.assign).filter(function(k) { return HRX.assign[k] && HRX.assign[k].shiftId === id; }).length;
-    if (!confirm(hrxL('Delete this shift?', 'حذف هذه الوردية؟') + (used ? '\n' + hrxL('It is assigned to ' + used + ' employee(s); they will become unassigned.', 'مسندة لـ ' + used + ' موظف وسيصبحون بدون وردية.') : ''))) return;
-    var db = hrxDb(); if (!db) return;
-    var ups = {}; ups['hrShifts/' + id] = null;
-    Object.keys(HRX.assign).forEach(function(k) { if (HRX.assign[k] && HRX.assign[k].shiftId === id) ups['hrShiftAssignments/' + k] = null; });
-    db.ref().update(ups).then(function() { showToast('🗑️ ' + hrxL('Shift deleted', 'تم حذف الوردية')); hrxCloseModal(); }).catch(hrxFail);
-}
-
-// =====================================================================
-// 2) الإجازات والراحات
-// =====================================================================
-function hrxLeaveTypes() {
-    return [['annual', '🏖️ ' + hrxL('Annual leave (deducted)', 'إجازة سنوية (تُخصم من الرصيد)')], ['sick', '🤒 ' + hrxL('Sick leave', 'إجازة مرضية')],
-            ['emergency', '🚨 ' + hrxL('Emergency leave', 'إجازة طارئة')], ['rest', '🛌 ' + hrxL('Rest day', 'راحة')], ['unpaid', '💸 ' + hrxL('Unpaid leave', 'إجازة بدون أجر')]];
-}
-function hrxLeaveTypeLabel(t) { var f = hrxLeaveTypes().filter(function(x) { return x[0] === t; })[0]; return f ? f[1].replace(/\s*\(.*\)$/, '') : t; }
-function hrxLeaveReqs() {
-    return Object.keys(HRX.leaves).map(function(k) { return Object.assign({ id: k }, HRX.leaves[k]); })
-        .sort(function(a, b) { return String(b.requestedAt || '').localeCompare(String(a.requestedAt || '')); });
-}
-
-function renderHRLeavesPanel() {
-    hrxAttach(); hrxCss();
-    var box = document.getElementById('leaves-dashboard-container'); if (!box) return;
-    var today = hrxToday(), canW = hrxCanWrite(), canM = hrxCanManage();
-    var reqs = hrxLeaveReqs();
-    var pending = reqs.filter(function(r) { return r.status === 'pending'; });
-    var onLeave = reqs.filter(function(r) { return r.status === 'approved' && r.from <= today && r.to >= today; });
-    var perm = hrxEmps().filter(function(e) { return e.employmentType === 'معين'; });
-    var low = perm.filter(function(e) { return (parseFloat(e.leaveBalance) || 0) <= 3; }).length;
-    var statusChip = function(s) {
-        return s === 'approved' ? '<span class="hrx-chip ok">✅ ' + hrxL('Approved', 'معتمدة') + '</span>' : s === 'rejected' ? '<span class="hrx-chip bad">🚫 ' + hrxL('Rejected', 'مرفوضة') + '</span>'
-            : s === 'cancelled' ? '<span class="hrx-chip">↩️ ' + hrxL('Cancelled', 'ملغاة') + '</span>' : '<span class="hrx-chip warn">⏳ ' + hrxL('Pending', 'بانتظار الاعتماد') + '</span>';
-    };
-    var reqCard = function(r, actions) {
-        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(r.name || hrxEmpName(r.empId)) + '</b><div class="hrx-sub">' + hrxEsc(hrxLeaveTypeLabel(r.type)) + ' • ' + hrxEsc(r.from) + ' → ' + hrxEsc(r.to) + ' (' + (r.days || 0) + hrxL(' d', ' يوم') + ')</div></div>' + statusChip(r.status) + '</div>' +
-            (r.reason ? '<div class="hrx-sub">📝 ' + hrxEsc(r.reason) + '</div>' : '') +
-            '<div class="hrx-sub">' + hrxL('Requested by', 'قدّمه') + ': ' + hrxEsc(r.requestedBy || '—') + (r.reviewedBy ? ' • ' + hrxL('Reviewed by', 'راجعه') + ': ' + hrxEsc(r.reviewedBy) : '') + (r.reviewNote ? ' • ' + hrxEsc(r.reviewNote) : '') + '</div>' +
-            (actions || '') + '</div>';
-    };
-    var pendHtml = pending.map(function(r) {
-        return reqCard(r, canM ? '<div class="hrx-row" style="margin-top:8px"><button class="hrx-btn green" style="flex:1" onclick="hrxApproveLeave(\'' + r.id + '\')">✅ ' + hrxL('Approve', 'اعتماد') + '</button><button class="hrx-btn red" style="flex:1" onclick="hrxRejectLeave(\'' + r.id + '\')">🚫 ' + hrxL('Reject', 'رفض') + '</button></div>' : '');
-    }).join('') || '<div class="hrx-empty">' + hrxL('No pending requests', 'لا توجد طلبات معلّقة') + '</div>';
-    var hist = reqs.filter(function(r) { return r.status !== 'pending'; }).slice(0, 25).map(function(r) {
-        return reqCard(r, canM && r.status === 'approved' ? '<div style="margin-top:8px"><button class="hrx-btn alt sm" onclick="hrxCancelLeave(\'' + r.id + '\')">↩️ ' + hrxL('Cancel & refund', 'إلغاء واسترداد الرصيد') + '</button></div>' : '');
-    }).join('') || '<div class="hrx-empty">' + hrxL('No history yet', 'لا يوجد سجل بعد') + '</div>';
-    var bal = perm.map(function(e) {
-        var b = parseFloat(e.leaveBalance) || 0;
-        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(e.name) + '</b><div class="hrx-sub">' + hrxEsc(e.title || '') + '</div></div>' +
-            '<span class="hrx-chip ' + (b <= 0 ? 'bad' : b <= 3 ? 'warn' : 'ok') + '" style="font-size:13px">' + hrxFmt(b) + ' ' + hrxL('days', 'يوم') + '</span></div>' +
-            '<div class="hrx-row" style="margin-top:8px"><button class="hrx-btn alt sm" onclick="hrxOpenLedgerModal(\'' + e.id + '\')">📒 ' + hrxL('Ledger', 'سجل الرصيد') + '</button>' +
-            (canM ? '<button class="hrx-btn sm" onclick="hrxOpenBalanceModal(\'' + e.id + '\')">± ' + hrxL('Adjust balance', 'تعديل الرصيد') + '</button>' : '') + '</div></div>';
-    }).join('') || '<div class="hrx-empty">' + hrxL('No permanent employees', 'لا يوجد موظفون معيّنون') + '</div>';
-    box.innerHTML = hrxDeniedBanner(['leaves']) +
-        '<div class="hrx-bar">' + (canW ? '<button class="hrx-btn" onclick="hrxOpenLeaveModal()">➕ ' + hrxL('New leave / rest request', 'طلب إجازة / راحة') + '</button>' : '') + '</div>' +
-        '<div class="hrx-tiles"><div class="hrx-tile"><b style="color:#d97706">' + pending.length + '</b><span>' + hrxL('Pending', 'بانتظار الاعتماد') + '</span></div>' +
-        '<div class="hrx-tile"><b style="color:#0284c7">' + onLeave.length + '</b><span>' + hrxL('On leave today', 'في إجازة اليوم') + '</span></div>' +
-        '<div class="hrx-tile"><b style="color:#dc2626">' + low + '</b><span>' + hrxL('Low balance (≤3)', 'رصيد منخفض (≤3)') + '</span></div></div>' +
-        '<div class="hrx-h">⏳ ' + hrxL('Pending requests', 'الطلبات المعلّقة') + '</div>' + pendHtml +
-        '<div class="hrx-h">📒 ' + hrxL('Leave balances (permanent staff)', 'أرصدة الإجازات (المعيّنون)') + '</div>' + bal +
-        '<div class="hrx-h">🗂️ ' + hrxL('Recent requests', 'آخر الطلبات') + '</div>' + hist;
-}
-
-function hrxOpenLeaveModal() {
-    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var today = hrxToday();
-    var upd = 'oninput="hrxLeaveCalc()" onchange="hrxLeaveCalc()"';
-    var body = hrxF('👤 ' + hrxL('Employee', 'الموظف') + ' *', hrxSel('emp', [['', hrxL('— Select —', '— اختر —')]].concat(hrxEmpOpts()), '', upd)) +
-        hrxF(hrxL('Type', 'النوع'), hrxSel('type', hrxLeaveTypes(), 'annual', upd)) +
-        hrxF('📅 ' + hrxL('From', 'من') + ' *', hrxIn('from', 'date', today, upd)) + hrxF('📅 ' + hrxL('To', 'إلى') + ' *', hrxIn('to', 'date', today, upd)) +
-        '<div class="form-field"><div id="hrx-leave-info" class="hrx-sub" style="background:#f1f5f9;border-radius:10px;padding:8px"></div></div>' +
-        hrxF('📝 ' + hrxL('Reason', 'السبب'), hrxTa('reason', '')) +
-        (hrxCanManage() ? '<div class="form-field"><label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" id="hrx-f-auto"> ⚡ ' + hrxL('Approve immediately', 'اعتماد فوري') + '</label></div>' : '');
-    hrxModal('🏖️ ' + hrxL('Leave / rest request', 'طلب إجازة / راحة'), body, '✅ ' + hrxL('Submit', 'إرسال'), hrxSaveLeave);
-    hrxLeaveCalc();
-}
-function hrxLeaveCalc() {
-    var info = document.getElementById('hrx-leave-info'); if (!info) return;
-    var days = hrxDaysBetween(hrxV('from'), hrxV('to')).length, e = hrxEmp(hrxV('emp')), t = hrxV('type');
-    var txt = hrxL('Days: ', 'عدد الأيام: ') + days;
-    if (e && t === 'annual') {
-        if (e.employmentType === 'معين') { var b = parseFloat(e.leaveBalance) || 0; txt += ' • ' + hrxL('Balance: ', 'الرصيد: ') + hrxFmt(b) + (days > b ? ' ⚠️ ' + hrxL('insufficient', 'غير كافٍ') : ''); }
-        else txt += ' • ' + hrxL('Daily-wage staff have no balance', 'السركي لا يوجد له رصيد');
-    }
-    info.textContent = txt;
-}
-function hrxSaveLeave() {
-    var db = hrxDb(); if (!db) return false;
-    var id = hrxV('emp'), e = hrxEmp(id), from = hrxV('from'), to = hrxV('to'), t = hrxV('type');
-    if (!e) { showToast(hrxL('Select the employee', 'اختر الموظف'), true); return false; }
-    var days = hrxDaysBetween(from, to).length;
-    if (!days) { showToast(hrxL('Invalid dates', 'التواريخ غير صحيحة'), true); return false; }
-    var req = { empId: id, name: e.name || '', type: t, from: from, to: to, days: days, reason: hrxV('reason'), status: 'pending', deducted: 0, requestedBy: hrxWho(), requestedAt: hrxNow() };
-    var auto = document.getElementById('hrx-f-auto') && document.getElementById('hrx-f-auto').checked && hrxCanManage();
-    var ref = db.ref('hrLeaveRequests').push();
-    return ref.set(req).then(function() {
-        if (auto) return hrxApplyLeave(ref.key, req);
-        showToast('✅ ' + hrxL('Request submitted', 'تم إرسال الطلب'));
-    });
-}
-
-// تطبيق الاعتماد: خصم الرصيد (للسنوية والمعيّن) + تسجيل أيام الإجازة في employeeDayStatus
-function hrxApplyLeave(id, req) {
-    var db = hrxDb(); if (!db) return Promise.resolve(false);
-    var e = hrxEmp(req.empId), dates = hrxDaysBetween(req.from, req.to);
-    var deduct = req.type === 'annual' && e && e.employmentType === 'معين';
-    var p = deduct ? empAdjustBalance(req.empId, -dates.length, { type: 'leave', date: req.from, note: 'إجازة سنوية معتمدة (' + dates.length + ' يوم)' }, true) : Promise.resolve(true);
-    return p.then(function(ok) {
-        if (!ok) { showToast('⚠️ ' + hrxL('Insufficient leave balance', 'رصيد الإجازات غير كافٍ'), true); return false; }
-        var ups = {}, who = hrxWho(), now = hrxNow();
-        dates.forEach(function(d) {
-            ups['employeeDayStatus/' + d + '/' + req.empId] = { empId: req.empId, name: req.name || '', date: d, status: 'leave', deducted: deduct ? 1 : 0, leaveType: req.type, reqId: id, by: who, at: now };
-        });
-        ups['hrLeaveRequests/' + id + '/status'] = 'approved';
-        ups['hrLeaveRequests/' + id + '/deducted'] = deduct ? dates.length : 0;
-        ups['hrLeaveRequests/' + id + '/reviewedBy'] = who;
-        ups['hrLeaveRequests/' + id + '/reviewedAt'] = now;
-        return db.ref().update(ups).then(function() { showToast('✅ ' + hrxL('Leave approved and applied', 'تم اعتماد الإجازة وتطبيقها')); return true; });
-    }).catch(function(e2) { hrxFail(e2); return false; });
-}
-function hrxApproveLeave(id) {
-    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var r = HRX.leaves[id]; if (!r || r.status !== 'pending') return;
-    hrxApplyLeave(id, r);
-}
-function hrxRejectLeave(id) {
-    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var note = prompt(hrxL('Rejection reason (optional)', 'سبب الرفض (اختياري)'), '');
-    if (note === null) return;
-    var db = hrxDb(); if (!db) return;
-    db.ref('hrLeaveRequests/' + id).update({ status: 'rejected', reviewedBy: hrxWho(), reviewedAt: hrxNow(), reviewNote: note || '' })
-        .then(function() { showToast('🚫 ' + hrxL('Request rejected', 'تم رفض الطلب')); }).catch(hrxFail);
-}
-function hrxCancelLeave(id) {
-    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var r = HRX.leaves[id]; if (!r || r.status !== 'approved') return;
-    if (!confirm(hrxL('Cancel this approved leave and refund the deducted balance?', 'إلغاء هذه الإجازة المعتمدة واسترداد الرصيد المخصوم؟'))) return;
-    var db = hrxDb(); if (!db) return;
-    var dates = hrxDaysBetween(r.from, r.to);
-    Promise.all(dates.map(function(d) { return db.ref('employeeDayStatus/' + d + '/' + r.empId).once('value'); })).then(function(snaps) {
-        var ups = {};
-        snaps.forEach(function(s, i) { var v = s.val(); if (v && v.reqId === id) ups['employeeDayStatus/' + dates[i] + '/' + r.empId] = null; });
-        ups['hrLeaveRequests/' + id + '/status'] = 'cancelled';
-        ups['hrLeaveRequests/' + id + '/reviewedBy'] = hrxWho();
-        ups['hrLeaveRequests/' + id + '/reviewedAt'] = hrxNow();
-        return db.ref().update(ups);
-    }).then(function() {
-        var ded = +r.deducted || 0;
-        return ded > 0 ? empAdjustBalance(r.empId, ded, { type: 'refund', date: r.from, note: 'إلغاء إجازة معتمدة' }, false) : true;
-    }).then(function() { showToast('↩️ ' + hrxL('Leave cancelled', 'تم إلغاء الإجازة')); }).catch(hrxFail);
-}
-
-function hrxOpenBalanceModal(empId) {
-    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var e = hrxEmp(empId); if (!e) return;
-    var body = '<div class="form-field"><div class="hrx-sub" style="background:#f1f5f9;border-radius:10px;padding:8px"><b>' + hrxEsc(e.name) + '</b> — ' + hrxL('Current balance', 'الرصيد الحالي') + ': ' + hrxFmt(parseFloat(e.leaveBalance) || 0) + '</div></div>' +
-        hrxF(hrxL('Operation', 'العملية'), hrxSel('kind', [['grant', '➕ ' + hrxL('Grant days', 'منح أيام')], ['extra', '🎁 ' + hrxL('Extra days', 'أيام إضافية')], ['adjust', '± ' + hrxL('Adjustment (+/−)', 'تسوية (+/−)')]], 'grant')) +
-        hrxF(hrxL('Days', 'عدد الأيام') + ' *', hrxIn('days', 'number', '', 'step="0.5"')) + hrxF('📝 ' + hrxL('Note', 'ملاحظة'), hrxTa('note', ''));
-    hrxModal('± ' + hrxL('Adjust leave balance', 'تعديل رصيد الإجازات'), body, '✅ ' + hrxL('Save', 'حفظ'), function() {
-        var k = hrxV('kind'), n = parseFloat(hrxV('days'));
-        if (isNaN(n) || n === 0) { showToast(hrxL('Enter the number of days', 'أدخل عدد الأيام'), true); return false; }
-        var delta = k === 'adjust' ? n : Math.abs(n);
-        return empAdjustBalance(empId, delta, { type: k, note: hrxV('note') || '' }, false).then(function() { showToast('✅ ' + hrxL('Balance updated', 'تم تحديث الرصيد')); });
-    });
-}
-function hrxOpenLedgerModal(empId) {
-    var db = hrxDb(); if (!db) return;
-    hrxModal('📒 ' + hrxEsc(hrxEmpName(empId)), '<div id="hrx-ledger" style="padding:0 14px"><div class="hrx-empty">⏳ ' + hrxL('Loading...', 'جاري التحميل...') + '</div></div>', '', null);
-    var names = { grant: hrxL('Grant', 'منح'), extra: hrxL('Extra', 'إضافي'), leave: hrxL('Leave', 'إجازة'), refund: hrxL('Refund', 'استرداد'), adjust: hrxL('Adjustment', 'تسوية') };
-    db.ref('employeeLeaveLedger/' + empId).limitToLast(40).once('value').then(function(s) {
-        var el = document.getElementById('hrx-ledger'); if (!el) return;
-        var arr = []; s.forEach(function(c) { arr.push(c.val()); });
-        arr.reverse();
-        el.innerHTML = arr.map(function(x) {
-            var d = +x.days || 0;
-            return '<div class="hrx-card" style="margin:0 0 6px"><div class="hrx-row"><b>' + hrxEsc(names[x.type] || x.type) + '</b><span class="hrx-chip ' + (d >= 0 ? 'ok' : 'bad') + '">' + (d > 0 ? '+' : '') + hrxFmt(d) + '</span></div>' +
-                '<div class="hrx-sub">' + hrxL('Balance after', 'الرصيد بعدها') + ': ' + hrxFmt(x.balanceAfter) + ' • ' + hrxEsc(String(x.at || '').slice(0, 10)) + ' • ' + hrxEsc(x.by || '') + (x.note ? '<br>' + hrxEsc(x.note) : '') + '</div></div>';
-        }).join('') || '<div class="hrx-empty">' + hrxL('No entries', 'لا توجد حركات') + '</div>';
-    }).catch(function(e) { var el = document.getElementById('hrx-ledger'); if (el) el.innerHTML = '<div class="hrx-empty">⚠️ ' + hrxEsc(hrxErrMsg(e)) + '</div>'; });
-}
-
-// =====================================================================
-// 3) الرواتب والبدلات (للمدير / من يملك صلاحية تعديل الموظفين فقط)
-// =====================================================================
-function hrxPayAttach(m) {
-    var db = (typeof fbDb !== 'undefined') ? fbDb : null;
-    if (!db || (HRX.pm === m && HRX.payRefs.length)) return;
-    HRX.payRefs.forEach(function(r) { try { r.off(); } catch (e) {} });
-    HRX.payRefs = []; HRX.pm = m; HRX.adj = {}; HRX.pstatus = {}; HRX.pdays = {};
-    [['adj', 'hrPayrollAdj'], ['pstatus', 'hrPayrollStatus'], ['pdays', 'hrPayrollDays']].forEach(function(x) {
-        var r = db.ref(x[1] + '/' + m);
-        r.on('value', function(s) { HRX[x[0]] = s.val() || {}; HRX.denied.pay = false; hrxRerender(); }, function() { HRX.denied.pay = true; hrxRerender(); });
-        HRX.payRefs.push(r);
-    });
-}
-function hrxPayMonth(v) { HRX.pm = ''; HRX._pmSel = v || hrxToday().slice(0, 7); renderHRPayrollPanel(); }
-function hrxPayCalc(e) { return hrxPayCalcData(e, HRX.profiles, HRX.adj, HRX.pdays); }
-
-function renderHRPayrollPanel() {
-    hrxAttach(); hrxCss();
-    var box = document.getElementById('payroll-dashboard-container'); if (!box) return;
-    if (!hrxCanManage()) { box.innerHTML = '<div class="hrx-empty">🔒 ' + hrxL('Payroll is available to managers only', 'قسم الرواتب متاح للمدير / صاحب صلاحية التعديل فقط') + '</div>'; return; }
-    var m = HRX._pmSel || hrxToday().slice(0, 7);
-    hrxPayAttach(m);
-    var emps = hrxEmps(), tot = { net: 0, gross: 0, ded: 0, paid: 0, appr: 0, nop: 0 };
-    var cards = emps.map(function(e) {
-        var c = hrxPayCalc(e), st = HRX.pstatus[e.id];
-        if (c.has) { tot.net += c.net; tot.gross += c.gross; tot.ded += c.ded; } else tot.nop++;
-        if (st && st.status === 'paid') tot.paid++; else if (st && st.status === 'approved') tot.appr++;
-        var chip = st && st.status === 'paid' ? '<span class="hrx-chip ok">💵 ' + hrxL('Paid', 'مدفوع') + '</span>' : st && st.status === 'approved' ? '<span class="hrx-chip info">✔️ ' + hrxL('Approved', 'معتمد') + '</span>' : '<span class="hrx-chip warn">📝 ' + hrxL('Draft', 'مسوّدة') + '</span>';
-        var next = !st ? '<button class="hrx-btn green sm" onclick="hrxPaySetStatus(\'' + e.id + '\',\'approved\')">✔️ ' + hrxL('Approve', 'اعتماد') + '</button>'
-            : st.status === 'approved' ? '<button class="hrx-btn green sm" onclick="hrxPaySetStatus(\'' + e.id + '\',\'paid\')">💵 ' + hrxL('Mark paid', 'تم الدفع') + '</button>' : '';
-        var back = st ? '<button class="hrx-btn alt sm" onclick="hrxPaySetStatus(\'' + e.id + '\',\'\')">↩️</button>' : '';
-        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(e.name) + '</b><div class="hrx-sub">' + hrxEsc(e.title || '') + ' • ' + (e.employmentType === 'سركي' ? hrxL('Daily wage', 'سركي') : hrxL('Permanent', 'معيّن')) + '</div></div>' + chip + '</div>' +
-            (c.has ? '<div style="font-size:20px;font-weight:800;color:#075985;margin:6px 0">' + hrxFmt(c.net) + ' <span style="font-size:11px;color:#64748b">' + hrxL('EGP net', 'ج.م صافي') + '</span></div>' +
-            '<div class="hrx-kv"><div><span>' + (c.daily ? hrxL('Daily pay', 'أجر الأيام') : hrxL('Base', 'الأساسي')) + '</span><b>' + hrxFmt(c.basePay) + '</b></div><div><span>' + hrxL('Fixed allowances', 'بدلات ثابتة') + '</span><b>' + hrxFmt(c.fixed) + '</b></div>' +
-            '<div><span>' + hrxL('Extra allowances', 'بدلات إضافية') + '</span><b>' + hrxFmt(c.sum.allowance) + '</b></div><div><span>' + hrxL('Bonuses', 'مكافآت') + '</span><b>' + hrxFmt(c.sum.bonus) + '</b></div>' +
-            '<div><span>' + hrxL('Overtime', 'الإضافي') + (c.sum.otHours ? ' (' + hrxFmt(c.sum.otHours) + hrxL(' h', ' س') + ')' : '') + '</span><b>' + hrxFmt(c.sum.overtime) + '</b></div><div><span>' + hrxL('Deductions', 'خصومات') + '</span><b>' + hrxFmt(c.sum.deduction) + '</b></div>' +
-            '<div><span>' + hrxL('Advances', 'سلف') + '</span><b>' + hrxFmt(c.sum.advance) + '</b></div><div><span>' + hrxL('Absence deduction', 'خصم الغياب') + (c.days ? ' (' + (+c.days.absent || 0) + ')' : '') + '</span><b>' + hrxFmt(c.absentDed) + '</b></div></div>'
-            : '<div class="hrx-sub" style="margin:8px 0">⚠️ ' + hrxL('No salary profile yet', 'لم يُحدَّد ملف الراتب بعد') + '</div>') +
-            '<div class="hrx-row" style="margin-top:8px;justify-content:flex-start;gap:6px"><button class="hrx-btn sm" onclick="hrxOpenProfileModal(\'' + e.id + '\')">⚙️ ' + hrxL('Salary', 'الراتب') + '</button>' +
-            '<button class="hrx-btn sm" onclick="hrxOpenAdjModal(\'' + e.id + '\')">➕ ' + hrxL('Item', 'بند') + '</button><button class="hrx-btn alt sm" onclick="hrxOpenAdjList(\'' + e.id + '\')">📋</button>' + (c.has ? '<button class="hrx-btn alt sm" onclick="hrxRepPayslipsPdf(HRX.pm,\'' + e.id + '\')">🧾</button>' : '') + next + back + '</div></div>';
-    }).join('');
-    box.innerHTML = hrxDeniedBanner(['profiles', 'pay']) +
-        '<div class="hrx-bar"><input type="month" value="' + m + '" onchange="hrxPayMonth(this.value)">' +
-        '<button class="hrx-btn" onclick="hrxPayCalcDays()">🔄 ' + hrxL('Calculate days from attendance', 'احتساب الأيام من الحضور') + '</button>' +
-        '<button class="hrx-btn alt" onclick="hrxPayImportOT()">⏱️ ' + hrxL('Import overtime from attendance', 'ترحيل الإضافي من الحضور') + '</button>' +
-        '<button class="hrx-btn alt" onclick="hrxPayExport()">⬇️ Excel</button>' +
-        '<button class="hrx-btn alt" onclick="hrxRepPayrollPdf(HRX.pm)">📄 PDF</button>' +
-        '<button class="hrx-btn alt" onclick="hrxRepPayslipsPdf(HRX.pm)">🧾 ' + hrxL('Payslips', 'القسائم') + '</button></div>' +
-        '<div class="hrx-tiles"><div class="hrx-tile"><b style="color:#075985">' + hrxFmt(tot.net) + '</b><span>' + hrxL('Total net (EGP)', 'إجمالي الصافي (ج.م)') + '</span></div>' +
-        '<div class="hrx-tile"><b>' + hrxFmt(tot.gross) + '</b><span>' + hrxL('Gross', 'الإجمالي') + '</span></div><div class="hrx-tile"><b style="color:#dc2626">' + hrxFmt(tot.ded) + '</b><span>' + hrxL('Deductions', 'الخصومات') + '</span></div>' +
-        '<div class="hrx-tile"><b style="color:#059669">' + tot.paid + '</b><span>' + hrxL('Paid', 'مدفوع') + '</span></div><div class="hrx-tile"><b style="color:#d97706">' + tot.nop + '</b><span>' + hrxL('No profile', 'بدون ملف راتب') + '</span></div></div>' +
-        (cards || '<div class="hrx-empty">' + hrxL('No employees', 'لا يوجد موظفون') + '</div>');
-}
-
-function hrxOpenProfileModal(empId) {
-    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var e = hrxEmp(empId); if (!e) return; var p = HRX.profiles[empId] || {};
-    var body = '<div class="form-field"><div class="hrx-sub" style="background:#f1f5f9;border-radius:10px;padding:8px"><b>' + hrxEsc(e.name) + '</b> — ' + hrxEsc(e.title || '') + '</div></div>' +
-        hrxF(hrxL('Pay type', 'نظام الأجر'), hrxSel('ptype', [['monthly', hrxL('Monthly salary', 'راتب شهري')], ['daily', hrxL('Daily wage × present days', 'أجر يومي × أيام الحضور')]], p.payType || (e.employmentType === 'سركي' ? 'daily' : 'monthly'))) +
-        hrxF(hrxL('Monthly base salary', 'الراتب الأساسي الشهري'), hrxIn('base', 'number', p.baseSalary || '', 'min="0" step="any"')) +
-        hrxF(hrxL('Daily rate', 'أجر اليوم'), hrxIn('daily', 'number', p.dailyRate || '', 'min="0" step="any"')) +
-        hrxF('🏠 ' + hrxL('Housing allowance', 'بدل سكن'), hrxIn('housing', 'number', p.housing || '', 'min="0" step="any"')) +
-        hrxF('🚌 ' + hrxL('Transport allowance', 'بدل انتقال'), hrxIn('transport', 'number', p.transport || '', 'min="0" step="any"')) +
-        hrxF('🍽️ ' + hrxL('Meal allowance', 'بدل وجبات'), hrxIn('meal', 'number', p.meal || '', 'min="0" step="any"')) +
-        hrxF(hrxL('Other fixed allowances', 'بدلات ثابتة أخرى'), hrxIn('other', 'number', p.other || '', 'min="0" step="any"')) +
-        hrxF('⏱️ ' + hrxL('Overtime rate per hour', 'قيمة ساعة الإضافي'), hrxIn('ot', 'number', p.otRate || '', 'min="0" step="any"')) +
-        hrxF('📝 ' + hrxL('Note', 'ملاحظة'), hrxTa('note', p.note || ''));
-    hrxModal('⚙️ ' + hrxL('Salary profile', 'ملف الراتب'), body, '✅ ' + hrxL('Save', 'حفظ'), function() {
-        var db = hrxDb(); if (!db) return false;
-        var rec = { payType: hrxV('ptype'), baseSalary: +hrxV('base') || 0, dailyRate: +hrxV('daily') || 0, housing: +hrxV('housing') || 0, transport: +hrxV('transport') || 0, meal: +hrxV('meal') || 0, other: +hrxV('other') || 0, otRate: +hrxV('ot') || 0, note: hrxV('note'), by: hrxWho(), at: hrxNow() };
-        if (rec.payType === 'monthly' && !rec.baseSalary) { showToast(hrxL('Enter the base salary', 'أدخل الراتب الأساسي'), true); return false; }
-        if (rec.payType === 'daily' && !rec.dailyRate) { showToast(hrxL('Enter the daily rate', 'أدخل أجر اليوم'), true); return false; }
-        return db.ref('hrPayrollProfiles/' + empId).set(rec).then(function() { showToast('✅ ' + hrxL('Salary profile saved', 'تم حفظ ملف الراتب')); });
-    });
-}
-function hrxKinds() {
-    return [['allowance', '➕ ' + hrxL('Extra allowance', 'بدل إضافي')], ['bonus', '🎁 ' + hrxL('Bonus', 'مكافأة')], ['overtime', '⏱️ ' + hrxL('Overtime (hours)', 'إضافي (ساعات)')],
-            ['deduction', '➖ ' + hrxL('Deduction', 'خصم')], ['advance', '💸 ' + hrxL('Advance', 'سلفة')]];
-}
-function hrxOpenAdjModal(empId) {
-    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var e = hrxEmp(empId); if (!e) return; var m = HRX.pm;
-    var body = '<div class="form-field"><div class="hrx-sub" style="background:#f1f5f9;border-radius:10px;padding:8px"><b>' + hrxEsc(e.name) + '</b> — ' + m + '</div></div>' +
-        hrxF(hrxL('Item type', 'نوع البند'), hrxSel('kind', hrxKinds(), 'allowance', 'onchange="document.getElementById(\'hrx-hours-box\').style.display=this.value===\'overtime\'?\'\':\'none\';document.getElementById(\'hrx-amount-box\').style.display=this.value===\'overtime\'?\'none\':\'\'"')) +
-        '<div id="hrx-hours-box" style="display:none">' + hrxF(hrxL('Overtime hours', 'ساعات الإضافي') + ' *', hrxIn('hours', 'number', '', 'min="0" step="any"')) + '</div>' +
-        '<div id="hrx-amount-box">' + hrxF(hrxL('Amount (EGP)', 'المبلغ (ج.م)') + ' *', hrxIn('amount', 'number', '', 'min="0" step="any"')) + '</div>' +
-        hrxF(hrxL('Description', 'البيان'), hrxIn('label', 'text', '', 'placeholder="' + hrxL('e.g. Site allowance', 'مثال: بدل موقع') + '"'));
-    hrxModal('➕ ' + hrxL('Payroll item', 'بند في المسير'), body, '✅ ' + hrxL('Add', 'إضافة'), function() {
-        var db = hrxDb(); if (!db) return false;
-        var kind = hrxV('kind'), rec = { kind: kind, label: hrxV('label'), by: hrxWho(), at: hrxNow() };
-        if (kind === 'overtime') {
-            var h = parseFloat(hrxV('hours')), rate = +((HRX.profiles[empId] || {}).otRate) || 0;
-            if (isNaN(h) || h <= 0) { showToast(hrxL('Enter overtime hours', 'أدخل ساعات الإضافي'), true); return false; }
-            if (!rate) { showToast(hrxL('Set the overtime rate in the salary profile first', 'حدّد قيمة ساعة الإضافي في ملف الراتب أولًا'), true); return false; }
-            rec.hours = h; rec.amount = Math.round(h * rate * 100) / 100;
-        } else {
-            var a = parseFloat(hrxV('amount'));
-            if (isNaN(a) || a <= 0) { showToast(hrxL('Enter a valid amount', 'أدخل مبلغًا صحيحًا'), true); return false; }
-            rec.amount = a;
-        }
-        return db.ref('hrPayrollAdj/' + m + '/' + empId).push(rec).then(function() { showToast('✅ ' + hrxL('Item added', 'تمت إضافة البند')); });
-    });
-}
-function hrxOpenAdjList(empId) {
-    var adj = HRX.adj[empId] || {}, names = {}; hrxKinds().forEach(function(k) { names[k[0]] = k[1]; });
-    var html = Object.keys(adj).map(function(k) {
-        var a = adj[k];
-        return '<div class="hrx-card" style="margin:0 0 6px"><div class="hrx-row"><div><b>' + hrxEsc(names[a.kind] || a.kind) + '</b><div class="hrx-sub">' + hrxEsc(a.label || '') + (a.hours ? ' • ' + a.hours + hrxL(' h', ' س') : '') + ' • ' + hrxEsc(a.by || '') + '</div></div>' +
-            '<div><b>' + hrxFmt(a.amount) + '</b> <button class="hrx-btn red sm" onclick="hrxDelAdj(\'' + empId + '\',\'' + k + '\')">🗑️</button></div></div></div>';
-    }).join('') || '<div class="hrx-empty">' + hrxL('No items this month', 'لا توجد بنود هذا الشهر') + '</div>';
-    hrxModal('📋 ' + hrxEsc(hrxEmpName(empId)) + ' — ' + HRX.pm, '<div style="padding:0 14px">' + html + '</div>', '', null);
-}
-function hrxDelAdj(empId, id) {
-    if (!hrxCanManage()) return;
-    if (!confirm(hrxL('Delete this item?', 'حذف هذا البند؟'))) return;
-    var db = hrxDb(); if (!db) return;
-    db.ref('hrPayrollAdj/' + HRX.pm + '/' + empId + '/' + id).remove().then(function() { hrxCloseModal(); showToast('🗑️ ' + hrxL('Item deleted', 'تم حذف البند')); }).catch(hrxFail);
-}
-function hrxPaySetStatus(empId, status) {
-    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var db = hrxDb(); if (!db) return; var ref = db.ref('hrPayrollStatus/' + HRX.pm + '/' + empId);
-    var e = hrxEmp(empId), c = e ? hrxPayCalc(e) : null;
-    if (status && c && !c.has) { showToast(hrxL('Set the salary profile first', 'حدّد ملف الراتب أولًا'), true); return; }
-    (status ? ref.set({ status: status, net: c ? c.net : 0, by: hrxWho(), at: hrxNow() }) : ref.remove()).catch(hrxFail);
-}
-// حساب أيام الحضور/الغياب/الإجازة لكل موظف في الشهر من سجلات الحضور الموجودة
-function hrxPayCalcDays() {
-    if (!hrxCanManage()) return;
-    var db = hrxDb(); if (!db) return;
-    var m = HRX.pm, today = hrxToday(), last = new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate();
-    var dates = hrxDaysBetween(m + '-01', m + '-' + ('0' + last).slice(-2)).filter(function(d) { return d <= today; });
-    if (!dates.length) { showToast(hrxL('This month has not started yet', 'هذا الشهر لم يبدأ بعد'), true); return; }
-    showToast('⏳ ' + hrxL('Reading attendance records...', 'جاري قراءة سجلات الحضور...'));
-    Promise.all(dates.map(function(d) {
-        return Promise.all([db.ref('employeeAttendance/' + d).once('value').catch(function() { return null; }), db.ref('employeeDayStatus/' + d).once('value').catch(function() { return null; })]);
-    })).then(function(res) {
-        var out = {}, calcAt = hrxNow();
-        hrxEmps().forEach(function(e) { out[e.id] = { present: 0, absent: 0, leave: 0, calcAt: calcAt }; });
-        res.forEach(function(r) {
-            var at = (r[0] && r[0].val()) || {}, st = (r[1] && r[1].val()) || {};
-            Object.keys(out).forEach(function(id) {
-                var s = st[id] && st[id].status;
-                if (s === 'absent') out[id].absent++; else if (s === 'leave') out[id].leave++;
-                else if (s === 'present' || (at[id] && at[id].startAt)) out[id].present++;
-            });
-        });
-        return db.ref('hrPayrollDays/' + m).set(out);
-    }).then(function() { showToast('✅ ' + hrxL('Attendance days calculated', 'تم احتساب أيام الحضور')); }).catch(hrxFail);
-}
-function hrxPayExport() { hrxRepPayrollExcel(HRX.pm); }
-
-// =====================================================================
-// 4) الوثائق والعهد (الرخص، الهويات، مهمات السلامة PPE)
-// =====================================================================
-function hrxDocTypes() {
-    return [['license', '🚗 ' + hrxL('Driving license', 'رخصة قيادة')], ['id', '🪪 ' + hrxL('ID card', 'بطاقة هوية')], ['passport', '🛂 ' + hrxL('Passport', 'جواز سفر')], ['contract', '📄 ' + hrxL('Work contract', 'عقد عمل')],
-            ['health', '🩺 ' + hrxL('Health certificate', 'شهادة صحية')], ['safety', '🦺 ' + hrxL('Safety certificate', 'شهادة سلامة')], ['insurance', '🛡️ ' + hrxL('Insurance', 'تأمين')], ['other', '📎 ' + hrxL('Other', 'أخرى')]];
-}
-function hrxItemTypes() {
-    return ['خوذة', 'سترة عاكسة', 'حذاء سلامة', 'قفازات', 'نظارة واقية', 'سماعات أذن', 'كمامة', 'حزام أمان', 'هاتف', 'عدة يدوية', 'مفاتيح', 'زي موحّد', 'أخرى'];
-}
-function hrxLabelOf(list, v) { var f = list.filter(function(x) { return x[0] === v; })[0]; return f ? f[1] : v; }
-function hrxDocDays(d) { if (!d.expiryDate) return null; return Math.ceil((new Date(d.expiryDate + 'T12:00:00') - new Date(hrxToday() + 'T12:00:00')) / 864e5); }
-function hrxCustTab(t) { HRX.custTab = t; renderHRCustodyPanel(); }
-function hrxCustEmp(v) { HRX.custEmp = v; renderHRCustodyPanel(); }
-
-function renderHRCustodyPanel() {
-    hrxAttach(); hrxCss();
-    var box = document.getElementById('custody-dashboard-container'); if (!box) return;
-    var canW = hrxCanWrite(), canM = hrxCanManage(), f = HRX.custEmp;
-    var docs = Object.keys(HRX.docs).map(function(k) { return Object.assign({ id: k }, HRX.docs[k]); }).filter(function(d) { return !f || d.empId === f; })
-        .sort(function(a, b) { return String(a.expiryDate || '9999').localeCompare(String(b.expiryDate || '9999')); });
-    var items = Object.keys(HRX.custody).map(function(k) { return Object.assign({ id: k }, HRX.custody[k]); }).filter(function(d) { return !f || d.empId === f; })
-        .sort(function(a, b) { return String(b.issueDate || '').localeCompare(String(a.issueDate || '')); });
-    var allDocs = Object.keys(HRX.docs).map(function(k) { return HRX.docs[k]; }), allItems = Object.keys(HRX.custody).map(function(k) { return HRX.custody[k]; });
-    var expired = allDocs.filter(function(d) { var n = hrxDocDays(d); return n !== null && n < 0; }).length;
-    var soon = allDocs.filter(function(d) { var n = hrxDocDays(d); return n !== null && n >= 0 && n <= 30; }).length;
-    var issued = allItems.filter(function(i) { return i.status === 'issued'; }).length;
-    var bad = allItems.filter(function(i) { return i.status === 'lost' || i.status === 'damaged'; }).length;
-    var docTypes = hrxDocTypes();
-    var docHtml = docs.map(function(d) {
-        var n = hrxDocDays(d);
-        var chip = n === null ? '<span class="hrx-chip">' + hrxL('No expiry', 'بدون انتهاء') + '</span>' : n < 0 ? '<span class="hrx-chip bad">⛔ ' + hrxL('Expired', 'منتهية') + ' ' + (-n) + hrxL(' d ago', ' يوم') + '</span>'
-            : n <= 30 ? '<span class="hrx-chip warn">⚠️ ' + hrxL('Expires in', 'تنتهي بعد') + ' ' + n + hrxL(' d', ' يوم') + '</span>' : '<span class="hrx-chip ok">✅ ' + hrxL('Valid', 'سارية') + '</span>';
-        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(hrxLabelOf(docTypes, d.docType)) + '</b><div class="hrx-sub">👤 ' + hrxEsc(d.name || hrxEmpName(d.empId)) + (d.number ? ' • # ' + hrxEsc(d.number) : '') + '</div></div>' + chip + '</div>' +
-            '<div class="hrx-sub">' + hrxL('Issued', 'الإصدار') + ': ' + hrxEsc(d.issueDate || '—') + ' • ' + hrxL('Expiry', 'الانتهاء') + ': ' + hrxEsc(d.expiryDate || '—') + (d.note ? '<br>📝 ' + hrxEsc(d.note) : '') + '</div>' +
-            '<div class="hrx-row" style="margin-top:8px;justify-content:flex-start;gap:6px">' + (canW ? '<button class="hrx-btn sm" onclick="hrxOpenDocModal(\'' + d.id + '\')">✏️ ' + hrxL('Edit', 'تعديل') + '</button>' : '') + (canM ? '<button class="hrx-btn red sm" onclick="hrxDelRec(\'hrDocuments\',\'' + d.id + '\')">🗑️</button>' : '') + '</div></div>';
-    }).join('') || '<div class="hrx-empty">' + hrxL('No documents', 'لا توجد وثائق') + '</div>';
-    var stNames = { issued: ['info', hrxL('Issued', 'مسلَّمة')], returned: ['ok', hrxL('Returned', 'مرتجعة')], lost: ['bad', hrxL('Lost', 'مفقودة')], damaged: ['warn', hrxL('Damaged', 'تالفة')] };
-    var itemHtml = items.map(function(i) {
-        var s = stNames[i.status] || ['', i.status];
-        return '<div class="hrx-card"><div class="hrx-row"><div><b>' + hrxEsc(i.item) + (i.qty > 1 ? ' × ' + i.qty : '') + '</b><div class="hrx-sub">👤 ' + hrxEsc(i.name || hrxEmpName(i.empId)) + (i.serial ? ' • S/N ' + hrxEsc(i.serial) : '') + '</div></div><span class="hrx-chip ' + s[0] + '">' + s[1] + '</span></div>' +
-            '<div class="hrx-sub">' + hrxL('Issued', 'التسليم') + ': ' + hrxEsc(i.issueDate || '—') + (i.returnDate ? ' • ' + hrxL('Returned', 'الإرجاع') + ': ' + hrxEsc(i.returnDate) : '') + (i.condition ? ' • ' + hrxEsc(i.condition) : '') + (i.note ? '<br>📝 ' + hrxEsc(i.note) : '') + '</div>' +
-            '<div class="hrx-row" style="margin-top:8px;justify-content:flex-start;gap:6px">' + (canW && i.status === 'issued' ? '<button class="hrx-btn green sm" onclick="hrxReturnCustody(\'' + i.id + '\')">↩️ ' + hrxL('Receive back', 'استلام مرتجع') + '</button>' : '') +
-            (canW ? '<button class="hrx-btn sm" onclick="hrxOpenCustodyModal(\'' + i.id + '\')">✏️ ' + hrxL('Edit', 'تعديل') + '</button>' : '') + (canM ? '<button class="hrx-btn red sm" onclick="hrxDelRec(\'hrCustody\',\'' + i.id + '\')">🗑️</button>' : '') + '</div></div>';
-    }).join('') || '<div class="hrx-empty">' + hrxL('No custody items', 'لا توجد عهد') + '</div>';
-    var empSel = '<select onchange="hrxCustEmp(this.value)"><option value="">' + hrxL('All employees', 'كل الموظفين') + '</option>' + hrxEmps().map(function(e) { return '<option value="' + hrxEsc(e.id) + '"' + (f === e.id ? ' selected' : '') + '>' + hrxEsc(e.name) + '</option>'; }).join('') + '</select>';
-    box.innerHTML = hrxDeniedBanner(['docs', 'custody']) +
-        '<div class="hrx-tiles"><div class="hrx-tile"><b style="color:#dc2626">' + expired + '</b><span>' + hrxL('Expired docs', 'وثائق منتهية') + '</span></div><div class="hrx-tile"><b style="color:#d97706">' + soon + '</b><span>' + hrxL('Expiring ≤30d', 'تنتهي خلال 30 يوم') + '</span></div>' +
-        '<div class="hrx-tile"><b style="color:#0284c7">' + issued + '</b><span>' + hrxL('Items issued', 'عهد مسلَّمة') + '</span></div><div class="hrx-tile"><b style="color:#dc2626">' + bad + '</b><span>' + hrxL('Lost / damaged', 'مفقودة / تالفة') + '</span></div></div>' +
-        '<div class="hrx-seg"><button class="' + (HRX.custTab === 'docs' ? 'on' : '') + '" onclick="hrxCustTab(\'docs\')">📄 ' + hrxL('Documents', 'الوثائق') + '</button><button class="' + (HRX.custTab === 'custody' ? 'on' : '') + '" onclick="hrxCustTab(\'custody\')">🦺 ' + hrxL('Custody & PPE', 'العهد والسلامة') + '</button></div>' +
-        '<div class="hrx-bar">' + empSel + (canW ? (HRX.custTab === 'docs' ? '<button class="hrx-btn" onclick="hrxOpenDocModal()">➕ ' + hrxL('Add document', 'إضافة وثيقة') + '</button>' : '<button class="hrx-btn" onclick="hrxOpenCustodyModal()">➕ ' + hrxL('Issue item', 'تسليم عهدة') + '</button>') : '') + '</div>' +
-        (HRX.custTab === 'docs' ? docHtml : itemHtml);
-}
-function hrxDelRec(path, id) {
-    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    if (!confirm(hrxL('Delete this record permanently?', 'حذف هذا السجل نهائيًا؟'))) return;
-    var db = hrxDb(); if (!db) return;
-    db.ref(path + '/' + id).remove().then(function() { showToast('🗑️ ' + hrxL('Deleted', 'تم الحذف')); }).catch(hrxFail);
-}
-function hrxOpenDocModal(id) {
-    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var d = id ? (HRX.docs[id] || {}) : {};
-    var body = hrxF('👤 ' + hrxL('Employee', 'الموظف') + ' *', hrxSel('emp', [['', hrxL('— Select —', '— اختر —')]].concat(hrxEmpOpts()), d.empId || HRX.custEmp || '')) +
-        hrxF(hrxL('Document type', 'نوع الوثيقة'), hrxSel('dtype', hrxDocTypes(), d.docType || 'license')) +
-        hrxF(hrxL('Number', 'الرقم'), hrxIn('number', 'text', d.number || '')) +
-        hrxF(hrxL('Issue date', 'تاريخ الإصدار'), hrxIn('issue', 'date', d.issueDate || '')) + hrxF(hrxL('Expiry date', 'تاريخ الانتهاء'), hrxIn('expiry', 'date', d.expiryDate || '')) +
-        hrxF('📝 ' + hrxL('Note', 'ملاحظة'), hrxTa('note', d.note || ''));
-    hrxModal('📄 ' + (id ? hrxL('Edit document', 'تعديل وثيقة') : hrxL('Add document', 'إضافة وثيقة')), body, '✅ ' + hrxL('Save', 'حفظ'), function() {
-        var db = hrxDb(); if (!db) return false;
-        var eid = hrxV('emp'), e = hrxEmp(eid);
-        if (!e) { showToast(hrxL('Select the employee', 'اختر الموظف'), true); return false; }
-        var iss = hrxV('issue'), exp = hrxV('expiry');
-        if (iss && exp && exp < iss) { showToast(hrxL('Expiry date is before issue date', 'تاريخ الانتهاء قبل الإصدار'), true); return false; }
-        var rec = { empId: eid, name: e.name || '', docType: hrxV('dtype'), number: hrxV('number'), issueDate: iss, expiryDate: exp, note: hrxV('note'), by: hrxWho(), at: hrxNow() };
-        var ref = id ? db.ref('hrDocuments/' + id) : db.ref('hrDocuments').push();
-        return ref.set(rec).then(function() { showToast('✅ ' + hrxL('Document saved', 'تم حفظ الوثيقة')); });
-    });
-}
-function hrxOpenCustodyModal(id) {
-    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var c = id ? (HRX.custody[id] || {}) : {};
-    var items = hrxItemTypes().map(function(x) { return [x, x]; });
-    var body = hrxF('👤 ' + hrxL('Employee', 'الموظف') + ' *', hrxSel('emp', [['', hrxL('— Select —', '— اختر —')]].concat(hrxEmpOpts()), c.empId || HRX.custEmp || '')) +
-        hrxF(hrxL('Item', 'الصنف'), hrxSel('item', items, c.item || 'خوذة')) +
-        hrxF(hrxL('Quantity', 'الكمية'), hrxIn('qty', 'number', c.qty || 1, 'min="1" step="1"')) +
-        hrxF(hrxL('Serial / tag number', 'الرقم التسلسلي / الكود'), hrxIn('serial', 'text', c.serial || '')) +
-        hrxF(hrxL('Issue date', 'تاريخ التسليم'), hrxIn('issue', 'date', c.issueDate || hrxToday())) +
-        hrxF(hrxL('Status', 'الحالة'), hrxSel('status', [['issued', hrxL('Issued', 'مسلَّمة')], ['returned', hrxL('Returned', 'مرتجعة')], ['lost', hrxL('Lost', 'مفقودة')], ['damaged', hrxL('Damaged', 'تالفة')]], c.status || 'issued')) +
-        hrxF(hrxL('Condition', 'الحالة الفنية'), hrxIn('cond', 'text', c.condition || '', 'placeholder="' + hrxL('e.g. New', 'مثال: جديدة') + '"')) +
-        hrxF('📝 ' + hrxL('Note', 'ملاحظة'), hrxTa('note', c.note || ''));
-    hrxModal('🦺 ' + (id ? hrxL('Edit custody item', 'تعديل عهدة') : hrxL('Issue custody item', 'تسليم عهدة')), body, '✅ ' + hrxL('Save', 'حفظ'), function() {
-        var db = hrxDb(); if (!db) return false;
-        var eid = hrxV('emp'), e = hrxEmp(eid);
-        if (!e) { showToast(hrxL('Select the employee', 'اختر الموظف'), true); return false; }
-        var st = hrxV('status');
-        var rec = { empId: eid, name: e.name || '', item: hrxV('item'), qty: Math.max(1, parseInt(hrxV('qty'), 10) || 1), serial: hrxV('serial'), issueDate: hrxV('issue'), status: st, condition: hrxV('cond'), note: hrxV('note'), by: hrxWho(), at: hrxNow() };
-        if (st === 'returned') rec.returnDate = c.returnDate || hrxToday();
-        var ref = id ? db.ref('hrCustody/' + id) : db.ref('hrCustody').push();
-        return ref.set(rec).then(function() { showToast('✅ ' + hrxL('Saved', 'تم الحفظ')); });
-    });
-}
-function hrxReturnCustody(id) {
-    if (!hrxCanWrite()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    if (!confirm(hrxL('Mark this item as returned today?', 'تسجيل استلام هذه العهدة اليوم؟'))) return;
-    var db = hrxDb(); if (!db) return;
-    db.ref('hrCustody/' + id).update({ status: 'returned', returnDate: hrxToday(), by: hrxWho(), at: hrxNow() })
-        .then(function() { showToast('↩️ ' + hrxL('Item received back', 'تم استلام العهدة')); }).catch(hrxFail);
-}
-
-
-
-// =====================================================================
-// 5) ربط الرواتب وساعات الحضور بالتقارير + التصدير (Excel / PDF)
-// =====================================================================
-function hrxEnsureRepInput() {
-    var el = document.getElementById('hrx-rep-month');
-    if (!el) { el = document.createElement('input'); el.type = 'month'; el.id = 'hrx-rep-month'; el.style.display = 'none'; document.body.appendChild(el); }
-    if (!el.value) el.value = hrxToday().slice(0, 7);
-    return el;
-}
-function hrxRepMonth() { return hrxEnsureRepInput().value || hrxToday().slice(0, 7); }
-function hrxDir() { return getAppLanguage() === 'en' ? 'ltr' : 'rtl'; }
-function hrxMonthDates(m) {
-    var last = new Date(+m.slice(0, 4), +m.slice(5, 7), 0).getDate(), today = hrxToday();
-    return hrxDaysBetween(m + '-01', m + '-' + ('0' + last).slice(-2)).filter(function(d) { return d <= today; });
-}
-function hrxShiftHours(sh) {
-    if (!sh || !sh.start || !sh.end) return 0;
-    var a = sh.start.split(':'), b = sh.end.split(':'), s = (+a[0]) * 60 + (+a[1] || 0), e = (+b[0]) * 60 + (+b[1] || 0);
-    if (e <= s) e += 1440;
-    return Math.max(0, (e - s - (+sh.breakMin || 0)) / 60);
-}
-function hrxLateMin(at, shift) {
-    if (!at || !at.startAt || !shift || !shift.start) return 0;
-    var d = new Date(at.startAt), sm = shift.start.split(':');
-    var diff = (d.getHours() * 60 + d.getMinutes()) - ((+sm[0]) * 60 + (+sm[1] || 0));
-    return (diff > (+shift.grace || 0) && diff < 720) ? diff : 0;
-}
-
-// تحميل حضور الشهر كامل (مع كاش قصير عشان تقرير PDF + Excel ورا بعض ما يعيدوش القراءة)
-var _hrxMonthCache = {};
-function hrxLoadMonthAtt(m) {
-    var c = _hrxMonthCache[m];
-    if (c && Date.now() - c.t < 90000) return Promise.resolve(c.v);
-    var db = hrxDb(); if (!db) return Promise.reject(new Error('no db'));
-    var dates = hrxMonthDates(m);
-    if (!dates.length) return Promise.resolve({ dates: [], at: {}, st: {} });
-    return Promise.all(dates.map(function(d) {
-        return Promise.all([db.ref('employeeAttendance/' + d).once('value'), db.ref('employeeDayStatus/' + d).once('value').catch(function() { return null; })]);
-    })).then(function(res) {
-        var v = { dates: dates, at: {}, st: {} };
-        res.forEach(function(r, i) { v.at[dates[i]] = r[0].val() || {}; v.st[dates[i]] = (r[1] && r[1].val()) || {}; });
-        _hrxMonthCache[m] = { t: Date.now(), v: v };
-        return v;
-    });
-}
-// صف ملخص لكل موظف: أيام حضور/غياب/إجازة، ساعات العمل، ساعات الإضافي (فوق ساعات الوردية)، التأخير، بدون خروج
-function hrxBuildAttRows(data) {
-    return hrxEmps().map(function(e) {
-        var shift = hrxShiftOf(e.id), std = hrxShiftHours(shift);
-        var r = { emp: e, shift: shift, present: 0, absent: 0, leave: 0, hours: 0, ot: 0, lateDays: 0, lateMin: 0, noOut: 0, byDay: {} };
-        data.dates.forEach(function(d) {
-            var at = (data.at[d] || {})[e.id], st = (data.st[d] || {})[e.id], s = st && st.status;
-            if (s === 'absent') { r.absent++; return; }
-            if (s === 'leave') { r.leave++; return; }
-            if (s === 'present' || (at && at.startAt)) {
-                r.present++;
-                if (at && at.startAt) {
-                    var lm = hrxLateMin(at, shift); if (lm) { r.lateDays++; r.lateMin += lm; }
-                    if (at.endAt) {
-                        var h = Math.max(0, (new Date(at.endAt) - new Date(at.startAt)) / 36e5 - ((shift && +shift.breakMin) || 0) / 60);
-                        r.hours += h; r.byDay[d] = Math.round(h * 100) / 100;
-                        if (std > 0 && h > std) r.ot += h - std;
-                    } else { r.noOut++; r.byDay[d] = null; }
-                }
-            }
-        });
-        r.hours = Math.round(r.hours * 100) / 100; r.ot = Math.round(r.ot * 100) / 100;
-        return r;
-    });
-}
-
-// ---------- الرواتب: حساب بالبيانات المُمرَّرة (يخدم الشاشة والتقارير) ----------
-function hrxPayCalcData(e, P, A, D) {
-    var p = P[e.id] || {}, adj = A[e.id] || {}, dy = D[e.id] || null;
-    var fixed = (+p.housing || 0) + (+p.transport || 0) + (+p.meal || 0) + (+p.other || 0);
-    var sum = { allowance: 0, bonus: 0, deduction: 0, advance: 0, overtime: 0, otHours: 0 };
-    Object.keys(adj).forEach(function(k) { var a = adj[k]; if (sum[a.kind] != null) sum[a.kind] += +a.amount || 0; if (a.kind === 'overtime') sum.otHours += +a.hours || 0; });
-    var daily = p.payType === 'daily';
-    var basePay = daily ? (+p.dailyRate || 0) * (dy ? (+dy.present || 0) : 0) : (+p.baseSalary || 0);
-    var absentDed = (!daily && dy) ? Math.round(((+p.baseSalary || 0) / 30) * (+dy.absent || 0) * 100) / 100 : 0;
-    var gross = basePay + fixed + sum.allowance + sum.bonus + sum.overtime;
-    var ded = sum.deduction + sum.advance + absentDed;
-    return { has: !!P[e.id], daily: daily, basePay: basePay, fixed: fixed, sum: sum, absentDed: absentDed, gross: gross, ded: ded, net: gross - ded, days: dy };
-}
-function hrxLoadPayData(m) {
-    var db = hrxDb(); if (!db) return Promise.reject(new Error('no db'));
-    return Promise.all([db.ref('hrPayrollProfiles').once('value'), db.ref('hrPayrollAdj/' + m).once('value'), db.ref('hrPayrollStatus/' + m).once('value'),
-                        db.ref('hrPayrollDays/' + m).once('value'), hrxLoadMonthAtt(m)]).then(function(r) {
-        var P = r[0].val() || {}, A = r[1].val() || {}, S = r[2].val() || {}, D = r[3].val() || {}, att = r[4];
-        var rows = hrxBuildAttRows(att), derived = false;
-        rows.forEach(function(x) { if (!D[x.emp.id]) { D[x.emp.id] = { present: x.present, absent: x.absent, leave: x.leave }; derived = true; } });
-        return { m: m, P: P, A: A, S: S, D: D, att: att, attRows: rows, derived: derived };
-    });
-}
-function hrxPayRows(data) {
-    return hrxEmps().map(function(e) { return { e: e, c: hrxPayCalcData(e, data.P, data.A, data.D), st: data.S[e.id] }; });
-}
-function hrxStatusText(st) { return st ? (st.status === 'paid' ? hrxL('Paid', 'مدفوع') : hrxL('Approved', 'معتمد')) : hrxL('Draft', 'مسوّدة'); }
-function hrxTypeText(e) { return e.employmentType === 'سركي' ? hrxL('Daily wage', 'سركي') : hrxL('Permanent', 'معيّن'); }
-
-// ---------- نافذة الطباعة / PDF ----------
-function hrxOpenWin(title) {
-    var w = window.open('', '_blank');
-    if (!w) { showToast('⚠️ ' + hrxL('Allow pop-ups for this site to open the report', 'اسمح بالنوافذ المنبثقة لهذا الموقع لفتح التقرير'), true); return null; }
-    try { w.document.write('<!DOCTYPE html><html dir="' + hrxDir() + '"><head><meta charset="UTF-8"><title>' + hrxEsc(title) + '</title></head><body style="font-family:Arial;padding:40px;text-align:center;color:#475569">⏳ ' + hrxL('Preparing report...', 'جاري تجهيز التقرير...') + '</body></html>'); } catch (e) {}
-    return w;
-}
-function hrxWriteWin(w, title, subtitle, css, bodyHtml) {
-    try {
-        w.document.open();
-        w.document.write('<!DOCTYPE html><html dir="' + hrxDir() + '"><head><meta charset="UTF-8"><title>' + hrxEsc(title) + '</title><style>' +
-            'body{font-family:Arial;padding:20px}.info{background:#f1f5f9;padding:10px;border-radius:8px;margin:14px 0;font-size:13px}' +
-            'table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:8px}th{background:#0d1b2a;color:#fff;padding:7px 4px;text-align:center}' +
-            'td{padding:6px 4px;border-bottom:1px solid #e2e8f0;text-align:center}tr.tot td{background:#f1f5f9;font-weight:800;border-top:2px solid #0d1b2a}' +
-            '.l{text-align:' + (hrxDir() === 'rtl' ? 'right' : 'left') + '}.neg{color:#b91c1c}.pos{color:#047857}.sig{display:flex;justify-content:space-around;margin-top:44px;font-size:12px}.sig div{border-top:1px solid #334155;padding-top:6px;min-width:150px;text-align:center}' +
-            '.footer{margin-top:22px;font-size:10px;color:#999;text-align:center}@media print{.no-print{display:none}}' + (css || '') + '</style></head><body>' +
-            reportHeaderHtml(title, subtitle) + bodyHtml + '<div class="footer">' + escapeHtml(COMPANY_NAME_EN) + ' | ' + hrxEsc(title) + ' | ' + new Date().toLocaleDateString('en-GB') + '</div></body></html>');
-        w.document.close();
-        setTimeout(function() { try { w.print(); } catch (e) {} }, 700);
-    } catch (e) { hrxFail(e); }
-}
-function hrxRepGuard(needManage) {
-    if (!hrxCanWrite() && !canView('employees')) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return false; }
-    if (needManage && !hrxCanManage()) { showToast('⛔ ' + hrxL('Payroll reports are for managers only', 'تقارير الرواتب للمدير فقط'), true); return false; }
-    return true;
-}
-function hrxXlsx(sheets, filename) {
-    if (typeof XLSX === 'undefined') { showToast(hrxL('Excel library is not loaded', 'مكتبة Excel غير محمّلة'), true); return; }
-    var wb = XLSX.utils.book_new();
-    sheets.forEach(function(s) { XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(s.rows.length ? s.rows : [{}]), s.name.replace(/[:\\\/?*\[\]]/g, '').slice(0, 31)); });
-    XLSX.writeFile(wb, filename);
-}
-function hrxN(x) { return Math.round((+x || 0) * 100) / 100; }
-
-// ---------- كشف الرواتب ----------
-function hrxRepPayrollPdf(m) {
-    if (!hrxRepGuard(true)) return; m = m || hrxRepMonth();
-    var title = hrxL('Payroll Sheet', 'كشف الرواتب'), w = hrxOpenWin(title); if (!w) return;
-    hrxLoadPayData(m).then(function(data) {
-        var rows = hrxPayRows(data), T = { base: 0, fixed: 0, add: 0, bonus: 0, ot: 0, ded: 0, abs: 0, gross: 0, net: 0 }, n = 0;
-        var body = rows.map(function(r) {
-            var c = r.c; if (!c.has) return '';
-            n++; var add = c.sum.allowance, ded = c.sum.deduction + c.sum.advance;
-            T.base += c.basePay; T.fixed += c.fixed; T.add += add; T.bonus += c.sum.bonus; T.ot += c.sum.overtime; T.ded += ded; T.abs += c.absentDed; T.gross += c.gross; T.net += c.net;
-            return '<tr><td>' + n + '</td><td class="l">' + hrxEsc(r.e.name) + '</td><td>' + hrxEsc(r.e.title || '') + '</td><td>' + hrxTypeText(r.e) + '</td><td>' + hrxFmt(c.basePay) + '</td><td>' + hrxFmt(c.fixed + add) + '</td><td>' + hrxFmt(c.sum.bonus) + '</td>' +
-                '<td>' + hrxFmt(c.sum.overtime) + '</td><td class="neg">' + hrxFmt(ded) + '</td><td class="neg">' + hrxFmt(c.absentDed) + '</td><td><b>' + hrxFmt(c.net) + '</b></td><td>' + hrxStatusText(r.st) + '</td></tr>';
-        }).join('');
-        var nop = rows.filter(function(r) { return !r.c.has; }).length;
-        var html = '<div class="info">📅 <b>' + hrxL('Month', 'الشهر') + ':</b> ' + m + ' &nbsp; 👥 <b>' + hrxL('Employees', 'الموظفون') + ':</b> ' + n + (nop ? ' &nbsp; ⚠️ ' + nop + ' ' + hrxL('without salary profile (not listed)', 'بدون ملف راتب (غير مدرجين)') : '') +
-            (data.derived ? '<br>ℹ️ ' + hrxL('Attendance days were derived from attendance records for employees without a saved calculation.', 'أيام الحضور احتُسبت من سجلات الحضور للموظفين الذين لم يُحفظ لهم احتساب.') : '') + '</div>' +
-            '<table><thead><tr><th>#</th><th>' + hrxL('Employee', 'الموظف') + '</th><th>' + hrxL('Title', 'المهنة') + '</th><th>' + hrxL('Type', 'النوع') + '</th><th>' + hrxL('Base / daily pay', 'الأساسي / أجر الأيام') + '</th><th>' + hrxL('Allowances', 'البدلات') + '</th><th>' + hrxL('Bonuses', 'المكافآت') + '</th><th>' + hrxL('Overtime', 'الإضافي') + '</th><th>' + hrxL('Deductions + advances', 'خصومات + سلف') + '</th><th>' + hrxL('Absence', 'خصم الغياب') + '</th><th>' + hrxL('Net', 'الصافي') + '</th><th>' + hrxL('Status', 'الحالة') + '</th></tr></thead><tbody>' + (body || '<tr><td colspan="12">' + hrxL('No salary profiles', 'لا توجد ملفات رواتب') + '</td></tr>') +
-            '<tr class="tot"><td colspan="4">' + hrxL('Total', 'الإجمالي') + '</td><td>' + hrxFmt(T.base) + '</td><td>' + hrxFmt(T.fixed + T.add) + '</td><td>' + hrxFmt(T.bonus) + '</td><td>' + hrxFmt(T.ot) + '</td><td>' + hrxFmt(T.ded) + '</td><td>' + hrxFmt(T.abs) + '</td><td>' + hrxFmt(T.net) + '</td><td></td></tr></tbody></table>' +
-            '<div class="sig"><div>' + hrxL('Prepared by', 'إعداد') + '</div><div>' + hrxL('Reviewed by', 'مراجعة') + '</div><div>' + hrxL('Approved by', 'اعتماد') + '</div></div>';
-        hrxWriteWin(w, title + ' — ' + m, hrxL('Monthly payroll', 'مسير الرواتب الشهري'), '@page{size:A4 landscape;margin:10mm}', html);
-    }).catch(function(e) { try { w.close(); } catch (x) {} hrxFail(e); });
-}
-function hrxRepPayrollExcel(m) {
-    if (!hrxRepGuard(true)) return; m = m || hrxRepMonth();
-    showToast('⏳ ' + hrxL('Preparing Excel...', 'جاري تجهيز Excel...'));
-    hrxLoadPayData(m).then(function(data) {
-        var rows = hrxPayRows(data).filter(function(r) { return r.c.has; }), items = [];
-        var sheet = rows.map(function(r) {
-            var c = r.c, d = c.days || {};
-            var o = {}; o[hrxL('Employee', 'الموظف')] = r.e.name || ''; o[hrxL('Title', 'المهنة')] = r.e.title || ''; o[hrxL('Type', 'النوع')] = hrxTypeText(r.e);
-            o[hrxL('Base / daily pay', 'الأساسي / أجر الأيام')] = hrxN(c.basePay); o[hrxL('Fixed allowances', 'بدلات ثابتة')] = hrxN(c.fixed); o[hrxL('Extra allowances', 'بدلات إضافية')] = hrxN(c.sum.allowance);
-            o[hrxL('Bonuses', 'مكافآت')] = hrxN(c.sum.bonus); o[hrxL('Overtime hours', 'ساعات الإضافي')] = hrxN(c.sum.otHours); o[hrxL('Overtime amount', 'قيمة الإضافي')] = hrxN(c.sum.overtime);
-            o[hrxL('Deductions', 'خصومات')] = hrxN(c.sum.deduction); o[hrxL('Advances', 'سلف')] = hrxN(c.sum.advance); o[hrxL('Absence deduction', 'خصم الغياب')] = hrxN(c.absentDed);
-            o[hrxL('Present days', 'أيام الحضور')] = d.present == null ? '' : d.present; o[hrxL('Absent days', 'أيام الغياب')] = d.absent == null ? '' : d.absent; o[hrxL('Gross', 'الإجمالي')] = hrxN(c.gross);
-            o[hrxL('Net', 'الصافي')] = hrxN(c.net); o[hrxL('Status', 'الحالة')] = hrxStatusText(r.st); return o;
-        });
-        var names = {}; hrxKinds().forEach(function(k) { names[k[0]] = k[1]; });
-        Object.keys(data.A).forEach(function(eid) { Object.keys(data.A[eid]).forEach(function(k) {
-            var a = data.A[eid][k], o = {}; o[hrxL('Employee', 'الموظف')] = hrxEmpName(eid); o[hrxL('Item type', 'نوع البند')] = names[a.kind] || a.kind; o[hrxL('Description', 'البيان')] = a.label || '';
-            o[hrxL('Hours', 'الساعات')] = a.hours || ''; o[hrxL('Amount', 'المبلغ')] = hrxN(a.amount); o[hrxL('By', 'بواسطة')] = a.by || ''; items.push(o);
-        }); });
-        hrxXlsx([{ name: hrxL('Payroll ', 'الرواتب ') + m, rows: sheet }, { name: hrxL('Items', 'البنود'), rows: items }], 'مسير_رواتب_' + m + '.xlsx');
-        showToast('✅ ' + hrxL('Excel exported', 'تم تصدير Excel'));
-    }).catch(hrxFail);
-}
-// ---------- قسائم الرواتب ----------
-function hrxPayslipHtml(r, m) {
-    var c = r.c, e = r.e, d = c.days || {};
-    function line(l, v, cls) { return '<tr><td class="l">' + l + '</td><td class="' + (cls || '') + '">' + hrxFmt(v) + '</td></tr>'; }
-    var earn = line(c.daily ? hrxL('Daily pay', 'أجر الأيام') + ' (' + (d.present || 0) + ' ' + hrxL('days', 'يوم') + ')' : hrxL('Base salary', 'الراتب الأساسي'), c.basePay) +
-        (c.fixed ? line(hrxL('Fixed allowances', 'بدلات ثابتة'), c.fixed) : '') + (c.sum.allowance ? line(hrxL('Extra allowances', 'بدلات إضافية'), c.sum.allowance) : '') +
-        (c.sum.bonus ? line(hrxL('Bonuses', 'مكافآت'), c.sum.bonus) : '') + (c.sum.overtime ? line(hrxL('Overtime', 'الإضافي') + ' (' + hrxFmt(c.sum.otHours) + hrxL(' h', ' س') + ')', c.sum.overtime) : '');
-    var ded = (c.sum.deduction ? line(hrxL('Deductions', 'خصومات'), c.sum.deduction, 'neg') : '') + (c.sum.advance ? line(hrxL('Advances', 'سلف'), c.sum.advance, 'neg') : '') +
-        (c.absentDed ? line(hrxL('Absence deduction', 'خصم الغياب') + ' (' + (d.absent || 0) + ' ' + hrxL('days', 'يوم') + ')', c.absentDed, 'neg') : '') || '<tr><td class="l" colspan="2">—</td></tr>';
-    return '<div style="border:1.5px solid #0d1b2a;border-radius:10px;padding:14px;margin-bottom:18px;page-break-inside:avoid">' +
-        '<div style="display:flex;justify-content:space-between;font-size:13px"><div><b>' + hrxEsc(e.name) + '</b><div style="color:#64748b;font-size:11.5px">' + hrxEsc(e.title || '') + ' • ' + hrxTypeText(e) + (e.jobCode ? ' • #' + hrxEsc(e.jobCode) : '') + '</div></div><div style="text-align:center"><b>' + hrxL('Payslip', 'قسيمة راتب') + '</b><div style="color:#64748b;font-size:11.5px">' + m + '</div></div></div>' +
-        '<div style="display:flex;gap:14px;margin-top:10px"><div style="flex:1"><div style="font-weight:800;color:#047857;font-size:12px">' + hrxL('Earnings', 'المستحقات') + '</div><table>' + earn + '<tr class="tot"><td class="l">' + hrxL('Gross', 'الإجمالي') + '</td><td>' + hrxFmt(c.gross) + '</td></tr></table></div>' +
-        '<div style="flex:1"><div style="font-weight:800;color:#b91c1c;font-size:12px">' + hrxL('Deductions', 'الاستقطاعات') + '</div><table>' + ded + '<tr class="tot"><td class="l">' + hrxL('Total deductions', 'إجمالي الاستقطاعات') + '</td><td>' + hrxFmt(c.ded) + '</td></tr></table></div></div>' +
-        '<div style="margin-top:10px;background:#0d1b2a;color:#fff;border-radius:8px;padding:9px;text-align:center;font-size:15px;font-weight:800">' + hrxL('Net salary', 'صافي الراتب') + ': ' + hrxFmt(c.net) + ' ' + hrxL('EGP', 'ج.م') + '</div>' +
-        '<div class="sig" style="margin-top:26px"><div>' + hrxL('Employee signature', 'توقيع الموظف') + '</div><div>' + hrxL('Accountant', 'المحاسب') + '</div></div></div>';
-}
-function hrxRepPayslipsPdf(m, onlyEmpId) {
-    if (!hrxRepGuard(true)) return; m = m || (onlyEmpId ? HRX.pm : hrxRepMonth()) || hrxRepMonth();
-    var title = hrxL('Payslips', 'قسائم الرواتب'), w = hrxOpenWin(title); if (!w) return;
-    hrxLoadPayData(m).then(function(data) {
-        var rows = hrxPayRows(data).filter(function(r) { return r.c.has && (!onlyEmpId || r.e.id === onlyEmpId); });
-        if (!rows.length) { try { w.close(); } catch (x) {} showToast(hrxL('No salary profiles for this selection', 'لا توجد ملفات رواتب لهذا الاختيار'), true); return; }
-        hrxWriteWin(w, title + ' — ' + m, hrxL('Employee payslips', 'قسائم رواتب الموظفين'), '@page{size:A4;margin:12mm}table{font-size:12px}', rows.map(function(r) { return hrxPayslipHtml(r, m); }).join(''));
-    }).catch(function(e) { try { w.close(); } catch (x) {} hrxFail(e); });
-}
-
-// ---------- ساعات الحضور ----------
-function hrxRepAttendancePdf(m) {
-    if (!hrxRepGuard(false)) return; m = m || hrxRepMonth();
-    var title = hrxL('Attendance Hours Report', 'تقرير ساعات الحضور'), w = hrxOpenWin(title); if (!w) return;
-    hrxLoadMonthAtt(m).then(function(att) {
-        var rows = hrxBuildAttRows(att), T = { p: 0, a: 0, l: 0, h: 0, ot: 0, ld: 0, lm: 0, no: 0 };
-        var body = rows.map(function(r, i) {
-            T.p += r.present; T.a += r.absent; T.l += r.leave; T.h += r.hours; T.ot += r.ot; T.ld += r.lateDays; T.lm += r.lateMin; T.no += r.noOut;
-            return '<tr><td>' + (i + 1) + '</td><td class="l">' + hrxEsc(r.emp.name) + '</td><td>' + hrxEsc(r.shift ? r.shift.name : '—') + '</td><td class="pos">' + r.present + '</td><td class="neg">' + r.absent + '</td><td>' + r.leave + '</td><td><b>' + hrxFmt(r.hours) + '</b></td><td>' + hrxFmt(r.ot) + '</td><td>' + r.lateDays + ' / ' + r.lateMin + '</td><td>' + (r.noOut || '—') + '</td></tr>';
-        }).join('');
-        var html = '<div class="info">📅 <b>' + hrxL('Month', 'الشهر') + ':</b> ' + m + ' &nbsp; 📆 <b>' + hrxL('Days covered', 'الأيام المشمولة') + ':</b> ' + att.dates.length + ' &nbsp; 👥 ' + rows.length + '<br><span style="font-size:11px;color:#64748b">' +
-            hrxL('Hours = check-out − check-in − shift break. Overtime = hours beyond the assigned shift length. Days without check-out are counted as present but without hours.', 'الساعات = الخروج − الدخول − استراحة الوردية. الإضافي = الساعات الزائدة عن طول الوردية المعيّنة. الأيام بدون تسجيل خروج تُحسب حضورًا بدون ساعات.') + '</span></div>' +
-            '<table><thead><tr><th>#</th><th>' + hrxL('Employee', 'الموظف') + '</th><th>' + hrxL('Shift', 'الوردية') + '</th><th>' + hrxL('Present', 'حضور') + '</th><th>' + hrxL('Absent', 'غياب') + '</th><th>' + hrxL('Leave', 'إجازة') + '</th><th>' + hrxL('Work hours', 'ساعات العمل') + '</th><th>' + hrxL('Overtime h', 'ساعات إضافي') + '</th><th>' + hrxL('Late (days / min)', 'تأخير (أيام / د)') + '</th><th>' + hrxL('No check-out', 'بدون خروج') + '</th></tr></thead><tbody>' + body +
-            '<tr class="tot"><td colspan="3">' + hrxL('Total', 'الإجمالي') + '</td><td>' + T.p + '</td><td>' + T.a + '</td><td>' + T.l + '</td><td>' + hrxFmt(T.h) + '</td><td>' + hrxFmt(T.ot) + '</td><td>' + T.ld + ' / ' + T.lm + '</td><td>' + T.no + '</td></tr></tbody></table>';
-        hrxWriteWin(w, title + ' — ' + m, hrxL('Monthly attendance & hours', 'الحضور والساعات الشهرية'), '@page{size:A4 landscape;margin:10mm}', html);
-    }).catch(function(e) { try { w.close(); } catch (x) {} hrxFail(e); });
-}
-function hrxRepAttendanceExcel(m) {
-    if (!hrxRepGuard(false)) return; m = m || hrxRepMonth();
-    showToast('⏳ ' + hrxL('Preparing Excel...', 'جاري تجهيز Excel...'));
-    hrxLoadMonthAtt(m).then(function(att) {
-        var rows = hrxBuildAttRows(att);
-        var sum = rows.map(function(r) {
-            var o = {}; o[hrxL('Employee', 'الموظف')] = r.emp.name || ''; o[hrxL('Title', 'المهنة')] = r.emp.title || ''; o[hrxL('Shift', 'الوردية')] = r.shift ? r.shift.name : '';
-            o[hrxL('Present days', 'أيام الحضور')] = r.present; o[hrxL('Absent days', 'أيام الغياب')] = r.absent; o[hrxL('Leave days', 'أيام الإجازة')] = r.leave; o[hrxL('Work hours', 'ساعات العمل')] = r.hours;
-            o[hrxL('Overtime hours', 'ساعات الإضافي')] = r.ot; o[hrxL('Late days', 'أيام التأخير')] = r.lateDays; o[hrxL('Late minutes', 'دقائق التأخير')] = r.lateMin; o[hrxL('Days without check-out', 'أيام بدون خروج')] = r.noOut; return o;
-        });
-        var daily = rows.map(function(r) {
-            var o = {}; o[hrxL('Employee', 'الموظف')] = r.emp.name || '';
-            att.dates.forEach(function(d) {
-                var st = (att.st[d] || {})[r.emp.id], s = st && st.status, v = r.byDay[d];
-                o[d.slice(8)] = s === 'absent' ? hrxL('A', 'غ') : s === 'leave' ? hrxL('L', 'إ') : (v === undefined ? '' : (v === null ? hrxL('P', 'ح') : v));
-            });
-            o[hrxL('Total hours', 'إجمالي الساعات')] = r.hours; return o;
-        });
-        hrxXlsx([{ name: hrxL('Summary ', 'الملخص ') + m, rows: sum }, { name: hrxL('Daily hours', 'الساعات اليومية'), rows: daily }], 'ساعات_الحضور_' + m + '.xlsx');
-        showToast('✅ ' + hrxL('Excel exported', 'تم تصدير Excel'));
-    }).catch(hrxFail);
-}
-
-// ---------- ترحيل الإضافي من الحضور إلى الرواتب ----------
-function hrxPayImportOT() {
-    if (!hrxCanManage()) { showToast('⛔ ' + hrxL('Not authorized', 'غير مصرح'), true); return; }
-    var db = hrxDb(); if (!db) return; var m = HRX.pm;
-    showToast('⏳ ' + hrxL('Reading attendance records...', 'جاري قراءة سجلات الحضور...'));
-    hrxLoadMonthAtt(m).then(function(att) {
-        var rows = hrxBuildAttRows(att), ups = {}, n = 0, skipped = 0;
-        rows.forEach(function(r) {
-            var rate = +((HRX.profiles[r.emp.id] || {}).otRate) || 0, key = 'hrPayrollAdj/' + m + '/' + r.emp.id + '/auto_ot';
-            if (r.ot > 0 && rate > 0) {
-                ups[key] = { kind: 'overtime', hours: r.ot, amount: Math.round(r.ot * rate * 100) / 100, label: hrxL('Overtime calculated from attendance', 'إضافي محسوب من الحضور'), auto: true, by: hrxWho(), at: hrxNow() }; n++;
-            } else { if (r.ot > 0) skipped++; if (HRX.adj[r.emp.id] && HRX.adj[r.emp.id].auto_ot) ups[key] = null; }
-        });
-        if (!Object.keys(ups).length) { showToast(hrxL('No overtime to import (needs assigned shift + overtime rate)', 'لا يوجد إضافي للترحيل (يحتاج وردية معيّنة وقيمة ساعة إضافي)')); return; }
-        return db.ref().update(ups).then(function() {
-            showToast('✅ ' + hrxL('Overtime imported for ', 'تم ترحيل الإضافي لـ ') + n + hrxL(' employee(s)', ' موظف') + (skipped ? ' — ' + skipped + hrxL(' skipped (no overtime rate)', ' بدون قيمة ساعة إضافي') : ''));
-        });
-    }).catch(hrxFail);
-}
-
-// ---------- ربط الأزرار بصفحة التقارير ----------
-(function() {
-    hrxEnsureRepInput();
-    // لو القسم محتاج صلاحية معيّنة (need) يخفي الزر عن اللي مالوش صلاحية
-    var _origRRH = (typeof renderReportsHub === 'function') ? renderReportsHub : null;
-    if (_origRRH) renderReportsHub = function() { hrxEnsureRepInput(); return _origRRH.apply(this, arguments); };
-})();
-
-
-// ==================== نظام التبويبات المطور للموارد البشرية ====================
-let hrActiveSubTab = 'employees';
-var HR_EXTRA_TABS = ['attendance', 'leaves', 'payroll', 'custody'];
-var HR_PANEL_RENDERERS = { attendance: 'renderHRAttendancePanel', leaves: 'renderHRLeavesPanel', payroll: 'renderHRPayrollPanel', custody: 'renderHRCustodyPanel' };
-var HR_PANEL_CONTAINERS = { attendance: 'attendance-dashboard-container', leaves: 'leaves-dashboard-container', payroll: 'payroll-dashboard-container', custody: 'custody-dashboard-container' };
-
-// يشغّل دالة عرض القسم لو موجودة، وغير كده يعرض رسالة "قيد التطوير" بدل ما يطلع خطأ
-function renderHRExtraPanel(tab) {
-    var fnName = HR_PANEL_RENDERERS[tab];
-    if (fnName && typeof window[fnName] === 'function') { window[fnName](); return; }
-    var box = document.getElementById(HR_PANEL_CONTAINERS[tab]);
-    if (box && !box.innerHTML.trim()) {
-        box.innerHTML = '<div style="text-align:center;color:#64748b;padding:34px 14px;font-size:13px;background:white;border-radius:14px;border:1px dashed #cbd5e1">🚧 ' + RL('This section is under development', 'هذا القسم قيد التطوير') + '</div>';
-    }
-}
-
 function switchEmployeesSubTab(tab) {
-    var isExtra = HR_EXTRA_TABS.indexOf(tab) !== -1;
     if (tab === 'drivers' && !hasPermission('all') && !canView('drivers')) { showToast('غير مصرح بعرض السائقين', true); return; }
-    if ((tab === 'employees' || isExtra) && !hasPermission('all') && !canView('employees')) { showToast('غير مصرح بعرض الموظفين', true); return; }
+    if (tab === 'employees' && !hasPermission('all') && !canView('employees')) { showToast('غير مصرح بعرض الموظفين', true); return; }
     employeesActiveSubTab = tab;
-    hrActiveSubTab = tab;
-
-    // إظهار لوحة التبويب النشط فقط
-    ['employees', 'drivers'].concat(HR_EXTRA_TABS).forEach(function(p) {
-        var el = document.getElementById('emp-panel-' + p);
-        if (el) el.style.display = (p === tab) ? 'block' : 'none';
-    });
-
-    // تحديث أزرار التبويبات
+    document.getElementById('emp-panel-employees').style.display = tab === 'employees' ? 'block' : 'none';
+    document.getElementById('emp-panel-drivers').style.display = tab === 'drivers' ? 'block' : 'none';
     document.querySelectorAll('.emp-subtab-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.subtab === tab);
     });
-    var activeBtn = document.querySelector('.emp-subtab-btn.active');
-    if (activeBtn && activeBtn.scrollIntoView) { try { activeBtn.scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (e) {} }
-
     document.getElementById('header-title').innerHTML = '👥 ' + RL('Human Resources', 'الموارد البشرية');
-
-    // تشغيل دوال العرض الخاصة بالقسم النشط
-    if (isExtra) renderHRExtraPanel(tab);
-
     updateEmployeesFab();
     debouncedRefresh();
 }
@@ -22133,7 +21066,6 @@ function updateEmployeesFab() {
     var fabButton = document.getElementById('fab-btn');
     if (!fabButton) return;
     var section = employeesActiveSubTab === 'drivers' ? 'drivers' : 'employees';
-    if (HR_EXTRA_TABS.indexOf(employeesActiveSubTab) !== -1) { fabButton.style.display = 'none'; fabButton.onclick = null; return; }
     if (hasPermission('all') || canAdd(section)) {
         fabButton.style.display = 'flex';
         fabButton.onclick = employeesActiveSubTab === 'drivers'
@@ -22238,13 +21170,7 @@ var REPORTS_GROUPS = [
         { k: 'excel', ico: '📊', en: 'Inventory Excel', ar: 'تصدير المخزن',    c: '#10b981,#0e7490', run: _rpClickBtn('export-inventory-excel-btn') }
       ] },
     { key: 'employees', ico: '👥', en: 'Human Resources', ar: 'الموارد البشرية', sec: ['employees', 'drivers'], hideVO: true,
-      period: { type: 'month', id: 'hrx-rep-month' },
       items: [
-        { k: 'print', ico: '⏱️', en: 'Attendance Hours PDF',   ar: 'ساعات الحضور PDF',   c: '#0284c7,#075985', run: function() { hrxRepAttendancePdf(); } },
-        { k: 'excel', ico: '⏱️', en: 'Attendance Hours Excel', ar: 'ساعات الحضور Excel', c: '#0284c7,#075985', run: function() { hrxRepAttendanceExcel(); } },
-        { k: 'print', ico: '💰', en: 'Payroll Sheet PDF',      ar: 'كشف الرواتب PDF',    c: '#0284c7,#075985', need: function() { return hrxCanManage(); }, run: function() { hrxRepPayrollPdf(); } },
-        { k: 'excel', ico: '💰', en: 'Payroll Excel',          ar: 'كشف الرواتب Excel',  c: '#0284c7,#075985', need: function() { return hrxCanManage(); }, run: function() { hrxRepPayrollExcel(); } },
-        { k: 'print', ico: '🧾', en: 'Payslips PDF',           ar: 'قسائم الرواتب PDF',  c: '#0284c7,#075985', need: function() { return hrxCanManage(); }, run: function() { hrxRepPayslipsPdf(); } },
         { k: 'print', ico: '📊', en: 'Monthly Attendance',  ar: 'تقرير الحضور الشهري', c: '#059669,#047857', run: function() { openEmployeeAttendanceReport(); } },
         { k: 'print', ico: '🏷️', en: 'Attendance QR Labels', ar: 'ملصقات QR الحضور',    c: '#7c3aed,#4f46e5', run: function() { printAllEmployeeAttQRs(); } },
         { k: 'print', ico: '📄', en: 'Employees PDF',       ar: 'الموظفين PDF',        c: '#dc2626,#991b1b', run: function() { exportEmployeesPDF(); } },
@@ -22288,9 +21214,7 @@ function renderReportsHub() {
     REPORTS_GROUPS.forEach(function(g) {
         if (vo && g.hideVO) return;
         if (!_rpExplicit() && !g.sec.some(function(s) { return canView(s); })) return;
-        var gItems = g.items.filter(function(it) { return !it.need || it.need(); });
-        if (!gItems.length) return;
-        var chips = gItems.map(function(it) {
+        var chips = g.items.map(function(it) {
             var idx = _rpRegistry.push(it) - 1;
             var q = (it.en + ' ' + it.ar + ' ' + g.en + ' ' + g.ar).toLowerCase();
             return '<button type="button" class="rp-chip" data-i="' + idx + '" data-kind="' + it.k + '" data-q="' + escapeHtml(q) + '"' +
@@ -22299,7 +21223,7 @@ function renderReportsHub() {
                    '<span class="rp-tag">' + RP_TAGS[it.k] + '</span></button>';
         }).join('');
         html += '<div class="rp-card" data-g="' + g.key + '">' +
-                '<div class="rp-head"><span>' + g.ico + '</span><span>' + RL(g.en, g.ar) + '</span><span class="rp-n">' + gItems.length + '</span></div>' +
+                '<div class="rp-head"><span>' + g.ico + '</span><span>' + RL(g.en, g.ar) + '</span><span class="rp-n">' + g.items.length + '</span></div>' +
                 (g.period ? _rpPeriodHtml(g.period) : '') +
                 '<div class="rp-chips">' + chips + '</div></div>';
     });
@@ -25322,6 +24246,10 @@ window.confirmIssueVoucherImport = confirmIssueVoucherImport;
       '<select class="form-select" id="rental-driver-select"><option value="">-- اختر السائق --</option></select></div>' +
       '<div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Rental Company" data-ar="الشركة المؤجِّرة"></span></label>' +
       '<input class="form-input" id="rental-company" placeholder="اسم الشركة"></div>' +
+      '<div class="form-field"><label class="form-label">القدرة / السعة (تظهر في Time Sheet — مثال: 66 أو 17م أو 30 طن)</label>' +
+      '<input class="form-input" id="rental-capacity" placeholder="مثال: 66"></div>' +
+      '<div class="form-field"><label class="form-label">حالة السولار (تظهر في Time Sheet)</label>' +
+      '<select class="form-select" id="rental-fuel-mode"><option value="شاملة السولار">شاملة السولار</option><option value="غير شاملة السولار">غير شاملة السولار</option></select></div>' +
       '<div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Contract Start Date" data-ar="تاريخ بداية العقد"></span></label>' +
       '<input class="form-input" type="date" id="rental-start-date"></div>' +
       '<div class="form-field"><label class="form-label">تاريخ نهاية العقد (اختياري — لتفعيل تنبيه الانتهاء)</label>' +
@@ -25712,6 +24640,8 @@ function openAddRentalModal() {
     }).join('');
     document.getElementById('rental-eq-type-display').value='';
     document.getElementById('rental-company').value='';
+    document.getElementById('rental-capacity').value='';
+    document.getElementById('rental-fuel-mode').value='شاملة السولار';
     document.getElementById('rental-start-date').value=localDateStr(new Date());
     document.getElementById('rental-end-date').value='';
     document.getElementById('rental-notes').value='';
@@ -25732,6 +24662,8 @@ function editRentalEquipment(id) {
     }).join('');
     onRentalEqChange();
     document.getElementById('rental-company').value=r.company||'';
+    document.getElementById('rental-capacity').value=r.capacity||'';
+    document.getElementById('rental-fuel-mode').value=r.fuelMode||'شاملة السولار';
     document.getElementById('rental-start-date').value=r.startDate||'';
     document.getElementById('rental-end-date').value=r.endDate||'';
     document.getElementById('rental-notes').value=r.notes||'';
@@ -25747,10 +24679,14 @@ function saveRentalEquipment() {
     var record={ equipmentId:eqId, equipmentCode:eq?eq.code:'', equipmentType:eq?(eq.type||''):'',
         equipmentName:eq?(eq.name||''):'', driverId:document.getElementById('rental-driver-select').value,
         company:document.getElementById('rental-company').value.trim(),
+        capacity:document.getElementById('rental-capacity').value.trim(),
+        fuelMode:document.getElementById('rental-fuel-mode').value||'شاملة السولار',
         dailyRate: dailyRateVal,
         startDate:document.getElementById('rental-start-date').value,
         endDate:document.getElementById('rental-end-date').value,
         notes:document.getElementById('rental-notes').value.trim(), updatedAt:new Date().toISOString() };
+    // تعديل العقد ماينفعش يمسح المقاول المربوط بيه (بيتحدد من صفحة الحسابات) — نحافظ عليه
+    if (existingRental && existingRental.contractorId) record.contractorId = existingRental.contractorId;
     var ref=editingRentalId?fbDb.ref('rental/'+editingRentalId):fbDb.ref('rental').push();
     ref.set(record).then(function(){ closeModal('rental-modal'); showToast(editingRentalId?'تم التحديث':'تم الحفظ'); }).catch(function(err){ showToast('خطأ: '+err.message,true); });
 }
@@ -28615,5 +27551,374 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(loadGeminiApiKey, 1500);
 });
 </script>
+<script>
+/* ==================== Time Sheet — بيان تشغيل معدة مؤجرة (توليد إكسيل شهري من بيانات البرنامج) ====================
+   بيطلّع ملف إكسيل بنفس تصميم الملف الأصلي (شيت لكل معدة، لوجو الهيدر، الفوتر، المعادلات)، بدورة 21 → 20،
+   ومعبّي من: عقود الإيجار + السجل اليومي للإيجار + بيانات المعدة + السائق + المقاول + سجلات الوقود.
+   القالب (التصميم) متخزّن جوه الملف نفسه، ومكتبة JSZip بتتحمّل أول مرة بس عند الحاجة. */
+(function () {
+    'use strict';
+    var TS_TPL_B64 = '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';
+    var TS_NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+    var TS_XMLNS = 'http://www.w3.org/XML/1998/namespace';
+    var TS_DAYS = ['الاحد', 'الاثنين', 'الثلاثاء', 'الاربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    var TS_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    var TS_TPL_CACHE = null;
+
+    // ---------- أدوات التواريخ (UTC عشان مفيش أي تأثير لتوقيت الجهاز) ----------
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
+    function tsParse(ds) { var p = ds.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+    function tsSerial(ds) { return Math.round((tsParse(ds) - Date.UTC(1899, 11, 30)) / 86400000); }
+    function tsDayName(ds) { return TS_DAYS[new Date(tsParse(ds)).getUTCDay()]; }
+    function tsAddDays(ds, n) { var d = new Date(tsParse(ds) + n * 86400000); return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate()); }
+    function tsRound(n) { return Math.round((+n || 0) * 100) / 100; }
+    function tsXmlEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    function tsCycleDays(range) {
+        var out = [], d = range.from, guard = 0;
+        while (d <= range.to && guard < 40) { out.push(d); d = tsAddDays(d, 1); guard++; }
+        return out;
+    }
+
+    // الدورة الافتراضية: لو النهاردة 21 أو بعده → الدورة اللي لسه مقفولة (اللي بيتعمل لها المستخلص)، غير كده → الدورة الجارية
+    function tsDefaultMonth() {
+        var cur = getCurrentCycleMonthStr();
+        return (new Date().getDate() >= 21) ? getPreviousCycleMonthStr(cur) : cur;
+    }
+
+    // ---------- القدرة: لو مش مكتوبة في العقد، نحاول نفهمها من اسم المعدة (أول رقم برّه الأقواس + وحدته لو موجودة) ----------
+    function tsGuessCapacity(name) {
+        var clean = String(name || '').replace(/\([^)]*\)/g, ' ');
+        var m = clean.match(/(\d+(?:[.,]\d+)?)\s*(طن|م|KVA|kva|كيلو|حصان|HP|hp)?(?![\u0600-\u06FFA-Za-z])/);
+        if (!m) return '';
+        return m[2] ? (m[1] + ' ' + m[2]) : m[1];
+    }
+
+    // ---------- اختيار العقود اللي هتظهر في الملف ----------
+    function tsSelectContracts(month, contractorFilter, includeEmpty) {
+        var range = getPeriodRange(month);
+        return (rentalData || []).filter(function (r) {
+            if (r.startDate && r.startDate > range.to) return false;
+            if (r.endDate && r.endDate < range.from) return false;
+            if (contractorFilter === '__none__') { if (r.contractorId) return false; }
+            else if (contractorFilter) { if (r.contractorId !== contractorFilter) return false; }
+            if (!includeEmpty) {
+                var has = (rentalDailyData || []).some(function (d) { return d.equipmentId === r.id && d.date >= range.from && d.date <= range.to; });
+                if (!has) return false;
+            }
+            return true;
+        });
+    }
+
+    // ---------- بيانات رأس الشيت لكل عقد ----------
+    function tsInfo(r) {
+        var eq = (equipmentData || []).find(function (e) { return e.id === r.equipmentId; }) || {};
+        var drv = (driversData || []).find(function (d) { return d.id === r.driverId; });
+        var ct = r.contractorId ? (contractorsData || []).find(function (c) { return c.id === r.contractorId; }) : null;
+        var name = String(eq.name || eq.code || r.equipmentCode || '').trim();
+        return {
+            rental: r,
+            name: name,
+            type: String(eq.type || r.equipmentType || '').trim(),
+            chassis: String(eq.chassis || '').trim(),
+            capacity: String(r.capacity || '').trim() || tsGuessCapacity(name),
+            fuelMode: r.fuelMode || 'شاملة السولار',
+            project: String(eq.projectSite || eq.location || '').trim(),
+            operator: String(drv ? (drv.name || '') : (eq.assignedDriverName || '')).trim(),
+            contractor: String(ct ? (ct.name || '') : (r.company || '')).trim()
+        };
+    }
+
+    function tsFuelByDate(eqId, range) {
+        var m = {};
+        (fuelData || []).forEach(function (f) {
+            if (f.equipmentId === eqId && f.date && f.date >= range.from && f.date <= range.to) m[f.date] = (m[f.date] || 0) + (+f.amount || 0);
+        });
+        return m;
+    }
+
+    // ---------- ملء شيت واحد ----------
+    function tsFillSheet(tplXml, info, month, range) {
+        var doc = new DOMParser().parseFromString(tplXml, 'application/xml');
+        if (doc.getElementsByTagName('parsererror').length) throw new Error('قالب الشيت تالف');
+        var cells = {}, all = doc.getElementsByTagName('c');
+        for (var i = 0; i < all.length; i++) cells[all[i].getAttribute('r')] = all[i];
+        function cell(ref) { var c = cells[ref]; if (!c) throw new Error('خلية ناقصة في القالب: ' + ref); return c; }
+        function wipe(c) { while (c.firstChild) c.removeChild(c.firstChild); c.removeAttribute('t'); }
+        function mk(n) { return doc.createElementNS(TS_NS, n); }
+        function setNum(ref, v) { var c = cell(ref); wipe(c); var e = mk('v'); e.textContent = String(v); c.appendChild(e); }
+        function setStr(ref, text) {
+            var c = cell(ref); wipe(c);
+            text = String(text == null ? '' : text);
+            if (!text) return;
+            c.setAttribute('t', 'inlineStr');
+            var is = mk('is'), t = mk('t');
+            t.setAttributeNS(TS_XMLNS, 'xml:space', 'preserve');
+            t.textContent = text; is.appendChild(t); c.appendChild(is);
+        }
+        function blank(ref) { wipe(cell(ref)); }
+        // خلية معادلة: بنسيب <f> زي ما هي ونكتب القيمة المحسوبة (عشان تظهر في أي برنامج حتى قبل إعادة الحساب)
+        function setFormulaValue(ref, v) {
+            var c = cell(ref), kids = [].slice.call(c.childNodes);
+            kids.forEach(function (k) { if (k.nodeName === 'v') c.removeChild(k); });
+            c.removeAttribute('t');
+            var e = mk('v');
+            if (typeof v === 'string') { c.setAttribute('t', 'e'); e.textContent = v; }
+            else e.textContent = String(Math.round(v * 1e9) / 1e9);
+            c.appendChild(e);
+        }
+        function dropFormula(ref) { wipe(cell(ref)); }
+
+        // ----- رأس الشيت -----
+        setStr('F2', info.type);
+        if (/^[1-9]\d{0,14}$/.test(info.chassis)) setNum('F3', info.chassis); else setStr('F3', info.chassis);
+        if (/^\d+(\.\d+)?$/.test(info.capacity)) setNum('F4', info.capacity); else setStr('F4', info.capacity);
+        setStr('F5', info.fuelMode);
+        setNum('F6', tsSerial(month + '-01'));
+        setStr('N2', info.project);
+        setStr('N3', info.operator);
+        setStr('N4', info.contractor);
+        setStr('N5', info.name);
+
+        // ----- صفوف الأيام -----
+        var r = info.rental;
+        var days = tsCycleDays(range);
+        var dd = buildRentalDayEntries(r.id, range.from, range.to);
+        var byDate = {};
+        dd.days.forEach(function (d) { byDate[d.date] = d; });
+        var fuel = tsFuelByDate(r.equipmentId, range);
+
+        var sF = 0, sG = 0, sJ = 0, sM = 0;
+        for (var k = 0; k < 31; k++) {
+            var row = 9 + k, date = days[k];
+            if (!date) {
+                ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'].forEach(function (c) { blank(c + row); });
+                continue;
+            }
+            setNum('C' + row, k + 1);
+            setStr('D' + row, tsDayName(date));
+            setNum('E' + row, tsSerial(date));
+            blank('F' + row); blank('G' + row); blank('H' + row); blank('I' + row); blank('K' + row); blank('L' + row); blank('M' + row);
+            var entry = byDate[date], rec = entry && entry.record, note = '', f = 0, g = 0;
+            if (rec) {
+                f = tsRound((rec.basicHours || 0) + (rec.breakHours || 0));
+                g = tsRound(rec.extraHours || 0);
+                setNum('F' + row, f);
+                if (g !== 0) setNum('G' + row, g);
+                note = String(rec.notes || '').trim();
+            } else if (entry && entry.status === 'absent') {
+                note = '🚫 غياب';
+            }
+            setStr('N' + row, note);
+            if (fuel[date]) { setNum('M' + row, tsRound(fuel[date])); sM += tsRound(fuel[date]); }
+            var j = f + g;
+            setFormulaValue('J' + row, j);
+            sF += f; sG += g; sJ += j;
+        }
+
+        // ----- عداد الساعات: زي الملف الأصلي — K9 سالب إجمالي الساعات عشان K40 = إجمالي الساعات الفعلية -----
+        sF = tsRound(sF); sG = tsRound(sG); sJ = tsRound(sJ); sM = tsRound(sM);
+        if (sJ !== 0) setNum('K9', -sJ);
+        var K40 = sJ !== 0 ? sJ : 0;
+        var dayHrs = rentalBillingDayHours(r);
+        setNum('M47', dayHrs);
+        blank('M50');
+
+        // ----- الإجماليات + ملخص المستخلص (قيم محسوبة، والمعادلات الأصلية فاضلة شغالة) -----
+        var DIV0 = '#DIV/0!';
+        setFormulaValue('F40', sF); setFormulaValue('G40', sG); setFormulaValue('H40', 0); setFormulaValue('I40', 0);
+        setFormulaValue('J40', sJ); setFormulaValue('K40', K40); setFormulaValue('L40', 0); setFormulaValue('M40', sM);
+        setFormulaValue('M42', sJ ? K40 / sJ : DIV0);
+        setFormulaValue('M44', sJ ? K40 / sJ : DIV0);
+        setFormulaValue('M45', K40 ? sM / K40 : DIV0);
+        setFormulaValue('M46', 0);
+        var actual = K40 / dayHrs;
+        setFormulaValue('M48', actual); setFormulaValue('M49', 0); setFormulaValue('M51', actual);
+
+        var xml = new XMLSerializer().serializeToString(doc);
+        if (xml.indexOf('<?xml') !== 0) xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + xml;
+        return xml;
+    }
+
+    // ---------- أسماء الشيتات (حد أقصى 31 حرف، بدون رموز ممنوعة، وفريدة) ----------
+    function tsSheetNames(infos) {
+        var used = {}, out = [];
+        infos.forEach(function (inf, idx) {
+            var base = String(inf.name || ('معدة ' + (idx + 1))).replace(/[\\\/\?\*\[\]:']/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 31) || ('معدة ' + (idx + 1));
+            var nm = base, n = 2;
+            while (used[nm.toLowerCase()] || nm.toLowerCase() === 'type' || nm.toLowerCase() === 'status' || nm.toLowerCase() === 'history') {
+                var suf = ' (' + n + ')'; nm = base.slice(0, 31 - suf.length) + suf; n++;
+            }
+            used[nm.toLowerCase()] = true; out.push(nm);
+        });
+        return out;
+    }
+
+    function tsEnsureJSZip() {
+        return new Promise(function (resolve, reject) {
+            if (window.JSZip) return resolve();
+            var urls = ['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js'];
+            (function next(i) {
+                if (i >= urls.length) return reject(new Error('تعذر تحميل مكتبة الضغط — تأكد من الإنترنت وحاول تاني'));
+                var s = document.createElement('script');
+                s.src = urls[i];
+                s.onload = function () { if (window.JSZip) resolve(); else next(i + 1); };
+                s.onerror = function () { next(i + 1); };
+                document.head.appendChild(s);
+            })(0);
+        });
+    }
+
+    async function tsLoadTemplate() {
+        if (TS_TPL_CACHE) return TS_TPL_CACHE;
+        var z = await JSZip.loadAsync(TS_TPL_B64, { base64: true });
+        var t = {
+            sheet: await z.file('sheet.xml').async('string'),
+            type: await z.file('Type.xml').async('string'),
+            status: await z.file('Status.xml').async('string'),
+            styles: await z.file('styles.xml').async('string'),
+            theme: await z.file('theme1.xml').async('string'),
+            shared: await z.file('sharedStrings.xml').async('string'),
+            vml: await z.file('vml.vml').async('string'),
+            logo: await z.file('logo.png').async('uint8array')
+        };
+        TS_TPL_CACHE = t;
+        return t;
+    }
+
+    // ---------- بناء ملف الإكسيل كامل ----------
+    async function tsBuildWorkbook(contracts, month) {
+        await tsEnsureJSZip();
+        var tpl = await tsLoadTemplate();
+        var range = getPeriodRange(month);
+        var infos = contracts.map(tsInfo);
+        var names = tsSheetNames(infos);
+        var n = infos.length, XH = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+        var out = new JSZip();
+
+        var ct = XH + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+            '<Default Extension="xml" ContentType="application/xml"/>' +
+            '<Default Extension="png" ContentType="image/png"/>' +
+            '<Default Extension="vml" ContentType="application/vnd.openxmlformats-officedocument.vmlDrawing"/>' +
+            '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>';
+        for (var i = 1; i <= n + 2; i++) ct += '<Override PartName="/xl/worksheets/sheet' + i + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+        ct += '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+            '<Override PartName="/xl/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>' +
+            '<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>';
+        out.file('[Content_Types].xml', ct);
+        out.file('_rels/.rels', XH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+
+        var wb = XH + '<workbook xmlns="' + TS_NS + '" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><workbookPr/><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="20730" windowHeight="11040" tabRatio="800" activeTab="0"/></bookViews><sheets>';
+        var rels = XH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
+        var dn = '';
+        for (var s = 0; s < n; s++) {
+            wb += '<sheet name="' + tsXmlEsc(names[s]) + '" sheetId="' + (s + 1) + '" r:id="rId' + (s + 1) + '"/>';
+            rels += '<Relationship Id="rId' + (s + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (s + 1) + '.xml"/>';
+            dn += '<definedName name="_xlnm.Print_Area" localSheetId="' + s + '">\'' + tsXmlEsc(names[s]) + '\'!$B$1:$O$53</definedName>';
+        }
+        wb += '<sheet name="Type" sheetId="' + (n + 1) + '" state="hidden" r:id="rId' + (n + 1) + '"/><sheet name="Status" sheetId="' + (n + 2) + '" state="hidden" r:id="rId' + (n + 2) + '"/></sheets>';
+        wb += '<definedNames>' + dn + '</definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>';
+        rels += '<Relationship Id="rId' + (n + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (n + 1) + '.xml"/>' +
+            '<Relationship Id="rId' + (n + 2) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (n + 2) + '.xml"/>' +
+            '<Relationship Id="rId' + (n + 3) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+            '<Relationship Id="rId' + (n + 4) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>' +
+            '<Relationship Id="rId' + (n + 5) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>';
+        out.file('xl/workbook.xml', wb);
+        out.file('xl/_rels/workbook.xml.rels', rels);
+        out.file('xl/styles.xml', tpl.styles);
+        out.file('xl/theme/theme1.xml', tpl.theme);
+        out.file('xl/sharedStrings.xml', tpl.shared);
+        out.file('xl/media/image1.png', tpl.logo);
+
+        for (var k = 0; k < n; k++) {
+            var idx = k + 1;
+            var shXml = tsFillSheet(tpl.sheet, infos[k], month, range);
+            if (k === 0) shXml = shXml.replace('<sheetView ', '<sheetView tabSelected="1" ');
+            out.file('xl/worksheets/sheet' + idx + '.xml', shXml);
+            out.file('xl/worksheets/_rels/sheet' + idx + '.xml.rels', XH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing' + idx + '.vml"/></Relationships>');
+            var vmlN = 17 + k;
+            out.file('xl/drawings/vmlDrawing' + idx + '.vml', tpl.vml.replace('data="17"', 'data="' + vmlN + '"').replace('_x0000_s17409', '_x0000_s' + (vmlN * 1024 + 1)));
+            out.file('xl/drawings/_rels/vmlDrawing' + idx + '.vml.rels', XH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/></Relationships>');
+        }
+        out.file('xl/worksheets/sheet' + (n + 1) + '.xml', tpl.type);
+        out.file('xl/worksheets/sheet' + (n + 2) + '.xml', tpl.status);
+        return { zip: out, count: n, names: names };
+    }
+
+    // ---------- واجهة المستخدم ----------
+    function tsRefreshInfo() {
+        var el = document.getElementById('ts-info'); if (!el) return;
+        var month = document.getElementById('ts-month').value;
+        if (!month) { el.innerHTML = 'اختر الشهر'; return; }
+        var range = getPeriodRange(month);
+        var list = tsSelectContracts(month, document.getElementById('ts-contractor').value, document.getElementById('ts-include-empty').checked);
+        el.innerHTML = '📅 الدورة: <b>' + range.from + '</b> ← <b>' + range.to + '</b><br>🚧 عدد الشيتات (معدات): <b>' + list.length + '</b>';
+    }
+
+    window.openTimesheetExportModal = function () {
+        var sel = document.getElementById('ts-contractor');
+        var opts = '<option value="">كل المقاولين</option>' + (contractorsData || []).map(function (c) { return '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.name || '') + '</option>'; }).join('') + '<option value="__none__">معدات بدون مقاول</option>';
+        sel.innerHTML = opts;
+        document.getElementById('ts-month').value = tsDefaultMonth();
+        tsRefreshInfo();
+        document.getElementById('timesheet-modal').classList.add('active');
+    };
+    window.tsRefreshInfo = tsRefreshInfo;
+
+    window.generateTimesheetExcel = async function () {
+        var btn = document.getElementById('ts-generate-btn');
+        var month = document.getElementById('ts-month').value;
+        if (!month) { showToast('اختر الشهر الأول', true); return; }
+        var cf = document.getElementById('ts-contractor').value;
+        var list = tsSelectContracts(month, cf, document.getElementById('ts-include-empty').checked);
+        if (!list.length) { showToast('مفيش عقود إيجار تطابق الاختيار ده في الدورة دي', true); return; }
+        var oldLabel = btn.innerHTML; btn.disabled = true; btn.innerHTML = '⏳ جاري التجهيز...';
+        try {
+            var res = await tsBuildWorkbook(list, month);
+            var blob = await res.zip.generateAsync({ type: 'blob', mimeType: TS_MIME, compression: 'DEFLATE', compressionOptions: { level: 6 } });
+            var ym = month.split('-');
+            var fname = 'Time_Sheet_Equipment_Rent_' + (+ym[1]) + '-' + ym[0];
+            // اسم الملف بحروف إنجليزي بس (عشان ما يتغيّرش اسمه على بعض الأجهزة) — اسم المقاول نفسه مكتوب جوه الشيتات
+            var ctLabel = '';
+            if (cf === '__none__') { fname += '_NoContractor'; ctLabel = 'معدات بدون مقاول'; }
+            else if (cf) {
+                var ci = (contractorsData || []).findIndex(function (x) { return x.id === cf; });
+                fname += '_Contractor' + (ci + 1);
+                ctLabel = ci >= 0 ? (contractorsData[ci].name || '') : '';
+            }
+            fname += '.xlsx';
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = fname;
+            document.body.appendChild(a); a.click();
+            setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+            showToast('✅ تم تجهيز الملف (' + res.count + ' معدة)' + (ctLabel ? ' — ' + ctLabel : ''));
+            closeModal('timesheet-modal');
+        } catch (e) {
+            console.error('Time Sheet export failed', e);
+            showToast('تعذر إنشاء الملف: ' + (e && e.message ? e.message : e), true);
+        } finally {
+            btn.disabled = false; btn.innerHTML = oldLabel;
+        }
+    };
+
+    // مودال التصدير
+    var html = '<div class="modal-overlay" id="timesheet-modal">' +
+        '<div class="modal-header" style="background:linear-gradient(135deg,#059669,#047857)">' +
+        '<div class="modal-title">📑 Time Sheet — بيان تشغيل المعدات المؤجرة</div>' +
+        '<button class="modal-close" onclick="closeModal(\'timesheet-modal\')">✕</button></div>' +
+        '<div><div class="form-group">' +
+        '<div class="form-field"><label class="form-label">الدورة (شهر المستخلص — من 21 الشهر اللي قبله لـ 20 منه)</label>' +
+        '<input class="form-input" type="month" id="ts-month" onchange="tsRefreshInfo()"></div>' +
+        '<div class="form-field"><label class="form-label">المقاول</label>' +
+        '<select class="form-select" id="ts-contractor" onchange="tsRefreshInfo()"><option value="">كل المقاولين</option></select></div>' +
+        '<div class="form-field"><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">' +
+        '<input type="checkbox" id="ts-include-empty" checked onchange="tsRefreshInfo()"> تضمين العقود اللي مفيهاش تسجيلات في الدورة (شيت فاضي)</label></div>' +
+        '<div id="ts-info" style="margin:0 16px 8px;background:#ecfdf5;color:#065f46;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.9"></div>' +
+        '</div>' +
+        '<button class="save-btn" id="ts-generate-btn" onclick="generateTimesheetExcel()">📥 تحميل ملف الإكسيل</button></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+})();
+</script>
+
 </body>
 </html>
