@@ -27562,7 +27562,7 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ==================== Time Sheet — بيان تشغيل المعدات (إيجار + ملك) — توليد إكسيل شهري من بيانات البرنامج ====================
    بيطلّع ملف إكسيل بنفس تصميم الملفات الأصلية (شيت لكل معدة، لوجو الهيدر، الفوتر، المعادلات) بدورة 21 → 20.
    • الإيجار: من عقود الإيجار + السجل اليومي + المقاول + السائق + الوقود.
-   • الملك: إجمالي الساعات (قراءة نهاية المدة − بدايتها) بيتوزّع أرقام صحيحة على الأيام بحد أقصى 12 س/يوم للمولدات والأبراج (8 للباقي) والزيادة في خانة الإضافي. المقطورات (بدون عداد) 8 ساعات/يوم.
+   • الملك: إجمالي الساعات (قراءة نهاية المدة − بدايتها) بيتوزّع أرقام صحيحة على الأيام العادية بحد أقصى 12 س/يوم للمولدات والأبراج (8 للباقي)، والجمعة خارج التوزيع إلا لو فيه زيادة (تروح الجمعة الأول)، والباقي في خانة الإضافي. المقطورات (بدون عداد) 8 ساعات/يوم.
    • الزراير في صفحة التقارير فقط، وللمدير فقط.
    • يوم الجمعة هو اليوم الوحيد المتلوّن (رمادي) — بيتحدد من التاريخ الفعلي لكل صف، مش من مكان الصف.
    القوالب (التصميم) متخزّنة جوه الملف نفسه، ومكتبة JSZip بتتحمّل أول مرة بس عند الحاجة. */
@@ -27708,7 +27708,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var dd = buildRentalDayEntries(r.id, range.from, range.to), byDate = {};
         dd.days.forEach(function (d) { byDate[d.date] = d; });
         var fuel = tsFuelByDate(r.equipmentId, range);
-        var sF = 0, sG = 0, sJ = 0, sM = 0;
+        var sF = 0, sG = 0, sJ = 0, sM = 0, absentN = 0;
         for (var k = 0; k < 31; k++) {
             var row = 9 + k, date = days[k];
             if (!date) { 'CDEFGHIJKLMN'.split('').forEach(function (c) { h.blank(c + row); }); continue; }
@@ -27719,7 +27719,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 f = tsRound((rec.basicHours || 0) + (rec.breakHours || 0)); g = tsRound(rec.extraHours || 0);
                 h.setNum('F' + row, f); if (g !== 0) h.setNum('G' + row, g);
                 note = String(rec.notes || '').trim();
-            } else if (entry && entry.status === 'absent') note = '🚫 غياب';
+            } else if (entry && entry.status === 'absent') { note = '🚫 غياب'; absentN++; }
             h.setStr('N' + row, note);
             if (fuel[date]) { h.setNum('M' + row, tsRound(fuel[date])); sM += tsRound(fuel[date]); }
             h.setFV('J' + row, f + g); sF += f; sG += g; sJ += f + g;
@@ -27732,7 +27732,7 @@ document.addEventListener('DOMContentLoaded', function() {
         h.setFV('M42', sJ ? K40 / sJ : DIV0); h.setFV('M44', sJ ? K40 / sJ : DIV0); h.setFV('M45', K40 ? sM / K40 : DIV0); h.setFV('M46', 0);
         var actual = K40 / dayHrs; h.setFV('M48', actual); h.setFV('M49', 0); h.setFV('M51', actual);
         tsApplyDayStyles(h, pack.meta.main, 'CDEFGHIJKLMN'.split(''), days);
-        return h.xml();
+        return { xml: h.xml(), tot: { F: sF, G: sG, J: sJ, fuel: sM, absent: absentN, actual: actual } };
     }
 
     // ==================== الملك ====================
@@ -27814,11 +27814,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ----- المعدات اللي ليها عداد: إجمالي الساعات (نهاية المدة − بداية المدة) بيتوزّع أرقام صحيحة على الأيام،
         // بحد أقصى std ساعة في اليوم (12 للمولدات والأبراج واللحام، 8 للباقي)، وأي زيادة عن كده بتروح خانة الإضافي -----
+        // ترتيب التوزيع: الأيام العادية (من غير الجمعة) بالتساوي لحد std ساعة في اليوم ← لو فيه زيادة تتوزّع على أيام الجمعة (لحد std برضه)
+        // ← أي باقي بعد كده بيروح خانة الإضافي (موزّع على كل الأيام). الجمعة من غير زيادة بتفضل فاضية.
         var plan = {};   // date -> {f, g}
         if (M && M.days.length) {
-            var cap = std * M.days.length, fPart = Math.min(M.total, cap), gPart = M.total - fPart;
-            var fd = tsDistribute(fPart, M.days.length), gd = tsDistribute(gPart, M.days.length);
-            M.days.forEach(function (d, i) { plan[d] = { f: fd[i], g: gd[i] }; });
+            var nf = M.days.filter(function (d) { return !tsIsFriday(d); }), fr = M.days.filter(tsIsFriday);
+            if (!nf.length) { nf = M.days; fr = []; }
+            var fNF = Math.min(M.total, std * nf.length), rest = M.total - fNF;
+            var fFri = Math.min(rest, std * fr.length), gRest = rest - fFri;
+            var dNF = tsDistribute(fNF, nf.length), dFr = fr.length ? tsDistribute(fFri, fr.length) : [], dG = tsDistribute(gRest, M.days.length);
+            var inf = 0, ifr = 0;
+            M.days.forEach(function (d, i) {
+                var isFr = fr.indexOf(d) >= 0;
+                plan[d] = { f: isFr ? dFr[ifr++] : dNF[inf++], g: dG[i] };
+            });
         }
 
         var sF = 0, sG = 0, sJ = 0, sL = 0, sN = 0;
@@ -27856,7 +27865,7 @@ document.addEventListener('DOMContentLoaded', function() {
         h.setFV('M40', 0); h.setFV('N40', sN);
         h.setFV('N43', sJ ? K40 / sJ : DIV0); h.setFV('N44', K40 ? sN / K40 : DIV0);
         tsApplyDayStyles(h, pack.meta[info.tplKey], 'CDEFGHIJKLMNO'.split(''), days);
-        return h.xml();
+        return { xml: h.xml(), tot: { F: sF, G: sG, J: sJ, L: sL, fuel: sN, K9: M ? M.base.hours : null, Kend: M ? M.end.hours : null, lastRow: 8 + n } };
     }
 
     // ---------- أسماء الشيتات (حد أقصى 31 حرف، بدون رموز ممنوعة، وفريدة) ----------
@@ -27902,6 +27911,92 @@ document.addEventListener('DOMContentLoaded', function() {
         return p;
     }
 
+    // ---------- ورقة السمري (أول شيت في الملف): كل تفاصيل المعدات + الساعات + الإضافي + السولار ----------
+    function tsStyleOf(xml, ref) { var m = xml.match(new RegExp('<c r="' + ref + '"[^>]*? s="(\\d+)"')); return m ? +m[1] : 0; }
+    function tsCol(i) { return String.fromCharCode(65 + i); }
+    function tsCell(ref, style, spec) {
+        if (spec == null || spec === '') return '<c r="' + ref + '" s="' + style + '"/>';
+        if (typeof spec === 'string') return '<c r="' + ref + '" s="' + style + '" t="inlineStr"><is><t xml:space="preserve">' + tsXmlEsc(spec) + '</t></is></c>';
+        if (typeof spec === 'number') return '<c r="' + ref + '" s="' + style + '"><v>' + spec + '</v></c>';
+        return '<c r="' + ref + '" s="' + style + '"><f>' + tsXmlEsc(spec.f) + '</f><v>' + (Math.round(spec.v * 100) / 100) + '</v></c>';
+    }
+    function tsBuildSummary(kind, items, tots, names, range, pack) {
+        var rent = kind === 'rent', key = rent ? 'main' : 'gen2', tpl = pack.sheets[key], meta = pack.meta[key];
+        var sHead = tsStyleOf(tpl, 'F7'), sTxt = meta.D[2], sNum = meta.F[2], sTotL = tsStyleOf(tpl, 'C40'), sTotN = tsStyleOf(tpl, 'F40');
+        var q = function (nm) { return "'" + nm + "'!"; };
+        var R0 = 4, n = items.length, RL_ = R0 + n - 1, RT = RL_ + 1;
+        // الأعمدة: A..O (J ساعات التشغيل، K إضافي، L إجمالي الساعات، N السولار — نفس المواضع في الإيجار والملك)
+        var heads = rent
+            ? ['م', 'اسم / كود المعدة', 'النوع', 'القدرة', 'رقم الشاسيه', 'المشروع', 'المقاول', 'المشغل', 'حالة السولار', 'ساعات التشغيل', 'ساعات إضافية', 'إجمالي الساعات', 'أيام الغياب', 'السولار (لتر)', 'أيام العمل الفعلية']
+            : ['م', 'كود المعدة', 'النوع', 'القدرة', 'رقم الشاسيه', 'المشروع', 'المشغل', 'قراءة العداد — البداية', 'قراءة العداد — النهاية', 'ساعات التشغيل', 'ساعات إضافية', 'إجمالي الساعات', 'ساعات التوقف', 'السولار (لتر)', 'استهلاك السولار / ساعة'];
+        var widths = rent ? [5, 24, 18, 12, 16, 24, 42, 18, 18, 13, 13, 14, 11, 13, 13] : [5, 20, 18, 12, 18, 24, 18, 14, 14, 13, 13, 14, 13, 13, 15];
+        var rows = '', sums = { J: 0, K: 0, L: 0, M: 0, N: 0 };
+        rows += '<row r="1" ht="30" customHeight="1">' + tsCell('A1', sHead, 'ملخص ' + (rent ? 'بيان تشغيل معدات الإيجار' : 'بيان تشغيل معدات الملك') + ' — الدورة من ' + range.from + ' إلى ' + range.to) + heads.slice(1).map(function (x, i) { return tsCell(tsCol(i + 1) + '1', sHead, ''); }).join('') + '</row>';
+        rows += '<row r="2" ht="6" customHeight="1"/>';
+        rows += '<row r="3" ht="42" customHeight="1">' + heads.map(function (h, i) { return tsCell(tsCol(i) + '3', sHead, h); }).join('') + '</row>';
+        items.forEach(function (it, i) {
+            var r = R0 + i, nm = q(names[i]), t = tots[i], c = [];
+            c.push(tsCell('A' + r, sTxt, i + 1));
+            c.push(tsCell('B' + r, sTxt, rent ? it.name : it.code));
+            c.push(tsCell('C' + r, sTxt, it.type)); c.push(tsCell('D' + r, sTxt, it.capacity)); c.push(tsCell('E' + r, sTxt, it.chassis)); c.push(tsCell('F' + r, sTxt, it.project));
+            if (rent) {
+                c.push(tsCell('G' + r, sTxt, it.contractor)); c.push(tsCell('H' + r, sTxt, it.operator)); c.push(tsCell('I' + r, sTxt, it.fuelMode));
+                c.push(tsCell('M' + r, sNum, t.absent));
+                c.push(tsCell('O' + r, sNum, { f: nm + 'M51', v: t.actual }));
+            } else {
+                c.push(tsCell('G' + r, sTxt, it.operator));
+                c.push(tsCell('H' + r, sNum, t.K9 == null ? '' : { f: nm + 'K9', v: t.K9 }));
+                c.push(tsCell('I' + r, sNum, t.Kend == null ? '' : { f: nm + 'K' + t.lastRow, v: t.Kend }));
+                c.push(tsCell('M' + r, sNum, { f: nm + 'L40', v: t.L || 0 }));
+                c.push(tsCell('O' + r, sNum, t.J ? { f: 'IF(L' + r + '=0,0,N' + r + '/L' + r + ')', v: t.fuel / t.J } : ''));
+            }
+            c.push(tsCell('J' + r, sNum, { f: nm + 'F40', v: t.F })); c.push(tsCell('K' + r, sNum, { f: nm + 'G40', v: t.G }));
+            c.push(tsCell('L' + r, sNum, { f: nm + 'J40', v: t.J })); c.push(tsCell('N' + r, sNum, { f: nm + (rent ? 'M40' : 'N40'), v: t.fuel }));
+            sums.J += t.F; sums.K += t.G; sums.L += t.J; sums.N += t.fuel; sums.M += rent ? t.absent : (t.L || 0);
+            c.sort(function (a, b2) { return a.match(/r="([A-Z]+)/)[1] < b2.match(/r="([A-Z]+)/)[1] ? -1 : 1; });
+            rows += '<row r="' + r + '" ht="21" customHeight="1">' + c.join('') + '</row>';
+        });
+        // صف الإجمالي العام
+        var tot = [tsCell('A' + RT, sTotL, 'الإجمالي')];
+        for (var ci = 1; ci < 15; ci++) {
+            var L = tsCol(ci), v = null;
+            if ('JKLMN'.indexOf(L) >= 0) v = { f: 'SUM(' + L + R0 + ':' + L + RL_ + ')', v: sums[L] };
+            tot.push(tsCell(L + RT, sTotN, v));
+        }
+        rows += '<row r="' + RT + '" ht="24" customHeight="1">' + tot.join('') + '</row>';
+        // إجمالي حسب نوع المعدة
+        var types = [], tmap = {};
+        items.forEach(function (it, i) {
+            var ty = it.type || 'غير محدد';
+            if (!tmap[ty]) { tmap[ty] = { cnt: 0, J: 0, K: 0, L: 0, N: 0 }; types.push(ty); }
+            var m = tmap[ty], t = tots[i]; m.cnt++; m.J += t.F; m.K += t.G; m.L += t.J; m.N += t.fuel;
+        });
+        var T1 = RT + 2;
+        rows += '<row r="' + T1 + '" ht="26" customHeight="1">' + tsCell('A' + T1, sHead, 'الإجمالي حسب نوع المعدة') + ['B', 'C', 'D', 'E', 'F', 'G'].map(function (x) { return tsCell(x + T1, sHead, ''); }).join('') + '</row>';
+        var T2 = T1 + 1, th = ['م', 'النوع', 'عدد المعدات', 'ساعات التشغيل', 'ساعات إضافية', 'إجمالي الساعات', 'السولار (لتر)'];
+        rows += '<row r="' + T2 + '" ht="34" customHeight="1">' + th.map(function (h, i) { return tsCell(tsCol(i) + T2, sHead, h); }).join('') + '</row>';
+        var gT = { cnt: 0, J: 0, K: 0, L: 0, N: 0 };
+        types.forEach(function (ty, i) {
+            var r = T2 + 1 + i, m = tmap[ty], rng = function (c) { return '$' + c + '$' + R0 + ':$' + c + '$' + RL_; };
+            var crit = ty === 'غير محدد' ? '""' : 'B' + r;
+            var sumif = function (c) { return { f: 'SUMIF(' + rng('C') + ',' + crit + ',' + rng(c) + ')', v: m[c] }; };
+            rows += '<row r="' + r + '" ht="21" customHeight="1">' + tsCell('A' + r, sTxt, i + 1) + tsCell('B' + r, sTxt, ty) +
+                tsCell('C' + r, sNum, { f: 'COUNTIF(' + rng('C') + ',' + crit + ')', v: m.cnt }) + tsCell('D' + r, sNum, sumif('J')) + tsCell('E' + r, sNum, sumif('K')) +
+                tsCell('F' + r, sNum, sumif('L')) + tsCell('G' + r, sNum, sumif('N')) + '</row>';
+            gT.cnt += m.cnt; gT.J += m.J; gT.K += m.K; gT.L += m.L; gT.N += m.N;
+        });
+        var TR = T2 + 1 + types.length, f1 = T2 + 1, f2 = TR - 1;
+        var sm = function (c, v) { return tsCell(c + TR, sTotN, { f: 'SUM(' + c + f1 + ':' + c + f2 + ')', v: v }); };
+        rows += '<row r="' + TR + '" ht="24" customHeight="1">' + tsCell('A' + TR, sTotL, 'الإجمالي') + tsCell('B' + TR, sTotN, '') + sm('C', gT.cnt) + sm('D', gT.J) + sm('E', gT.K) + sm('F', gT.L) + sm('G', gT.N) + '</row>';
+        var cols = '<cols>' + widths.map(function (w, i) { return '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>'; }).join('') + '</cols>';
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="' + TS_NS + '" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+            '<sheetPr><tabColor rgb="FF059669"/><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:O' + TR + '"/>' +
+            '<sheetViews><sheetView rightToLeft="1" tabSelected="1" workbookViewId="0"><pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>' +
+            '<sheetFormatPr defaultRowHeight="15"/>' + cols + '<sheetData>' + rows + '</sheetData>' +
+            '<mergeCells count="4"><mergeCell ref="A1:O1"/><mergeCell ref="A' + T1 + ':G' + T1 + '"/><mergeCell ref="A' + RT + ':B' + RT + '"/><mergeCell ref="A' + TR + ':B' + TR + '"/></mergeCells>' +
+            '<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToHeight="0"/></worksheet>';
+    }
+
     // ---------- بناء ملف الإكسيل كامل ----------
     async function tsBuildWorkbook(kind, items, month) {
         await tsEnsureJSZip();
@@ -27910,13 +28005,16 @@ document.addEventListener('DOMContentLoaded', function() {
         var names = tsSheetNames(items);
         var n = items.length, XH = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
         var out = new JSZip();
+        // الشيتات: 1 = السمري، 2..n+1 = المعدات، n+2 / n+3 = Type / Status (مخفيين)
+        var gen = items.map(function (it) { return (kind === 'rent') ? tsFillRent(pack, it, month, range) : tsFillOwned(pack, it, month, range); });
+        var summaryXml = tsBuildSummary(kind, items, gen.map(function (g) { return g.tot; }), names, range, pack);
 
         var ct = XH + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
             '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
             '<Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/>' +
             '<Default Extension="vml" ContentType="application/vnd.openxmlformats-officedocument.vmlDrawing"/>' +
             '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>';
-        for (var i = 1; i <= n + 2; i++) ct += '<Override PartName="/xl/worksheets/sheet' + i + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+        for (var i = 1; i <= n + 3; i++) ct += '<Override PartName="/xl/worksheets/sheet' + i + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
         ct += '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
             '<Override PartName="/xl/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>' +
             '<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>';
@@ -27925,34 +28023,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
         var wb = XH + '<workbook xmlns="' + TS_NS + '" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><workbookPr/><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="20730" windowHeight="11040" tabRatio="800" activeTab="0"/></bookViews><sheets>';
         var rels = XH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">', dn = '';
+        wb += '<sheet name="السمري" sheetId="1" r:id="rId1"/>';
+        rels += '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>';
+        dn += '<definedName name="_xlnm.Print_Titles" localSheetId="0">\'السمري\'!$1:$3</definedName>';
         for (var s = 0; s < n; s++) {
-            wb += '<sheet name="' + tsXmlEsc(names[s]) + '" sheetId="' + (s + 1) + '" r:id="rId' + (s + 1) + '"/>';
-            rels += '<Relationship Id="rId' + (s + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (s + 1) + '.xml"/>';
-            dn += '<definedName name="_xlnm.Print_Area" localSheetId="' + s + '">\'' + tsXmlEsc(names[s]) + '\'!$B$1:$' + (kind === 'own' ? 'P' : 'O') + '$' + (kind === 'own' && items[s].tplKey === 'gen' ? 52 : (kind === 'own' ? 48 : 53)) + '</definedName>';
+            var sid = s + 2;
+            wb += '<sheet name="' + tsXmlEsc(names[s]) + '" sheetId="' + sid + '" r:id="rId' + sid + '"/>';
+            rels += '<Relationship Id="rId' + sid + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + sid + '.xml"/>';
+            dn += '<definedName name="_xlnm.Print_Area" localSheetId="' + (s + 1) + '">\'' + tsXmlEsc(names[s]) + '\'!$B$1:$' + (kind === 'own' ? 'P' : 'O') + '$' + (kind === 'own' && items[s].tplKey === 'gen' ? 52 : (kind === 'own' ? 48 : 53)) + '</definedName>';
         }
-        wb += '<sheet name="Type" sheetId="' + (n + 1) + '" state="hidden" r:id="rId' + (n + 1) + '"/><sheet name="Status" sheetId="' + (n + 2) + '" state="hidden" r:id="rId' + (n + 2) + '"/></sheets>';
+        wb += '<sheet name="Type" sheetId="' + (n + 2) + '" state="hidden" r:id="rId' + (n + 2) + '"/><sheet name="Status" sheetId="' + (n + 3) + '" state="hidden" r:id="rId' + (n + 3) + '"/></sheets>';
         wb += '<definedNames>' + dn + '</definedNames><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>';
-        rels += '<Relationship Id="rId' + (n + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (n + 1) + '.xml"/>' +
-            '<Relationship Id="rId' + (n + 2) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (n + 2) + '.xml"/>' +
-            '<Relationship Id="rId' + (n + 3) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
-            '<Relationship Id="rId' + (n + 4) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>' +
-            '<Relationship Id="rId' + (n + 5) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>';
+        rels += '<Relationship Id="rId' + (n + 2) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (n + 2) + '.xml"/>' +
+            '<Relationship Id="rId' + (n + 3) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (n + 3) + '.xml"/>' +
+            '<Relationship Id="rId' + (n + 4) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+            '<Relationship Id="rId' + (n + 5) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>' +
+            '<Relationship Id="rId' + (n + 6) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>';
         out.file('xl/workbook.xml', wb); out.file('xl/_rels/workbook.xml.rels', rels);
         out.file('xl/styles.xml', pack.styles); out.file('xl/theme/theme1.xml', pack.theme); out.file('xl/sharedStrings.xml', pack.shared);
         out.file('xl/media/image1.png', pack.logo);
+        out.file('xl/worksheets/sheet1.xml', summaryXml);
 
         for (var k = 0; k < n; k++) {
-            var idx = k + 1;
-            var shXml = (kind === 'rent') ? tsFillRent(pack, items[k], month, range) : tsFillOwned(pack, items[k], month, range);
-            if (k === 0) shXml = shXml.replace('<sheetView ', '<sheetView tabSelected="1" ');
-            out.file('xl/worksheets/sheet' + idx + '.xml', shXml);
-            out.file('xl/worksheets/_rels/sheet' + idx + '.xml.rels', XH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing' + idx + '.vml"/></Relationships>');
+            var idx = k + 2;
+            out.file('xl/worksheets/sheet' + idx + '.xml', gen[k].xml);
+            out.file('xl/worksheets/_rels/sheet' + idx + '.xml.rels', XH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing' + (k + 1) + '.vml"/></Relationships>');
             var vmlN = 17 + k;
-            out.file('xl/drawings/vmlDrawing' + idx + '.vml', pack.vml.replace('data="17"', 'data="' + vmlN + '"').replace('_x0000_s17409', '_x0000_s' + (vmlN * 1024 + 1)));
-            out.file('xl/drawings/_rels/vmlDrawing' + idx + '.vml.rels', XH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/></Relationships>');
+            out.file('xl/drawings/vmlDrawing' + (k + 1) + '.vml', pack.vml.replace('data="17"', 'data="' + vmlN + '"').replace('_x0000_s17409', '_x0000_s' + (vmlN * 1024 + 1)));
+            out.file('xl/drawings/_rels/vmlDrawing' + (k + 1) + '.vml.rels', XH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/></Relationships>');
         }
-        out.file('xl/worksheets/sheet' + (n + 1) + '.xml', pack.type);
-        out.file('xl/worksheets/sheet' + (n + 2) + '.xml', pack.status);
+        out.file('xl/worksheets/sheet' + (n + 2) + '.xml', pack.type);
+        out.file('xl/worksheets/sheet' + (n + 3) + '.xml', pack.status);
         return { zip: out, count: n, names: names };
     }
 
