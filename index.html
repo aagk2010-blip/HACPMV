@@ -1790,7 +1790,6 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
     </div>
     <div class="home-quick-actions" style="grid-template-columns:1fr;padding:0 0 10px">
       <button id="owned-cycle-report-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#0284c7,#075985);flex-direction:row" onclick="printOwnedEquipmentCycleReport()"><span class="qi">📄</span><span class="i18n-label" data-en="Owned Equipment Report (Hours + Fuel)" data-ar="تقرير العمل والوقود للملك"></span></button>
-      <button class="home-quick-btn" style="background:linear-gradient(135deg,#059669,#047857);flex-direction:row" onclick="openTimesheetExportModal(equipmentActiveOwnershipTab === 'إيجار' ? 'rent' : 'own')"><span class="qi">📑</span>Time Sheet إكسيل (21 ← 20)</button>
     </div>
     <div id="equipment-list"></div>
   </div></div>
@@ -1919,7 +1918,6 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
         <div class="home-quick-actions" style="padding:0 0 10px">
           <button id="add-rental-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#0284c7,#075985)"><span class="qi">➕</span>إضافة عقد إيجار</button>
           <button onclick="openOvertimeAnomalyModal()" class="home-quick-btn" style="background:linear-gradient(135deg,#0284c7,#075985)"><span class="qi">⚠️</span>كشف الإضافي المشبوه</button>
-          <button onclick="openTimesheetExportModal(&#39;rent&#39;)" class="home-quick-btn" style="background:linear-gradient(135deg,#059669,#047857)" title="تصدير Time Sheet (إكسيل) لكل المعدات المؤجرة"><span class="qi">📑</span>Time Sheet إكسيل</button>
           <button id="delete-all-rental-btn" class="home-quick-btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" title="حذف جميع السجلات"><span class="qi">🗑️</span>حذف الكل</button>
         </div>
         <div id="rental-equipment-list"></div>
@@ -21134,6 +21132,11 @@ var REPORTS_GROUPS = [
         { k: 'excel', ico: '📊', en: 'Meter Log',            ar: 'سجل العدادات',          c: '#10b981,#0e7490', run: _rpClickBtn('export-hours-excel-btn') },
         { k: 'excel', ico: '📆', en: 'Owned Hours',          ar: 'ساعات الملك',           c: '#7c3aed,#4f46e5', run: _rpClickBtn('export-owned-daily-btn') }
       ] },
+    { key: 'timesheet', ico: '📑', en: 'Time Sheet — Equipment (Excel)', ar: 'Time Sheet — بيان تشغيل المعدات (إكسيل)', sec: ['equipment'], hideVO: true, adminOnly: true,
+      items: [
+        { k: 'excel', ico: '🏗️', en: 'Owned Equipment Time Sheet',  ar: 'Time Sheet — معدات الملك',   c: '#059669,#047857', tip: 'الدورة (21 ← 20) بتتختار في النافذة اللي بتفتح — للمدير فقط', run: function() { openTimesheetExportModal('own'); } },
+        { k: 'excel', ico: '🚧', en: 'Rental Equipment Time Sheet', ar: 'Time Sheet — معدات الإيجار', c: '#b45309,#92400e', tip: 'الدورة (21 ← 20) والمقاول بيتختاروا في النافذة اللي بتفتح — للمدير فقط', run: function() { openTimesheetExportModal('rent'); } }
+      ] },
     { key: 'sites', ico: '🏢', en: 'Sites', ar: 'المواقع', sec: ['sites'], hideVO: true,
       period: { type: 'month', id: 'unified-report-month', hint: 'فارغ = الدورة الحالية' },
       items: [
@@ -21216,6 +21219,7 @@ function renderReportsHub() {
     var html = '';
     REPORTS_GROUPS.forEach(function(g) {
         if (vo && g.hideVO) return;
+        if (g.adminOnly && !hasPermission('all')) return;
         if (!_rpExplicit() && !g.sec.some(function(s) { return canView(s); })) return;
         var chips = g.items.map(function(it) {
             var idx = _rpRegistry.push(it) - 1;
@@ -27558,7 +27562,8 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ==================== Time Sheet — بيان تشغيل المعدات (إيجار + ملك) — توليد إكسيل شهري من بيانات البرنامج ====================
    بيطلّع ملف إكسيل بنفس تصميم الملفات الأصلية (شيت لكل معدة، لوجو الهيدر، الفوتر، المعادلات) بدورة 21 → 20.
    • الإيجار: من عقود الإيجار + السجل اليومي + المقاول + السائق + الوقود.
-   • الملك: من قراءات العداد (hoursLog) + الوقود + بيانات المعدة. المقطورات (بدون عداد) بتتسجّل 8 ساعات/يوم زي الملف الأصلي.
+   • الملك: إجمالي الساعات (قراءة نهاية المدة − بدايتها) بيتوزّع أرقام صحيحة على الأيام بحد أقصى 12 س/يوم للمولدات والأبراج (8 للباقي) والزيادة في خانة الإضافي. المقطورات (بدون عداد) 8 ساعات/يوم.
+   • الزراير في صفحة التقارير فقط، وللمدير فقط.
    • يوم الجمعة هو اليوم الوحيد المتلوّن (رمادي) — بيتحدد من التاريخ الفعلي لكل صف، مش من مكان الصف.
    القوالب (التصميم) متخزّنة جوه الملف نفسه، ومكتبة JSZip بتتحمّل أول مرة بس عند الحاجة. */
 (function () {
@@ -27734,8 +27739,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function tsOwnedStd(type) { return /مولد|برج|لحام/.test(String(type || '')) ? 12 : 8; }
     function tsIsTool(eq) { return (typeof isToolEquipment === 'function') ? !!isToolEquipment(eq) : /^مقطورة/.test(String(eq.type || '')); }
 
-    // قراءات العداد → ساعات كل يوم (الفرق بين القراءتين يتحسب على يوم القراءة؛ لو بين القراءتين أكتر من يوم بتتوزّع بالتساوي ويتعلّم عليها)
-    function tsMeterDaily(eq, range) {
+    // قراءات العداد: قراءة بداية المدة (آخر قراءة قبل الدورة، أو أول قراءة جواها) وقراءة نهايتها (آخر قراءة لحد 20)
+    function tsMeterSpan(eq, range) {
         var raw = (eq.hoursLog || []).filter(function (l) { return l && l.date && isFinite(+l.hours); })
             .map(function (l) { return { date: String(l.date).slice(0, 10), hours: +l.hours }; });
         raw.sort(function (a, b) { return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0); });
@@ -27747,23 +27752,22 @@ document.addEventListener('DOMContentLoaded', function() {
         var base = before || inCycle[0] || null;
         if (!base) return null;
         var end = inCycle.length ? inCycle[inCycle.length - 1] : base;
-        var F = {}, spread = {}, prev = base;
-        inCycle.forEach(function (r) {
-            if (r.date <= base.date) return;
-            var gap = [], d = tsAddDays(prev.date, 1), guard = 0;
-            while (d <= r.date && guard < 400) { gap.push(d); d = tsAddDays(d, 1); guard++; }
-            var delta = Math.max(0, r.hours - prev.hours), n = gap.length;
-            if (n > 0 && n <= 62) {
-                var each = tsRound(delta / n), acc = 0;
-                gap.forEach(function (day, i) {
-                    var v = (i === n - 1) ? tsRound(delta - acc) : each; acc += v;
-                    if (day >= range.from && day <= range.to) { if (v > 0) F[day] = tsRound((F[day] || 0) + v); if (n > 1 && delta > 0) spread[day] = n; }
-                });
-            }
-            prev = r;
-        });
-        var kf = tsAddDays(base.date, 1);
-        return { F: F, spread: spread, base: base, end: end, knownFrom: kf < range.from ? range.from : kf, knownTo: end.date };
+        // الأيام اللي بتتوزّع عليها الساعات: من أول الدورة (أو اليوم اللي بعد قراءة البداية لو جواها) لحد يوم قراءة النهاية
+        var ws = base.date >= range.from ? tsAddDays(base.date, 1) : range.from;
+        var we = end.date < range.to ? end.date : range.to;
+        var days = [];
+        for (var d = ws; d <= we && days.length < 40; d = tsAddDays(d, 1)) days.push(d);
+        return { base: base, end: end, total: Math.max(0, Math.round(end.hours - base.hours)), days: days, knownFrom: ws, knownTo: we };
+    }
+
+    // توزيع عدد صحيح بالتساوي على عدد أيام (من غير كسور) — الباقي بيتوزّع على أيام متباعدة بدل ما يتكوّم في أول الشهر
+    function tsDistribute(total, count) {
+        var out = [], base = Math.floor(total / count), rem = total - base * count, acc = 0;
+        for (var i = 0; i < count; i++) {
+            var target = Math.round((i + 1) * rem / count);
+            out.push(base + (target - acc)); acc = target;
+        }
+        return out;
     }
 
     function tsSelectOwned(month, includeEmpty) {
@@ -27774,7 +27778,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return true;
         });
         var items = list.map(function (eq) {
-            var tool = tsIsTool(eq), meter = tool ? null : tsMeterDaily(eq, range);
+            var tool = tsIsTool(eq), meter = tool ? null : tsMeterSpan(eq, range);
             var code = String(eq.code || eq.name || '').trim();
             return {
                 eq: eq, tool: tool, meter: meter,
@@ -27807,30 +27811,38 @@ document.addEventListener('DOMContentLoaded', function() {
         var fuel = tsFuelByDate(info.eq.id, range);
         var today = localDateStr(new Date());
         var arrival = info.eq.arrivalDate || '';
-        var sF = 0, sJ = 0, sL = 0, sN = 0;
+
+        // ----- المعدات اللي ليها عداد: إجمالي الساعات (نهاية المدة − بداية المدة) بيتوزّع أرقام صحيحة على الأيام،
+        // بحد أقصى std ساعة في اليوم (12 للمولدات والأبراج واللحام، 8 للباقي)، وأي زيادة عن كده بتروح خانة الإضافي -----
+        var plan = {};   // date -> {f, g}
+        if (M && M.days.length) {
+            var cap = std * M.days.length, fPart = Math.min(M.total, cap), gPart = M.total - fPart;
+            var fd = tsDistribute(fPart, M.days.length), gd = tsDistribute(gPart, M.days.length);
+            M.days.forEach(function (d, i) { plan[d] = { f: fd[i], g: gd[i] }; });
+        }
+
+        var sF = 0, sG = 0, sJ = 0, sL = 0, sN = 0;
         for (var k = 0; k < 31; k++) {
             var row = 9 + k, date = days[k];
             if (!date) { 'CDEFGHIJKLMNO'.split('').forEach(function (c) { h.blank(c + row); }); continue; }
             h.setNum('C' + row, k + 1); h.setStr('D' + row, tsDayName(date)); h.setNum('E' + row, tsSerial(date));
             ['F', 'G', 'H', 'I', 'K', 'L', 'M', 'N'].forEach(function (c) { h.blank(c + row); });
-            var f = 0, l = 0, note = '', fri = tsIsFriday(date);
+            var f = 0, g = 0, l = 0, fri = tsIsFriday(date);
             if (info.tool) {
                 if (date <= today && (!arrival || date >= arrival)) f = std;        // مقطورات بدون عداد: يوم عمل كامل زي الملف الأصلي
-            } else if (M) {
-                f = M.F[date] || 0;
-                if (date >= M.knownFrom && date <= M.knownTo) {
-                    if (!fri || f > 0) l = Math.max(0, tsRound(std - f));
-                    if (M.spread[date]) note = '⚠ موزّعة على ' + M.spread[date] + ' أيام (بين قراءتين للعداد)';
-                }
+            } else if (plan[date]) {
+                f = plan[date].f; g = plan[date].g;
+                if (!fri || f > 0) l = Math.max(0, std - f);
             }
             if (f > 0) h.setNum('F' + row, f);
+            if (g > 0) h.setNum('G' + row, g);
             if (l > 0) { h.setNum('L' + row, l); sL += l; }
             if (fuel[date]) { h.setNum('N' + row, tsRound(fuel[date])); sN += tsRound(fuel[date]); }
-            h.setStr('O' + row, note);
-            h.setFV('J' + row, f); sF += f; sJ += f;
+            h.setStr('O' + row, '');
+            h.setFV('J' + row, f + g); sF += f; sG += g; sJ += f + g;
         }
-        sF = tsRound(sF); sJ = tsRound(sJ); sL = tsRound(sL); sN = tsRound(sN);
-        // عداد الساعات: K9 = قراءة بداية الدورة، وآخر قراءة في آخر يوم فعلي (K40 = الفرق)
+        sN = tsRound(sN);
+        // عداد الساعات: K9 = قراءة بداية الدورة، وقراءة النهاية في آخر يوم فعلي (K40 = الفرق = المجموع الفعلي)
         var K40 = 0;
         if (M) {
             var lastRow = 8 + n;
@@ -27839,7 +27851,7 @@ document.addEventListener('DOMContentLoaded', function() {
             K40 = tsRound(M.end.hours - M.base.hours);
         }
         var DIV0 = '#DIV/0!';
-        h.setFV('F40', sF); h.setFV('G40', 0); h.setFV('H40', 0); h.setFV('I40', 0); h.setFV('J40', sJ); h.setFV('K40', K40);
+        h.setFV('F40', sF); h.setFV('G40', sG); h.setFV('H40', 0); h.setFV('I40', 0); h.setFV('J40', sJ); h.setFV('K40', K40);
         h.setFV('L40', /SUM/.test(h.formula('L40')) ? sL : tsRound(sJ - K40));
         h.setFV('M40', 0); h.setFV('N40', sN);
         h.setFV('N43', sJ ? K40 / sJ : DIV0); h.setFV('N44', K40 ? sN / K40 : DIV0);
@@ -27971,7 +27983,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     window.tsRefreshInfo = tsRefreshInfo; window.tsSetKind = tsSetKind;
 
+    function tsIsManager() { return typeof hasPermission === 'function' && hasPermission('all'); }
     window.openTimesheetExportModal = function (kind) {
+        if (!tsIsManager()) { showToast('⛔ غير مصرح — تصدير Time Sheet للمدير فقط', true); return; }
         var sel = document.getElementById('ts-contractor');
         sel.innerHTML = '<option value="">كل المقاولين</option>' + (contractorsData || []).map(function (c) { return '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.name || '') + '</option>'; }).join('') + '<option value="__none__">معدات بدون مقاول</option>';
         document.getElementById('ts-month').value = tsDefaultMonth();
@@ -27980,6 +27994,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     window.generateTimesheetExcel = async function () {
+        if (!tsIsManager()) { showToast('⛔ غير مصرح — تصدير Time Sheet للمدير فقط', true); return; }
         var btn = document.getElementById('ts-generate-btn');
         var month = document.getElementById('ts-month').value;
         if (!month) { showToast('اختر الشهر الأول', true); return; }
