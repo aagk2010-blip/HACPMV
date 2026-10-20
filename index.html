@@ -27573,7 +27573,7 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ==================== Time Sheet — بيان تشغيل المعدات (إيجار + ملك) — توليد إكسيل شهري من بيانات البرنامج ====================
    بيطلّع ملف إكسيل بنفس تصميم الملفات الأصلية (شيت لكل معدة، لوجو الهيدر، الفوتر، المعادلات) بدورة 21 → 20.
    • الإيجار: من عقود الإيجار + السجل اليومي + المقاول + السائق + الوقود.
-   • الملك: إجمالي الساعات (قراءة نهاية المدة − بدايتها) بيتوزّع أرقام صحيحة على الأيام العادية بحد أقصى 12 س/يوم للمولدات والأبراج (8 للباقي)، والجمعة خارج التوزيع إلا لو فيه زيادة (تروح الجمعة الأول)، والباقي في خانة الإضافي. المقطورات (بدون عداد) 8 ساعات/يوم.
+   • الملك: ساعات التشغيل ثابتة كل يوم (12 للمولدات والأبراج واللحام، 8 للباقي)، تحت الإصلاح من أيام العطل المسجلة في البرنامج، والتوقف لعدم وجود أعمال (أو الإضافي) بيتوزّع بالتساوي بمقارنة فرق العداد. المقطورات (بدون عداد) 8 ساعات/يوم.
    • الزراير في صفحة التقارير فقط، وللمدير فقط.
    • يوم الجمعة هو اليوم الوحيد المتلوّن (رمادي) — بيتحدد من التاريخ الفعلي لكل صف، مش من مكان الصف.
    القوالب (التصميم) متخزّنة جوه الملف نفسه، ومكتبة JSZip بتتحمّل أول مرة بس عند الحاجة. */
@@ -27750,13 +27750,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function tsOwnedStd(type) { return /مولد|برج|لحام/.test(String(type || '')) ? 12 : 8; }
     function tsIsTool(eq) { return (typeof isToolEquipment === 'function') ? !!isToolEquipment(eq) : /^مقطورة/.test(String(eq.type || '')); }
 
-    // قراءات العداد: قراءة بداية المدة (آخر قراءة قبل الدورة، أو أول قراءة جواها) وقراءة نهايتها (آخر قراءة لحد 20)
+    // قراءات العداد: قراءة بداية المدة (آخر قراءة قبل الدورة، أو أول قراءة جواها) وقراءة نهايتها (آخر قراءة لحد 20) — نفس منطق getMonthlyHoursForEquipment في البرنامج
+    function tsDaysBetween(a, b) { return Math.round((tsParse(b) - tsParse(a)) / 86400000); }
     function tsMeterSpan(eq, range) {
         var raw = (eq.hoursLog || []).filter(function (l) { return l && l.date && isFinite(+l.hours); })
             .map(function (l) { return { date: String(l.date).slice(0, 10), hours: +l.hours }; });
         raw.sort(function (a, b) { return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0); });
-        var rs = [];
-        raw.forEach(function (r) { if (rs.length && rs[rs.length - 1].date === r.date) rs[rs.length - 1] = r; else rs.push(r); });
+        var rs = [], conflicts = {};
+        raw.forEach(function (r) {
+            if (rs.length && rs[rs.length - 1].date === r.date) { if (rs[rs.length - 1].hours !== r.hours) conflicts[r.date] = true; rs[rs.length - 1] = r; }
+            else rs.push(r);
+        });
         var before = null;
         rs.forEach(function (r) { if (r.date < range.from) before = r; });
         var inCycle = rs.filter(function (r) { return r.date >= range.from && r.date <= range.to; });
@@ -27768,7 +27772,24 @@ document.addEventListener('DOMContentLoaded', function() {
         var we = end.date < range.to ? end.date : range.to;
         var days = [];
         for (var d = ws; d <= we && days.length < 40; d = tsAddDays(d, 1)) days.push(d);
-        return { base: base, end: end, total: Math.max(0, Math.round(end.hours - base.hours)), days: days, knownFrom: ws, knownTo: we };
+        var total = Math.max(0, Math.round(end.hours - base.hours));
+
+        // ----- فحص صحة قراءتي البداية والنهاية -----
+        var msgs = [], todayS = localDateStr(new Date()), effEnd = range.to < todayS ? range.to : todayS, cycleDays = tsDaysBetween(range.from, range.to) + 1;
+        if (!before) msgs.push('مفيش قراءة قبل بداية الدورة — الحساب بدأ من أول قراءة بتاريخ ' + base.date + ' (الأيام اللي قبلها غير محسوبة)');
+        else { var gs = tsDaysBetween(before.date, range.from); if (gs > 3) msgs.push('قراءة البداية قديمة: بتاريخ ' + before.date + ' (قبل بداية الدورة بـ ' + gs + ' يوم) — ساعات الفترة دي بتتحسب ضمن الدورة'); }
+        if (!inCycle.length) msgs.push('مفيش أي قراءة جديدة داخل الدورة');
+        else { var ge = tsDaysBetween(end.date, effEnd); if (ge > 3) msgs.push('آخر قراءة بتاريخ ' + end.date + ' (قبل نهاية الدورة بـ ' + ge + ' يوم) — الساعات بعدها غير محسوبة'); }
+        var seq = rs.filter(function (r) { return r.date >= base.date && r.date <= end.date; });
+        for (var i = 1; i < seq.length; i++) {
+            var dl = seq[i].hours - seq[i - 1].hours, dd = tsDaysBetween(seq[i - 1].date, seq[i].date);
+            if (dl < 0) msgs.push('قراءة أقل من اللي قبلها: ' + seq[i].hours + ' بتاريخ ' + seq[i].date + ' (السابقة ' + seq[i - 1].hours + ')');
+            else if (dd > 0 && dl > 24 * dd) msgs.push('قفزة غير منطقية: +' + dl + ' س خلال ' + dd + ' يوم (' + seq[i - 1].date + ' ← ' + seq[i].date + ')');
+        }
+        Object.keys(conflicts).forEach(function (cd) { if (cd >= base.date && cd <= end.date) msgs.push('قراءتين مختلفتين في ' + cd + ' — اتاخدت الأخيرة'); });
+        if (end.hours < base.hours) msgs.push('قراءة النهاية أقل من البداية — اتحسبت صفر');
+        if (total > 24 * cycleDays) msgs.push('إجمالي الساعات (' + total + ') أكبر من ساعات الدورة الفعلية (' + (24 * cycleDays) + ')');
+        return { base: base, end: end, total: total, days: days, knownFrom: ws, knownTo: we, audit: { msgs: msgs } };
     }
 
     // توزيع عدد صحيح بالتساوي على عدد أيام (من غير كسور) — الباقي بيتوزّع على أيام متباعدة بدل ما يتكوّم في أول الشهر
@@ -27790,9 +27811,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         var items = list.map(function (eq) {
             var tool = tsIsTool(eq), meter = tool ? null : tsMeterSpan(eq, range);
+            var audit = tool ? null : (meter ? meter.audit : { msgs: ['لا توجد قراءة عداد في الدورة أو قبلها'] });
             var code = String(eq.code || eq.name || '').trim();
             return {
-                eq: eq, tool: tool, meter: meter,
+                eq: eq, tool: tool, meter: meter, audit: audit,
                 tplKey: tool ? 'tool' : (/مولد/.test(eq.type || '') ? 'gen' : 'gen2'),
                 sheetName: code, code: code,
                 type: String(eq.type || '').trim(), chassis: String(eq.chassis || '').trim(),
@@ -27809,6 +27831,18 @@ document.addEventListener('DOMContentLoaded', function() {
         return items;
     }
 
+    // أيام العطل المسجلة في البرنامج (سجل التوقف): كل يوم بيتقاطع مع فترة توقف المعدة؛ التوقف المستمر بيتحسب لحد النهارده
+    function tsDowntimeDays(eqId, range) {
+        var set = {}, now = localDateStr(new Date());
+        (typeof downtimeEvents !== 'undefined' ? downtimeEvents : []).forEach(function (ev) {
+            if (String(ev.equipmentId) !== String(eqId) || !ev.startAt) return;
+            var s = localDateStr(new Date(ev.startAt)), e = ev.endAt ? localDateStr(new Date(ev.endAt)) : now;
+            if (e < s) e = s;
+            for (var d = s < range.from ? range.from : s, guard = 0; d <= e && d <= range.to && guard < 400; d = tsAddDays(d, 1), guard++) set[d] = true;
+        });
+        return set;
+    }
+
     function tsFillOwned(pack, info, month, range) {
         var h = tsDoc(pack.sheets[info.tplKey]);
         h.setStr('F2', info.type);
@@ -27823,45 +27857,44 @@ document.addEventListener('DOMContentLoaded', function() {
         var today = localDateStr(new Date());
         var arrival = info.eq.arrivalDate || '';
 
-        // ----- المعدات اللي ليها عداد: إجمالي الساعات (نهاية المدة − بداية المدة) بيتوزّع أرقام صحيحة على الأيام،
-        // بحد أقصى std ساعة في اليوم (12 للمولدات والأبراج واللحام، 8 للباقي)، وأي زيادة عن كده بتروح خانة الإضافي -----
-        // ترتيب التوزيع: الأيام العادية (من غير الجمعة) بالتساوي لحد std ساعة في اليوم ← لو فيه زيادة تتوزّع على أيام الجمعة (لحد std برضه)
-        // ← أي باقي بعد كده بيروح خانة الإضافي (موزّع على كل الأيام). الجمعة من غير زيادة بتفضل فاضية.
-        var plan = {};   // date -> {f, g}
+        // ----- نموذج الحساب (معدات ليها عداد): ساعات التشغيل = std كل يوم (12 للمولدات والأبراج واللحام، 8 للباقي)
+        //   تحت الإصلاح = std في كل يوم متسجل فيه عطل في البرنامج (سجل التوقف)
+        //   السعة = std × أيام العمل (من غير أيام العطل). الفرق بينها وبين فرق العداد:
+        //     لو العداد أقل → "توقف لعدم وجود أعمال" بيتوزّع أرقام صحيحة بالتساوي على أيام العمل
+        //     لو العداد أكتر → الزيادة "ساعات إضافية" موزّعة بنفس الطريقة، والمجموع دايمًا = فرق العداد -----
+        var down = tsDowntimeDays(info.eq.id, range);
+        var plan = {};   // date -> {f, g, l, i}
         if (M && M.days.length) {
-            var nf = M.days.filter(function (d) { return !tsIsFriday(d); }), fr = M.days.filter(tsIsFriday);
-            if (!nf.length) { nf = M.days; fr = []; }
-            var fNF = Math.min(M.total, std * nf.length), rest = M.total - fNF;
-            var fFri = Math.min(rest, std * fr.length), gRest = rest - fFri;
-            var dNF = tsDistribute(fNF, nf.length), dFr = fr.length ? tsDistribute(fFri, fr.length) : [], dG = tsDistribute(gRest, M.days.length);
-            var inf = 0, ifr = 0;
-            M.days.forEach(function (d, i) {
-                var isFr = fr.indexOf(d) >= 0;
-                plan[d] = { f: isFr ? dFr[ifr++] : dNF[inf++], g: dG[i] };
+            var workDays = M.days.filter(function (d) { return !down[d]; });
+            var cap = std * workDays.length, diff = cap - M.total;
+            var lTot = diff > 0 ? diff : 0, gTot = diff < 0 ? -diff : 0;
+            var dL = workDays.length ? tsDistribute(lTot, workDays.length) : [], dG = workDays.length ? tsDistribute(gTot, workDays.length) : [], wi = 0;
+            M.days.forEach(function (d) {
+                if (down[d]) plan[d] = { f: std, g: 0, l: 0, i: std };
+                else { plan[d] = { f: std, g: dG[wi], l: dL[wi], i: 0 }; wi++; }
             });
         }
 
-        var sF = 0, sG = 0, sJ = 0, sL = 0, sN = 0;
+        var sF = 0, sG = 0, sI = 0, sJ = 0, sL = 0, sN = 0;
         for (var k = 0; k < 31; k++) {
             var row = 9 + k, date = days[k];
             if (!date) { 'CDEFGHIJKLMNO'.split('').forEach(function (c) { h.blank(c + row); }); continue; }
             h.setNum('C' + row, k + 1); h.setStr('D' + row, tsDayName(date)); h.setNum('E' + row, tsSerial(date));
             ['F', 'G', 'H', 'I', 'K', 'L', 'M', 'N'].forEach(function (c) { h.blank(c + row); });
-            var f = 0, g = 0, l = 0, fri = tsIsFriday(date);
+            var f = 0, g = 0, iR = 0, l = 0, note = '';
             if (info.tool) {
-                if (date <= today && (!arrival || date >= arrival)) f = std;        // مقطورات بدون عداد: يوم عمل كامل زي الملف الأصلي
-            } else if (plan[date]) {
-                f = plan[date].f; g = plan[date].g;
-                if (!fri || f > 0) l = Math.max(0, std - f);
-            }
+                if (date <= today && (!arrival || date >= arrival)) { f = std; if (down[date]) iR = std; }      // مقطورات بدون عداد: يوم عمل كامل زي الملف الأصلي
+            } else if (plan[date]) { f = plan[date].f; g = plan[date].g; iR = plan[date].i; l = plan[date].l; }
             if (f > 0) h.setNum('F' + row, f);
             if (g > 0) h.setNum('G' + row, g);
-            if (l > 0) { h.setNum('L' + row, l); sL += l; }
+            if (iR > 0) { h.setNum('I' + row, iR); note = '🚫 عطل'; }
+            if (l > 0) { h.setNum('L' + row, l); sL += l; if (!note) note = '🚫 توقف لعدم وجود أعمال'; }
             if (fuel[date]) { h.setNum('N' + row, tsRound(fuel[date])); sN += tsRound(fuel[date]); }
-            h.setStr('O' + row, '');
-            h.setFV('J' + row, f + g); sF += f; sG += g; sJ += f + g;
+            h.setStr('O' + row, note);
+            h.setFV('J' + row, f + g - iR); sF += f; sG += g; sI += iR; sJ += f + g - iR;
         }
         sN = tsRound(sN);
+
         // عداد الساعات: K9 = قراءة بداية الدورة، وقراءة النهاية في آخر يوم فعلي (K40 = الفرق = المجموع الفعلي)
         var K40 = 0;
         if (M) {
@@ -27871,12 +27904,12 @@ document.addEventListener('DOMContentLoaded', function() {
             K40 = tsRound(M.end.hours - M.base.hours);
         }
         var DIV0 = '#DIV/0!';
-        h.setFV('F40', sF); h.setFV('G40', sG); h.setFV('H40', 0); h.setFV('I40', 0); h.setFV('J40', sJ); h.setFV('K40', K40);
+        h.setFV('F40', sF); h.setFV('G40', sG); h.setFV('H40', 0); h.setFV('I40', sI); h.setFV('J40', sJ); h.setFV('K40', K40);
         h.setFV('L40', /SUM/.test(h.formula('L40')) ? sL : tsRound(sJ - K40));
         h.setFV('M40', 0); h.setFV('N40', sN);
         h.setFV('N43', sJ ? K40 / sJ : DIV0); h.setFV('N44', K40 ? sN / K40 : DIV0);
         tsApplyDayStyles(h, pack.meta[info.tplKey], 'CDEFGHIJKLMNO'.split(''), days);
-        return { xml: h.xml(), tot: { F: sF, G: sG, J: sJ, L: sL, fuel: sN, K9: M ? M.base.hours : null, Kend: M ? M.end.hours : null, lastRow: 8 + n } };
+        return { xml: h.xml(), tot: { F: sF, G: sG, I: sI, J: sJ, L: sL, fuel: sN, K9: M ? M.base.hours : null, Kend: M ? M.end.hours : null, lastRow: 8 + n, baseDate: M ? M.base.date : '', endDate: M ? M.end.date : '', audit: info.audit ? info.audit.msgs : [] } };
     }
 
     // ---------- أسماء الشيتات (حد أقصى 31 حرف، بدون رموز ممنوعة، وفريدة) ----------
@@ -27925,6 +27958,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ---------- ورقة السمري (أول شيت في الملف): كل تفاصيل المعدات + الساعات + الإضافي + السولار ----------
     function tsStyleOf(xml, ref) { var m = xml.match(new RegExp('<c r="' + ref + '"[^>]*? s="(\\d+)"')); return m ? +m[1] : 0; }
     function tsCol(i) { return String.fromCharCode(65 + i); }
+    function dmyTs(ds) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(ds || ''); return m ? (m[3] + '/' + m[2] + '/' + m[1]) : ''; }
     function tsCell(ref, style, spec) {
         if (spec == null || spec === '') return '<c r="' + ref + '" s="' + style + '"/>';
         if (typeof spec === 'string') return '<c r="' + ref + '" s="' + style + '" t="inlineStr"><is><t xml:space="preserve">' + tsXmlEsc(spec) + '</t></is></c>';
@@ -27939,8 +27973,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // الأعمدة: A..O (J ساعات التشغيل، K إضافي، L إجمالي الساعات، N السولار — نفس المواضع في الإيجار والملك)
         var heads = rent
             ? ['م', 'اسم / كود المعدة', 'النوع', 'القدرة', 'رقم الشاسيه', 'المشروع', 'المقاول', 'المشغل', 'حالة السولار', 'ساعات التشغيل', 'ساعات إضافية', 'إجمالي الساعات', 'أيام الغياب', 'السولار (لتر)', 'أيام العمل الفعلية']
-            : ['م', 'كود المعدة', 'النوع', 'القدرة', 'رقم الشاسيه', 'المشروع', 'المشغل', 'قراءة العداد — البداية', 'قراءة العداد — النهاية', 'ساعات التشغيل', 'ساعات إضافية', 'إجمالي الساعات', 'ساعات التوقف', 'السولار (لتر)', 'استهلاك السولار / ساعة'];
-        var widths = rent ? [5, 24, 18, 12, 16, 24, 42, 18, 18, 13, 13, 14, 11, 13, 13] : [5, 20, 18, 12, 18, 24, 18, 14, 14, 13, 13, 14, 13, 13, 15];
+            : ['م', 'كود المعدة', 'النوع', 'القدرة', 'رقم الشاسيه', 'المشروع', 'المشغل', 'قراءة العداد — البداية', 'قراءة العداد — النهاية', 'ساعات التشغيل', 'ساعات إضافية', 'إجمالي الساعات', 'ساعات التوقف', 'السولار (لتر)', 'استهلاك السولار / ساعة', 'تاريخ قراءة البداية', 'تاريخ قراءة النهاية', 'فحص قراءات العداد'];
+        var widths = rent ? [5, 24, 18, 12, 16, 24, 42, 18, 18, 13, 13, 14, 11, 13, 13] : [5, 20, 18, 12, 18, 24, 18, 14, 14, 13, 13, 14, 13, 13, 15, 14, 14, 70];
         var rows = '', sums = { J: 0, K: 0, L: 0, M: 0, N: 0 };
         rows += '<row r="1" ht="30" customHeight="1">' + tsCell('A1', sHead, 'ملخص ' + (rent ? 'بيان تشغيل معدات الإيجار' : 'بيان تشغيل معدات الملك') + ' — الدورة من ' + range.from + ' إلى ' + range.to) + heads.slice(1).map(function (x, i) { return tsCell(tsCol(i + 1) + '1', sHead, ''); }).join('') + '</row>';
         rows += '<row r="2" ht="6" customHeight="1"/>';
@@ -27960,6 +27994,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 c.push(tsCell('I' + r, sNum, t.Kend == null ? '' : { f: nm + 'K' + t.lastRow, v: t.Kend }));
                 c.push(tsCell('M' + r, sNum, { f: nm + 'L40', v: t.L || 0 }));
                 c.push(tsCell('O' + r, sNum, t.J ? { f: 'IF(L' + r + '=0,0,N' + r + '/L' + r + ')', v: t.fuel / t.J } : ''));
+                c.push(tsCell('P' + r, sTxt, dmyTs(t.baseDate))); c.push(tsCell('Q' + r, sTxt, dmyTs(t.endDate)));
+                c.push(tsCell('R' + r, sTxt, it.tool ? '' : ((t.audit && t.audit.length) ? '⚠️ ' + t.audit.join(' | ') : '✓ سليم')));
             }
             c.push(tsCell('J' + r, sNum, { f: nm + 'F40', v: t.F })); c.push(tsCell('K' + r, sNum, { f: nm + 'G40', v: t.G }));
             c.push(tsCell('L' + r, sNum, { f: nm + 'J40', v: t.J })); c.push(tsCell('N' + r, sNum, { f: nm + (rent ? 'M40' : 'N40'), v: t.fuel }));
@@ -27969,7 +28005,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // صف الإجمالي العام
         var tot = [tsCell('A' + RT, sTotL, 'الإجمالي')];
-        for (var ci = 1; ci < 15; ci++) {
+        for (var ci = 1; ci < heads.length; ci++) {
             var L = tsCol(ci), v = null;
             if ('JKLMN'.indexOf(L) >= 0) v = { f: 'SUM(' + L + R0 + ':' + L + RL_ + ')', v: sums[L] };
             tot.push(tsCell(L + RT, sTotN, v));
@@ -28004,7 +28040,7 @@ document.addEventListener('DOMContentLoaded', function() {
             '<sheetPr><tabColor rgb="FF059669"/><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:O' + TR + '"/>' +
             '<sheetViews><sheetView rightToLeft="1" tabSelected="1" workbookViewId="0"><pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>' +
             '<sheetFormatPr defaultRowHeight="15"/>' + cols + '<sheetData>' + rows + '</sheetData>' +
-            '<mergeCells count="4"><mergeCell ref="A1:O1"/><mergeCell ref="A' + T1 + ':G' + T1 + '"/><mergeCell ref="A' + RT + ':B' + RT + '"/><mergeCell ref="A' + TR + ':B' + TR + '"/></mergeCells>' +
+            '<mergeCells count="4"><mergeCell ref="A1:' + tsCol(heads.length - 1) + '1"/><mergeCell ref="A' + T1 + ':G' + T1 + '"/><mergeCell ref="A' + RT + ':B' + RT + '"/><mergeCell ref="A' + TR + ':B' + TR + '"/></mergeCells>' +
             '<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToHeight="0"/></worksheet>';
     }
 
@@ -28080,7 +28116,12 @@ document.addEventListener('DOMContentLoaded', function() {
         var month = document.getElementById('ts-month').value;
         if (!month) { el.innerHTML = 'اختر الشهر'; return; }
         var range = getPeriodRange(month), list = tsCurrentItems();
-        el.innerHTML = '📅 الدورة: <b>' + range.from + '</b> ← <b>' + range.to + '</b><br>🚧 عدد الشيتات (معدات): <b>' + list.length + '</b>';
+        var warn = TS_KIND === 'own' ? list.filter(function (it) { return it.audit && it.audit.msgs.length; }) : [];
+        el.innerHTML = '📅 الدورة: <b>' + range.from + '</b> ← <b>' + range.to + '</b><br>🚧 عدد الشيتات (معدات): <b>' + list.length + '</b>' +
+            (TS_KIND === 'own' ? (warn.length ? '<br>⚠️ فحص قراءات العداد: <b>' + warn.length + '</b> معدة فيها ملاحظات' +
+                '<div style="max-height:150px;overflow:auto;margin-top:6px;background:#fff7ed;color:#9a3412;border-radius:8px;padding:6px 8px;font-size:12px;line-height:1.7">' +
+                warn.map(function (it) { return '<b>' + escapeHtml(it.code) + '</b>: ' + it.audit.msgs.map(escapeHtml).join(' | '); }).join('<br>') + '</div>'
+                : '<br>✅ فحص قراءات العداد: كل القراءات سليمة') : '');
     }
     function tsSetKind(kind) {
         TS_KIND = kind;
