@@ -20501,11 +20501,62 @@ var PRO_TRACK = {
         ctx.restore();
     }
 };
+// ===== جودة عرض الرسوم: دقة أعلى (Supersampling) + تدرجات لونية للأعمدة + حلقات الدونات بلون الكارت =====
+function proHexToRgb(h) {
+    var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(h || '');
+    if (!m) return null;
+    var x = m[1];
+    if (x.length === 3) x = x[0] + x[0] + x[1] + x[1] + x[2] + x[2];
+    var n = parseInt(x, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function proMix(rgb, t) { // t>0 ناحية الأبيض، t<0 ناحية الأسود
+    var k = t >= 0 ? 255 : 0, a = Math.abs(t);
+    return 'rgb(' + rgb.map(function(c) { return Math.round(c + (k - c) * a); }).join(',') + ')';
+}
+var PRO_QUALITY = {
+    id: 'proQuality',
+    beforeUpdate: function(chart) {
+        var type = chart.config.type, card = '';
+        try { card = getComputedStyle(document.documentElement).getPropertyValue('--white').trim(); } catch (e) {}
+        chart.data.datasets.forEach(function(ds) {
+            var t = ds.type || type;
+            if (t === 'bar' && !ds.__proGrad && typeof ds.backgroundColor === 'string') {
+                var rgb = proHexToRgb(ds.backgroundColor);
+                if (!rgb) return;
+                ds.__proGrad = true;
+                var solid = 'rgb(' + rgb.join(',') + ')';
+                ds.backgroundColor = function(c) {
+                    try {
+                        var ch = c.chart, el = c.element;
+                        if (!el || !el.getProps) return solid;
+                        var horiz = ch.options.indexAxis === 'y';
+                        var p = el.getProps(['x', 'y', 'base'], true);
+                        var a = horiz ? p.base : p.base, b = horiz ? p.x : p.y;
+                        if (!isFinite(a) || !isFinite(b) || a === b) return solid;
+                        var g = horiz ? ch.ctx.createLinearGradient(a, 0, b, 0) : ch.ctx.createLinearGradient(0, a, 0, b);
+                        g.addColorStop(0, proMix(rgb, -0.08));
+                        g.addColorStop(1, proMix(rgb, 0.22));
+                        return g;
+                    } catch (e) { return solid; }
+                };
+            }
+            if ((t === 'doughnut' || t === 'pie') && card && /^#(fff|ffffff)$/i.test(ds.borderColor || '')) ds.borderColor = card;
+        });
+    }
+};
 function proApplyChartDefaults() {
     if (!window.Chart || Chart.__proApplied) return;
     Chart.__proApplied = true;
     try {
         var D = Chart.defaults;
+        // دقة الرسم: لا تقل عن 2x (حتى على الشاشات العادية) ولا تزيد عن 3x
+        D.devicePixelRatio = function(ctx) {
+            var r = 1;
+            try { r = ctx.chart.platform.getDevicePixelRatio(); } catch (e) { r = window.devicePixelRatio || 1; }
+            return Math.max(2, Math.min(3, r));
+        };
+        D.font.size = 12;
         D.font.family = 'Cairo, Tahoma, sans-serif';
         D.plugins.legend.labels.usePointStyle = true; D.plugins.legend.labels.pointStyle = 'circle';
         var t = D.plugins.tooltip;
@@ -20517,8 +20568,14 @@ function proApplyChartDefaults() {
         if (D.datasets && D.datasets.bar) { D.datasets.bar.barPercentage = 0.6; D.datasets.bar.categoryPercentage = 0.75; }
         if (D.scale && D.scale.border) { D.scale.border.display = false; D.scale.border.dash = [4, 4]; }
         Chart.register(PRO_TRACK);
+        Chart.register(PRO_QUALITY);
     } catch (e) {}
 }
+// تطبيق الإعدادات على كل الصفحات فور توفر Chart.js (مش بس لما الرئيسية ترسم)
+(function proBoot(n) {
+    if (window.Chart) { proApplyChartDefaults(); return; }
+    if (n < 80 && !window.__chartLoadFailed) setTimeout(function() { proBoot(n + 1); }, 250);
+})(0);
 
 function renderHomeUsageChartsInner(equipmentList) {
     if (window.Chart) proApplyChartDefaults();
@@ -20591,7 +20648,7 @@ function renderHomeUsageChartsInner(equipmentList) {
                     { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.owned.prev), Math.round(data.rented.prevHours)], backgroundColor: '#94a3b8', borderRadius: 8 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } } }, scales: { y: { beginAtZero: true, ticks: { color: _numClr, font: { size: 8.5 } } }, x: { ticks: { color: _numClr, font: { size: 8.5 } } } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 10 }, boxWidth: 10, padding: 6 } } }, scales: { y: { beginAtZero: true, ticks: { color: _numClr, font: { size: 10 } } }, x: { ticks: { color: _numClr, font: { size: 10 } } } } }
         });
     }
 
@@ -20606,7 +20663,7 @@ function renderHomeUsageChartsInner(equipmentList) {
                     { label: 'نفس المدة من الدورة اللي فاتت', data: [Math.round(data.rented.prevCost)], backgroundColor: '#94a3b8', borderRadius: 8 }
                 ]
             },
-            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } } }, scales: { x: { beginAtZero: true, ticks: { color: _numClr, font: { size: 8.5 } } }, y: { ticks: { color: _numClr, font: { size: 8.5 } } } } }
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 10 }, boxWidth: 10, padding: 6 } } }, scales: { x: { beginAtZero: true, ticks: { color: _numClr, font: { size: 10 } } }, y: { ticks: { color: _numClr, font: { size: 10 } } } } }
         });
     }
 
@@ -20639,7 +20696,7 @@ function renderHomeUsageChartsInner(equipmentList) {
                 labels: ['ساعات الملك 🔑', 'ساعات الإيجار 📋'],
                 datasets: [{ data: [Math.round(data.owned.cur), Math.round(data.rented.curHours)], backgroundColor: ['#0284c7', '#075985'], borderWidth: 2, borderColor: '#fff' }]
             },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '74%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 8.5 }, boxWidth: 8, padding: 4 } }, tooltip: { callbacks: { label: function(ctx) {
+            options: { responsive: true, maintainAspectRatio: false, cutout: '74%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 10 }, boxWidth: 10, padding: 6 } }, tooltip: { callbacks: { label: function(ctx) {
                 var total = ctx.dataset.data.reduce(function(s, v) { return s + (v || 0); }, 0);
                 var pct = total > 0 ? Math.round((ctx.parsed / total) * 100) : 0;
                 return ctx.label + ': ' + formatNumber(ctx.parsed) + ' ساعة (' + pct + '%)';
@@ -20738,7 +20795,7 @@ function renderHomeDashboardChartsInner(eqList) {
     var txt = dark ? '#ffffff' : '#000000';
     var grid = dark ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.06)';
     var ringBorder = dark ? '#1e293b' : '#ffffff';
-    var font = { family: 'Cairo', size: 9.5 };
+    var font = { family: 'Cairo', size: 10.5 };
     var lbl = function(m) { return m.month.slice(5) + '/' + m.month.slice(2, 4); };
     var showEmpty = function(canvasId, msg) {
         var c = document.getElementById(canvasId);
