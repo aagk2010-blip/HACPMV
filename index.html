@@ -2177,7 +2177,7 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
 
 <div class="modal-overlay" id="driver-modal"><div class="modal-header"><div class="modal-title" id="modal-title-driver"><span class="i18n-label" data-en="Add New Driver" data-ar="إضافة سائق جديد"></span></div><button class="modal-close" onclick="closeModal('driver-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Full Name" data-ar="الاسم الكامل"></span> *</label><input class="form-input" id="driver-name" placeholder="أحمد محمد"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Phone Number" data-ar="رقم الهاتف"></span></label><input class="form-input" id="driver-phone" placeholder="05xxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Driving License No." data-ar="رقم رخصة القيادة"></span></label><input class="form-input" id="driver-license"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="License Expiry Date" data-ar="تاريخ انتهاء الرخصة"></span></label><input class="form-input" type="date" id="driver-license-expiry"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="driver-status"><option>نشط</option><option>في إجازة</option><option>منتهي العقد</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="driver-notes"></textarea></div></div><button class="save-btn" onclick="saveDriver()">✅ حفظ السائق</button></div></div>
 
-<div class="modal-overlay" id="employee-modal"><div class="modal-header"><div class="modal-title" id="modal-title-employee"><span class="i18n-label" data-en="Add New Employee" data-ar="إضافة موظف جديد"></span></div><button class="modal-close" onclick="closeModal('employee-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Employee Name" data-ar="اسم الموظف"></span> *</label><input class="form-input" id="employee-name" placeholder="الاسم الكامل"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Profession / Job" data-ar="المهنة / الوظيفة"></span> *</label><input class="form-input" id="employee-title" placeholder="مثال: فورمان كهرباء قوي"></div><div class="form-field"><label class="form-label">🏗️ الموقع / المشروع *</label><input class="form-input" id="employee-project" list="employee-locations-list" placeholder="اكتب اسم الموقع أو اختر من القائمة"><datalist id="employee-locations-list"></datalist></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Mobile Number" data-ar="رقم الموبايل"></span></label><input class="form-input" id="employee-phone" placeholder="01xxxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Job Code" data-ar="الكود الوظيفي"></span></label><input class="form-input" id="employee-code" placeholder="مثال: 10213419"></div><div class="form-field"><label class="form-label">معين / سركي</label><select class="form-select" id="employee-type" onchange="toggleEmployeeLeaveField()"><option>معين</option><option>سركي</option></select></div><div class="form-field" id="employee-leave-field"><label class="form-label">🏖️ رصيد الإجازات (أيام) — للمعين فقط</label><input class="form-input" id="employee-leave-balance" type="number" min="0" step="0.5" placeholder="0"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="employee-status"><option>نشط</option><option>منتهي الخدمة</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="employee-notes"></textarea></div></div><button class="save-btn" onclick="saveEmployee()">✅ حفظ الموظف</button></div></div>
+<div class="modal-overlay" id="employee-modal"><div class="modal-header"><div class="modal-title" id="modal-title-employee"><span class="i18n-label" data-en="Add New Employee" data-ar="إضافة موظف جديد"></span></div><button class="modal-close" onclick="closeModal('employee-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Employee Name" data-ar="اسم الموظف"></span> *</label><input class="form-input" id="employee-name" placeholder="الاسم الكامل"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Profession / Job" data-ar="المهنة / الوظيفة"></span> *</label><input class="form-input" id="employee-title" placeholder="مثال: فورمان كهرباء قوي"></div><div class="form-field"><label class="form-label">🏗️ الموقع / المشروع *</label><input class="form-input" id="employee-project" list="employee-locations-list" placeholder="اكتب اسم الموقع أو اختر من القائمة"><datalist id="employee-locations-list"></datalist></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Mobile Number" data-ar="رقم الموبايل"></span></label><input class="form-input" id="employee-phone" placeholder="01xxxxxxxxx"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Job Code" data-ar="الكود الوظيفي"></span></label><input class="form-input" id="employee-code" placeholder="مثال: 10213419"></div><div class="form-field"><label class="form-label">معين / سركي</label><select class="form-select" id="employee-type" onchange="toggleEmployeeLeaveField()"><option>معين</option><option>سركي</option></select></div><div class="form-field" id="employee-leave-field"><label class="form-label">🏖️ رصيد الإجازات (أيام) — للمعين فقط</label><input class="form-input" id="employee-leave-balance" type="number" min="0" step="0.5" placeholder="0"></div><div class="form-field" id="employee-salary-box" style="background:var(--light,#f8fafc);border:1px solid #cbd5e1;border-radius:12px;padding:10px"><label class="form-label" style="font-weight:800">💰 الراتب والأيام</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="form-label" style="font-size:11px">📅 أيام العمل</label><input class="form-input" id="employee-work-days" type="number" min="0" step="0.5" placeholder="0" oninput="empSalaryRecalc()"></div><div><label class="form-label" style="font-size:11px">🌙 أيام السهر</label><input class="form-input" id="employee-night-days" type="number" min="0" step="0.5" placeholder="0" oninput="empSalaryRecalc()"></div><div><label class="form-label" style="font-size:11px">⚡ أيام الإنتاجية</label><input class="form-input" id="employee-prod-days" type="number" min="0" step="0.5" placeholder="0" oninput="empSalaryRecalc()"></div><div><label class="form-label" style="font-size:11px">📍 بدل المنطقة (أيام)</label><input class="form-input" id="employee-area-days" type="number" min="0" step="0.5" placeholder="0" oninput="empSalaryRecalc()"></div><div style="grid-column:1/-1"><label class="form-label" style="font-size:11px">💵 اليومية (ج.م)</label><input class="form-input" id="employee-daily-wage" type="number" min="0" step="0.01" placeholder="0" oninput="empSalaryRecalc()"></div></div><div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;background:#ecfdf5;border-radius:10px;padding:8px 12px"><span style="font-weight:700;font-size:12.5px;color:#065f46">إجمالي الراتب</span><span id="employee-total-salary" style="font-weight:800;font-size:16px;color:#047857">0 ج.م</span></div></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Status" data-ar="الحالة"></span></label><select class="form-select" id="employee-status"><option>نشط</option><option>منتهي الخدمة</option></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="employee-notes"></textarea></div></div><button class="save-btn" onclick="saveEmployee()">✅ حفظ الموظف</button></div></div>
 
 <div class="modal-overlay" id="fuel-modal"><div class="modal-header" style="background:linear-gradient(135deg,#065f46,#0e7490)"><div class="modal-title">⛽ <span class="i18n-label" data-en="Log Fuel Refill" data-ar="تسجيل تزود بالوقود"></span></div><button class="modal-close" onclick="closeModal('fuel-modal')">✕</button></div><div><div class="form-group"><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Equipment" data-ar="المعدة"></span></label><select class="form-select" id="fuel-equipment"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Quantity (L)" data-ar="الكمية (لتر)"></span></label><input class="form-input" type="number" id="fuel-amount"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Cost (EGP)" data-ar="التكلفة (ج.م)"></span></label><input class="form-input" type="number" id="fuel-cost"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Current Meter" data-ar="العداد الحالي"></span></label><input class="form-input" type="number" id="fuel-hours"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Date" data-ar="التاريخ"></span></label><input class="form-input" type="date" id="fuel-date"></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Driver" data-ar="السائق"></span></label><select class="form-select" id="fuel-driver"></select></div><div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label><textarea class="form-textarea" id="fuel-notes"></textarea></div></div><button class="save-btn" onclick="saveFuelRecord()">✅ <span class="i18n-label" data-en="Save Refill" data-ar="حفظ التزود"></span></button></div></div>
 
@@ -10891,6 +10891,53 @@ function populateEmployeeLocationsDatalist() {
     dl.innerHTML = locs.map(function(l) { return '<option value="' + escapeHtml(l) + '">' + escapeHtml(l) + '</option>'; }).join('');
 }
 
+
+// ===== راتب الموظف: أيام عمل + سهر + إنتاجية × اليومية =====
+function empSalaryTotals(e) {
+    var n = function(v) { return parseFloat(v) || 0; };
+    var days = n(e.workDays) + n(e.nightDays) + n(e.productivityDays) + n(e.areaDays);
+    return { days: days, total: Math.round(days * n(e.dailyWage) * 100) / 100 };
+}
+function empMoney(v) { return (Math.round((parseFloat(v) || 0) * 100) / 100).toLocaleString('en-US'); }
+function empSalaryRecalc() {
+    var g = function(i) { var el = document.getElementById(i); return el ? (parseFloat(el.value) || 0) : 0; };
+    var t = Math.round((g('employee-work-days') + g('employee-night-days') + g('employee-prod-days') + g('employee-area-days')) * g('employee-daily-wage') * 100) / 100;
+    var out = document.getElementById('employee-total-salary');
+    if (out) out.textContent = empMoney(t) + ' ج.م';
+    return t;
+}
+function empPhoneToWa(raw) {
+    var d = String(raw || '').replace(/\D/g, '');
+    if (!d) return '';
+    if (d.indexOf('00') === 0) d = d.slice(2);
+    else if (d.charAt(0) === '0' && d.length === 11) d = '20' + d.slice(1);
+    else if (d.charAt(0) === '1' && d.length === 10) d = '20' + d;
+    return d;
+}
+function sendEmployeeSalaryWhatsApp(id) {
+    var e = employeesData.find(function(x) { return x.id === id; });
+    if (!e) return;
+    var t = empSalaryTotals(e);
+    var msg = '*💰 كشف الراتب — ' + (e.name || '') + '*\n' +
+        (e.title ? '👷 الوظيفة: ' + e.title + '\n' : '') +
+        (e.projectSite ? '🏗️ المشروع: ' + e.projectSite + '\n' : '') +
+        '━━━━━━━━━━━━\n' +
+        '📅 أيام العمل: ' + (parseFloat(e.workDays) || 0) + '\n' +
+        '🌙 أيام السهر: ' + (parseFloat(e.nightDays) || 0) + '\n' +
+        '⚡ أيام الإنتاجية: ' + (parseFloat(e.productivityDays) || 0) + '\n' +
+        '📍 بدل المنطقة (أيام): ' + (parseFloat(e.areaDays) || 0) + '\n' +
+        '📊 إجمالي الأيام: ' + t.days + '\n' +
+        '💵 اليومية: ' + empMoney(e.dailyWage) + ' ج.م\n' +
+        '━━━━━━━━━━━━\n' +
+        '💰 *إجمالي الراتب: ' + empMoney(t.total) + ' ج.م*\n\n' +
+        COMPANY_NAME_AR + ' 🏗️';
+    var phone = empPhoneToWa(e.phone);
+    if (!phone) showToast('⚠️ لا يوجد رقم هاتف للموظف — اختر جهة الاتصال يدويًا في واتساب', true);
+    window.open((phone ? 'https://wa.me/' + phone : 'https://wa.me/') + '?text=' + encodeURIComponent(msg), '_blank');
+}
+window.sendEmployeeSalaryWhatsApp = sendEmployeeSalaryWhatsApp;
+window.empSalaryRecalc = empSalaryRecalc;
+
 function openAddEmployeeModal() {
     if (!canAdd('employees') && !hasPermission('all')) {
         showToast(RL('Not authorized to add employees','غير مصرح بإضافة موظفين'), true);
@@ -10906,6 +10953,8 @@ function openAddEmployeeModal() {
     document.getElementById('employee-type').value = 'معين';
     document.getElementById('employee-status').value = 'نشط';
     document.getElementById('employee-leave-balance').value = '';
+    ['employee-work-days','employee-night-days','employee-prod-days','employee-area-days','employee-daily-wage'].forEach(function(i){ var el=document.getElementById(i); if(el) el.value=''; });
+    empSalaryRecalc();
     toggleEmployeeLeaveField();
     populateEmployeeLocationsDatalist();
     document.getElementById('employee-modal').classList.add('active');
@@ -10924,6 +10973,10 @@ function saveEmployee() {
         notes: document.getElementById('employee-notes').value,
         updatedAt: new Date().toISOString()
     };
+    var _nv = function(i) { var v = parseFloat(document.getElementById(i).value); return isNaN(v) ? 0 : v; };
+    employee.workDays = _nv('employee-work-days'); employee.nightDays = _nv('employee-night-days');
+    employee.productivityDays = _nv('employee-prod-days'); employee.areaDays = _nv('employee-area-days'); employee.dailyWage = _nv('employee-daily-wage');
+    employee.totalSalary = empSalaryTotals(employee).total;
     var _lb = parseFloat(document.getElementById('employee-leave-balance').value);
     if (employee.employmentType === 'معين') employee.leaveBalance = isNaN(_lb) ? 0 : _lb;   // السركي: لا رصيد (يُحاسب على ساعات الحضور)
 
@@ -11016,6 +11069,18 @@ function openEmployeeDetail(id) {
                 '</div></div>';
         }
     }
+    if (hasPermission('all') || canEdit('employees')) {
+        var _sal = empSalaryTotals(employee);
+        contentHtml += '<div class="detail-section"><div class="detail-label">💰 الراتب</div>' +
+            '<div class="grid-2" style="margin:6px 0">' +
+            '<div><div class="detail-label">📅 أيام العمل</div><div class="detail-value">' + (parseFloat(employee.workDays) || 0) + '</div></div>' +
+            '<div><div class="detail-label">🌙 أيام السهر</div><div class="detail-value">' + (parseFloat(employee.nightDays) || 0) + '</div></div>' +
+            '<div><div class="detail-label">⚡ أيام الإنتاجية</div><div class="detail-value">' + (parseFloat(employee.productivityDays) || 0) + '</div></div>' +
+            '<div><div class="detail-label">📍 بدل المنطقة (أيام)</div><div class="detail-value">' + (parseFloat(employee.areaDays) || 0) + '</div></div>' +
+            '<div><div class="detail-label">💵 اليومية</div><div class="detail-value">' + empMoney(employee.dailyWage) + ' ج.م</div></div></div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;background:#ecfdf5;border-radius:10px;padding:8px 12px;margin-bottom:8px"><span style="font-weight:700;font-size:12.5px;color:#065f46">إجمالي الراتب (' + _sal.days + ' يوم)</span><span style="font-weight:800;font-size:17px;color:#047857">' + empMoney(_sal.total) + ' ج.م</span></div>' +
+            '<button class="save-btn" style="margin:0;width:100%;background:linear-gradient(135deg,#16a34a,#15803d)" onclick="sendEmployeeSalaryWhatsApp(\'' + employee.id + '\')">📲 إرسال الراتب واتساب</button></div>';
+    }
     contentHtml += '<div class="grid-2" style="margin:12px 14px">';
     if (hasPermission('all') || canEdit('employees')) {
         contentHtml += '<button class="save-btn" style="margin:0;background:var(--accent)" onclick="editEmployee(\'' + employee.id + '\')">✏️ <span class="i18n-label" data-en="Edit" data-ar="تعديل"></span></button>';
@@ -11047,6 +11112,12 @@ function editEmployee(id) {
     document.getElementById('employee-code').value = employee.jobCode || '';
     document.getElementById('employee-type').value = employee.employmentType || 'معين';
     document.getElementById('employee-leave-balance').value = (employee.leaveBalance != null ? employee.leaveBalance : '');
+    document.getElementById('employee-work-days').value = employee.workDays || '';
+    document.getElementById('employee-night-days').value = employee.nightDays || '';
+    document.getElementById('employee-prod-days').value = employee.productivityDays || '';
+    document.getElementById('employee-area-days').value = employee.areaDays || '';
+    document.getElementById('employee-daily-wage').value = employee.dailyWage || '';
+    empSalaryRecalc();
     toggleEmployeeLeaveField();
     document.getElementById('employee-status').value = employee.status || 'نشط';
     document.getElementById('employee-notes').value = employee.notes || '';
