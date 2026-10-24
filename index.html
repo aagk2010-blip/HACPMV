@@ -24653,6 +24653,10 @@ window.confirmIssueVoucherImport = confirmIssueVoucherImport;
       '<div class="form-field" style="display:flex;align-items:center;gap:8px;background:#fff7ed;border-radius:12px;padding:10px 12px">' +
       '<input type="checkbox" id="rental-daily-break" style="width:20px;height:20px;flex-shrink:0">' +
       '<label class="form-label" for="rental-daily-break" style="margin:0;flex:1">☕ اشتغلت المعدة ساعة الراحة؟ (تُحسب ساعة إضافية منفصلة)</label></div>' +
+      '<div class="form-field" style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:10px 12px">' +
+      '<label class="form-label" style="color:#b91c1c;font-weight:800">⛔ خصم (ساعات) — اتركه فاضي لو مفيش خصم</label>' +
+      '<input class="form-input" type="number" id="rental-daily-ded" min="0" step="0.25" placeholder="0" style="margin-bottom:6px">' +
+      '<input class="form-input" type="text" id="rental-daily-dedr" placeholder="سبب الخصم (إجباري لو فيه خصم)"></div>' +
       '<div id="rental-daily-calc" style="display:none;background:#f0fdf4;border-radius:12px;padding:12px;margin:0 16px 8px;font-size:13px"></div>' +
       '<div class="form-field"><label class="form-label"><span class="i18n-label" data-en="Notes" data-ar="ملاحظات"></span></label>' +
       '<textarea class="form-textarea" id="rental-daily-notes" rows="2"></textarea></div></div>' +
@@ -25110,6 +25114,8 @@ function openAddDailyModal(rentalId) {
     document.getElementById('rental-daily-out').value='17:00';
     document.getElementById('rental-daily-break').checked=false;
     document.getElementById('rental-daily-notes').value='';
+    document.getElementById('rental-daily-ded').value='';
+    document.getElementById('rental-daily-dedr').value='';
     document.getElementById('rental-daily-calc').style.display='none';
     var attrElReset = document.getElementById('rental-daily-attribution');
     if (attrElReset) attrElReset.style.display='none';
@@ -25132,9 +25138,12 @@ function openAddDailyModal(rentalId) {
             (h.break>0?'<div style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:8px">☕ '+RL('Break hour (worked)','ساعة راحة (اشتغلت)')+': <strong>'+h.break.toFixed(1)+RL('h','س')+'</strong></div>':'<div style="background:white;padding:6px 10px;border-radius:8px;color:var(--gray)">☕ '+RL('Normal break (not counted)','راحة عادية (غير محسوبة)')+'</div>')+
             (h.extra>0?'<div style="background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:8px">⚡ '+RL('Overtime (after 5pm)','إضافي (بعد 5م)')+': <strong>'+h.extra.toFixed(2)+RL('h','س')+'</strong></div>':'<div style="background:white;padding:6px 10px;border-radius:8px;color:var(--gray)">⚡ '+RL('No overtime','لا إضافي')+'</div>')+
             '</div>';
+        var dd=parseFloat((document.getElementById('rental-daily-ded')||{}).value)||0;
+        if (dd>0) div.innerHTML+='<div style="margin-top:6px;background:#fef2f2;color:#b91c1c;padding:6px 10px;border-radius:8px">⛔ '+RL('Deduction','خصم')+': <strong>-'+dd.toFixed(2)+RL('h','س')+'</strong> — '+RL('Net','الصافي')+': <strong>'+(h.total-dd).toFixed(2)+RL('h','س')+'</strong></div>';
     }
     ['rental-daily-in','rental-daily-out'].forEach(function(id){ var el=document.getElementById(id); if(el) el.oninput=updCalc; });
     document.getElementById('rental-daily-break').onchange=updCalc;
+    var dedInp=document.getElementById('rental-daily-ded'); if (dedInp) dedInp.oninput=updCalc;
 }
 // ==================== تنبيه تلقائي عند إدخال بيانات يومية غير منطقية (وقت الإدخال نفسه) ====================
 // بيراجع الرقم قبل ما يتحفظ فعليًا في القاعدة، ويقارنه بـ: حد مطلق، وتاريخ نفس المعدة، ومتوسط المعدات المشابهة (نفس النوع)
@@ -25193,6 +25202,9 @@ function saveRentalDaily() {
     var outT=document.getElementById('rental-daily-out').value;
     var brk=document.getElementById('rental-daily-break').checked;
     var notes=document.getElementById('rental-daily-notes').value.trim();
+    var dedH=Math.max(0, parseFloat(document.getElementById('rental-daily-ded').value)||0);
+    var dedWhy=document.getElementById('rental-daily-dedr').value.trim();
+    if (dedH>0 && !dedWhy) { showToast('اكتب سبب الخصم في خانة السبب',true); return; }
     if (!rId) { showToast(RL('Select the equipment','اختر المعدة'),true); return; }
     if (!date) { showToast(RL('Enter the date','أدخل التاريخ'),true); return; }
     if (!inT||!outT) { showToast(RL('Enter check-in and check-out time','أدخل وقت الحضور والانصراف'),true); return; }
@@ -25223,11 +25235,10 @@ function saveRentalDaily() {
 
     // نحافظ على اسم أول شخص سجّل البيانات، وننبّه لو حصل تعديل بعد كده من حساب مش هو نفسه ومش المدير
     var existingRecord = editingRentalDailyId ? rentalDailyData.find(function(d){ return d.id === editingRentalDailyId; }) : null;
-    if (existingRecord && existingRecord.deductionHours > 0) {
-        record.deductionHours = existingRecord.deductionHours; record.deductionReason = existingRecord.deductionReason || '';
-        record.extraHours = (record.extraHours||0) - record.deductionHours; record.totalHours = (record.totalHours||0) - record.deductionHours;
-        record.notes = rentalNotesWithDeduction(record.notes, record.deductionHours, record.deductionReason);
-    }
+    // الخصم بيتاخد من خانات المودال (متعبية بالقيمة القديمة عند التعديل) — فنقدر نضيف/نعدّل/نلغي خصم على أي يوم قديم
+    record.deductionHours = dedH; record.deductionReason = dedH>0 ? dedWhy : '';
+    if (dedH>0) { record.extraHours = (record.extraHours||0) - dedH; record.totalHours = (record.totalHours||0) - dedH; }
+    record.notes = rentalNotesWithDeduction(record.notes, dedH, dedWhy);
     var actingUserName = (currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
     var isAdminActing = currentUser && currentUser.role === 'admin';
 
@@ -25262,6 +25273,8 @@ function editRentalDaily(id) {
         document.getElementById('rental-daily-out').value=r.outTime||'';
         document.getElementById('rental-daily-break').checked=!!r.breakWorked;
         document.getElementById('rental-daily-notes').value=r.notes||'';
+        document.getElementById('rental-daily-ded').value=r.deductionHours>0?r.deductionHours:'';
+        document.getElementById('rental-daily-dedr').value=r.deductionReason||'';
         document.getElementById('rental-daily-modal-title').innerHTML='✏️ '+RL('Edit Work Day','تعديل يوم عمل');
         var attrEl = document.getElementById('rental-daily-attribution');
         if (attrEl) {
