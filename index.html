@@ -28126,7 +28126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ['F', 'G', 'H', 'I', 'K', 'L', 'M'].forEach(function (c) { h.blank(c + row); });
             var entry = byDate[date], rec = entry && entry.record, note = '', f = 0, g = 0;
             if (rec) {
-                f = tsRound((rec.basicHours || 0) + (rec.breakHours || 0)); g = tsRound(rec.extraHours || 0);
+                f = tsRound(rec.basicHours || 0); g = tsRound((rec.extraHours || 0) + (rec.breakHours || 0));   // ساعة الراحة اللي اشتغلتها المعدة بتتحسب إضافي مش عمل
                 h.setNum('F' + row, f); if (g !== 0) h.setNum('G' + row, g);
                 note = String(rec.notes || '').trim();
             } else if (entry && entry.status === 'absent') { note = '🚫 غياب'; absentN++; }
@@ -28376,37 +28376,38 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!gmap[g]) { gmap[g] = { name: g, idx: [] }; groups.push(gmap[g]); }
             gmap[g].idx.push(i);
         });
-        var heads = ['م / No', 'المعدة / Equipment', 'الساعات / Hours', 'أيام العمل / Working Days'];
-        var blank = function (r, st) { return ['B', 'C', 'D'].map(function (c) { return tsCell(c + r, st, ''); }).join(''); };
-        var merges = ['A1:D1'], rows = '';
+        var heads = ['م / No', 'المعدة / Equipment', 'إجمالي الساعات / Total Hours', 'ساعات الإضافي / Overtime Hours', 'أيام العمل / Working Days'];
+        var blank = function (r, st) { return ['B', 'C', 'D', 'E'].map(function (c) { return tsCell(c + r, st, ''); }).join(''); };
+        var merges = ['A1:E1'], rows = '';
         rows += '<row r="1" ht="30" customHeight="1">' + tsCell('A1', sHead, 'Summary — ' + (rent ? 'معدات الإيجار / Rented Equipment' : 'معدات الملك / Owned Equipment') + ' — ' + range.from + ' → ' + range.to) + blank(1, sHead) + '</row>';
         rows += '<row r="2" ht="6" customHeight="1"/>';
         rows += '<row r="3" ht="34" customHeight="1">' + heads.map(function (h, i) { return tsCell(tsCol(i) + '3', sHead, h); }).join('') + '</row>';
-        var r = 4, subRows = [], gH = 0, gD = 0;
+        var r = 4, subRows = [], gH = 0, gO = 0, gD = 0;
         groups.forEach(function (g) {
             rows += '<row r="' + r + '" ht="24" customHeight="1">' + tsCell('A' + r, sTotL, g.name) + blank(r, sTotL) + '</row>';
-            merges.push('A' + r + ':D' + r); r++;
-            var first = r, sh = 0, sd = 0;
+            merges.push('A' + r + ':E' + r); r++;
+            var first = r, sh = 0, so = 0, sd = 0;
             g.idx.forEach(function (i, n) {
-                var it = items[i], t = tots[i], nm = q(names[i]), hrs = r2(t.J), dys = r2(rent ? t.actual : t.days);
+                var it = items[i], t = tots[i], nm = q(names[i]), hrs = r2(t.J), ovt = r2(t.G), dys = r2(rent ? t.actual : t.days);
                 rows += '<row r="' + r + '" ht="21" customHeight="1">' + tsCell('A' + r, sTxt, n + 1) + tsCell('B' + r, sTxt, rent ? it.name : it.code) +
-                    tsCell('C' + r, sNum, { f: nm + 'J40', v: hrs }) + (rent ? tsCell('D' + r, sNum, { f: nm + 'M51', v: dys }) : tsCell('D' + r, sNum, dys)) + '</row>';
-                sh += hrs; sd += dys; r++;
+                    tsCell('C' + r, sNum, { f: nm + 'J40', v: hrs }) + tsCell('D' + r, sNum, { f: nm + 'G40', v: ovt }) +
+                    (rent ? tsCell('E' + r, sNum, { f: nm + 'M51', v: dys }) : tsCell('E' + r, sNum, dys)) + '</row>';
+                sh += hrs; so += ovt; sd += dys; r++;
             });
             rows += '<row r="' + r + '" ht="24" customHeight="1">' + tsCell('A' + r, sTotL, 'الإجمالي / Total') + tsCell('B' + r, sTotL, '') +
-                tsCell('C' + r, sTotN, { f: 'SUM(C' + first + ':C' + (r - 1) + ')', v: sh }) + tsCell('D' + r, sTotN, { f: 'SUM(D' + first + ':D' + (r - 1) + ')', v: sd }) + '</row>';
-            merges.push('A' + r + ':B' + r); subRows.push(r); gH += sh; gD += sd; r++;
+                tsCell('C' + r, sTotN, { f: 'SUM(C' + first + ':C' + (r - 1) + ')', v: sh }) + tsCell('D' + r, sTotN, { f: 'SUM(D' + first + ':D' + (r - 1) + ')', v: so }) + tsCell('E' + r, sTotN, { f: 'SUM(E' + first + ':E' + (r - 1) + ')', v: sd }) + '</row>';
+            merges.push('A' + r + ':B' + r); subRows.push(r); gH += sh; gO += so; gD += sd; r++;
         });
         if (groups.length > 1) {
-            var fh = subRows.map(function (x) { return 'C' + x; }).join('+'), fd = subRows.map(function (x) { return 'D' + x; }).join('+');
+            var fh = subRows.map(function (x) { return 'C' + x; }).join('+'), fo = subRows.map(function (x) { return 'D' + x; }).join('+'), fd = subRows.map(function (x) { return 'E' + x; }).join('+');
             rows += '<row r="' + r + '" ht="26" customHeight="1">' + tsCell('A' + r, sHead, 'الإجمالي العام / Grand Total') + tsCell('B' + r, sHead, '') +
-                tsCell('C' + r, sHead, { f: fh, v: gH }) + tsCell('D' + r, sHead, { f: fd, v: gD }) + '</row>';
+                tsCell('C' + r, sHead, { f: fh, v: gH }) + tsCell('D' + r, sHead, { f: fo, v: gO }) + tsCell('E' + r, sHead, { f: fd, v: gD }) + '</row>';
             merges.push('A' + r + ':B' + r); r++;
         }
-        var widths = [6, 46, 16, 20], last = r - 1;
+        var widths = [6, 44, 17, 17, 18], last = r - 1;
         var cols = '<cols>' + widths.map(function (w, i) { return '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>'; }).join('') + '</cols>';
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="' + TS_NS + '" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
-            '<sheetPr><tabColor rgb="FF059669"/><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:D' + last + '"/>' +
+            '<sheetPr><tabColor rgb="FF059669"/><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:E' + last + '"/>' +
             '<sheetViews><sheetView rightToLeft="1" tabSelected="1" workbookViewId="0"><pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>' +
             '<sheetFormatPr defaultRowHeight="15"/>' + cols + '<sheetData>' + rows + '</sheetData>' +
             '<mergeCells count="' + merges.length + '">' + merges.map(function (m) { return '<mergeCell ref="' + m + '"/>'; }).join('') + '</mergeCells>' +
