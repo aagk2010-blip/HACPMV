@@ -1851,6 +1851,10 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
         <button class="big-btn" style="margin:0;font-size:12px;padding:9px 4px;background:linear-gradient(135deg,#0284c7,#075985)" onclick="openEmployeeAttendanceReport()">📊 تقرير الشهر</button>
         <button class="big-btn" style="margin:0;font-size:12px;padding:9px 4px;background:linear-gradient(135deg,#0284c7,#075985)" onclick="printAllEmployeeAttQRs()">🏷️ طباعة QR</button>
       </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+        <button class="big-btn" style="margin:0;font-size:12px;padding:9px 4px;background:linear-gradient(135deg,#7c3aed,#5b21b6)" onclick="empNightGroupDialog()">🌙 تسجيل سهرة لمجموعة</button>
+        <button class="big-btn" style="margin:0;font-size:12px;padding:9px 4px;background:linear-gradient(135deg,#0284c7,#075985)" onclick="empNightPdfDialog()">📄 كشوف السهر PDF</button>
+      </div>
     </div>
 
     <div id="emp-panel-salaries" style="display:none">
@@ -11557,7 +11561,7 @@ function empSelBarHtml() {
     var n = empSelIds().length, b = function(label, fn, bg, color) { return '<button onclick="' + fn + '" style="flex:1;border:none;background:' + bg + ';color:' + color + ';border-radius:10px;padding:10px 4px;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap">' + label + '</button>'; };
     return '<div style="position:sticky;bottom:72px;z-index:60;background:#fff;border:2px solid #2563eb;border-radius:14px;padding:8px;margin-top:10px;box-shadow:0 6px 20px rgba(13,27,42,.18)">' +
         '<div style="font-size:12px;font-weight:800;color:#1d4ed8;margin-bottom:6px">☑️ ' + n + ' محدد</div>' +
-        '<div style="display:flex;gap:5px">' + b('الكل', 'empSelAll()', '#e0e7ff', '#3730a3') + b('🏗️ نقل', 'empSelMove()', '#fef3c7', '#92400e') + b('📲 رواتب', 'empSelSalaries()', '#dcfce7', '#166534') + b('📊 تصدير', 'empSelExport()', '#e0f2fe', '#075985') + b('✕', 'empToggleSelMode()', '#fee2e2', '#991b1b') + '</div></div>';
+        '<div style="display:flex;gap:5px">' + b('الكل', 'empSelAll()', '#e0e7ff', '#3730a3') + b('🏗️ نقل', 'empSelMove()', '#fef3c7', '#92400e') + b('📲 رواتب', 'empSelSalaries()', '#dcfce7', '#166534') + b('📊 تصدير', 'empSelExport()', '#e0f2fe', '#075985') + b('🌙 سهر', 'empSelNight()', '#ede9fe', '#5b21b6') + b('✕', 'empToggleSelMode()', '#fee2e2', '#991b1b') + '</div></div>';
 }
 function empSelGuard() {
     if (!(hasPermission('all') || canEdit('employees'))) { showToast('⛔ غير مصرح', true); return null; }
@@ -12053,6 +12057,8 @@ function empAlertsRender() {
     var docs = [];
     base.forEach(function(e) { (e.docs || []).forEach(function(dc) { var dl = empDocDaysLeft(dc); if (dl != null && dl <= 30) docs.push({ e: e, dc: dc, dl: dl }); }); });
     if (docs.length) items.push({ i: '📎', t: docs.length + ' مستند منتهي أو قارب على الانتهاء: ' + docs.slice(0, 3).map(function(x) { return escapeHtml(x.e.name) + ' (' + escapeHtml(x.dc.type) + ' ' + (x.dl < 0 ? 'منتهي' : x.dl + ' يوم') + ')'; }).join('، ') + (docs.length > 3 ? ' +' + (docs.length - 3) : '') });
+    var nightP = base.filter(function(e) { return empNightStats(e).pN > 0; });
+    if (nightP.length) items.push({ i: '🌙', t: nightP.length + ' موظف عندهم أيام سهر لسه ما اتحولتش لإجازة: ' + nightP.slice(0, 4).map(function(e) { return escapeHtml(e.name); }).join('، ') + (nightP.length > 4 ? ' +' + (nightP.length - 4) : '') });
     var now = new Date(), today = businessDateStr(now);
     if (now.getHours() >= (parseFloat(EMP_HR_CFG.alertHour) || 10)) {
         var none = base.filter(function(e) { return !empDayStatusOf(e.id); }).length;
@@ -12250,6 +12256,175 @@ function empDocDelete(id, docId) {
 }
 Object.assign(window, { empSalLogDialog: empSalLogDialog, empSalUndo: empSalUndo, empDocAdd: empDocAdd, empDocView: empDocView, empDocDelete: empDocDelete });
 
+// ===== بدل السهر: سجل سهرات (تاريخ ميلادي + إضافي) + إجازة بدل + كشف PDF =====
+var EMP_WEEKDAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+function empWeekday(iso) { var p = String(iso || '').split('-'); if (p.length !== 3) return ''; return EMP_WEEKDAYS[new Date(+p[0], +p[1] - 1, +p[2]).getDay()] || ''; }
+function empNightIsPerm(e) { return !!e && e.employmentType === 'معين'; }   // الإجازة البديلة للموظف المعيّن فقط
+function empNightLog(e) {
+    var l = e && e.nightLog;
+    if (!l) return [];
+    return Array.isArray(l) ? l.filter(Boolean) : Object.keys(l).map(function(k) { return l[k]; });
+}
+function empNightStats(e) {
+    var st = { n: 0, hours: 0, days: 0, pDays: 0, cDays: 0, pN: 0 }, perm = empNightIsPerm(e);
+    empNightLog(e).forEach(function(x) {
+        var d = perm ? (parseFloat(x.days) || 0) : 0; st.n++; st.hours += parseFloat(x.hours) || 0; st.days += d;
+        if (!perm) return;
+        if (x.status === 'credited') st.cDays += d; else { st.pDays += d; st.pN++; }
+    });
+    Object.keys(st).forEach(function(k) { st[k] = Math.round(st[k] * 100) / 100; });
+    return st;
+}
+function empNightCanEdit(e) { return (hasPermission('all') || canEdit('employees')) && (!e || empSiteOk(e)); }
+function empNightPersist(e, log, msg) {
+    var d = { id: e.id, nightLog: log, updatedAt: new Date().toISOString() };
+    if (e.ownerId) d.ownerId = e.ownerId;
+    saveToFirebase('employees', d);
+    if (msg) showToast(msg);
+}
+function empNightSectionHtml(e) {
+    var canEd = empNightCanEdit(e), st = empNightStats(e), perm = empNightIsPerm(e);
+    var log = empNightLog(e).slice().sort(function(a, b) { return String(b.date).localeCompare(String(a.date)); });
+    var box = function(label, val, bg, col) { return '<div style="flex:1;background:' + bg + ';border-radius:10px;padding:8px 4px;text-align:center"><div style="font-size:11px;color:' + col + '">' + label + '</div><div style="font-size:17px;font-weight:800;color:' + col + '">' + val + '</div></div>'; };
+    var rows = log.slice(0, 30).map(function(x) {
+        var cred = perm && x.status === 'credited', col = cred ? '#065f46' : '#92400e', bg = cred ? '#d1fae5' : '#fef3c7';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e2e8f0;padding:9px 0"><div style="min-width:0">' +
+            '<div style="font-weight:800;font-size:13px">' + escapeHtml(empWeekday(x.date)) + ' ' + empFmtDate(x.date) + '</div>' +
+            '<div style="font-size:12px;color:#475569;line-height:1.6">إضافي ' + (parseFloat(x.hours) || 0) + ' ساعة' + (perm ? ' • يعادل ' + (parseFloat(x.days) || 0) + ' يوم إجازة' : '') + (x.note ? ' • ' + escapeHtml(x.note) : '') + '</div>' +
+            (perm ? '<span style="display:inline-block;margin-top:3px;font-size:11px;font-weight:800;background:' + bg + ';color:' + col + ';border-radius:10px;padding:2px 9px">' + (cred ? '✅ اتحولت لرصيد الإجازات' + (x.creditedAt ? ' (' + empFmtDate(String(x.creditedAt).slice(0, 10)) + ')' : '') : '⏳ معلّقة — هتتعوّض بإجازة') + '</span>' : '') + '</div>' +
+            ((canEd && !cred) ? '<div style="display:flex;gap:6px;flex-shrink:0"><button onclick="empNightEdit(\'' + e.id + '\',\'' + x.id + '\')" style="border:none;background:#e0f2fe;border-radius:8px;padding:6px 9px;cursor:pointer">✏️</button><button onclick="empNightDelete(\'' + e.id + '\',\'' + x.id + '\')" style="border:none;background:#fee2e2;border-radius:8px;padding:6px 9px;cursor:pointer">🗑️</button></div>' : '') + '</div>';
+    }).join('');
+    var btn = function(label, fn, bg) { return '<button class="big-btn" style="margin:8px 0 0;width:100%;font-size:12.5px;padding:10px;background:' + bg + '" onclick="' + fn + '">' + label + '</button>'; };
+    return '<div class="detail-section"><div style="display:flex;gap:6px;margin-bottom:' + (perm ? '10' : '4') + 'px">' + box('ليالي السهر', st.n, '#f1f5f9', '#0d1b2a') + box('إجمالي الإضافي (ساعة)', st.hours, '#fef3c7', '#92400e') + (perm ? box('إجازة بدل معلّقة (يوم)', st.pDays, '#ede9fe', '#5b21b6') : '') + '</div>' +
+        (perm ? '' : '<div style="font-size:11.5px;color:#64748b;margin-bottom:8px">الإجازة البديلة للسهر للموظف المعيّن فقط — الموظف ده (' + escapeHtml(e.employmentType || '—') + ') بيتسجل له الإضافي بالساعات.</div>') +
+        (rows || '<div style="font-size:12px;color:#64748b">مفيش سهرات مسجلة</div>') +
+        (canEd ? btn('➕ تسجيل سهرة', "empNightEdit('" + e.id + "')", 'linear-gradient(135deg,#7c3aed,#5b21b6)') : '') +
+        (canEd && perm && st.pN ? btn('🔄 تحويل المعلّق (' + st.pDays + ' يوم) لرصيد الإجازات', "empNightCredit('" + e.id + "')", 'linear-gradient(135deg,#059669,#047857)') : '') +
+        (st.n ? btn('📄 كشف السهر PDF للموظف', "empNightPdfDialog('" + e.id + "')", 'linear-gradient(135deg,#0284c7,#075985)') : '') + '</div>';
+}
+function empNightFieldsHtml(x, showDays, hint) {
+    var inp = 'width:100%;margin-top:4px;border:1px solid #cbd5e1;border-radius:10px;padding:9px;font-size:14px;box-sizing:border-box;font-family:inherit';
+    return 'التاريخ (ميلادي):<input id="nt-date" type="date" value="' + (x ? x.date : businessDateStr(new Date())) + '" style="' + inp + '">' +
+        '<div style="margin-top:8px">الإضافي (بالساعات):<input id="nt-hours" type="number" min="0" step="0.25" inputmode="decimal" placeholder="مثال: 3" value="' + (x && x.hours ? x.hours : '') + '" style="' + inp + '"></div>' +
+        (showDays ? '<div style="margin-top:8px">يعادل كم يوم إجازة:<input id="nt-days" type="number" min="0" step="0.25" inputmode="decimal" value="' + (x ? (x.days != null ? x.days : 1) : 1) + '" style="' + inp + '">' + (hint ? '<div style="font-size:11.5px;color:#64748b;margin-top:3px">' + hint + '</div>' : '') + '</div>' : '') +
+        '<div style="margin-top:8px">ملاحظة (اختياري):<input id="nt-note" value="' + escapeHtml(x ? (x.note || '') : '') + '" style="' + inp + '"></div>';
+}
+function empNightRead() {
+    var dEl = document.getElementById('nt-days'), date = document.getElementById('nt-date').value, hours = parseFloat(document.getElementById('nt-hours').value) || 0, days = dEl ? (parseFloat(dEl.value) || 0) : 0, note = document.getElementById('nt-note').value.trim();
+    if (!date) { showToast('اختار تاريخ السهرة', true); return null; }
+    if (date > businessDateStr(new Date())) { showToast('لا يمكن تسجيل تاريخ مستقبلي', true); return null; }
+    if (hours <= 0 && days <= 0) { showToast(dEl ? 'اكتب الإضافي بالساعات أو عدد أيام الإجازة' : 'اكتب الإضافي بالساعات', true); return null; }
+    return { date: date, hours: hours, days: days, note: note };
+}
+function empNightEdit(empId, entryId) {
+    var e = employeesData.find(function(x) { return x.id === empId; }); if (!e) return;
+    if (!empNightCanEdit(e)) { showToast('⛔ غير مصرح', true); return; }
+    var x = entryId ? empNightLog(e).find(function(y) { return y.id === entryId; }) : null;
+    empDialog((x ? '✏️ تعديل سهرة' : '🌙 تسجيل سهرة') + ' — ' + escapeHtml(e.name), empNightFieldsHtml(x, empNightIsPerm(e)),
+        [{ label: '✅ حفظ', bg: '#059669', color: '#fff', action: function() {
+            var v = empNightRead(); if (!v) return true;
+            var log = empNightLog(e).slice();
+            if (x) { var i = log.findIndex(function(y) { return y.id === entryId; }); if (i >= 0) log[i] = Object.assign({}, log[i], v); }
+            else log.push(Object.assign({ id: 'n' + Date.now().toString(36), status: 'pending', by: empByWho(), at: new Date().toISOString() }, v));
+            empNightPersist(e, log, '✅ اتحفظت السهرة');
+            setTimeout(function() { openEmployeeDetail(empId); }, 450);
+        } }, { label: 'إلغاء' }]);
+}
+function empNightDelete(empId, entryId) {
+    var e = employeesData.find(function(x) { return x.id === empId; }); if (!e || !empNightCanEdit(e)) return;
+    empDialog('🗑️ حذف سهرة', 'متأكد إنك عايز تحذف السهرة دي؟',
+        [{ label: '🗑️ حذف', bg: '#dc2626', color: '#fff', action: function() {
+            empNightPersist(e, empNightLog(e).filter(function(y) { return y.id !== entryId; }), 'اتحذفت السهرة');
+            setTimeout(function() { openEmployeeDetail(empId); }, 450);
+        } }, { label: 'إلغاء' }]);
+}
+// تحويل أيام السهر المعلّقة لرصيد إجازات (بتظهر في سجل الإجازات كـ «أيام إضافية»)
+function empNightCredit(empId) {
+    var e = employeesData.find(function(x) { return x.id === empId; }); if (!e || !empNightCanEdit(e)) return;
+    if (!empNightIsPerm(e)) { showToast('تحويل السهر لإجازة للموظف المعيّن بس — الموظف ده (' + (e.employmentType || '—') + ') بيتسجل له الإضافي بالساعات', true); return; }
+    var st = empNightStats(e);
+    if (!st.pN) { showToast('مفيش سهرات معلّقة'); return; }
+    var cur = parseFloat(e.leaveBalance) || 0;
+    empDialog('🔄 تحويل السهر لإجازة — ' + escapeHtml(e.name), 'هيتحوّل <b>' + st.pN + '</b> سهرة بإجمالي <b>' + st.pDays + '</b> يوم إجازة بدل.<br>رصيد الإجازات: <b>' + cur + '</b> ← <b>' + (Math.round((cur + st.pDays) * 100) / 100) + '</b> يوم.',
+        [{ label: '✅ تحويل لرصيد الإجازات', bg: '#059669', color: '#fff', action: function() {
+            empAdjustBalance(empId, st.pDays, { type: 'extra', date: businessDateStr(new Date()), note: 'تحويل ' + st.pN + ' سهرة لإجازة بدل' }, false).then(function() {
+                var nowIso = new Date().toISOString();
+                empNightPersist(e, empNightLog(e).map(function(x) { return x.status === 'credited' ? x : Object.assign({}, x, { status: 'credited', creditedAt: nowIso }); }), '✅ اتضافت ' + st.pDays + ' يوم لرصيد الإجازات');
+                setTimeout(function() { openEmployeeDetail(empId); }, 450);
+            }).catch(function(err) { showToast('خطأ: ' + err.message, true); });
+        } }, { label: 'إلغاء' }]);
+}
+// تسجيل سهرة لمجموعة موظفين مرة واحدة
+function empNightGroupDialog(preIds) {
+    if (!empCanMark()) { showToast('⛔ غير مصرح', true); return; }
+    var pre = {}; (preIds || []).forEach(function(id) { pre[id] = 1; });
+    var list = empHrVisibleEmployees().map(function(e) {
+        return '<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #f1f5f9"><input type="checkbox" class="ng-cb" value="' + e.id + '" ' + (pre[e.id] ? 'checked' : '') + '> <span>' + escapeHtml(e.name || '') + ' <small style="color:' + (empNightIsPerm(e) ? '#5b21b6' : '#64748b') + '">(' + escapeHtml(e.employmentType || '—') + ')</small></span></label>';
+    }).join('');
+    empDialog('🌙 تسجيل سهرة لمجموعة', empNightFieldsHtml(null, true, 'الإجازة البديلة بتتسجل للموظفين المعيّنين فقط — غيرهم بيتسجل لهم الإضافي بالساعات.') +
+        '<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center"><b>الموظفين</b><span><a href="javascript:void(0)" onclick="document.querySelectorAll(\'.ng-cb\').forEach(function(c){c.checked=true})" style="color:#0284c7;font-weight:700">تحديد الكل</a> • <a href="javascript:void(0)" onclick="document.querySelectorAll(\'.ng-cb\').forEach(function(c){c.checked=false})" style="color:#dc2626;font-weight:700">إلغاء</a></span></div>' +
+        '<div style="max-height:200px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px;padding:2px 8px;margin-top:4px">' + list + '</div>',
+        [{ label: '✅ تسجيل للمحددين', bg: '#7c3aed', color: '#fff', action: function() {
+            var v = empNightRead(); if (!v) return true;
+            var ids = Array.prototype.map.call(document.querySelectorAll('.ng-cb:checked'), function(c) { return c.value; });
+            if (!ids.length) { showToast('اختار موظف واحد على الأقل', true); return true; }
+            var n = 0, skipped = 0, nowIso = new Date().toISOString();
+            ids.forEach(function(id, k) {
+                var e = employeesData.find(function(x) { return x.id === id; });
+                if (!e || !checkDocumentOwnership(e) || !empSiteOk(e)) return;
+                var perm = empNightIsPerm(e), entry = Object.assign({}, v, { days: perm ? v.days : 0 });
+                if (!perm && entry.hours <= 0) { skipped++; return; }   // غير المعيّن: لازم إضافي بالساعات
+                var log = empNightLog(e).slice();
+                log.push(Object.assign({ id: 'n' + Date.now().toString(36) + k, status: 'pending', by: empByWho(), at: nowIso }, entry));
+                empNightPersist(e, log); n++;
+            });
+            showToast('✅ اتسجلت السهرة لعدد ' + n + ' موظف' + (skipped ? ' (تخطّي ' + skipped + ' من غير المعيّنين لعدم كتابة ساعات الإضافي)' : ''));
+        } }, { label: 'إلغاء' }]);
+}
+function empSelNight() { var ids = empSelGuard(); if (!ids) return; empNightGroupDialog(ids); }
+
+// ---------- كشف PDF ----------
+function empNightPdfDialog(empId) {
+    var inp = 'width:100%;margin-top:4px;border:1px solid #cbd5e1;border-radius:10px;padding:9px;font-size:14px;box-sizing:border-box;font-family:inherit';
+    empDialog(empId ? '📄 كشف السهر PDF' : '📄 كشوف السهر PDF (صفحة لكل موظف)',
+        'من تاريخ (اختياري):<input id="np-from" type="date" style="' + inp + '"><div style="margin-top:8px">إلى تاريخ (اختياري):<input id="np-to" type="date" style="' + inp + '"></div>' +
+        '<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-weight:700"><input type="checkbox" id="np-pending" checked> المعلّقة فقط (اللي لسه ما اتحولتش لإجازة — للمعيّنين)</label>',
+        [{ label: '📄 فتح الكشف للطباعة / حفظ PDF', bg: '#0284c7', color: '#fff', action: function() {
+            empNightPdf(empId ? [empId] : null, { from: document.getElementById('np-from').value, to: document.getElementById('np-to').value, onlyPending: document.getElementById('np-pending').checked });
+        } }, { label: 'إلغاء' }]);
+}
+function empNightPageHtml(e, log, o) {
+    var perm = empNightIsPerm(e), tot = { h: 0, d: 0 }, f = function(x) { return parseFloat(x) || 0; };
+    var rows = log.map(function(x, i) {
+        tot.h += f(x.hours); tot.d += perm ? f(x.days) : 0;
+        return '<tr><td>' + (i + 1) + '</td><td>' + empFmtDate(x.date) + '</td><td>' + escapeHtml(empWeekday(x.date)) + '</td><td>' + f(x.hours) + '</td>' +
+            (perm ? '<td>' + f(x.days) + '</td><td>' + (x.status === 'credited' ? 'محوّلة لرصيد الإجازات' : 'تُعوَّض بإجازة') + '</td>' : '') +
+            '<td style="text-align:right">' + escapeHtml(x.note || '') + '</td></tr>';
+    }).join('');
+    tot.h = Math.round(tot.h * 100) / 100; tot.d = Math.round(tot.d * 100) / 100;
+    var range = (o.from || o.to) ? ('من ' + (o.from ? empFmtDate(o.from) : '—') + ' إلى ' + (o.to ? empFmtDate(o.to) : '—')) : 'كل الفترات';
+    return reportHeaderHtml('كشف أيام السهر الإضافي', 'الموظف: ' + (e.name || '')) +
+        '<div style="margin:8px 0 10px;font-size:13px;line-height:1.9"><b>الموظف:</b> ' + escapeHtml(e.name || '') + ' &nbsp;—&nbsp; <b>الوظيفة:</b> ' + escapeHtml(e.title || '—') + ' &nbsp;—&nbsp; <b>الموقع:</b> ' + escapeHtml(e.projectSite || '—') + ' &nbsp;—&nbsp; <b>نوع التعيين:</b> ' + escapeHtml(e.employmentType || '—') + '<br><b>الفترة:</b> ' + range + ((o.onlyPending && perm) ? ' &nbsp;—&nbsp; (المعلّقة فقط)' : '') + '</div>' +
+        '<table><thead><tr><th>م</th><th>التاريخ (ميلادي)</th><th>اليوم</th><th>الإضافي (ساعة)</th>' + (perm ? '<th>يعادل (يوم إجازة)</th><th>الحالة</th>' : '') + '<th>ملاحظات</th></tr></thead><tbody>' + rows +
+        '<tr class="sub"><td colspan="3">الإجمالي (' + log.length + ' سهرة)</td><td>' + tot.h + '</td>' + (perm ? '<td>' + tot.d + '</td><td></td>' : '') + '<td></td></tr></tbody></table>' +
+        '<p style="margin-top:14px;font-size:13px;line-height:2">' + (perm
+            ? 'أقرّ بأن أيام السهر الإضافية الموضحة أعلاه (<b>' + tot.d + '</b> يوم) سيتم تعويضها بأيام إجازة بدل الإضافي، وفق ما تم الاتفاق عليه.'
+            : 'أقرّ بصحة أيام السهر وساعات الإضافي الموضحة أعلاه (<b>' + tot.h + '</b> ساعة).') + '</p>' +
+        '<div class="sig"><div>توقيع الموظف</div><div>المدير / الموارد البشرية</div><div>التاريخ</div></div>';
+}
+function empNightPdf(ids, o) {
+    o = o || {};
+    var emps = ids ? (employeesData || []).filter(function(e) { return ids.indexOf(e.id) >= 0 && empSiteOk(e); }) : empHrVisibleEmployees();
+    var pages = [];
+    emps.forEach(function(e) {
+        var log = empNightLog(e).filter(function(x) { return !((o.from && x.date < o.from) || (o.to && x.date > o.to) || (o.onlyPending && empNightIsPerm(e) && x.status === 'credited')); }).sort(function(a, b) { return String(a.date).localeCompare(String(b.date)); });
+        if (log.length) pages.push(empNightPageHtml(e, log, o));
+    });
+    if (!pages.length) { showToast('مفيش سهرات مسجلة بالشروط دي', true); return; }
+    empOpenPrint('كشف السهر الإضافي', pages.join('<div class="pb"></div>'), false);
+}
+Object.assign(window, { empNightEdit: empNightEdit, empNightDelete: empNightDelete, empNightCredit: empNightCredit, empNightGroupDialog: empNightGroupDialog, empNightPdfDialog: empNightPdfDialog, empSelNight: empSelNight });
+
 function openAddEmployeeModal() {
     if (!canAdd('employees') && !hasPermission('all')) {
         showToast(RL('Not authorized to add employees','غير مصرح بإضافة موظفين'), true);
@@ -12415,7 +12590,8 @@ function openEmployeeDetail(id) {
         (_secEquip ? empAccSection('🚜 المعدات والتتبّع', _secEquip, false) : '') +
         (_secSal ? empAccSection('💰 الراتب', _secSal, true) : '') +
         empAccSection('📅 تقويم الحضور', empCalSectionHtml(employee), false) +
-        empAccSection('📎 المستندات', empDocsSectionHtml(employee), false);
+        empAccSection('📎 المستندات', empDocsSectionHtml(employee), false) +
+        empAccSection('🌙 بدل السهر (إجازة بدل)', empNightSectionHtml(employee), false);
     contentHtml += '<div class="grid-2" style="margin:12px 14px">';
     if (hasPermission('all') || canEdit('employees')) {
         contentHtml += '<button class="save-btn" style="margin:0;background:var(--accent)" onclick="editEmployee(\'' + employee.id + '\')">✏️ <span class="i18n-label" data-en="Edit" data-ar="تعديل"></span></button>';
