@@ -29492,7 +29492,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (rec) {
                 f = tsRound(rec.basicHours || 0); g = tsRound((rec.extraHours || 0) + (rec.breakHours || 0));   // ساعة الراحة اللي اشتغلتها المعدة بتتحسب إضافي مش عمل
                 h.setNum('F' + row, f); if (g !== 0) h.setNum('G' + row, g);
-                note = String(rec.notes || '').trim();
+                // ملاحظات السجل مش بتتكتب في التايم شيت — عمود الملاحظات للغياب بس
             } else if (entry && entry.status === 'absent') { note = '🚫 غياب'; absentN++; }
             h.setStr('N' + row, note);
             if (fuel[date]) { h.setNum('M' + row, tsRound(fuel[date])); sM += tsRound(fuel[date]); }
@@ -29650,8 +29650,8 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (plan[date]) { f = plan[date].f; g = plan[date].g; iR = plan[date].i; l = plan[date].l; }
             if (f > 0) h.setNum('F' + row, f);
             if (g > 0) h.setNum('G' + row, g);
-            if (iR > 0) { h.setNum('I' + row, iR); note = '🚫 عطل'; }
-            if (l > 0) { h.setNum('L' + row, l); sL += l; if (!note) note = '🚫 توقف لعدم وجود أعمال'; }
+            if (iR > 0) h.setNum('I' + row, iR);
+            if (l > 0) { h.setNum('L' + row, l); sL += l; }
             if (fuel[date]) { h.setNum('N' + row, tsRound(fuel[date])); sN += tsRound(fuel[date]); }
             h.setStr('O' + row, note);
             h.setFV('J' + row, f + g - iR); sF += f; sG += g; sI += iR; sJ += f + g - iR; if (f + g - iR > 0) wd++;
