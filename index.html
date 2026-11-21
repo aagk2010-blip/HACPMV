@@ -22861,6 +22861,10 @@ var REPORTS_GROUPS = [
         { k: 'excel', ico: '🏗️', en: 'Owned Equipment Time Sheet',  ar: 'Time Sheet — معدات الملك',   c: '#059669,#047857', tip: 'الدورة (21 ← 20) بتتختار في النافذة اللي بتفتح — للمدير فقط', run: function() { openTimesheetExportModal('own'); } },
         { k: 'excel', ico: '🚧', en: 'Rental Equipment Time Sheet', ar: 'Time Sheet — معدات الإيجار', c: '#b45309,#92400e', tip: 'الدورة (21 ← 20) والمقاول بيتختاروا في النافذة اللي بتفتح — للمدير فقط', run: function() { openTimesheetExportModal('rent'); } }
       ] },
+    { key: 'rental-all-pdf', ico: '🖨️', en: 'Rental Equipment — All Reports (PDF)', ar: 'تقارير معدات الإيجار — كلها في PDF', sec: ['rental'], hideVO: true, adminOnly: true,
+      items: [
+        { k: 'print', ico: '🚧', en: 'Print All Rental Reports', ar: 'طباعة تقارير كل معدات الإيجار', c: '#b45309,#92400e', tip: 'اختر الفترة (من/إلى) والمقاول في النافذة اللي بتفتح — ملف PDF واحد، صفحة لكل معدة — للمدير فقط', run: function() { openRentalAllReportsPrintModal(); } }
+      ] },
     { key: 'iso', ico: '📚', en: 'ISO Documents', ar: 'مستندات الأيزو', sec: ['equipment', 'rental', 'employees', 'maintenance'], hideVO: true,
       items: [
         { k: 'excel', ico: '🏗️', en: 'List of Owned Equipment',  ar: 'List of Owned Equipment',  sec: ['equipment'], c: '#1d4ed8,#1e3a8a', run: function() { openIsoDoc('F01'); } },
@@ -27774,6 +27778,167 @@ function exportSingleRentalPDF(rentalId) {
         '</body></html>');
     w.document.close();setTimeout(function(){ if(w.fitReportToPage) w.fitReportToPage(); w.print(); },qrUrl?900:500);
 }
+
+// ==================== طباعة تقارير كل معدات الإيجار دفعة واحدة (PDF واحد) ====================
+function openRentalAllReportsPrintModal() {
+    if (typeof hasPermission === 'function' && !hasPermission('all')) { showToast('⛔ غير مصرح — طباعة تقارير الإيجار الجماعية للمدير فقط', true); return; }
+    var old = document.getElementById('rental-all-print-modal');
+    if (old) old.remove();
+    var def = getPeriodRange(getCurrentCycleMonthStr());
+    var inp = 'width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px;box-sizing:border-box';
+    var lbl = 'display:block;font-size:12px;font-weight:700;color:#475569;margin:10px 0 4px';
+    var ctOpts = '<option value="">كل المقاولين</option>';
+    try {
+        (typeof contractorsData !== 'undefined' ? contractorsData : []).forEach(function(c) {
+            ctOpts += '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.name || '') + '</option>';
+        });
+    } catch (e) {}
+    var ov = document.createElement('div');
+    ov.id = 'rental-all-print-modal';
+    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.innerHTML =
+        '<div style="background:white;border-radius:16px;padding:18px;width:100%;max-width:400px;direction:rtl;font-family:inherit;max-height:92vh;overflow:auto">' +
+        '<div style="font-size:16px;font-weight:800;color:#0d1b2a;margin-bottom:4px">🖨️ طباعة تقارير كل معدات الإيجار</div>' +
+        '<div style="font-size:11.5px;color:#64748b;margin-bottom:6px">ملف PDF واحد، تقرير كل معدة في صفحة مستقلة بنفس شكل تقرير المعدة الفردي.</div>' +
+        '<label style="' + lbl + '">📅 من تاريخ</label><input type="date" id="rap-from" value="' + def.from + '" style="' + inp + '">' +
+        '<label style="' + lbl + '">📅 إلى تاريخ</label><input type="date" id="rap-to" value="' + def.to + '" style="' + inp + '">' +
+        '<label style="' + lbl + '">👷 المقاول</label><select id="rap-contractor" style="' + inp + '">' + ctOpts + '</select>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;cursor:pointer"><input type="checkbox" id="rap-summary" checked> إضافة صفحة ملخص لكل المعدات في أول الملف</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="rap-empty"> تضمين المعدات التي ليس لها سجلات في الفترة</label>' +
+        '<div style="display:flex;gap:8px;margin-top:16px">' +
+        '<button onclick="runRentalAllReportsPrint()" style="flex:2;padding:12px;background:linear-gradient(135deg,#0284c7,#075985);color:white;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">🖨️ طباعة / حفظ PDF</button>' +
+        '<button onclick="document.getElementById(\'rental-all-print-modal\').remove()" style="flex:1;padding:12px;background:#f1f5f9;color:#475569;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">إلغاء</button>' +
+        '</div></div>';
+    document.body.appendChild(ov);
+}
+
+function runRentalAllReportsPrint() {
+    if (typeof hasPermission === 'function' && !hasPermission('all')) { showToast('⛔ غير مصرح — طباعة تقارير الإيجار الجماعية للمدير فقط', true); return; }
+    var val = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
+    var chk = function(id) { var el = document.getElementById(id); return !!(el && el.checked); };
+    var from = val('rap-from'), to = val('rap-to');
+    if (!from || !to) { showToast('حدد تاريخ البداية وتاريخ النهاية', true); return; }
+    var opts = { summary: chk('rap-summary'), includeEmpty: chk('rap-empty'), contractorId: val('rap-contractor') };
+    // window.open لازم يتنفذ مباشرة من ضغطة الزر عشان المتصفح ميمنعش النافذة
+    var w = window.open('', '_blank');
+    if (!w) { showToast('المتصفح منع فتح نافذة الطباعة — اسمح بالنوافذ المنبثقة لهذا الموقع', true); return; }
+    var ok = printAllRentalReportsPdf(from, to, opts, w);
+    if (ok) { var m = document.getElementById('rental-all-print-modal'); if (m) m.remove(); }
+    else { try { w.close(); } catch (e) {} }
+}
+
+function printAllRentalReportsPdf(from, to, opts, w) {
+    opts = opts || {};
+    if (from > to) { var tmp = from; from = to; to = tmp; }
+    var visibleIds = {};
+    getVisibleEquipment().forEach(function(e) { visibleIds[e.id] = true; });
+
+    var items = rentalData.filter(function(r) {
+        if (r.equipmentId && !visibleIds[r.equipmentId]) return false;
+        if (r.startDate && r.startDate > to) return false;
+        if (r.endDate && r.endDate < from) return false;
+        if (opts.contractorId && r.contractorId !== opts.contractorId) return false;
+        return true;
+    }).map(function(r) {
+        var eq = equipmentData.find(function(e) { return e.id === r.equipmentId; });
+        var drv = driversData.find(function(d) { return d.id === r.driverId; });
+        var ct = (typeof contractorsData !== 'undefined' && r.contractorId) ? contractorsData.find(function(c) { return c.id === r.contractorId; }) : null;
+        var dd = buildRentalDayEntries(r.id, from, to);
+        var sum = function(k) { return dd.records.reduce(function(s, x) { return s + (x[k] || 0); }, 0); };
+        return {
+            rental: r, eq: eq, drv: drv, ctName: ct ? ct.name : '',
+            days: dd.days, records: dd.records,
+            sb: sum('basicHours'), sk: sum('breakHours'), se: sum('extraHours'),
+            absent: dd.days.filter(function(d) { return d.status === 'absent'; }).length
+        };
+    });
+    if (!opts.includeEmpty) items = items.filter(function(x) { return x.records.length > 0; });
+    if (!items.length) { showToast('لا توجد سجلات إيجار في هذه الفترة', true); return false; }
+    items.sort(function(a, b) {
+        var ka = (a.eq && (a.eq.code || a.eq.name)) || a.rental.equipmentCode || '';
+        var kb = (b.eq && (b.eq.code || b.eq.name)) || b.rental.equipmentCode || '';
+        return String(ka).localeCompare(String(kb), 'ar');
+    });
+
+    var f1 = function(n) { return (n || 0).toFixed(1); };
+    var f2 = function(n) { return (n || 0).toFixed(2); };
+    var periodLabel = from + ' → ' + to;
+    var printedOn = new Date().toLocaleDateString('ar-EG');
+    var pages = '';
+
+    // صفحة الملخص
+    if (opts.summary) {
+        var t = { n: 0, sb: 0, sk: 0, se: 0, ab: 0 };
+        var srows = items.map(function(x, i) {
+            t.n += x.records.length; t.sb += x.sb; t.sk += x.sk; t.se += x.se; t.ab += x.absent;
+            var eq = x.eq;
+            return '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(eq ? (eq.code || '—') : (x.rental.equipmentCode || '—')) + '</td>' +
+                '<td style="text-align:right">' + escapeHtml(eq ? ((eq.type ? eq.type + ' — ' : '') + (eq.name || '')) : '—') + '</td>' +
+                '<td>' + escapeHtml(x.ctName || x.rental.company || '—') + '</td><td>' + escapeHtml(x.drv ? x.drv.name : '—') + '</td>' +
+                '<td>' + x.records.length + '</td><td>' + f1(x.sb) + '</td><td>' + f1(x.sk) + '</td><td>' + f1(x.se) + '</td>' +
+                '<td><b>' + f1(x.sb + x.sk + x.se) + '</b></td><td style="color:' + (x.absent ? '#dc2626' : '#475569') + '">' + x.absent + '</td></tr>';
+        }).join('');
+        pages += '<section class="pg">' + reportHeaderHtml('ملخص تقارير معدات الإيجار', 'الفترة: ' + periodLabel + ' — عدد المعدات: ' + items.length) +
+            '<table class="sum"><thead><tr><th>م</th><th>الكود</th><th>المعدة</th><th>المقاول / الشركة</th><th>السائق</th><th>أيام العمل</th><th>أساسي</th><th>راحة</th><th>إضافي</th><th>المجموع</th><th>غياب</th></tr></thead>' +
+            '<tbody>' + srows + '</tbody><tfoot><tr><td colspan="5">الإجمالي</td><td>' + t.n + '</td><td>' + f1(t.sb) + '</td><td>' + f1(t.sk) + '</td><td>' + f1(t.se) + '</td><td>' + f1(t.sb + t.sk + t.se) + '</td><td>' + t.ab + '</td></tr></tfoot></table>' +
+            '<div style="font-size:10px;color:#64748b;margin-top:6px">تاريخ الطباعة: ' + printedOn + '</div></section>';
+    }
+
+    // صفحة لكل معدة (نفس تصميم تقرير المعدة الفردي)
+    var qrList = [];
+    items.forEach(function(x, idx) {
+        var eq = x.eq, rental = x.rental, drv = x.drv;
+        var qrUrl = eq ? generateEquipmentQRUrl(eq) : '';
+        if (qrUrl) qrList.push({ id: 'qr' + idx, url: qrUrl });
+        var rows = x.days.map(function(dayEntry, i) {
+            var r = dayEntry.record;
+            if (!r) {
+                var isAbsent = dayEntry.status === 'absent';
+                return '<tr style="background:' + (isAbsent ? '#fee2e2' : (i % 2 ? '#f8fafc' : 'white')) + '"><td>' + dayEntry.date + '</td><td colspan="6" style="color:' + (isAbsent ? '#991b1b' : '#666') + ';font-weight:bold">' + (isAbsent ? '🚫 غياب' : '⏳ لم يُسجل بعد') + '</td><td></td></tr>';
+            }
+            var rowTotal = (r.basicHours || 0) + (r.breakHours || 0) + (r.extraHours || 0);
+            var notes = (r.notes ? '<div style="white-space:pre-line">' + escapeHtml(r.notes) + '</div>' : '') +
+                (r.recordedByName ? '<div style="font-size:8.5px;color:#9ca3af">👤 ' + escapeHtml(r.recordedByName) +
+                    (r.editedByName ? ' <span style="color:#dc2626;font-weight:700">— التعديل بواسطة ' + escapeHtml(r.editedByName) + '</span>' : '') + '</div>' : '');
+            return '<tr style="background:' + (i % 2 ? '#f8fafc' : 'white') + '"><td>' + r.date + '</td><td>' + (r.inTime || '—') + '</td><td>' + (r.outTime || '—') + '</td>' +
+                '<td>' + f2(r.basicHours) + '</td><td style="color:' + (r.breakHours > 0 ? '#d97706' : '#666') + '">' + f2(r.breakHours) + '</td>' +
+                '<td style="color:' + (r.extraHours > 0 ? '#d97706' : '#666') + '">' + f2(r.extraHours) + '</td><td><b>' + f2(rowTotal) + '</b></td><td style="text-align:right">' + notes + '</td></tr>';
+        }).join('');
+        pages += '<section class="pg">' + reportHeaderHtml('تقرير معدة إيجار', eq ? eq.name : '') +
+            '<div class="info"><div class="info-text"><b>المعدة:</b> ' + escapeHtml(eq ? (eq.type || '') + ' — ' + (eq.name || '') : '—') + '&nbsp;&nbsp;<b>الكود:</b> ' + escapeHtml(eq ? (eq.code || '—') : '—') + '&nbsp;&nbsp;<b>السائق:</b> ' + escapeHtml(drv ? drv.name : '—') + '<br>' +
+            '<b>الشركة:</b> ' + escapeHtml(rental.company || '—') + (x.ctName ? '&nbsp;&nbsp;<b>المقاول:</b> ' + escapeHtml(x.ctName) : '') + '&nbsp;&nbsp;<b>الفترة:</b> ' + periodLabel + '&nbsp;&nbsp;<b>الطباعة:</b> ' + printedOn + '</div>' +
+            (qrUrl ? '<div class="info-qr"><div id="qr' + idx + '"></div><div class="lbl">📱 امسح للتفاصيل</div></div>' : '') + '</div>' +
+            '<div class="summary"><div class="sum-box"><div class="num">' + x.records.length + '</div><div class="lbl">يوم عمل</div></div>' +
+            '<div class="sum-box"><div class="num">' + f1(x.sb) + '</div><div class="lbl">ساعة أساسية</div></div>' +
+            '<div class="sum-box" style="background:#d97706"><div class="num">' + f1(x.sk) + '</div><div class="lbl">ساعة راحة</div></div>' +
+            '<div class="sum-box" style="background:#d97706"><div class="num">' + f1(x.se) + '</div><div class="lbl">ساعة إضافية</div></div>' +
+            '<div class="sum-box" style="background:#dc2626"><div class="num">' + x.absent + '</div><div class="lbl">يوم غياب</div></div></div>' +
+            '<table><thead><tr><th>التاريخ</th><th>حضور</th><th>انصراف</th><th>أساسي</th><th>راحة</th><th>إضافي</th><th>المجموع</th><th>ملاحظات</th></tr></thead><tbody>' + rows + '</tbody>' +
+            '<tfoot><tr><td colspan="3">الإجمالي</td><td>' + f2(x.sb) + '</td><td>' + f2(x.sk) + '</td><td>' + f2(x.se) + '</td><td>' + f2(x.sb + x.sk + x.se) + '</td><td></td></tr></tfoot></table></section>';
+    });
+
+    w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقارير معدات الإيجار ' + from + ' إلى ' + to + '</title>' +
+        '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>' +
+        '<style>@page{size:A4 portrait;margin:8mm}' +
+        '*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:Arial;direction:rtl;font-size:11px}' +
+        '.pg{padding:6px;page-break-after:always}.pg:last-child{page-break-after:auto}' +
+        '.info{background:#f1f5f9;padding:7px 10px;border-radius:8px;margin-bottom:7px;font-size:11px;display:flex;justify-content:space-between;align-items:center;gap:10px}' +
+        '.info-text{flex:1}.info-qr{text-align:center;flex-shrink:0}.info-qr img,.info-qr canvas{width:46px !important;height:46px !important}.info-qr .lbl{font-size:8.5px;color:#64748b;margin-top:2px}' +
+        '.summary{display:flex;gap:6px;margin-bottom:7px}.sum-box{flex:1;background:#7c3aed;color:white;padding:5px 4px;border-radius:8px;text-align:center}.sum-box .num{font-size:15px;font-weight:bold}.sum-box .lbl{font-size:9px}' +
+        'table{width:100%;border-collapse:collapse;font-size:10px}th{background:#7c3aed;color:white;padding:4px 5px;text-align:center;font-size:10px}' +
+        'td{padding:2px 5px;border-bottom:1px solid #e2e8f0;text-align:center}thead{display:table-header-group}tr{page-break-inside:avoid}tfoot td{background:#f1f5f9;font-weight:bold}' +
+        'table.sum th{background:#0d1b2a}table.sum td{padding:4px 5px;font-size:10.5px}' +
+        '*{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '</style></head><body>' + pages +
+        '<script>window.addEventListener("load",function(){var q=' + JSON.stringify(qrList) + ';' +
+        'try{if(window.QRCode){q.forEach(function(o){var el=document.getElementById(o.id);if(el)new QRCode(el,{text:o.url,width:64,height:64,correctLevel:QRCode.CorrectLevel.M});});}}catch(e){}' +
+        'setTimeout(function(){window.print();},' + (700 + items.length * 40) + ');});<\/script></body></html>');
+    w.document.close();
+    return true;
+}
+window.openRentalAllReportsPrintModal = openRentalAllReportsPrintModal;
+window.runRentalAllReportsPrint = runRentalAllReportsPrint;
+window.printAllRentalReportsPdf = printAllRentalReportsPdf;
 
 // ==================== تقرير طباعة: التقرير اليومي الشامل لمعدات الإيجار (حضور + ساعات عمل + إضافي + ملاحظات) ====================
 function printRentalDailyFullReport() {
