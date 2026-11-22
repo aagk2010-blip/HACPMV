@@ -27865,6 +27865,11 @@ function printAllRentalReportsPdf(from, to, opts, w) {
     var periodLabel = from + ' → ' + to;
     var printedOn = new Date().toLocaleDateString('ar-EG');
     var pages = '';
+    var issuerName = (typeof currentUser !== 'undefined' && currentUser && (currentUser.name || currentUser.username)) || 'مستخدم';
+    var nowD = new Date();
+    var issuedOn = nowD.toLocaleDateString('ar-EG') + ' ' + nowD.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    var footHtml = '<div class="foot">تم إصدار التقرير آليًا من برنامج EMS - SAP بتاريخ ' + issuedOn + ' بواسطة ' + escapeHtml(issuerName) + '</div>';
+    var phoneOf = function(d) { return (d && d.phone) ? ' 📞 <span dir="ltr">' + escapeHtml(d.phone) + '</span>' : ''; };
 
     // صفحة الملخص
     if (opts.summary) {
@@ -27874,23 +27879,29 @@ function printAllRentalReportsPdf(from, to, opts, w) {
             var eq = x.eq;
             return '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(eq ? (eq.code || '—') : (x.rental.equipmentCode || '—')) + '</td>' +
                 '<td style="text-align:right">' + escapeHtml(eq ? ((eq.type ? eq.type + ' — ' : '') + (eq.name || '')) : '—') + '</td>' +
-                '<td>' + escapeHtml(x.ctName || x.rental.company || '—') + '</td><td>' + escapeHtml(x.drv ? x.drv.name : '—') + '</td>' +
+                '<td>' + escapeHtml(x.ctName || x.rental.company || '—') + '</td><td>' + escapeHtml(x.drv ? x.drv.name : '—') + phoneOf(x.drv) + '</td>' +
                 '<td>' + x.records.length + '</td><td>' + f1(x.sb) + '</td><td>' + f1(x.sk) + '</td><td>' + f1(x.se) + '</td>' +
                 '<td><b>' + f1(x.sb + x.sk + x.se) + '</b></td><td style="color:' + (x.absent ? '#dc2626' : '#475569') + '">' + x.absent + '</td></tr>';
-        }).join('');
-        pages += '<section class="pg">' + reportHeaderHtml('ملخص تقارير معدات الإيجار', 'الفترة: ' + periodLabel + ' — عدد المعدات: ' + items.length) +
-            '<table class="sum"><thead><tr><th>م</th><th>الكود</th><th>المعدة</th><th>المقاول / الشركة</th><th>السائق</th><th>أيام العمل</th><th>أساسي</th><th>راحة</th><th>إضافي</th><th>المجموع</th><th>غياب</th></tr></thead>' +
-            '<tbody>' + srows + '</tbody><tfoot><tr><td colspan="5">الإجمالي</td><td>' + t.n + '</td><td>' + f1(t.sb) + '</td><td>' + f1(t.sk) + '</td><td>' + f1(t.se) + '</td><td>' + f1(t.sb + t.sk + t.se) + '</td><td>' + t.ab + '</td></tr></tfoot></table>' +
-            '<div style="font-size:10px;color:#64748b;margin-top:6px">تاريخ الطباعة: ' + printedOn + '</div></section>';
+        });
+        var SUM_ROWS = 30, sumChunks = [];
+        for (var sc = 0; sc < srows.length; sc += SUM_ROWS) sumChunks.push(srows.slice(sc, sc + SUM_ROWS));
+        sumChunks.forEach(function(chunk, si) {
+            var lastS = si === sumChunks.length - 1;
+            pages += '<section class="pg"><div class="fit">' + reportHeaderHtml('ملخص تقارير معدات الإيجار', 'الفترة: ' + periodLabel + ' — عدد المعدات: ' + items.length) +
+                '<table class="sum"><thead><tr><th>م</th><th>الكود</th><th>المعدة</th><th>المقاول / الشركة</th><th>السائق</th><th>أيام العمل</th><th>أساسي</th><th>راحة</th><th>إضافي</th><th>المجموع</th><th>غياب</th></tr></thead>' +
+                '<tbody>' + chunk.join('') + '</tbody>' +
+                (lastS ? '<tfoot><tr><td colspan="5">الإجمالي</td><td>' + t.n + '</td><td>' + f1(t.sb) + '</td><td>' + f1(t.sk) + '</td><td>' + f1(t.se) + '</td><td>' + f1(t.sb + t.sk + t.se) + '</td><td>' + t.ab + '</td></tr></tfoot>' : '') +
+                '</table><div style="font-size:10px;color:#64748b;margin-top:6px">تاريخ الطباعة: ' + printedOn + '</div></div>' + footHtml + '</section>';
+        });
     }
 
     // صفحة لكل معدة (نفس تصميم تقرير المعدة الفردي)
     var qrList = [];
+    var CYCLE_ROWS = 31; // دورة 21→20 = حتى 31 يوم = صفحة واحدة؛ أكثر من كده يتوزع بالتساوي على صفحتين أو أكثر
     items.forEach(function(x, idx) {
         var eq = x.eq, rental = x.rental, drv = x.drv;
         var qrUrl = eq ? generateEquipmentQRUrl(eq) : '';
-        if (qrUrl) qrList.push({ id: 'qr' + idx, url: qrUrl });
-        var rows = x.days.map(function(dayEntry, i) {
+        var rowsArr = x.days.map(function(dayEntry, i) {
             var r = dayEntry.record;
             if (!r) {
                 var isAbsent = dayEntry.status === 'absent';
@@ -27903,25 +27914,36 @@ function printAllRentalReportsPdf(from, to, opts, w) {
             return '<tr style="background:' + (i % 2 ? '#f8fafc' : 'white') + '"><td>' + r.date + '</td><td>' + (r.inTime || '—') + '</td><td>' + (r.outTime || '—') + '</td>' +
                 '<td>' + f2(r.basicHours) + '</td><td style="color:' + (r.breakHours > 0 ? '#d97706' : '#666') + '">' + f2(r.breakHours) + '</td>' +
                 '<td style="color:' + (r.extraHours > 0 ? '#d97706' : '#666') + '">' + f2(r.extraHours) + '</td><td><b>' + f2(rowTotal) + '</b></td><td style="text-align:right">' + notes + '</td></tr>';
-        }).join('');
-        pages += '<section class="pg">' + reportHeaderHtml('تقرير معدة إيجار', eq ? eq.name : '') +
-            '<div class="info"><div class="info-text"><b>المعدة:</b> ' + escapeHtml(eq ? (eq.type || '') + ' — ' + (eq.name || '') : '—') + '&nbsp;&nbsp;<b>الكود:</b> ' + escapeHtml(eq ? (eq.code || '—') : '—') + '&nbsp;&nbsp;<b>السائق:</b> ' + escapeHtml(drv ? drv.name : '—') + '<br>' +
-            '<b>الشركة:</b> ' + escapeHtml(rental.company || '—') + (x.ctName ? '&nbsp;&nbsp;<b>المقاول:</b> ' + escapeHtml(x.ctName) : '') + '&nbsp;&nbsp;<b>الفترة:</b> ' + periodLabel + '&nbsp;&nbsp;<b>الطباعة:</b> ' + printedOn + '</div>' +
-            (qrUrl ? '<div class="info-qr"><div id="qr' + idx + '"></div><div class="lbl">📱 امسح للتفاصيل</div></div>' : '') + '</div>' +
-            '<div class="summary"><div class="sum-box"><div class="num">' + x.records.length + '</div><div class="lbl">يوم عمل</div></div>' +
-            '<div class="sum-box"><div class="num">' + f1(x.sb) + '</div><div class="lbl">ساعة أساسية</div></div>' +
-            '<div class="sum-box" style="background:#d97706"><div class="num">' + f1(x.sk) + '</div><div class="lbl">ساعة راحة</div></div>' +
-            '<div class="sum-box" style="background:#d97706"><div class="num">' + f1(x.se) + '</div><div class="lbl">ساعة إضافية</div></div>' +
-            '<div class="sum-box" style="background:#dc2626"><div class="num">' + x.absent + '</div><div class="lbl">يوم غياب</div></div></div>' +
-            '<table><thead><tr><th>التاريخ</th><th>حضور</th><th>انصراف</th><th>أساسي</th><th>راحة</th><th>إضافي</th><th>المجموع</th><th>ملاحظات</th></tr></thead><tbody>' + rows + '</tbody>' +
-            '<tfoot><tr><td colspan="3">الإجمالي</td><td>' + f2(x.sb) + '</td><td>' + f2(x.sk) + '</td><td>' + f2(x.se) + '</td><td>' + f2(x.sb + x.sk + x.se) + '</td><td></td></tr></tfoot></table></section>';
+        });
+        var chunks = [];
+        var pc = Math.max(1, Math.ceil(rowsArr.length / CYCLE_ROWS));
+        var per = Math.ceil(rowsArr.length / pc) || 1;
+        for (var c = 0; c < pc; c++) chunks.push(rowsArr.slice(c * per, (c + 1) * per));
+        chunks.forEach(function(chunk, ci) {
+            var isLast = ci === chunks.length - 1;
+            var qid = 'qr' + idx + '_' + ci;
+            if (qrUrl) qrList.push({ id: qid, url: qrUrl });
+            pages += '<section class="pg"><div class="fit">' + reportHeaderHtml('تقرير معدة إيجار', eq ? eq.name : '') +
+                '<div class="info"><div class="info-text"><b>المعدة:</b> ' + escapeHtml(eq ? (eq.type || '') + ' — ' + (eq.name || '') : '—') + '&nbsp;&nbsp;<b>الكود:</b> ' + escapeHtml(eq ? (eq.code || '—') : '—') + '&nbsp;&nbsp;<b>السائق:</b> ' + escapeHtml(drv ? drv.name : '—') + phoneOf(drv) + '<br>' +
+                '<b>الشركة:</b> ' + escapeHtml(rental.company || '—') + (x.ctName ? '&nbsp;&nbsp;<b>المقاول:</b> ' + escapeHtml(x.ctName) : '') + '&nbsp;&nbsp;<b>الفترة:</b> ' + periodLabel + '&nbsp;&nbsp;<b>الطباعة:</b> ' + printedOn + (chunks.length > 1 ? '&nbsp;&nbsp;<b>صفحة:</b> ' + (ci + 1) + '/' + chunks.length : '') + '</div>' +
+                (qrUrl ? '<div class="info-qr"><div id="' + qid + '"></div><div class="lbl">📱 امسح للتفاصيل</div></div>' : '') + '</div>' +
+                (ci === 0 ? '<div class="summary"><div class="sum-box"><div class="num">' + x.records.length + '</div><div class="lbl">يوم عمل</div></div>' +
+                '<div class="sum-box"><div class="num">' + f1(x.sb) + '</div><div class="lbl">ساعة أساسية</div></div>' +
+                '<div class="sum-box" style="background:#d97706"><div class="num">' + f1(x.sk) + '</div><div class="lbl">ساعة راحة</div></div>' +
+                '<div class="sum-box" style="background:#d97706"><div class="num">' + f1(x.se) + '</div><div class="lbl">ساعة إضافية</div></div>' +
+                '<div class="sum-box" style="background:#dc2626"><div class="num">' + x.absent + '</div><div class="lbl">يوم غياب</div></div></div>' : '') +
+                '<table><thead><tr><th>التاريخ</th><th>حضور</th><th>انصراف</th><th>أساسي</th><th>راحة</th><th>إضافي</th><th>المجموع</th><th>ملاحظات</th></tr></thead><tbody>' + chunk.join('') + '</tbody>' +
+                (isLast ? '<tfoot><tr><td colspan="3">الإجمالي</td><td>' + f2(x.sb) + '</td><td>' + f2(x.sk) + '</td><td>' + f2(x.se) + '</td><td>' + f2(x.sb + x.sk + x.se) + '</td><td></td></tr></tfoot>' : '') +
+                '</table></div>' + footHtml + '</section>';
+        });
     });
 
     w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقارير معدات الإيجار ' + from + ' إلى ' + to + '</title>' +
         '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>' +
         '<style>@page{size:A4 portrait;margin:8mm}' +
         '*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:Arial;direction:rtl;font-size:11px}' +
-        '.pg{padding:6px;page-break-after:always}.pg:last-child{page-break-after:auto}' +
+        '.pg{position:relative;box-sizing:border-box;width:194mm;margin:0 auto;min-height:276mm;padding:6px 6px 34px;page-break-after:always}.pg:last-child{page-break-after:auto}' +
+        '.foot{position:absolute;bottom:2mm;left:6px;right:6px;text-align:center;font-size:9.5px;color:#475569;border-top:1px solid #cbd5e1;padding-top:4px}' +
         '.info{background:#f1f5f9;padding:7px 10px;border-radius:8px;margin-bottom:7px;font-size:11px;display:flex;justify-content:space-between;align-items:center;gap:10px}' +
         '.info-text{flex:1}.info-qr{text-align:center;flex-shrink:0}.info-qr img,.info-qr canvas{width:46px !important;height:46px !important}.info-qr .lbl{font-size:8.5px;color:#64748b;margin-top:2px}' +
         '.summary{display:flex;gap:6px;margin-bottom:7px}.sum-box{flex:1;background:#7c3aed;color:white;padding:5px 4px;border-radius:8px;text-align:center}.sum-box .num{font-size:15px;font-weight:bold}.sum-box .lbl{font-size:9px}' +
@@ -27932,6 +27954,8 @@ function printAllRentalReportsPdf(from, to, opts, w) {
         '</style></head><body>' + pages +
         '<script>window.addEventListener("load",function(){var q=' + JSON.stringify(qrList) + ';' +
         'try{if(window.QRCode){q.forEach(function(o){var el=document.getElementById(o.id);if(el)new QRCode(el,{text:o.url,width:64,height:64,correctLevel:QRCode.CorrectLevel.M});});}}catch(e){}' +
+        'var pr=document.createElement("div");pr.style.cssText="height:276mm;position:absolute;visibility:hidden";document.body.appendChild(pr);var av=pr.offsetHeight-46;document.body.removeChild(pr);' +
+        'Array.prototype.forEach.call(document.querySelectorAll(".fit"),function(f){f.style.zoom=1;var h=f.offsetHeight;if(h>av){f.style.zoom=Math.max(0.6,av/h).toFixed(3);}});' +
         'setTimeout(function(){window.print();},' + (700 + items.length * 40) + ');});<\/script></body></html>');
     w.document.close();
     return true;
