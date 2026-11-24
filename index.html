@@ -925,6 +925,10 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 .rental-card{border-radius:16px!important;box-shadow:0 2px 10px rgba(13,27,42,.06),0 1px 2px rgba(13,27,42,.04)!important;border:1px solid rgba(124,58,237,.10)!important}
 .rental-card:hover,.rental-card.touch-active{box-shadow:0 18px 36px rgba(124,58,237,.18)!important;border-color:rgba(124,58,237,.22)!important}
 
+.hr-sec-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border:none;background:#fff;color:#334155;border-radius:14px;padding:12px 8px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(13,27,42,.08)}
+.hr-sec-btn.active{background:linear-gradient(135deg,#0d1b2a,#1e3a5f);color:#fff}
+.hr-sec-btn .hr-sec-cnt{background:rgba(100,116,139,.18);border-radius:20px;padding:1px 9px;font-size:12px}
+.hr-sec-btn.active .hr-sec-cnt{background:rgba(255,255,255,.25)}
 .emp-subtab-btn{flex:1;border:none;background:transparent;padding:9px 10px;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;color:var(--gray);cursor:pointer;transition:all .18s ease}
 .emp-subtab-btn.active{background:white;color:var(--primary);box-shadow:0 2px 6px rgba(13,27,42,.12)}
 #employees-subtabs .emp-subtab-btn{font-size:12px;padding:9px 3px;white-space:nowrap}
@@ -1803,12 +1807,17 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
   
   <div id="view-employees" style="display:none"><div style="padding:14px">
     <div id="emp-hr-top-banner"></div>
-    <div id="employees-subtabs" style="display:flex;gap:8px;margin-bottom:12px;background:#eef1f5;padding:4px;border-radius:14px">
+    <div id="hr-sections" style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="hr-sec-btn active" data-sec="company" onclick="switchHrSection('company')"><span class="hr-sec-ico">👥</span><span class="hr-sec-txt">موظفو الشركة</span><span class="hr-sec-cnt" id="hr-sec-count-co">0</span></button>
+      <button class="hr-sec-btn" data-sec="contractor" onclick="switchHrSection('contractor')"><span class="hr-sec-ico">🚜</span><span class="hr-sec-txt">موظفو المقاول</span><span class="hr-sec-cnt" id="hr-sec-count-ct">0</span></button>
+    </div>
+    <div id="employees-subtabs" style="display:flex;gap:8px;margin-bottom:10px;background:#eef1f5;padding:4px;border-radius:14px">
       <button class="emp-subtab-btn active" data-subtab="employees" onclick="switchEmployeesSubTab('employees')">👥 <span class="i18n-label" data-en="Employees" data-ar="الموظفين"></span></button>
       <button class="emp-subtab-btn" data-subtab="attendance" onclick="switchEmployeesSubTab('attendance')">📋 الحضور</button>
       <button class="emp-subtab-btn" data-subtab="salaries" onclick="switchEmployeesSubTab('salaries')">💰 الرواتب</button>
-      <button class="emp-subtab-btn" data-subtab="drivers" onclick="switchEmployeesSubTab('drivers')">👨‍✈️ <span class="i18n-label" data-en="Drivers" data-ar="السائقين"></span></button>
+      <button class="emp-subtab-btn" data-subtab="drivers" onclick="switchEmployeesSubTab('drivers')">👨‍✈️ سائقو الشركة</button>
     </div>
+    <div id="hr-type-chips" style="display:flex;gap:6px;margin-bottom:10px"></div>
 
     <div id="emp-panel-employees">
       <div class="search-box"><span>🔍</span><input type="text" id="search-employee" placeholder="Search by employee name... / بحث باسم الموظف..." oninput="debouncedRefresh()"></div>
@@ -1816,7 +1825,7 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
         <select id="employee-project-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
           <option value="">🏗️ كل المواقع</option>
         </select>
-        <select id="employee-type-filter" onchange="debouncedRefresh()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
+        <select id="employee-type-filter" onchange="debouncedRefresh()" style="display:none;flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer">
           <option value="">👤 معين وسركي</option>
           <option value="معين">📌 معين</option>
           <option value="سركي">🧾 سركي</option>
@@ -1875,6 +1884,17 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
       <div id="emp-sal-queue"></div>
       <div class="search-box"><span>🔍</span><input type="text" id="emp-sal-search" placeholder="بحث باسم الموظف..." oninput="empSalRender()"></div>
       <div id="emp-sal-list"></div>
+    </div>
+
+    <div id="emp-panel-contractor" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input type="month" id="ctr-month" onchange="hrContractorRender()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+        <select id="ctr-contractor" onchange="hrContractorRender()" style="flex:1;border:none;outline:none;font-family:inherit;background:white;border-radius:30px;padding:10px 16px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer"><option value="">🏢 كل المقاولين</option></select>
+      </div>
+      <div class="search-box"><span>🔍</span><input type="text" id="ctr-search" placeholder="بحث باسم السائق أو المعدة أو المقاول..." oninput="hrContractorRender()"></div>
+      <div id="ctr-range" style="font-size:11.5px;color:#475569;text-align:center;margin-bottom:8px"></div>
+      <div id="ctr-stats" style="display:flex;gap:8px;margin-bottom:10px"></div>
+      <div id="ctr-list"></div>
     </div>
 
     <div id="emp-panel-drivers" style="display:none">
@@ -11300,7 +11320,8 @@ window.empBulkSyncAttendance = empBulkSyncAttendance;
 // ===== صفحة الموارد البشرية: تبويب الحضور + تبويب الرواتب =====
 var empAttFilter = '', empSalPendingRender = false, empSalSeq = 0, empSalQueue = null, empHrInited = false;
 function empHrVisibleEmployees() {
-    return (employeesData || []).filter(employeeIsUnassigned).filter(empSiteOk).sort(function(a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
+    var tf = (document.getElementById('employee-type-filter') || {}).value || '';
+    return (employeesData || []).filter(employeeIsUnassigned).filter(empSiteOk).filter(function(e) { return !tf || e.employmentType === tf; }).sort(function(a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
 }
 function empHrPanelsRender() {
     if (!empHrInited) {
@@ -11309,6 +11330,7 @@ function empHrPanelsRender() {
         var box = document.getElementById('emp-sal-list');
         if (box) box.addEventListener('focusout', function() { if (empSalPendingRender) setTimeout(function() { empSalPendingRender = false; empSalRender(); }, 120); });
     }
+    try { hrChromeRender(); if (employeesActiveSubTab === 'contractor') hrContractorRender(); } catch (e) {}
     if (employeesActiveSubTab === 'employees') { try { empAlertsRender(); if (Date.now() - EMP_ALERT_TS > 300000) { EMP_ALERT_TS = Date.now(); empAlertsLoadAbsent(); } } catch (e) {} }
     if (employeesActiveSubTab === 'attendance') empAttRender();
     else if (employeesActiveSubTab === 'salaries') empSalRender();
@@ -21745,6 +21767,7 @@ function refreshUI() {
 
         // فلترة السائقين
         var filtered = driversData.filter(function(d) {
+            if (hrIsContractorOnlyDriver(d.id)) return false;   // سائقو الإيجار في قسم «موظفو المقاول»
             // فلتر البحث
             if (search && !(d.name && d.name.includes(search))) return false;
             // فلتر الحالة
@@ -22859,19 +22882,100 @@ function updateEmployeesSubTabVisibility() {
     if (employeesActiveSubTab === 'salaries' && !canSeeSalaries) employeesActiveSubTab = 'employees';
 }
 
+// ===== الموارد البشرية: قسمان — موظفو الشركة (معين + سركي) وموظفو المقاول (سائقو معدات الإيجار) =====
+function hrIsContractorOnlyDriver(id) {
+    return (rentalData || []).some(function(r) { return r.driverId === id; }) && !(equipmentData || []).some(function(e) { return e.assignedDriver === id; });
+}
+function hrContractorDriverIds() {
+    var today = localDateStr(new Date()), seen = {};
+    (rentalData || []).forEach(function(r) { if (r.driverId && (!r.endDate || r.endDate >= today)) seen[r.driverId] = 1; });
+    return Object.keys(seen);
+}
+function switchHrSection(sec) {
+    switchEmployeesSubTab(sec === 'contractor' ? 'contractor' : (employeesActiveSubTab === 'contractor' ? 'employees' : employeesActiveSubTab));
+}
+function hrSetType(v) { var s = document.getElementById('employee-type-filter'); if (s) s.value = v; debouncedRefresh(); }
+function hrChromeRender() {
+    var base = (employeesData || []).filter(employeeIsUnassigned).filter(empSiteOk);
+    var cur = (document.getElementById('employee-type-filter') || {}).value || '';
+    var cnt = function(k) { return base.filter(function(e) { return !k || e.employmentType === k; }).length; };
+    var box = document.getElementById('hr-type-chips');
+    if (box) box.innerHTML = [['', '👥 الكل'], ['معين', '📌 معينين'], ['سركي', '🧾 سركي']].map(function(c) {
+        var on = cur === c[0];
+        return '<button onclick="hrSetType(\'' + c[0] + '\')" style="flex:1;border:none;border-radius:12px;padding:9px 6px;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;background:' + (on ? '#0d1b2a' : '#fff') + ';color:' + (on ? '#fff' : '#334155') + ';box-shadow:0 1px 3px rgba(0,0,0,.06)">' + c[1] + ' <span style="opacity:.75">' + cnt(c[0]) + '</span></button>';
+    }).join('');
+    var a = document.getElementById('hr-sec-count-co'); if (a) a.textContent = base.length;
+    var b = document.getElementById('hr-sec-count-ct'); if (b) b.textContent = hrContractorDriverIds().length;
+}
+function hrContractorRender() {
+    var box = document.getElementById('ctr-list'); if (!box) return;
+    var mEl = document.getElementById('ctr-month'); if (!mEl.value) mEl.value = getCurrentCycleMonthStr();
+    var rg = getPeriodRange(mEl.value), today = localDateStr(new Date());
+    var q = (document.getElementById('ctr-search').value || '').trim();
+    var ctSel = document.getElementById('ctr-contractor'), ctVal = ctSel.value;
+    var ctName = function(r) { var c = (contractorsData || []).find(function(x) { return x.id === r.contractorId; }); return c ? c.name : (r.company || 'بدون مقاول'); };
+    var f1 = function(n) { return (Math.round(n * 10) / 10).toString(); };
+    var all = (rentalData || []).filter(function(r) { return (!r.startDate || r.startDate <= rg.to) && (!r.endDate || r.endDate >= rg.from); }).map(function(r) {
+        var d = driversData.find(function(x) { return x.id === r.driverId; }), eq = equipmentData.find(function(x) { return x.id === r.equipmentId; });
+        var dd = buildRentalDayEntries(r.id, rg.from, rg.to), sum = function(k) { return dd.records.reduce(function(s, x) { return s + (x[k] || 0); }, 0); };
+        return { r: r, d: d, eq: eq, ct: ctName(r), ctKey: r.contractorId || '__none', days: dd.records.length, basic: sum('basicHours'), extra: sum('extraHours'),
+            absent: dd.days.filter(function(x) { return x.status === 'absent'; }).length };
+    });
+    // قائمة المقاولين في الفلتر
+    var opts = {}; all.forEach(function(x) { opts[x.ctKey] = x.ct; });
+    ctSel.innerHTML = '<option value="">🏢 كل المقاولين</option>' + Object.keys(opts).sort(function(a, b) { return opts[a].localeCompare(opts[b], 'ar'); }).map(function(k) {
+        return '<option value="' + escapeHtml(k) + '"' + (k === ctVal ? ' selected' : '') + '>' + escapeHtml(opts[k]) + '</option>'; }).join('');
+    var rows = all.filter(function(x) {
+        if (ctVal && x.ctKey !== ctVal) return false;
+        if (!q) return true;
+        return [x.d && x.d.name, x.eq && x.eq.name, x.eq && x.eq.code, x.ct].join(' ').indexOf(q) !== -1;
+    });
+    var rgEl = document.getElementById('ctr-range'); if (rgEl) rgEl.textContent = '🗓️ دورة من ' + rg.from + ' إلى ' + rg.to;
+    var drivers = {}, days = 0, extra = 0, noDrv = 0;
+    rows.forEach(function(x) { if (x.d) drivers[x.d.id] = 1; else noDrv++; days += x.days; extra += x.extra; });
+    var card = function(bg, v, l) { return '<div style="flex:1;background:' + bg + ';color:#fff;border-radius:14px;padding:10px 6px;text-align:center"><div style="font-size:19px;font-weight:800">' + v + '</div><div style="font-size:10.5px;opacity:.9">' + l + '</div></div>'; };
+    document.getElementById('ctr-stats').innerHTML = card('linear-gradient(135deg,#0284c7,#075985)', Object.keys(drivers).length, 'سائق') + card('linear-gradient(135deg,#059669,#047857)', days, 'يوم عمل') + card('linear-gradient(135deg,#d97706,#b45309)', f1(extra), 'ساعة إضافي') + (noDrv ? card('linear-gradient(135deg,#dc2626,#b91c1c)', noDrv, 'بدون سائق') : '');
+    if (!rows.length) { box.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:30px 10px">لا توجد عقود إيجار في هذه الدورة</div>'; return; }
+    var groups = {}; rows.forEach(function(x) { (groups[x.ct] = groups[x.ct] || []).push(x); });
+    var wa = function(ph) { var n = String(ph || '').replace(/\D/g, ''); if (n.charAt(0) === '0') n = '2' + n; return n; };
+    box.innerHTML = Object.keys(groups).sort(function(a, b) { return a.localeCompare(b, 'ar'); }).map(function(g) {
+        var list = groups[g].sort(function(a, b) { return String((a.d && a.d.name) || '').localeCompare(String((b.d && b.d.name) || ''), 'ar'); });
+        return '<div style="margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin:0 2px 6px"><div style="font-weight:800;font-size:14px;color:#0d1b2a">🏢 ' + escapeHtml(g) + '</div><div style="font-size:11.5px;color:#64748b">' + list.length + ' عقد</div></div>' +
+        list.map(function(x) {
+            var d = x.d, eq = x.eq, lic = '';
+            if (d && d.licenseExpiry) { var left = Math.round((new Date(d.licenseExpiry) - new Date(today)) / 86400000); lic = left < 0 ? '<span style="color:#dc2626;font-weight:700">🪪 رخصة منتهية</span>' : (left <= 30 ? '<span style="color:#d97706;font-weight:700">🪪 تنتهي بعد ' + left + ' يوم</span>' : ''); }
+            var cell = function(l, v, c) { return '<div style="flex:1;background:#f8fafc;border-radius:9px;padding:6px 2px;text-align:center"><div style="font-size:9.5px;color:#64748b">' + l + '</div><div style="font-weight:800;font-size:13px;color:' + (c || '#0d1b2a') + '">' + v + '</div></div>'; };
+            return '<div style="background:#fff;border-radius:14px;padding:11px 12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(13,27,42,.08)">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="min-width:0"><div style="font-weight:800;font-size:14px;color:#0d1b2a">' + (d ? escapeHtml(d.name || '') : '<span style="color:#dc2626">⚠️ بدون سائق مسجّل</span>') + '</div>' +
+                '<div style="font-size:11.5px;color:#475569;margin-top:2px">🚜 ' + escapeHtml(eq ? ((eq.type ? eq.type + ' — ' : '') + (eq.name || '') + (eq.code ? ' (' + eq.code + ')' : '')) : (x.r.equipmentName || '—')) + '</div></div>' +
+                (d && d.status ? '<span style="font-size:10.5px;font-weight:800;border-radius:20px;padding:3px 9px;background:' + (d.status === 'نشط' ? '#dcfce7;color:#166534' : '#fee2e2;color:#991b1b') + '">' + escapeHtml(d.status) + '</span>' : '') + '</div>' +
+                '<div style="font-size:12px;color:#334155;margin-top:6px;display:flex;gap:10px;flex-wrap:wrap">' + (d && d.phone ? '<span>📞 <span dir="ltr">' + escapeHtml(d.phone) + '</span></span>' : '<span style="color:#94a3b8">📞 لا يوجد رقم</span>') + lic + '</div>' +
+                '<div style="display:flex;gap:5px;margin-top:8px">' + cell('أيام العمل', x.days) + cell('أساسي', f1(x.basic)) + cell('إضافي', f1(x.extra), x.extra ? '#b45309' : '') + cell('غياب', x.absent, x.absent ? '#dc2626' : '') + '</div>' +
+                '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">' +
+                (d && d.phone ? '<a href="tel:' + escapeHtml(d.phone) + '" style="text-decoration:none;background:#e0f2fe;color:#075985;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700">📞 اتصال</a><a href="https://wa.me/' + wa(d.phone) + '" target="_blank" style="text-decoration:none;background:#dcfce7;color:#166534;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700">📲 واتساب</a>' : '') +
+                '<button onclick="showRentalReport(\'' + x.r.id + '\')" style="border:none;background:#ede9fe;color:#5b21b6;border-radius:9px;padding:7px 11px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">📄 تقرير المعدة</button>' +
+                (d ? '<button onclick="openDriverDetail(\'' + d.id + '\')" style="border:none;background:#f1f5f9;color:#334155;border-radius:9px;padding:7px 11px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">👤 بيانات السائق</button>' : '') + '</div></div>';
+        }).join('') + '</div>';
+    }).join('');
+}
 function switchEmployeesSubTab(tab) {
     var canAdmin = hasPermission('all') || canEdit('employees');
     if (tab === 'drivers' && !hasPermission('all') && !canView('drivers')) { showToast('غير مصرح بعرض السائقين', true); return; }
+    if (tab === 'contractor' && !hasPermission('all') && !canView('drivers') && !canView('rental')) { showToast('غير مصرح بعرض موظفي المقاول', true); return; }
     if ((tab === 'employees' || tab === 'attendance' || tab === 'salaries') && !hasPermission('all') && !canView('employees')) { showToast('غير مصرح بعرض الموظفين', true); return; }
     if (tab === 'salaries' && !canAdmin) { showToast('غير مصرح بعرض الرواتب', true); return; }
     employeesActiveSubTab = tab;
-    ['employees', 'attendance', 'salaries', 'drivers'].forEach(function(t) {
+    ['employees', 'attendance', 'salaries', 'drivers', 'contractor'].forEach(function(t) {
         var p = document.getElementById('emp-panel-' + t);
         if (p) p.style.display = t === tab ? 'block' : 'none';
     });
     document.querySelectorAll('.emp-subtab-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.subtab === tab);
     });
+    var isCt = tab === 'contractor';
+    var stb = document.getElementById('employees-subtabs'); if (stb) stb.style.display = isCt ? 'none' : 'flex';
+    var tch = document.getElementById('hr-type-chips'); if (tch) tch.style.display = (tab === 'employees' || tab === 'attendance' || tab === 'salaries') ? 'flex' : 'none';
+    document.querySelectorAll('.hr-sec-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.sec === (isCt ? 'contractor' : 'company')); });
     if (tab !== 'employees') { empSelMode = false; empSel = {}; }
     if (tab !== 'attendance') empMarkDate = '';   // كروت الموظفين بتسجّل على النهارده دايمًا
     document.getElementById('header-title').innerHTML = '👥 ' + RL('Human Resources', 'الموارد البشرية');
@@ -22883,10 +22987,11 @@ function updateEmployeesFab() {
     var fabButton = document.getElementById('fab-btn');
     if (!fabButton) return;
     if (employeesActiveSubTab === 'attendance' || employeesActiveSubTab === 'salaries') { fabButton.style.display = 'none'; fabButton.onclick = null; return; }
-    var section = employeesActiveSubTab === 'drivers' ? 'drivers' : 'employees';
+    var isDrv = employeesActiveSubTab === 'drivers' || employeesActiveSubTab === 'contractor';
+    var section = isDrv ? 'drivers' : 'employees';
     if (hasPermission('all') || canAdd(section)) {
         fabButton.style.display = 'flex';
-        fabButton.onclick = employeesActiveSubTab === 'drivers'
+        fabButton.onclick = isDrv
             ? function() { openAddDriverModal(); }
             : function() { openAddEmployeeModal(); };
     } else {
