@@ -1802,6 +1802,7 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
   </div></div>
   
   <div id="view-employees" style="display:none"><div style="padding:14px">
+    <div id="emp-hr-top-banner"></div>
     <div id="employees-subtabs" style="display:flex;gap:8px;margin-bottom:12px;background:#eef1f5;padding:4px;border-radius:14px">
       <button class="emp-subtab-btn active" data-subtab="employees" onclick="switchEmployeesSubTab('employees')">👥 <span class="i18n-label" data-en="Employees" data-ar="الموظفين"></span></button>
       <button class="emp-subtab-btn" data-subtab="attendance" onclick="switchEmployeesSubTab('attendance')">📋 الحضور</button>
@@ -1859,7 +1860,8 @@ html:not([data-theme="dark"]) #view-home #home-hr-section div[style*="font-size:
 
     <div id="emp-panel-salaries" style="display:none">
       <div style="display:flex;gap:6px;margin-bottom:6px"><input type="month" id="emp-sal-month" onchange="empSalRender()" style="flex:1;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font-family:inherit;font-size:14px;font-weight:700;text-align:center;box-sizing:border-box"><button id="emp-sal-lock-btn" onclick="empSalToggleLock()" style="display:none;border:none;border-radius:10px;padding:0 12px;background:#fee2e2;color:#991b1b;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap">🔒 قفل المدة</button></div>
-      <div id="emp-sal-range" style="font-size:11.5px;color:#475569;text-align:center;margin-bottom:10px"></div>
+      <div id="emp-sal-range" style="font-size:11.5px;color:#475569;text-align:center;margin-bottom:8px"></div>
+      <div id="emp-sal-cfgbar"></div>
       <div id="emp-sal-summary"></div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <button class="big-btn" style="margin:0;flex:1;font-size:12.5px;padding:10px 4px;background:linear-gradient(135deg,#0284c7,#075985)" onclick="empSalPull()">🔗 سحب الحضور للكل</button>
@@ -10081,19 +10083,25 @@ function initEmployeeAttendancePage(empId) {
     tick(); setInterval(tick, 15000);
 
     // ---------- بدء / انتهاء العمل ----------
+    function apprNote() {
+        if (!rec || !rec.viaReq) return '';
+        if (rec.status === 'approved') return '<br>✅ <b>تم اعتماد تسجيلك</b>';
+        return '<br>📤 <b>بانتظار اعتماد الموارد البشرية</b> — لا يُحتسب الحضور قبل الموافقة';
+    }
     function applyState() {
         startBtn.disabled = false; endBtn.disabled = false;
         startBtn.textContent = '▶️ بدء العمل'; endBtn.textContent = '⏹️ انتهاء العمل';
+        if (rec && rec.viaReq && rec.status === 'rejected') { startBtn.style.display = ''; endBtn.style.display = 'none'; paint(st, '❌ تم رفض تسجيلك السابق من الموارد البشرية — تقدر تسجّل من جديد', 'err'); return; }
         if (!rec || !rec.startAt) { startBtn.style.display = ''; endBtn.style.display = 'none'; st.style.display = 'none'; return; }
         startBtn.style.display = 'none';
         if (!rec.endAt) {
             endBtn.style.display = '';
             var mins = Math.max(0, Math.round((Date.now() - new Date(rec.startAt)) / 60000));
-            paint(st, '🟢 بدأت العمل الساعة <b>' + hm(rec.startAt) + '</b><br>⏱️ مدة العمل حتى الآن: <b>' + dur(mins) + '</b>' + (rec.noLocation ? '<br>⚠️ بدون تحديد الموقع' : ''), 'ok');
+            paint(st, '🟢 بدأت العمل الساعة <b>' + hm(rec.startAt) + '</b><br>⏱️ مدة العمل حتى الآن: <b>' + dur(mins) + '</b>' + (rec.noLocation ? '<br>⚠️ بدون تحديد الموقع' : '') + apprNote(), 'ok');
         } else {
             endBtn.style.display = 'none';
             var tot = rec.totalMinutes != null ? rec.totalMinutes : Math.round((new Date(rec.endAt) - new Date(rec.startAt)) / 60000);
-            paint(st, '✅ تم تسجيل انتهاء عملك<br>🟢 ' + hm(rec.startAt) + ' → 🔴 ' + hm(rec.endAt) + '<br>⏱️ الإجمالي: <b>' + dur(tot) + '</b><br>شكرًا لك 🌟', 'ok');
+            paint(st, '✅ تم تسجيل انتهاء عملك<br>🟢 ' + hm(rec.startAt) + ' → 🔴 ' + hm(rec.endAt) + '<br>⏱️ الإجمالي: <b>' + dur(tot) + '</b>' + apprNote() + '<br>شكرًا لك 🌟', 'ok');
         }
     }
     setInterval(function() { if (rec && rec.startAt && !rec.endAt) applyState(); }, 60000);
@@ -10102,12 +10110,18 @@ function initEmployeeAttendancePage(empId) {
 
     if (typeof fbDb === 'undefined' || !fbDb) { paint(st, '❌ تعذّر الاتصال — حاول مرة أخرى', 'err'); return; }
     var dayRef = fbDb.ref('employeeAttendance/' + today + '/' + empId);
+    var qrReqRef = fbDb.ref('employeeAttendanceRequests/qr_' + today + '_' + empId);   // طلب حضور اليوم — ينتظر موافقة الموارد البشرية
+    function endWrite(upd) {
+        if (!rec || !rec.viaReq) return dayRef.update(upd);
+        return qrReqRef.once('value').then(function(s) { var cur = s.val() || {}; var pr = [qrReqRef.update(upd)]; if (cur.status === 'approved') pr.push(dayRef.update(upd)); return Promise.all(pr); });
+    }
     fbDb.ref('employees/' + empId).once('value').then(function(s) {
         var v = s.val();
         if (v && v.name) { name = v.name; nameEl.textContent = name; }
         if (v && v.status === 'منتهي الخدمة') { startBtn.disabled = true; endBtn.disabled = true; paint(st, 'هذا الرمز غير فعّال', 'err'); }
     }).catch(function() {});
     dayRef.once('value').then(function(s) { var v = s.val(); if (v && v.startAt) { rec = v; saveLocal(); applyState(); } }).catch(function() {});
+    qrReqRef.once('value').then(function(s) { var v = s.val(); if (v && v.startAt && !(rec && rec.startAt && !rec.viaReq)) { v.viaReq = true; rec = v; saveLocal(); applyState(); } }).catch(function() {});
 
     function getPos(cb) {
         if (!navigator.geolocation) return cb(null);
@@ -10118,10 +10132,10 @@ function initEmployeeAttendancePage(empId) {
     startBtn.onclick = function() {
         startBtn.disabled = true; startBtn.textContent = '⏳ جاري التسجيل...';
         getPos(function(pos) {
-            var r = { empId: empId, name: name, date: today, startAt: new Date().toISOString(), source: 'qr' };
+            var r = { empId: empId, name: name, date: today, startAt: new Date().toISOString(), source: 'qr', kind: 'qr', status: 'pending', requestedAt: new Date().toISOString() };
             if (pos) { r.lat = pos.coords.latitude; r.lng = pos.coords.longitude; r.acc = Math.round(pos.coords.accuracy || 0); } else { r.noLocation = true; }
             var slow = slowNote();
-            dayRef.set(r).then(function() { clearTimeout(slow); rec = r; saveLocal(); applyState(); })
+            qrReqRef.set(r).then(function() { clearTimeout(slow); r.viaReq = true; rec = r; saveLocal(); applyState(); })
                 .catch(function() { clearTimeout(slow); applyState(); paint(st, '❌ فشل التسجيل — تأكد من الاتصال وحاول مرة أخرى، أو أبلغ المسؤول.', 'err'); });
         });
     };
@@ -10133,7 +10147,7 @@ function initEmployeeAttendancePage(empId) {
             var upd = { endAt: endAt, totalMinutes: Math.max(0, Math.round((new Date(endAt) - new Date(rec.startAt)) / 60000)) };
             if (pos) { upd.endLat = pos.coords.latitude; upd.endLng = pos.coords.longitude; upd.endAcc = Math.round(pos.coords.accuracy || 0); }
             var slow = slowNote();
-            dayRef.update(upd).then(function() { clearTimeout(slow); rec = Object.assign({}, rec, upd); saveLocal(); applyState(); })
+            endWrite(upd).then(function() { clearTimeout(slow); rec = Object.assign({}, rec, upd); saveLocal(); applyState(); })
                 .catch(function() { clearTimeout(slow); applyState(); paint(st, '❌ فشل تسجيل الانتهاء — تأكد من الاتصال وحاول مرة أخرى.', 'err'); });
         });
     };
@@ -10186,14 +10200,16 @@ function initEmployeeAttendancePage(empId) {
 
 // ===== جهة الموارد البشرية: مراجعة طلبات الموظفين =====
 function renderEmpAttRequestsBadge() {
-    var el = document.getElementById('emp-att-requests-banner');
+    var top = document.getElementById('emp-hr-top-banner'), old = document.getElementById('emp-att-requests-banner');
+    var el = top || old;
+    if (top && old) old.innerHTML = '';
     if (!el) return;
     var allowed = currentUser && (currentUser.role === 'admin' || hasPermission('all') || canEdit('employees'));
     var pending = (empAttRequests || []).filter(function(r) { return r.status === 'pending'; });
     try { if (typeof renderHomeHrSection === 'function') renderHomeHrSection(); } catch (e) {}
     if (!allowed || !pending.length) { el.innerHTML = ''; return; }
-    el.innerHTML = '<button onclick="openEmpAttRequestsModal()" style="width:100%;padding:10px 12px;margin-bottom:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer">' +
-        '📥 طلبات تسجيل ساعات الموظفين بانتظار المراجعة <span style="background:rgba(255,255,255,.25);border-radius:20px;padding:1px 8px">' + pending.length + '</span></button>';
+    el.innerHTML = '<button onclick="openEmpAttRequestsModal()" style="width:100%;padding:11px 12px;margin-bottom:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:12px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">' +
+        '📥 طلبات حضور بانتظار موافقتك <span style="background:rgba(255,255,255,.3);border-radius:20px;padding:1px 9px">' + pending.length + '</span></button>';
 }
 function openEmpAttRequestsModal() {
     var old = document.getElementById('emp-att-req-overlay'); if (old) old.remove();
@@ -10203,12 +10219,19 @@ function openEmpAttRequestsModal() {
     overlay.id = 'emp-att-req-overlay';
     overlay.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:100%;background:rgba(0,0,0,0.5);z-index:10060;display:flex;align-items:flex-end;justify-content:center;direction:rtl;font-family:Cairo,Tahoma,sans-serif';
     function dur(m) { m = m || 0; return Math.floor(m / 60) + 'س ' + (m % 60) + 'د'; }
+    function timeLine(r) {
+        if (r.kind !== 'qr') return '🟢 ' + escapeHtml(r.inTime || '—') + ' → 🔴 ' + escapeHtml(r.outTime || '—') + ' | ⏱️ ' + dur(r.totalMinutes);
+        var hm = function(iso) { try { return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return '—'; } };
+        var mins = r.totalMinutes != null ? r.totalMinutes : (r.endAt ? Math.round((new Date(r.endAt) - new Date(r.startAt)) / 60000) : null);
+        return '📲 QR • 🟢 ' + hm(r.startAt) + ' → 🔴 ' + (r.endAt ? hm(r.endAt) : '<span style="color:#d97706">لسه ما انتهاش</span>') + (mins != null ? ' | ⏱️ ' + dur(mins) : '') +
+            (r.lat ? ' | <a href="https://maps.google.com/?q=' + r.lat + ',' + r.lng + '" target="_blank" style="color:#0284c7">📍 الموقع</a>' : (r.noLocation ? ' | ⚠️ بدون موقع' : ''));
+    }
     function row(r) {
         var emp = employeesData.find(function(e) { return e.id === r.empId; });
         return '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:12px;margin-bottom:10px">' +
             '<div style="font-weight:700;font-size:13.5px;color:#0d1b2a">👷 ' + escapeHtml((emp && emp.name) || r.name || '—') + '</div>' +
             '<div style="font-size:12px;color:#6b7a8d;margin:2px 0 8px">' + escapeHtml((emp && emp.title) || '') + ' · 📅 ' + escapeHtml(r.date || '') + '</div>' +
-            '<div style="font-size:12.5px;color:#0d1b2a;background:white;border-radius:9px;padding:7px 9px;margin-bottom:9px">🟢 ' + escapeHtml(r.inTime || '—') + ' → 🔴 ' + escapeHtml(r.outTime || '—') + ' | ⏱️ ' + dur(r.totalMinutes) + '</div>' +
+            '<div style="font-size:12.5px;color:#0d1b2a;background:white;border-radius:9px;padding:7px 9px;margin-bottom:9px">' + timeLine(r) + '</div>' +
             '<div style="display:flex;gap:6px">' +
             '<button data-ea-action="approve" data-ea-id="' + r.id + '" style="flex:1;padding:8px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">✅ اعتماد</button>' +
             '<button data-ea-action="reject" data-ea-id="' + r.id + '" style="flex:1;padding:8px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:white;border:none;border-radius:9px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">❌ رفض</button>' +
@@ -10233,15 +10256,18 @@ function approveEmpAttRequest(id) {
     var req = (empAttRequests || []).find(function(r) { return r.id === id; });
     if (!req) return;
     var reviewer = (currentUser && (currentUser.name || currentUser.username)) || 'مشرف';
-    var inD = new Date(req.date + 'T' + req.inTime + ':00'), outD = new Date(req.date + 'T' + req.outTime + ':00');
-    if (outD <= inD) outD = new Date(outD.getTime() + 86400000);
-    var mins = Math.round((outD - inD) / 60000);
+    var isQr = req.kind === 'qr';
+    var inD = isQr ? new Date(req.startAt) : new Date(req.date + 'T' + req.inTime + ':00');
+    var outD = isQr ? (req.endAt ? new Date(req.endAt) : null) : new Date(req.date + 'T' + req.outTime + ':00');
+    if (!isQr && outD <= inD) outD = new Date(outD.getTime() + 86400000);
+    var mins = outD ? Math.round((outD - inD) / 60000) : null;
     var ref = fbDb.ref('employeeAttendance/' + req.date + '/' + req.empId);
     ref.once('value').then(function(s) {
         var rec = Object.assign({}, s.val() || {}, {
-            empId: req.empId, name: req.name || '', date: req.date, startAt: inD.toISOString(), endAt: outD.toISOString(),
-            totalMinutes: mins, source: 'request', approvedBy: reviewer, approvedAt: new Date().toISOString()
+            empId: req.empId, name: req.name || '', date: req.date, startAt: inD.toISOString(), endAt: outD ? outD.toISOString() : null,
+            totalMinutes: mins, source: isQr ? 'qr' : 'request', approvedBy: reviewer, approvedAt: new Date().toISOString()
         });
+        if (isQr) ['lat', 'lng', 'acc', 'noLocation', 'endLat', 'endLng', 'endAcc'].forEach(function(k) { if (req[k] !== undefined) rec[k] = req[k]; });
         return ref.set(rec);
     }).then(function() {
         return fbDb.ref('employeeAttendanceRequests/' + id).update({ status: 'approved', reviewedAt: new Date().toISOString(), reviewedByName: reviewer });
@@ -10974,16 +11000,32 @@ function populateEmployeeLocationsDatalist() {
 // ===== راتب الموظف بالمدد الشهرية (المدة من 21 إلى 20) =====
 var EMP_PERIOD_CLOSE_DAY = 20; // آخر يوم في المدة، والمدة الجديدة تبدأ يوم 21
 function empPad2(n) { return (n < 10 ? '0' : '') + n; }
-function empOvertime(workDays) { return Math.round((parseFloat(workDays) || 0) * 0.15 * 100) / 100; }
+// ===== نسب الرواتب (قابلة للتعديل في أي وقت من «⚙️ نسب الرواتب») =====
+function empPct(k) { var v = parseFloat(EMP_HR_CFG[k]); return isNaN(v) ? ({ areaPct: 25, otPct: 15, taxPct: 0 }[k] || 0) : v; }
+// المدة المقفولة بالنظام الجديد تحتفظ بالنسب وقت القفل، والمفتوحة تتبع الإعدادات الحالية
+function empRecPct(e, k) { return (e && e.locked && e.calcV === 2 && e[k] != null) ? (parseFloat(e[k]) || 0) : empPct(k); }
+function empOvertime(workDays, e) { return Math.round((parseFloat(workDays) || 0) * empRecPct(e, 'otPct')) / 100; }
+function empAreaDays(workDays, e) { return Math.round((parseFloat(workDays) || 0) * empRecPct(e, 'areaPct')) / 100; }
+function empTaxIsOwn(e) { return e.taxOverride === true || (e.taxOverride === undefined && (parseFloat(e.taxPercent) || 0) > 0); }
+// الراتب = (أيام العمل + بدل منطقة % + إضافي %) × اليومية − ضريبة % من الإجمالي
 function empSalaryTotals(e) {
     var n = function(v) { return parseFloat(v) || 0; };
     var r2 = function(v) { return Math.round(v * 100) / 100; };
-    var ot = e.overtimeManual ? n(e.overtimeDays) : empOvertime(e.workDays);
-    var days = r2(n(e.workDays) + n(e.nightDays) + n(e.productivityDays) + n(e.areaDays) + ot);
-    var gross = r2(days * n(e.dailyWage));
-    var tax = (e.taxPercent != null) ? r2(gross * n(e.taxPercent) / 100) : n(e.tax);
+    var legacy = !!(e.locked && e.calcV !== 2);   // مدد اتقفلت قبل النظام الجديد: تفضل بنفس حسابها القديم
+    var wd = n(e.workDays), wage = n(e.dailyWage);
+    var otP = legacy ? 15 : empRecPct(e, 'otPct'), arP = legacy ? null : empRecPct(e, 'areaPct');
+    var ot = e.overtimeManual ? n(e.overtimeDays) : r2(wd * otP / 100);
+    var area = (legacy || e.areaManual) ? n(e.areaDays) : r2(wd * arP / 100);
+    var extra = n(e.nightDays) + n(e.productivityDays);
+    var days = r2(wd + extra + area + ot);
+    var gross = r2(days * wage);
+    var taxPct, tax;
+    if (legacy) { taxPct = (e.taxPercent != null) ? n(e.taxPercent) : null; tax = (e.taxPercent != null) ? r2(gross * n(e.taxPercent) / 100) : n(e.tax); }
+    else { taxPct = empTaxIsOwn(e) ? n(e.taxPercent) : empRecPct(e, 'taxPct'); tax = r2(gross * taxPct / 100); }
     var late = n(e.lateDeduct);
-    return { days: days, ot: ot, gross: gross, tax: tax, late: late, total: r2(gross - tax - late) };
+    return { days: days, ot: ot, area: area, otPct: e.overtimeManual ? null : otP, areaPct: (legacy || e.areaManual) ? null : arP, taxPct: taxPct,
+        base: r2(wd * wage), areaAmt: r2(area * wage), otAmt: r2(ot * wage), extraAmt: r2(extra * wage),
+        gross: gross, tax: tax, late: late, total: r2(gross - tax - late) };
 }
 function empMoney(v) { return (Math.round((parseFloat(v) || 0) * 100) / 100).toLocaleString('en-US'); }
 // المدة المسماة بشهر النهاية: شهر 10 = من 21/09 إلى 20/10
@@ -11029,11 +11071,11 @@ function empLoadPeriodIntoForm(e, key) {
     set('employee-prod-days', rec ? (rec.productivityDays || '') : '');
     set('employee-area-days', rec ? (rec.areaDays || '') : '');
     set('employee-daily-wage', rec ? (rec.dailyWage || '') : (e ? empLastWage(e) : ''));
-    set('employee-tax', rec ? (rec.taxPercent != null ? (rec.taxPercent || '') : '') : '');
+    set('employee-tax', (rec && empTaxIsOwn(rec)) ? String(rec.taxPercent) : '');
     var oa = document.getElementById('employee-ot-auto'); if (oa) oa.checked = rec ? !rec.overtimeManual : true;
     set('employee-overtime-days', (rec && rec.overtimeManual) ? (rec.overtimeDays || '') : '');
     window.EMP_FORM_LATE = rec ? (parseFloat(rec.lateDeduct) || 0) : 0;
-    var lk = document.getElementById('employee-link-att'); if (lk) lk.checked = rec ? !!rec.linkAtt : true;
+    var lk = document.getElementById('employee-link-att'); if (lk) lk.checked = rec ? !!rec.linkAtt : false;
     empSalaryRecalc();
     empSyncWorkDaysFromAttendance();
 }
@@ -11047,9 +11089,12 @@ function empSalaryRecalc() {
     var autoEl = document.getElementById('employee-ot-auto'), auto = !autoEl || autoEl.checked;
     var otEl = document.getElementById('employee-overtime-days');
     if (otEl) { otEl.readOnly = auto; otEl.style.background = auto ? '#f1f5f9' : ''; if (auto) otEl.value = empOvertime(g('employee-work-days')) || ''; }
-    var ot = auto ? empOvertime(g('employee-work-days')) : g('employee-overtime-days');
-    var gross = Math.round((g('employee-work-days') + g('employee-night-days') + g('employee-prod-days') + g('employee-area-days') + ot) * g('employee-daily-wage') * 100) / 100;
-    var taxPct = g('employee-tax'), tax = Math.round(gross * taxPct) / 100, lateF = window.EMP_FORM_LATE || 0, net = Math.round((gross - tax - lateF) * 100) / 100;
+    var wd = g('employee-work-days'), arEl = document.getElementById('employee-area-days');
+    if (arEl) { arEl.readOnly = auto; arEl.style.background = auto ? '#f1f5f9' : ''; if (auto) arEl.value = empAreaDays(wd) || ''; }
+    var ot = auto ? empOvertime(wd) : g('employee-overtime-days'), area = auto ? empAreaDays(wd) : g('employee-area-days');
+    var gross = Math.round((wd + g('employee-night-days') + g('employee-prod-days') + area + ot) * g('employee-daily-wage') * 100) / 100;
+    var tEl = document.getElementById('employee-tax');
+    var taxPct = (tEl && tEl.value !== '') ? g('employee-tax') : empPct('taxPct'), tax = Math.round(gross * taxPct) / 100, lateF = window.EMP_FORM_LATE || 0, net = Math.round((gross - tax - lateF) * 100) / 100;
     var out = document.getElementById('employee-total-salary');
     if (out) out.textContent = empMoney(net) + ' ج.م';
     var br = document.getElementById('employee-salary-break');
@@ -11082,7 +11127,7 @@ function empSalaryCardHtml(e, key) {
         '<div><div class="detail-label">📅 أيام العمل</div><div class="detail-value">' + f(rec.workDays) + '</div></div>' +
         '<div><div class="detail-label">🌙 أيام السهر</div><div class="detail-value">' + f(rec.nightDays) + '</div></div>' +
         '<div><div class="detail-label">⚡ أيام الإنتاجية</div><div class="detail-value">' + f(rec.productivityDays) + '</div></div>' +
-        '<div><div class="detail-label">📍 بدل المنطقة (أيام)</div><div class="detail-value">' + f(rec.areaDays) + '</div></div>' +
+        '<div><div class="detail-label">📍 بدل المنطقة (أيام)</div><div class="detail-value">' + f(t.area) + '</div></div>' +
         '<div><div class="detail-label">⏱️ الإضافي</div><div class="detail-value">' + t.ot + ' يوم</div></div>' +
         '<div><div class="detail-label">💵 اليومية</div><div class="detail-value">' + empMoney(rec.dailyWage) + ' ج.م</div></div></div>' +
         (t.late ? '<div style="font-size:12px;color:#b45309;margin-bottom:6px">⏰ خصم التأخير: <b>−' + empMoney(t.late) + '</b>' + (rec.lateMinutes ? ' (' + rec.lateMinutes + ' دقيقة)' : '') + '</div>' : '') +
@@ -11127,7 +11172,7 @@ function sendEmployeeSalaryWhatsApp(id, key) {
         '📅 أيام العمل: ' + f(rec.workDays) + '\n' +
         '🌙 أيام السهر: ' + f(rec.nightDays) + '\n' +
         '⚡ أيام الإنتاجية: ' + f(rec.productivityDays) + '\n' +
-        '📍 بدل المنطقة (أيام): ' + f(rec.areaDays) + '\n' +
+        '📍 بدل المنطقة (أيام): ' + f(t.area) + '\n' +
         (t.ot ? '⏱️ الإضافي: ' + t.ot + ' يوم\n' : '') +
         '📊 إجمالي الأيام: ' + t.days + '\n' +
         '💵 اليومية: ' + empMoney(rec.dailyWage) + ' ج.م\n' +
@@ -11373,7 +11418,7 @@ function empSalRender() {
         .catch(function() { if (seq === empSalSeq) empSalPaint(key, null); });
 }
 function empSalView(e, key, d) {
-    var rec = empAllPeriods(e)[key], linked = rec ? !!rec.linkAtt : true;
+    var rec = empAllPeriods(e)[key], linked = rec ? !!rec.linkAtt : false;
     var v = Object.assign({ workDays: 0, nightDays: 0, productivityDays: 0, areaDays: 0, dailyWage: parseFloat(empLastWage(e)) || 0 }, rec || {});
     if (linked && d && !(rec && rec.locked)) v.workDays = empCountAttendance(d, e.id).present;
     if (d && !(rec && rec.locked)) empApplyLate(v, d, e.id);
@@ -11382,35 +11427,48 @@ function empSalView(e, key, d) {
 function empSalPaint(key, d) {
     var box = document.getElementById('emp-sal-list'); if (!box) return;
     var rng = empPeriodRange(key), q = ((document.getElementById('emp-sal-search') || {}).value || '').trim();
-    var all = empHrVisibleEmployees(), net = 0, missing = 0, unsaved = 0, locked = empPeriodLocked(key);
+    var all = empHrVisibleEmployees(), net = 0, gross = 0, taxS = 0, missing = 0, unsaved = 0, locked = empPeriodLocked(key);
     var rows = all.map(function(e) {
         var o = empSalView(e, key, d);
         if (!o.v.dailyWage) missing++;
         if (!o.rec) unsaved++;
-        net += o.t.total;
+        net += o.t.total; gross += o.t.gross; taxS += o.t.tax;
         if (q && !(e.name || '').includes(q)) return '';
-        var fld = function(label, f, val, ro, warn) {
-            return '<div><div style="font-size:10px;color:#64748b;margin-bottom:2px">' + label + '</div><input type="number" inputmode="decimal" min="0" step="any" ' + (ro || locked ? 'readonly ' : '') + 'data-emp="' + e.id + '" data-f="' + f + '" value="' + (val ? val : '') + '" placeholder="0" onchange="empSalInline(this)" style="width:100%;box-sizing:border-box;padding:7px 4px;border:1px solid ' + (warn ? '#dc2626' : '#cbd5e1') + ';border-radius:8px;font-family:inherit;font-size:13px;text-align:center;' + (ro || locked ? 'background:#f1f5f9;' : '') + '"></div>';
+        var fld = function(label, f, val, o2) {
+            o2 = o2 || {};
+            var ro = o2.ro || locked;
+            return '<div><div style="font-size:10.5px;color:#64748b;margin-bottom:2px;font-weight:700">' + label + '</div><input type="number" inputmode="decimal" min="0" step="any" ' + (ro ? 'readonly ' : '') + 'data-emp="' + e.id + '" data-f="' + f + '" value="' + (val ? val : '') + '" placeholder="' + (o2.ph || '0') + '" onchange="empSalInline(this)" onkeydown="empSalEnter(event,this)" style="width:100%;box-sizing:border-box;padding:' + (o2.big ? '11px 4px' : '7px 4px') + ';border:1px solid ' + (o2.warn ? '#dc2626' : '#cbd5e1') + ';border-radius:9px;font-family:inherit;font-size:' + (o2.big ? '18px;font-weight:800' : '13px') + ';text-align:center;' + (ro ? 'background:#f1f5f9;' : '') + '"></div>';
         };
-        return '<div style="background:#fff;border-radius:14px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(13,27,42,.08)">' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">' +
-            '<div style="min-width:0"><div style="font-weight:800;font-size:13.5px;color:#0d1b2a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(e.name || '') + '</div>' +
+        var ownTax = empTaxIsOwn(o.v);
+        return '<div style="background:#fff;border-radius:14px;padding:11px 12px;margin-bottom:9px;box-shadow:0 1px 4px rgba(13,27,42,.08)">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px">' +
+            '<div style="min-width:0"><div style="font-weight:800;font-size:14px;color:#0d1b2a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(e.name || '') + '</div>' +
             '<div style="font-size:11px;color:#64748b">' + escapeHtml([e.title, e.employmentType].filter(Boolean).join(' • ')) + (o.rec ? '' : ' • <span style="color:#d97706;font-weight:700">لم يُحفظ</span>') + '</div></div>' +
-            '<div style="text-align:left"><div style="font-size:10px;color:#64748b">صافي الراتب</div><div id="sal-net-' + e.id + '" style="font-weight:800;font-size:16px;color:#047857">' + empMoney(o.t.total) + '</div></div></div>' +
-            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">' +
-            fld((o.linked ? '🔗 ' : '') + 'أيام العمل', 'workDays', o.v.workDays, o.linked, false) + fld('🌙 سهر', 'nightDays', o.v.nightDays, false, false) + fld('⚡ إنتاجية', 'productivityDays', o.v.productivityDays, false, false) +
-            fld('📍 بدل منطقة', 'areaDays', o.v.areaDays, false, false) + fld('💵 اليومية', 'dailyWage', o.v.dailyWage, false, !o.v.dailyWage) + fld('🧾 ضرايب %', 'taxPercent', o.v.taxPercent, false, false) + '</div>' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:8px">' +
-            '<div id="sal-line-' + e.id + '" style="font-size:11px;color:#475569">' + empSalLine(o.t, o.v) + '</div>' +
-            '<div style="display:flex;gap:6px;flex-shrink:0"><button onclick="empSalToggleLink(\'' + e.id + '\')" title="ربط/فك ربط الحضور" style="border:none;background:#e0f2fe;border-radius:8px;padding:6px 9px;font-size:13px;cursor:pointer">' + (o.linked ? '🔗' : '✏️') + '</button>' +
-            '<button onclick="sendEmployeeSalaryWhatsApp(\'' + e.id + '\',\'' + key + '\')" style="border:none;background:#dcfce7;border-radius:8px;padding:6px 9px;font-size:13px;cursor:pointer">📲</button></div></div></div>';
+            '<div style="text-align:left;flex-shrink:0"><div style="font-size:10px;color:#64748b">صافي الراتب</div><div id="sal-net-' + e.id + '" style="font-weight:800;font-size:17px;color:#047857">' + empMoney(o.t.total) + '</div></div></div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+            fld((o.linked ? '🔗 ' : '✍️ ') + 'عدد أيام العمل', 'workDays', o.v.workDays, { ro: o.linked, big: true }) +
+            fld('💵 اليومية', 'dailyWage', o.v.dailyWage, { big: true, warn: !o.v.dailyWage }) + '</div>' +
+            '<div id="sal-line-' + e.id + '" style="margin-top:8px">' + empSalLine(o.t, o.v) + '</div>' +
+            '<details style="margin-top:8px"><summary style="font-size:11.5px;color:#475569;cursor:pointer;font-weight:700">⋯ سهر / إنتاجية / ضريبة خاصة بالموظف</summary>' +
+            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px">' + fld('🌙 سهر', 'nightDays', o.v.nightDays) + fld('⚡ إنتاجية', 'productivityDays', o.v.productivityDays) +
+            fld('🧾 ضريبة خاصة %', 'taxPercent', ownTax ? o.v.taxPercent : '', { ph: empPct('taxPct') + '% (عام)' }) + '</div></details>' +
+            '<div style="display:flex;justify-content:flex-end;gap:6px;margin-top:8px">' +
+            '<button onclick="empSalToggleLink(\'' + e.id + '\')" title="' + (o.linked ? 'تحويل أيام العمل لإدخال يدوي' : 'سحب أيام العمل من سجل الحضور') + '" style="border:none;background:#e0f2fe;color:#075985;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">' + (o.linked ? '🔗 مربوط بالحضور' : '📥 سحب من الحضور') + '</button>' +
+            '<button onclick="sendEmployeeSalaryWhatsApp(\'' + e.id + '\',\'' + key + '\')" style="border:none;background:#dcfce7;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer">📲</button></div></div>';
     });
     var rg = document.getElementById('emp-sal-range');
     if (rg) rg.innerHTML = '🗓️ من ' + empFmtDate(rng.start) + ' إلى ' + empFmtDate(rng.end) + (d ? ' • أيام العمل 🔗 من الحضور الفعلي' : ' • ⚠️ تعذّر قراءة الحضور');
+    var cb = document.getElementById('emp-sal-cfgbar');
+    if (cb) {
+        var chip = function(x) { return '<span style="background:#eef2ff;color:#3730a3;border-radius:20px;padding:4px 10px;font-size:11.5px;font-weight:800">' + x + '</span>'; };
+        cb.innerHTML = '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px">' +
+            chip('📍 بدل منطقة ' + empPct('areaPct') + '%') + chip('⚡ إضافي ' + empPct('otPct') + '%') + chip('🧾 ضريبة ' + empPct('taxPct') + '%') +
+            (empCanMark() ? '<button onclick="empPayCfgDialog()" style="border:none;background:#4f46e5;color:#fff;border-radius:20px;padding:5px 12px;font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer">⚙️ تعديل النسب</button>' : '') + '</div>';
+    }
     var lb = document.getElementById('emp-sal-lock-btn');
     if (lb) { lb.style.display = hasPermission('all') ? '' : 'none'; lb.textContent = locked ? '🔓 فتح المدة' : '🔒 قفل المدة'; lb.style.background = locked ? '#dcfce7' : '#fee2e2'; lb.style.color = locked ? '#166534' : '#991b1b'; }
     var sm = document.getElementById('emp-sal-summary');
-    if (sm) sm.innerHTML = (locked ? '<div style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:12.5px;font-weight:800">🔒 المدة مقفولة — الأرقام ثابتة، والإرسال بالواتساب شغال</div>' : '') + '<div style="display:flex;gap:8px;margin-bottom:10px"><div style="flex:2;background:linear-gradient(135deg,#059669,#047857);color:#fff;border-radius:14px;padding:10px 12px"><div style="font-size:11px;opacity:.9">إجمالي رواتب المدة (صافي)</div><div style="font-size:20px;font-weight:800">' + empMoney(net) + ' ج.م</div></div>' +
+    if (sm) sm.innerHTML = (locked ? '<div style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:12.5px;font-weight:800">🔒 المدة مقفولة — الأرقام ثابتة، والإرسال بالواتساب شغال</div>' : '') + '<div style="display:flex;gap:8px;margin-bottom:10px"><div style="flex:2;background:linear-gradient(135deg,#059669,#047857);color:#fff;border-radius:14px;padding:10px 12px"><div style="font-size:11px;opacity:.9">إجمالي رواتب المدة (صافي)</div><div style="font-size:20px;font-weight:800">' + empMoney(net) + ' ج.م</div><div style="font-size:10.5px;opacity:.9;margin-top:2px">قبل الضريبة ' + empMoney(gross) + ' • ضريبة ' + empMoney(taxS) + '</div></div>' +
         '<div style="flex:1;background:#fff;border-radius:14px;padding:10px 8px;text-align:center;box-shadow:0 1px 4px rgba(13,27,42,.08)"><div style="font-size:11px;color:#64748b">موظفين</div><div style="font-size:18px;font-weight:800">' + all.length + '</div></div>' +
         '<div style="flex:1;background:' + (missing ? '#fef2f2' : '#fff') + ';border-radius:14px;padding:10px 8px;text-align:center;box-shadow:0 1px 4px rgba(13,27,42,.08)"><div style="font-size:11px;color:#64748b">بدون يومية</div><div style="font-size:18px;font-weight:800;color:' + (missing ? '#dc2626' : '#0d1b2a') + '">' + missing + '</div></div></div>' +
         (unsaved ? '<div style="font-size:11.5px;color:#92400e;background:#fffbeb;border-radius:10px;padding:7px 10px;margin-bottom:10px">⚠️ ' + unsaved + ' موظف لسه ما اتحفظلهمش راتب للمدة دي — اضغط «سحب الحضور للكل» أو عدّل أي خانة.</div>' : '');
@@ -11419,7 +11477,14 @@ function empSalPaint(key, d) {
     try { empProjCostRender(); } catch (err) {}
 }
 function empSalLine(t, v) {
-    return 'إجمالي ' + t.days + ' يوم' + (t.ot ? ' (إضافي ' + t.ot + ')' : '') + ' × ' + empMoney(v.dailyWage) + (t.tax ? ' − ضرايب ' + empMoney(t.tax) : '') + (t.late ? ' − تأخير ' + empMoney(t.late) : '');
+    var cell = function(lbl, val, clr) { return '<div style="background:#f8fafc;border-radius:8px;padding:5px 2px"><div style="font-size:9.5px;color:#64748b;line-height:1.3">' + lbl + '</div><div style="font-weight:800;font-size:12.5px;color:' + (clr || '#0d1b2a') + '">' + empMoney(val) + '</div></div>'; };
+    var pc = function(p) { return p == null ? '' : ' ' + p + '%'; };
+    return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center">' +
+        cell('أساسي (' + (parseFloat(v.workDays) || 0) + ' يوم)', t.base) + cell('📍 بدل منطقة' + pc(t.areaPct), t.areaAmt, '#0369a1') + cell('⚡ إضافي' + pc(t.otPct), t.otAmt, '#b45309') + cell('الإجمالي', t.gross) + '</div>' +
+        '<div style="font-size:11.5px;color:#475569;margin-top:5px;text-align:center">' +
+        (t.extraAmt ? '🌙 سهر وإنتاجية +' + empMoney(t.extraAmt) + ' • ' : '') +
+        (t.tax ? '🧾 ضريبة' + pc(t.taxPct) + ' = −' + empMoney(t.tax) : '🧾 بدون ضريبة') +
+        (t.late ? ' • ⏰ تأخير −' + empMoney(t.late) : '') + ' ← <b style="color:#047857">الصافي ' + empMoney(t.total) + '</b></div>';
 }
 function empSalSave(e, key, rec, action) {
     var periods = empAllPeriods(e), before = periods[key], rng = empPeriodRange(key);
@@ -11435,7 +11500,7 @@ function empSalSave(e, key, rec, action) {
 }
 function empSalNewRec(e, key) {
     var rng = empPeriodRange(key);
-    return { workDays: 0, nightDays: 0, productivityDays: 0, areaDays: 0, dailyWage: parseFloat(empLastWage(e)) || 0, linkAtt: true, periodStart: rng.start, periodEnd: rng.end };
+    return { workDays: 0, nightDays: 0, productivityDays: 0, areaDays: 0, dailyWage: parseFloat(empLastWage(e)) || 0, linkAtt: false, periodStart: rng.start, periodEnd: rng.end };
 }
 function empSalInline(inp) {
     if (!empCanMark()) { showToast('⛔ غير مصرح', true); return; }
@@ -11446,14 +11511,39 @@ function empSalInline(inp) {
     var rng = empPeriodRange(key), cache = EMP_ATT_CACHE[rng.start + '|' + rng.end];
     var rec = Object.assign(empSalNewRec(e, key), empAllPeriods(e)[key] || {});
     var v = parseFloat(inp.value); if (isNaN(v) || v < 0) v = 0;
-    if (f === 'taxPercent') v = Math.min(100, v);
+    if (f === 'taxPercent') { rec.taxOverride = (inp.value !== ''); v = rec.taxOverride ? Math.min(100, v) : 0; }
     rec[f] = v;
     if (rec.linkAtt && cache) rec.workDays = empCountAttendance(cache.v, id).present;
     var t = empSalSave(e, key, rec);
     var n = document.getElementById('sal-net-' + id), l = document.getElementById('sal-line-' + id);
     if (n) n.textContent = empMoney(t.total);
-    if (l) l.textContent = empSalLine(t, rec);
+    if (l) l.innerHTML = empSalLine(t, rec);
     empSalPendingRender = true;
+}
+// Enter في خانة الأيام/اليومية ينقلك للموظف اللي بعده (إدخال سريع)
+function empSalEnter(ev, el) {
+    if (ev.key !== 'Enter') return;
+    ev.preventDefault();
+    var f = el.getAttribute('data-f'), list = Array.prototype.slice.call(document.querySelectorAll('#emp-sal-list input[data-f="' + f + '"]:not([readonly])'));
+    var nx = list[list.indexOf(el) + 1];
+    el.blur();
+    if (nx) setTimeout(function() { nx.focus(); try { nx.select(); } catch (e) {} }, 80);
+}
+function empPayCfgDialog() {
+    if (!empCanMark()) { showToast('⛔ غير مصرح', true); return; }
+    var inp = 'width:100%;margin-top:4px;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font-size:15px;font-weight:700;box-sizing:border-box;font-family:inherit';
+    empDialog('⚙️ نسب الرواتب',
+        '<div style="font-size:12px;color:#64748b;margin-bottom:10px;line-height:1.8">الراتب = (أيام العمل + بدل المنطقة + الإضافي) × اليومية، ثم تُخصم الضريبة من الإجمالي.<br>أي تغيير يسري فورًا على كل المدد المفتوحة، والمدد المقفولة بتحتفظ بنسبها.</div>' +
+        '📍 بدل المنطقة % (من أيام العمل):<input id="pc-area" type="number" min="0" max="100" step="any" value="' + empPct('areaPct') + '" style="' + inp + '">' +
+        '<div style="margin-top:10px">⚡ الإضافي % (من أيام العمل):<input id="pc-ot" type="number" min="0" max="100" step="any" value="' + empPct('otPct') + '" style="' + inp + '"></div>' +
+        '<div style="margin-top:10px">🧾 الضريبة % (تُخصم من إجمالي المرتب):<input id="pc-tax" type="number" min="0" max="100" step="any" value="' + empPct('taxPct') + '" style="' + inp + '"></div>',
+        [{ label: '✅ حفظ', bg: '#059669', color: '#fff', action: function() {
+            var get = function(id) { var v = parseFloat(document.getElementById(id).value); return (isNaN(v) || v < 0) ? 0 : Math.min(100, v); };
+            EMP_HR_CFG.areaPct = get('pc-area'); EMP_HR_CFG.otPct = get('pc-ot'); EMP_HR_CFG.taxPct = get('pc-tax');
+            try { localStorage.setItem('empHrCfg', JSON.stringify(EMP_HR_CFG)); } catch (e) {}
+            try { fbDb.ref('appSettings/hrSettings').set(EMP_HR_CFG); } catch (e) {}
+            showToast('✅ اتحفظت نسب الرواتب'); refreshUI(); empSalRender();
+        } }, { label: 'إلغاء' }]);
 }
 function empSalToggleLink(id) {
     if (!empCanMark()) { showToast('⛔ غير مصرح', true); return; }
@@ -11514,7 +11604,7 @@ function empSalQueueRender() {
 function empSalQueueSend() { var q = empSalQueue; if (!q) return; sendEmployeeSalaryWhatsApp(q.ids[q.i], q.key); q.i++; empSalQueueRender(); }
 function empSalQueueSkip() { if (empSalQueue) { empSalQueue.i++; empSalQueueRender(); } }
 function empSalQueueStop() { empSalQueue = null; empSalQueueRender(); }
-Object.assign(window, { empAttShiftDay: empAttShiftDay, empAttSetFilter: empAttSetFilter, empAttRender: empAttRender, empAttMark: empAttMark, empAttMarkAllPresent: empAttMarkAllPresent, empSalRender: empSalRender, empSalInline: empSalInline, empSalToggleLink: empSalToggleLink, empSalPull: empSalPull, empSalQueueStart: empSalQueueStart, empSalQueueSend: empSalQueueSend, empSalQueueSkip: empSalQueueSkip, empSalQueueStop: empSalQueueStop });
+Object.assign(window, { empSalEnter: empSalEnter, empPayCfgDialog: empPayCfgDialog, empAttShiftDay: empAttShiftDay, empAttSetFilter: empAttSetFilter, empAttRender: empAttRender, empAttMark: empAttMark, empAttMarkAllPresent: empAttMarkAllPresent, empSalRender: empSalRender, empSalInline: empSalInline, empSalToggleLink: empSalToggleLink, empSalPull: empSalPull, empSalQueueStart: empSalQueueStart, empSalQueueSend: empSalQueueSend, empSalQueueSkip: empSalQueueSkip, empSalQueueStop: empSalQueueStop });
 
 function empFormStep(n) {
     var box = document.querySelector('#employee-modal .form-group'); if (!box) return;
@@ -11688,11 +11778,12 @@ function empSalToggleLock() {
                     empApplyLate(rec, d, e.id);
                     rec.overtimeDays = rec.overtimeManual ? (parseFloat(rec.overtimeDays) || 0) : empOvertime(rec.workDays);
                     var t = empSalaryTotals(rec); rec.totalSalary = t.total; rec.tax = t.tax;
+                    rec.calcV = 2; rec.otPct = empPct('otPct'); rec.areaPct = empPct('areaPct'); rec.taxPct = empPct('taxPct');
                     rec.locked = true; rec.lockedAt = nowIso; rec.lockedBy = empByWho();
                     periods[key] = rec;
                     if (!periods[next]) {
-                        var nrec = { workDays: 0, nightDays: 0, productivityDays: 0, areaDays: 0, dailyWage: rec.dailyWage, linkAtt: true, periodStart: nr.start, periodEnd: nr.end };
-                        if (rec.taxPercent != null) nrec.taxPercent = rec.taxPercent;
+                        var nrec = { workDays: 0, nightDays: 0, productivityDays: 0, areaDays: 0, dailyWage: rec.dailyWage, linkAtt: false, periodStart: nr.start, periodEnd: nr.end };
+                        if (empTaxIsOwn(rec)) { nrec.taxPercent = rec.taxPercent; nrec.taxOverride = true; }
                         periods[next] = nrec;
                     }
                     var dd = { id: e.id, salaryPeriods: periods, dailyWage: rec.dailyWage, updatedAt: nowIso }; if (e.ownerId) dd.ownerId = e.ownerId;
@@ -11724,7 +11815,7 @@ function empGroupByProject(rows) {
 function empSums(rows) {
     var s = { work: 0, night: 0, prod: 0, area: 0, ot: 0, days: 0, gross: 0, tax: 0, late: 0, net: 0 }, n = function(x) { return parseFloat(x) || 0; };
     rows.forEach(function(r) {
-        s.work += n(r.v.workDays); s.night += n(r.v.nightDays); s.prod += n(r.v.productivityDays); s.area += n(r.v.areaDays);
+        s.work += n(r.v.workDays); s.night += n(r.v.nightDays); s.prod += n(r.v.productivityDays); s.area += n(r.t.area);
         s.ot += r.t.ot; s.days += r.t.days; s.gross += r.t.gross; s.tax += r.t.tax; s.late += (r.t.late || 0); s.net += r.t.total;
     });
     Object.keys(s).forEach(function(k) { s[k] = Math.round(s[k] * 100) / 100; });
@@ -11770,7 +11861,7 @@ function empPayrollExcel() {
         if (!rows.length) { showToast('مفيش رواتب للمدة دي', true); return; }
         var head = ['م', 'اسم الموظف', 'المهنة', 'أيام العمل', 'سهر', 'إنتاجية', 'بدل منطقة', 'إضافي', 'إجمالي الأيام', 'اليومية', 'الإجمالي', 'ضرايب %', 'الضرايب', 'خصم تأخير', 'الصافي'];
         var aoa = [[COMPANY_NAME_AR + ' — كشف مرتبات'], ['المدة: من ' + empFmtDate(rng.start) + ' إلى ' + empFmtDate(rng.end) + ' (شهر ' + key + ')'], [], head], merges = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 14 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 14 } }];
-        var line = function(i, r) { var v = r.v, t = r.t; return [i, r.e.name || '', r.e.title || '', +v.workDays || 0, +v.nightDays || 0, +v.productivityDays || 0, +v.areaDays || 0, t.ot, t.days, +v.dailyWage || 0, t.gross, +v.taxPercent || 0, t.tax, t.late || 0, t.total]; };
+        var line = function(i, r) { var v = r.v, t = r.t; return [i, r.e.name || '', r.e.title || '', +v.workDays || 0, +v.nightDays || 0, +v.productivityDays || 0, t.area || 0, t.ot, t.days, +v.dailyWage || 0, t.gross, +v.taxPercent || 0, t.tax, t.late || 0, t.total]; };
         var sumLine = function(label, s) { return ['', label, '', s.work, s.night, s.prod, s.area, s.ot, s.days, '', s.gross, '', s.tax, s.late, s.net]; };
         empGroupByProject(rows).forEach(function(g) {
             aoa.push(['🏗️ ' + g.name]); merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 14 } });
@@ -11796,7 +11887,7 @@ function empPayrollPDF() {
         var body = empGroupByProject(rows).map(function(g) {
             var s = empSums(g.rows);
             return '<h3>🏗️ ' + escapeHtml(g.name) + ' <span style="font-size:11px;font-weight:400;color:#64748b">(' + g.rows.length + ' موظف)</span></h3><table><thead><tr>' + th.map(function(x) { return '<th>' + x + '</th>'; }).join('') + '</tr></thead><tbody>' +
-                g.rows.map(function(r, i) { var v = r.v, t = r.t; return '<tr>' + td(i + 1) + '<td style="text-align:right">' + escapeHtml(r.e.name || '') + '</td>' + td(escapeHtml(r.e.title || '')) + td(+v.workDays || 0) + td(+v.nightDays || 0) + td(+v.productivityDays || 0) + td(+v.areaDays || 0) + td(t.ot) + td(t.days) + td(m(v.dailyWage)) + td(m(t.gross)) + td(m(t.tax)) + td(m(t.late || 0)) + td('<b>' + m(t.total) + '</b>') + '</tr>'; }).join('') +
+                g.rows.map(function(r, i) { var v = r.v, t = r.t; return '<tr>' + td(i + 1) + '<td style="text-align:right">' + escapeHtml(r.e.name || '') + '</td>' + td(escapeHtml(r.e.title || '')) + td(+v.workDays || 0) + td(+v.nightDays || 0) + td(+v.productivityDays || 0) + td(t.area || 0) + td(t.ot) + td(t.days) + td(m(v.dailyWage)) + td(m(t.gross)) + td(m(t.tax)) + td(m(t.late || 0)) + td('<b>' + m(t.total) + '</b>') + '</tr>'; }).join('') +
                 '<tr class="sub">' + td('') + td('إجمالي ' + escapeHtml(g.name)) + td('') + td(s.work) + td(s.night) + td(s.prod) + td(s.area) + td(s.ot) + td(s.days) + td('') + td(m(s.gross)) + td(m(s.tax)) + td(m(s.late)) + td(m(s.net)) + '</tr></tbody></table>';
         }).join('');
         var g = empSums(rows);
@@ -11810,7 +11901,7 @@ function empSlipHtml(r, key, rng) {
     return '<div class="slip"><div class="slip-h"><b>' + escapeHtml(COMPANY_NAME_AR) + '</b><span>كشف راتب — شهر ' + key + '</span></div>' +
         '<div style="margin-bottom:6px"><b>' + escapeHtml(r.e.name || '') + '</b> — ' + escapeHtml(r.e.title || '') + (r.e.projectSite ? ' — 🏗️ ' + escapeHtml(r.e.projectSite) : '') +
         '<div style="font-size:11.5px;color:#475569">المدة: من ' + empFmtDate(rng.start) + ' إلى ' + empFmtDate(rng.end) + '</div></div>' +
-        '<table>' + row('أيام العمل', f(v.workDays)) + row('أيام السهر', f(v.nightDays)) + row('أيام الإنتاجية', f(v.productivityDays)) + row('بدل المنطقة (أيام)', f(v.areaDays)) + (t.ot ? row('الإضافي (أيام)', t.ot) : '') +
+        '<table>' + row('أيام العمل', f(v.workDays)) + row('أيام السهر', f(v.nightDays)) + row('أيام الإنتاجية', f(v.productivityDays)) + row('بدل المنطقة (أيام)', f(t.area)) + (t.ot ? row('الإضافي (أيام)', t.ot) : '') +
         row('إجمالي الأيام', t.days) + row('اليومية', empMoney(v.dailyWage) + ' ج.م') + row('الإجمالي', empMoney(t.gross) + ' ج.م') +
         (t.tax ? row('الضرايب' + (v.taxPercent != null ? ' (' + f(v.taxPercent) + '%)' : ''), '− ' + empMoney(t.tax) + ' ج.م') : '') +
         (t.late ? row('خصم التأخير', '− ' + empMoney(t.late) + ' ج.م') : '') +
@@ -12022,7 +12113,7 @@ Object.assign(window, { empPayrollMenu: empPayrollMenu, empPayrollExcel: empPayr
 
 // ===== (7) تأخير الحضور + خصم التأخير =====
 var EMP_HR_CFG = (function() {
-    var d = { start: '08:00', grace: 15, hours: 8, autoDeduct: false, alertHour: 10 };
+    var d = { start: '08:00', grace: 15, hours: 8, autoDeduct: false, alertHour: 10, areaPct: 25, otPct: 15, taxPct: 0 };
     try { var c = JSON.parse(localStorage.getItem('empHrCfg') || 'null'); if (c) Object.keys(d).forEach(function(k) { if (c[k] !== undefined) d[k] = c[k]; }); } catch (e) {}
     return d;
 })();
@@ -12551,6 +12642,8 @@ function saveEmployee() {
     var _oa = document.getElementById('employee-ot-auto');
     _rec.overtimeManual = !!(_oa && !_oa.checked);
     _rec.overtimeDays = _rec.overtimeManual ? _nv('employee-overtime-days') : empOvertime(_rec.workDays);
+    _rec.areaManual = _rec.overtimeManual; if (!_rec.areaManual) _rec.areaDays = empAreaDays(_rec.workDays);
+    _rec.taxOverride = (document.getElementById('employee-tax').value !== '');
     var _tt = empSalaryTotals(_rec); _rec.totalSalary = _tt.total; _rec.tax = _tt.tax;
     _rec.periodStart = document.getElementById('employee-period-start').value || _rng.start;
     _rec.periodEnd = document.getElementById('employee-period-end').value || _rng.end;
